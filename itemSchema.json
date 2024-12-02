@@ -1,0 +1,25 @@
+{
+    "type": "armor_chip",//"weapon", "grenade", "armor_chip"
+    // ARMOR CHIP
+    "stats": [0,0,0,0,0,0],
+    "slot": 0,//0 - 3
+    "pilotEnergy": 3,//3 - 5
+    "titanEnergy": 3,//3 - 5
+    "PilotMod0": "",
+    "PilotMod1": "",
+    "PilotMod2": "",
+    "TitanMod0": "",
+    "TitanMod1": "",
+    "TitanMod2": "",
+    // WEAPON
+    "classname": "mp_weapon_vinson",
+    "barrel": "long",// barrel types
+    "mag": "tactical",
+    "perk1": "",
+    "perk2": "",
+    // TITAN DATACORE
+    "personality": "",
+    "power_usage": "",
+    "perk1": "",
+    "perk2": ""
+}

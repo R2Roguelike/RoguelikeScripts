@@ -1,0 +1,55 @@
+{
+	"Name": "Roguelike.Inventory",
+	"Description": "utilities for modding the video game",
+	"LoadPriority": 6,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "ui/menu_inventory.nut",
+			"RunOn": "UI",
+			"UICallback": {
+				"Before": "AddInventoryMenu"
+			}
+		},
+		{
+			"Path": "ui/inventory_slot.nut",
+			"RunOn": "UI"
+		},
+		{
+			"Path": "_inventory.nut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+				"After": "Inventory_Init"
+			}
+		},
+		{
+			"Path": "cl_inventory.nut",
+			"RunOn": "CLIENT"
+		},
+	],
+
+	"ConVars": [
+		{
+			"Name": "player_mods",
+			"Flags": "USERINFO | CHEAT",
+			"DefaultValue": ""
+		},
+		{
+			"Name": "player_stats",
+			"Flags": "USERINFO | CHEAT",
+			"DefaultValue": ""
+		},
+		{
+			"Name": "power_player",
+			"Flags": "CHEAT",
+			"DefaultValue": "0"
+		},
+		{
+			"Name": "power_enemy",
+			"Flags": "CHEAT",
+			"DefaultValue": "0"
+		}
+	]
+}

@@ -1,0 +1,50 @@
+{
+	"Name": "EladNLG.ModWeaponTest",
+	"Description": "weapon testing",
+	"LoadPriority": 6,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "sh_mod_test.nut",
+			"RunOn": "SERVER || CLIENT",
+            "ServerCallback": {
+                "After": "Sh_ModWeaponVarTest_Init"
+            },
+            "ClientCallback": {
+                "After": "Sh_ModWeaponVarTest_Init"
+            }
+		},
+		{
+			"Path": "sh_mod_grenades.nut",
+			"RunOn": "SERVER || CLIENT",
+            "ServerCallback": {
+                "After": "Sh_ModGrenades_Init"
+            },
+            "ClientCallback": {
+                "After": "Sh_ModGrenades_Init"
+            }
+		},
+        {
+            "Path": "spmp_autoprecache.nut",
+            "RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "PrecacheJack"
+            }
+        },
+	],
+
+	"ConVars": [
+        {
+            "Name": "weapon_mag_mult",
+            "DefaultValue": "1",
+            "Flags": "CHEAT"
+        },
+        {
+            "Name": "cooldown_reduction",
+            "DefaultValue": "1",
+            "Flags": "CHEAT"
+        }
+	]
+}

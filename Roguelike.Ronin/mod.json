@@ -1,0 +1,24 @@
+{
+	"Name": "Roguelike.Ronin",
+	"Description": "Handles all ronin stuff.",
+	"LoadPriority": 0,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "_daze.nut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Daze_Init"
+            }
+		},
+		{
+			"Path": "mods/ronin_mods.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		}
+	],
+
+	"ConVars": [
+	]
+}

@@ -1,0 +1,425 @@
+resource/ui/menus/level_end.menu
+{
+    menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+		Vignette
+		{
+			ControlName			ImagePanel
+			InheritProperties	MenuVignette
+		}
+
+		ButtonRowAnchor
+		{
+			ControlName	Label
+			labelText	""
+
+			xpos	120
+			ypos	160
+		}
+
+		FilterButtonsRowAnchor
+		{
+			ControlName	Label
+			labelText 	""
+
+			xpos	90
+	 		ypos	848
+		}
+
+        Screen
+        {
+            ControlName		ImagePanel
+            image           "vgui/hud/white"
+            wide			%100
+            tall			%100
+            visible			1
+            scaleImage		1
+            fillColor		"0 0 0 0"
+            drawColor		"0 0 0 0"
+        }
+
+        Results
+        {
+            ControlName		ImagePanel
+            image           "vgui/hud/white"
+            wide			1000
+            tall		    300
+            visible			1
+            scaleImage		1
+            fillColor		"0 0 0 0"
+            drawColor		"0 0 0 0"
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	CENTER
+            pin_to_sibling_corner	CENTER
+        }
+
+        Title
+        {
+            ControlName				Label
+            xpos					0
+            ypos				    50
+            wide					74
+            tall					27
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            auto_tall_tocontents	1
+            labelText				"LEVEL RESULTS"
+            fgcolor_override		"200 200 200 255"
+            textAlignment			center
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					JetBrainsMonoBold_56
+
+            pin_to_sibling			Results
+            pin_corner_to_sibling	BOTTOM
+            pin_to_sibling_corner	TOP
+        }
+
+        TimeBG
+        {
+            ControlName			ImagePanel
+
+            image			"vgui/hud/white"
+            border          WhiteBorder
+
+            drawColor	"0 0 0 135"
+            scaleImage			1
+
+            wide				900
+            tall				20
+
+            "xpos"			"2"
+            "ypos"			"-10"
+
+            pin_to_sibling "Results"
+            pin_corner_to_sibling	BOTTOM
+            pin_to_sibling_corner	CENTER
+        }
+
+        TimeBar
+        {
+            ControlName			CHudProgressBar
+            //image			    "vgui/hud/white"
+            fg_image			"vgui/hud/white"
+
+            ProgressDirection			0
+            CircularEnabled 		0
+            SegmentFill			1
+            SegmentSize			1000
+
+            fgcolor_override	"79 121 255 255"
+            scaleImage			1
+
+            wide				894  
+            tall				14
+
+            "xpos"			"-3"
+            "ypos"			"-3"
+
+            pin_to_sibling "TimeBG"
+            pin_corner_to_sibling	TOP_RIGHT
+            pin_to_sibling_corner	TOP_RIGHT
+        }
+        TimeLabel
+        {
+            ControlName			Label
+            xpos				-1
+            ypos				5
+
+            visible				1
+            zpos				200
+            wide                128
+            tall				24
+            labelText			"Time"
+            allCaps				1
+            font				JetBrainsMono_32
+            auto_wide_to_contents	0
+            auto_tall_tocontents    1
+            textAlignment		west
+            fgcolor_override 	"255 255 255 255"
+
+            pin_to_sibling				TimeBG
+            pin_corner_to_sibling		BOTTOM_LEFT
+            pin_to_sibling_corner		TOP_LEFT
+        }
+        TimeReward
+        {
+            ControlName			Label
+            xpos				-1
+            ypos				5
+
+            visible				1
+            zpos				200
+            wide                384
+            tall				24
+            labelText			"8 Mods Unlocked"
+            allCaps				1
+            font				JetBrainsMono_32
+            auto_wide_to_contents	0
+            auto_tall_tocontents    1
+            textAlignment		east
+            fgcolor_override 	"255 255 255 255"
+
+            pin_to_sibling				TimeBG
+            pin_corner_to_sibling		BOTTOM_RIGHT
+            pin_to_sibling_corner		TOP_RIGHT
+        }
+        
+        TimeRank
+        {
+            ControlName			Label
+            xpos				16
+            ypos				26
+
+            visible				1
+            zpos				200
+            wide                128
+            tall				56
+            labelText			"S"
+            allCaps				1
+            font				JetBrainsMonoBold_100
+            auto_wide_to_contents	0
+            auto_tall_tocontents    1
+            textAlignment		north-west
+            fgcolor_override 	"255 0 0 255"
+
+            pin_to_sibling				TimeBar
+            pin_corner_to_sibling		BOTTOM_LEFT    
+            pin_to_sibling_corner		BOTTOM_RIGHT
+        }
+
+        KillsBG
+        {
+            ControlName			ImagePanel
+
+            image			"vgui/hud/white"
+            border          WhiteBorder
+
+            drawColor	"0 0 0 135"
+            scaleImage			1
+
+            wide				900
+            tall				20
+
+            "xpos"			"2"
+            "ypos"			"10"
+
+            pin_to_sibling "Results"
+            pin_corner_to_sibling	TOP
+            pin_to_sibling_corner	CENTER
+        }
+
+        KillsBar
+        {
+            ControlName			CHudProgressBar
+            image			    "vgui/hud/white"
+            fg_image			"vgui/hud/white"
+
+            ProgressDirection			0
+            CircularEnabled 		0
+            SegmentFill			1
+            SegmentSize			1000
+
+            fgcolor_override	"79 121 255 255"
+            scaleImage			1
+
+            wide				894 
+            tall				14
+
+            "xpos"			"-3"
+            "ypos"			"-3"
+
+            pin_to_sibling "KillsBG"
+            pin_corner_to_sibling	TOP_RIGHT
+            pin_to_sibling_corner	TOP_RIGHT
+        }
+        
+        KillsLabel
+        {
+            ControlName			Label
+            xpos				-1
+            ypos				6
+
+            visible				1
+            zpos				200
+            wide                128
+            tall				24
+            labelText			"KILLS"
+            allCaps				1
+            font				JetBrainsMono_32
+            auto_wide_to_contents	0
+            auto_tall_tocontents    1
+            textAlignment		west
+            fgcolor_override 	"255 255 255 255"
+
+            pin_to_sibling				KillsBG
+            pin_corner_to_sibling		TOP_LEFT
+            pin_to_sibling_corner		BOTTOM_LEFT 
+        }
+
+        KillsRank
+        {
+            ControlName			Label
+            xpos				16
+            ypos				25
+
+            visible				1
+            zpos				200
+            wide                128
+            tall				56
+            labelText			"S"
+            allCaps				1
+            font				JetBrainsMonoBold_100
+            auto_wide_to_contents	0
+            auto_tall_tocontents    1
+            textAlignment		north-west
+            fgcolor_override 	"255 0 0 255"
+
+            pin_to_sibling				KillsBar
+            pin_corner_to_sibling		TOP_LEFT    
+            pin_to_sibling_corner		TOP_RIGHT
+        }
+        KillsReward
+        {
+            ControlName			Label
+            xpos				-1
+            ypos				5
+
+            visible				1
+            zpos				200
+            wide                384
+            tall				24
+            labelText			"+2 Enemy Power"
+            allCaps				1
+            font				JetBrainsMono_32
+            auto_wide_to_contents	0
+            auto_tall_tocontents    1
+            textAlignment		east
+            fgcolor_override 	"255 255 255 255"
+
+            pin_to_sibling				KillsBG
+            pin_corner_to_sibling		TOP_RIGHT
+            pin_to_sibling_corner		BOTTOM_RIGHT
+        }
+
+        EnemyPower
+        {
+            ControlName			Label
+            xpos				-50
+            ypos				-150
+
+            visible				1
+            zpos				200
+            wide                256
+            tall				24
+            labelText			"150"
+            allCaps				1
+            font				JetBrainsMonoBold_100
+            auto_wide_to_contents	0
+            auto_tall_tocontents    1
+            textAlignment		center
+            fgcolor_override 	"255 240 125 255"
+
+            pin_to_sibling				Screen
+            pin_corner_to_sibling		BOTTOM_RIGHT
+            pin_to_sibling_corner		RIGHT
+        }
+        EnemyPowerLabel
+        {
+            ControlName			Label
+            xpos				-1
+            ypos				0
+
+            visible				1
+            zpos				200
+            wide                256
+            tall				24
+            labelText			"Enemy Power"
+            allCaps				1
+            font				JetBrainsMono_43
+            auto_wide_to_contents	0
+            auto_tall_tocontents    1
+            textAlignment		center
+            fgcolor_override 	"255 255 255 255"
+
+            pin_to_sibling				EnemyPower
+            pin_corner_to_sibling		BOTTOM
+            pin_to_sibling_corner		TOP
+        }
+        PlayerPower
+        {
+            ControlName			Label
+            xpos				-50
+            ypos				150
+
+            visible				1
+            zpos				200
+            wide                256
+            tall				24
+            labelText			"100"
+            allCaps				1
+            font				JetBrainsMonoBold_100
+            auto_wide_to_contents	0
+            auto_tall_tocontents    1
+            textAlignment		center
+            fgcolor_override 	"255 240 125 255"
+
+            pin_to_sibling				Screen
+            pin_corner_to_sibling		TOP_RIGHT
+            pin_to_sibling_corner		RIGHT
+        }
+        PlayerPowerLabel
+        {
+            ControlName			Label
+            xpos				-1
+            ypos				0
+
+            visible				1
+            zpos				200
+            wide                256
+            tall				24
+            labelText			"Your Power"
+            allCaps				1
+            font				JetBrainsMono_43
+            auto_wide_to_contents	0
+            auto_tall_tocontents    1
+            textAlignment		center
+            fgcolor_override 	"255 255 255 255"
+
+            pin_to_sibling				PlayerPower
+            pin_corner_to_sibling		TOP
+            pin_to_sibling_corner		BOTTOM
+        }
+
+        ContinueButton
+        {
+            ControlName				CNestedPanel
+            xpos					0
+            ypos                    128
+            wide					384
+            tall					64
+            visible					1
+            tabPosition				1
+            zpos					20
+            controlSettingsFile		"Resource/UI/menus/panels/vgui_button.res"
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	TOP
+            pin_to_sibling_corner	CENTER
+        }
+    }
+}

@@ -1,0 +1,14 @@
+WeaponData
+{
+	"charge_wave_max_count"							"6"
+	"charge_wave_step_dist"							"75.0"
+
+
+	"ammo_stockpile_max"							"270"
+	"ammo_clip_size"   								"270"
+	"ammo_default_total"							"270"
+	"ammo_per_shot"									"135"
+	"ammo_min_to_fire"								"135"
+
+	"regen_ammo_refill_rate"						"9"
+}

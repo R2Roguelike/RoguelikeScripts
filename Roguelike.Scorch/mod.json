@@ -1,0 +1,24 @@
+{
+	"Name": "Roguelike.Scorch",
+	"Description": "Handles all scorch realted stuff.",
+	"LoadPriority": 0,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "_burn.nut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Burn_Init"
+            }
+		},
+		{
+			"Path": "mods/scorch_mods.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		}
+	],
+
+	"ConVars": [
+	]
+}

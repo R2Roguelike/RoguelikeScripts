@@ -1,0 +1,13 @@
+FontFileTable
+{
+	"Golos"				"resource/fonts/golos/golos-ui_vf.ttf"
+	"JetBrainsMono"				"resource/fonts/jetbrainsmono/JetBrainsMono-Regular.ttf"
+	"JetBrainsMonoItalic"				"resource/fonts/jetbrainsmono/JetBrainsMono-Italic.ttf"
+	"JetBrainsMonoBold"				"resource/fonts/jetbrainsmono/JetBrainsMono-Bold.ttf"
+	"JetBrainsMonoBoldItalic"				"resource/fonts/jetbrainsmono/JetBrainsMono-BoldItalic.ttf"
+
+	"tahoma"					"resource/fonts/jetbrainsmono/JetBrainsMono-Regular.ttf"						[$PC]
+	"tahoma bold"				"resource/fonts/jetbrainsmono/JetBrainsMono-Bold.ttf" 					[$PC]
+	"lucida console"			"resource/fonts/jetbrainsmono/JetBrainsMono-Regular.ttf"			[$PC]
+	"lucida console"			"resource/fonts/jetbrainsmono/JetBrainsMono-Regular.ttf"	[$GAMECONSOLE]
+}

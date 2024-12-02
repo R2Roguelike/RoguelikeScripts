@@ -1,0 +1,18 @@
+{
+	"Name": "Roguelike.BaseGameOverrides",
+	"Description": "Stuff that overrides the base game.",
+	"LoadPriority": 0,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+	],
+
+	"ConVars": [
+		{
+			"Name": "roguelike_titan_loadout",
+			"Flags": "CHEAT",
+			"DefaultValue": "mp_titanweapon_leadwall mp_titanweapon_meteor"
+		}
+	]
+}

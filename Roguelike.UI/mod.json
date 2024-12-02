@@ -1,0 +1,81 @@
+{
+	"Name": "Roguelike.UI",
+	"Description": "User Interfaces.",
+	"LoadPriority": 0,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "cl_roguelike_timer.nut",
+			"RunOn": "CLIENT",
+            "ClientCallback": {
+                "After": "RoguelikeTimer_Init"
+            }
+		},
+		{
+			"Path": "cl_healthbars.nut",
+			"RunOn": "CLIENT",
+            "ClientCallback": {
+                "After": "Healthbars_Init"
+            }
+		},
+		{
+			"Path": "cl_status_effects.nut",
+			"RunOn": "CLIENT",
+            "ClientCallback": {
+                "After": "Cl_StatusEffects_Init"
+            }
+		},
+		{
+			"Path": "sh_ranking.nut",
+			"RunOn": "CLIENT || UI"
+		},
+		{
+			"Path": "ui/menu_level_end.nut",
+			"RunOn": "UI",
+			"UICallback": {
+				"Before": "AddLevelEndMenu"
+			}
+		},
+		{
+			"Path": "ui/hovers.nut",
+			"RunOn": "UI",
+			"UICallback": {
+				"Before": "Hover_Init"
+			}
+		},
+		{
+			"Path": "ui/mod_slot.nut",
+			"RunOn": "UI"
+		},
+		{
+			"Path": "ui/vgui_button.nut",
+			"RunOn": "UI"
+		},
+		{
+			"Path": "ui/menu_mod_select.nut",
+			"RunOn": "UI",
+			"UICallback": {
+				"Before": "ModSelect_Init"
+			}
+		},
+		{
+			"Path": "ui/roguelike_ui_utility.nut",
+			"RunOn": "UI"
+		}
+	],
+
+	"ConVars": [
+        {
+            "Name": "roguelike_timer_debug",
+            "DefaultValue": "0",
+            "Flags": "FCVAR_CHEAT"
+        },
+		{
+            "Name": "roguelike_levels_completed",
+            "DefaultValue": "0",
+            "Flags": "FCVAR_CHEAT"
+		}
+	]
+}

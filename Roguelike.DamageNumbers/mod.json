@@ -1,0 +1,35 @@
+{
+	"Name": "Roguelike.DamageNumbers",
+	"Description": "Damage Numbers.",
+	"LoadPriority": 0,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "cl_damageindicators.gnut",
+			"RunOn": "CLIENT",
+            "ClientCallback": {
+                "After": "Cl_DamageIndicator_Init"
+            }
+		}
+	],
+
+	"ConVars": [
+		{
+			"Name": "comp_hud_damage_indicator",
+			"DefaultValue": "1",
+			"Flags": 16777216
+		},
+		{
+			"Name": "comp_hud_damage_indicator_duration",
+			"DefaultValue": "1.3",
+			"Flags": 16777216
+		},
+		{
+			"Name": "comp_hud_damage_indicator_fade_time",
+			"DefaultValue": "0.5",
+			"Flags": 16777216
+		}
+	]
+}

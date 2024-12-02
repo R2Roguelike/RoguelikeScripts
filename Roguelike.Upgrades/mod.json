@@ -1,0 +1,81 @@
+{
+	"Name": "Roguelike.Loot",
+	"Description": "Handles all loot data.",
+	"LoadPriority": 0,
+	"RequiredOnClient": false,
+	"InitScript": "upgrades_init.nut",
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "_amped_shield.nut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "AmpedShield_Init"
+            }
+		},
+		{
+			"Path": "_tick_spawner.nut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "TickSpawner_Init"
+            }
+		},
+		{
+			"Path": "_elites.nut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Elites_Init"
+            }
+		},
+		{
+			"Path": "ui_mods.nut",
+			"RunOn": "UI || SERVER || CLIENT",
+            "UICallback": {
+                "Before": "Mods_Init"
+            },
+            "ServerCallback": {
+                "Before": "Mods_Init"
+            },
+            "ClientCallback": {
+                "Before": "Mods_Init"
+            }
+		},
+		{
+			"Path": "upgrade_formulas.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		},
+		{
+			"Path": "mods/pilot_chip_1.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		},
+		{
+			"Path": "mods/pilot_chip_2.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		},
+		{
+			"Path": "mods/pilot_chip_3.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		},
+		{
+			"Path": "mods/pilot_chip_4.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		},
+		{
+			"Path": "mods/titan_chip_1.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		},
+		{
+			"Path": "mods/titan_chip_2.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		}
+	],
+
+	"ConVars": [
+		{
+			"Name": "roguelike_unlock_all",
+			"DefaultValue": "0",
+			"Flags": "CHEAT"
+		}
+	]
+}

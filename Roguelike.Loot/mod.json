@@ -1,0 +1,31 @@
+{
+	"Name": "Roguelike.Loot",
+	"Description": "Handles all loot data.",
+	"LoadPriority": 0,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "ui_armor_chip.nut",
+			"RunOn": "UI"
+		},
+		{
+			"Path": "run_manager.nut",
+			"RunOn": "UI",
+			"UICallback": {
+				"Before": "Inventory_Init"
+			}
+		},
+		{
+			"Path": "_chests.nut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+				"After": "Chests_Init"
+			}
+		}
+	],
+
+	"ConVars": [
+	]
+}

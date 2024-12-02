@@ -1,0 +1,40 @@
+{
+	"Name": "Roguelike.ModdingUtils",
+	"Description": "Modding utilities!",
+	"LoadPriority": 6,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "sh_modding_utils.nut",
+			"RunOn": "SERVER || CLIENT"
+		},
+		{
+			"Path": "kick_pattern.nut",
+			"RunOn": "SERVER || CLIENT"
+		},
+		{
+		  "Path": "_northstar_cheatcommands.nut",
+		  "RunOn": "SERVER",
+		  "ServerCallback": {
+			"After": "NorthstarCheatCommands_Init"
+		  }
+		},
+		{
+		  "Path": "sh_northstar_safe_io.gnut",
+		  "RunOn": "CLIENT || SERVER || UI"
+		},
+		{
+		  "Path": "sh_server_to_client_stringcommands.gnut",
+		  "RunOn": "CLIENT || SERVER"
+		},
+		{
+			"Path": "mod_weapon_vars.nut",
+			"RunOn": "SERVER || CLIENT"
+		}
+	],
+
+	"ConVars": [
+	]
+}

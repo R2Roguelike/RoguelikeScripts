@@ -1,0 +1,44 @@
+// Possibly helpful math:
+//
+// If (4*springConstant > damping*damping)
+// then the spring will oscilate.
+// If <=, the spring will not oscilate but just decay exponentially.
+//
+// In the oscillating case, the frequency (cycles per second) is
+//
+//     f = sqrt(4*springConstant - damping*damping)/(4*PI)
+//
+// In that case, making a tweak that leaves (4*springConstant - damping*damping) unchanged
+// will keep the frequency constant but change how fast it decays.
+//
+// In the oscillating case, the amplitude decays with a half-life = 2*ln(2)/damping (in seconds).
+// This is approximately:
+//
+//     halflife = 1.386/damping
+//
+// Thus in the oscillating case, the decay is determined only by damping, and is unaffected by springConstant.
+// So it may be useful to adjust the decay first, and then adjust the springConstant to adjust the frequency.
+// Adjusting them in the other order may be trickier, because adjusting damping affects both frequency and decay.
+
+
+WeaponSprings
+{
+	hot
+	{
+		"hipfire_pitch_springConstant"	"0.0"
+		"hipfire_pitch_damping"			"20.0"
+		"hipfire_yaw_springConstant"	"0.0"
+		"hipfire_yaw_damping"			"20.0"
+		"hipfire_roll_springConstant"	"20000.0"
+		"hipfire_roll_damping"			"20.0"
+
+		"ADS_pitch_springConstant"		"0.0"
+		"ADS_pitch_damping"				"20.0"
+		"ADS_yaw_springConstant"		"0.0"
+		"ADS_yaw_damping"				"20.0"
+		"ADS_roll_springConstant"		"20000.0"
+		"ADS_roll_damping"				"20.0"
+	}
+
+}
+

@@ -1,0 +1,8 @@
+WeaponData
+{
+    SP_BASE
+    {
+        "charge_time"                   "3.25"
+        "charge_cooldown_time"          "9.5"
+    }
+}
