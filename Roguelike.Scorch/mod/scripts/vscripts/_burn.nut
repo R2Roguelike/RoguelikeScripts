@@ -70,7 +70,7 @@ void function FireTrapDamage( entity ent, var damageInfo )
     if (!attacker.IsPlayer())
         return
         
-    DamageInfo_ScaleDamage( damageInfo, 0.5 )
+    DamageInfo_ScaleDamage( damageInfo, 0.75 )
 
     int burn = 3
     if (Roguelike_HasMod( attacker, "offense_canister"))
@@ -102,10 +102,12 @@ void function FireWallDamage( entity ent, var damageInfo )
     if (isHighWall)
         wallPower++
     
-    if (!isDashWall)
+    if (isDashWall)
     {
-        DamageInfo_ScaleDamage( damageInfo, 0.5 )
+        DamageInfo_ScaleDamage( damageInfo, 1.5 )
     }
+    else
+        DamageInfo_ScaleDamage( damageInfo, 0.75 )
 
     int burn = 4 + wallPower * 4
     
@@ -125,7 +127,7 @@ void function HeatShieldDamage( entity ent, var damageInfo )
     if (!attacker.IsPlayer())
         return
 
-    DamageInfo_ScaleDamage( damageInfo, 0.5 )
+    DamageInfo_ScaleDamage( damageInfo, 0.75 )
 
     int burn = 4
     

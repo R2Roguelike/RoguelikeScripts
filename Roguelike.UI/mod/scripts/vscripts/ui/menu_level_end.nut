@@ -75,6 +75,12 @@ void function MenuAnimation()
     int prevPower = expect int(runData.powerPlayer)
     int powerGained = RoundToInt(GraphCapped( killsRank, 4, 0, 3, 7 ))
     runData.powerPlayer += powerGained
+
+    runData.map <- file.nextMap
+    printt(runData.map)
+    runData.startPointIndex <- file.startPointIndex
+    printt(runData.startPointIndex)
+
     SetConVarInt("power_player", prevPower + powerGained)
 
     // enemy power always increases by 10.
@@ -83,6 +89,11 @@ void function MenuAnimation()
     int enemyPowerGained = 10
     runData.enemyPower += enemyPowerGained
     runData.levelsCompleted <- prevLevelsCompleted + 1
+
+    int modsUnlocked = minint(2 + (4 - timeRank), expect int(runData.lockedMods.len()))
+    Roguelike_UnlockMods( modsUnlocked )
+
+    NSSaveJSONFile( "run_backup.json", runData )
     SetConVarInt("roguelike_levels_completed", prevLevelsCompleted + 1)
     SetConVarInt("power_enemy", prevEnemyPower + 20)
     Hud_SetText(Hud_GetChild(file.menu, "PlayerPower"), string( prevPower ))
@@ -127,12 +138,9 @@ void function MenuAnimation()
 
     Hud_SetText(Hud_GetChild(file.menu, "TimeRank"), GetRankName(timeRank))
     Hud_GetChild(file.menu, "TimeRank").SetColor(GetColorForRank(timeRank))
-    int modsUnlocked = minint(2 + (4 - timeRank), expect int(runData.lockedMods.len()))
     Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), format("%i Mods Unlocked", modsUnlocked))
     
     wait 0.2
-    
-    waitthread Roguelike_UnlockMods( modsUnlocked )
 }
 
 void function Roguelike_UnlockMods( int count )
@@ -141,8 +149,6 @@ void function Roguelike_UnlockMods( int count )
     count = minint( count, expect int(runData.lockedMods.len()) )
     for (int i = 1; i <= count; i++)
     {
-        wait 0.066
-        EmitUISound( "UI_PostGame_CoinPlace" )
         string mod = expect string(runData.lockedMods.getrandom())
         RoguelikeMod modStruct = GetModByName(mod)
         printt(modStruct.name)

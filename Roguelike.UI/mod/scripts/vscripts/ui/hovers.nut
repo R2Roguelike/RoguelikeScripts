@@ -43,6 +43,7 @@ void function Hover_Update()
 {
     string lastHoverType
     float lastTime = -1.0
+    int[2] screenSize = GetScreenSize()
     while (true)
     {
         vector ornull mousePosOrNull = NSGetCursorPosition()
@@ -102,7 +103,7 @@ void function Hover_Update()
                 loc = <Hud_GetAbsX( target ) + Hud_GetWidth( target ), Hud_GetAbsY( target ), 0>
 
             // prevent going outside of screen
-            if (loc.x > GetScreenSize()[0] / 2)
+            if (loc.x > screenSize[0] / 2)
             {
                 loc.x = loc.x - Hud_GetWidth(file.menu) - 20
             }
@@ -111,13 +112,13 @@ void function Hover_Update()
                 loc.x = loc.x + 20
             }
 
-            if (loc.y > GetScreenSize()[1] / 2)
+            if (loc.y > screenSize[1] / 2)
             {
-                loc.y = max(loc.y - Hud_GetHeight(file.menu) - 20, GetScreenSize()[1] / 2 - Hud_GetHeight(file.menu) / 2)
+                loc.y = max(loc.y - Hud_GetHeight(file.menu) - 20, screenSize[1] / 2 - Hud_GetHeight(file.menu) / 2)
             }
             else
             {
-                loc.y = min(loc.y + 20, GetScreenSize()[1] / 2 - Hud_GetHeight(file.menu) / 2)
+                loc.y = min(loc.y + 20, screenSize[1] / 2 - Hud_GetHeight(file.menu) / 2)
             }
 
             Hud_SetPos( file.menu, loc.x, loc.y )

@@ -51,22 +51,6 @@ resource/ui/menus/hovers.menu
             zpos			1
         }
 
-        ArmorChip2
-        {
-            ControlName			CNestedPanel
-            Classname			GridButtonClass
-            controlSettingsFile	"resource/ui/menus/hovers/armor_chip.res"
-            classname "ModSlot"
-            xpos            0
-            ypos			0
-            wide			400
-            tall			400
-            visible			1
-            scaleImage		1
-
-            zpos			1
-        }
-
         Simple
         {
             ControlName			CNestedPanel

@@ -30,6 +30,20 @@ void function TitanChip2_RegisterMods()
         mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }
+    {
+        RoguelikeMod mod = NewMod("titan_holster")
+        mod.name = "Weapon Holster"
+        mod.description = "Titan primary weapons regenerate ammo while unequipped."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("titan_holster")
+        mod.name = "Weapon Holster"
+        mod.description = "Titan primary weapons regenerate ammo while unequipped."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 2
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)

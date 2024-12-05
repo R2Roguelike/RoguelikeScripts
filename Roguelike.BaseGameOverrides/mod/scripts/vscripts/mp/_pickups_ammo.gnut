@@ -108,6 +108,7 @@ void function OnNPCKilled_DropAmmo( entity npc, var damageInfo )
 
 void function OnNPCKilled_DropGrenade_Internal( entity npc, entity attacker, var damageInfo )
 {
+	return
 	string grenadeWeaponName = expect string( npc.kv.grenadeWeaponName )
 	if ( grenadeWeaponName == "" )
 		return

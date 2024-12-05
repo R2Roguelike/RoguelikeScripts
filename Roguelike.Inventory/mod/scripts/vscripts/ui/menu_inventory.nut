@@ -37,8 +37,8 @@ void function InitInventoryMenu()
 	file.gridData.rows = 2
 	file.gridData.numElements = 16
 	file.gridData.pageType = eGridPageType.HORIZONTAL
-	file.gridData.tileWidth = 96
-	file.gridData.tileHeight = 96
+	file.gridData.tileWidth = ContentScaledXAsInt( 96 )
+	file.gridData.tileHeight = ContentScaledYAsInt( 96 )
 	file.gridData.paddingVert = 8
 	file.gridData.paddingHorz = 8
 	file.gridData.initCallback = Slot_Init
@@ -195,7 +195,7 @@ void function Stat_Hover( var statPanel, var panel )
     }
     Hud_SetText( Hud_GetChild(panel, "Title"), title)
     Hud_SetText( Hud_GetChild(panel, "Description"), description )
-    Hud_SetHeight( panel, 64 + 16 + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
+    Hud_SetHeight( panel, ContentScaledYAsInt( 64 + 16 ) + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
 }
 
 void function OnOpen()
@@ -465,7 +465,7 @@ void function ModHelp_Hover( var label, var panel )
 
     Hud_SetText( Hud_GetChild(panel, "Title"), title)
     Hud_SetText( Hud_GetChild(panel, "Description"), description )
-    Hud_SetHeight( panel, 64 + 16 + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
+    Hud_SetHeight( panel, ContentScaledYAsInt( 64 + 16 ) + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
 }
 
 void function OpenInventoryMenu()
@@ -481,7 +481,7 @@ void function ModSlot_Hover( var slot, var panel )
     RoguelikeMod mod = GetModForIndex(runData[modIndex])
 
     Hud_SetText( Hud_GetChild(panel, "Title"), mod.name)
-    Hud_SetHeight( panel, 64 + 16 + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
+    Hud_SetHeight( panel, ContentScaledYAsInt( 64 + 16 ) + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
     Hud_SetText( Hud_GetChild(panel, "Description"), format("Energy Cost: ^FF800000%i^FFFFFFFF\n\n%s", mod.cost, mod.description) )
 }
 void function ModSlot_Click( var button )
@@ -546,7 +546,7 @@ void function ArmorChip_Hover( var slot, var panel )
 
     slot.s.armorChip <- true
 
-    Hud_SetHeight( panel, 296 )
+    Hud_SetHeight( panel, ContentScaledYAsInt( 296 ) )
     Hud_EnableKeyBindingIcons( Hud_GetChild( panel, "FooterText") )
 
     var titleStrip = Hud_GetChild(panel, "TitleStrip")

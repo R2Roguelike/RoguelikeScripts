@@ -122,37 +122,32 @@ void function FragDroneDeath_Think( entity spectre, var damageInfo )
 
 	int damageDef = GetDamageDefForFragDrone( spectre )
 
-	RadiusDamage_DamageDefSimple( damageDef, pos, attackerEnt, spectre, 0 )
+	RadiusDamage(
+   			pos,									// center
+   			attackerEnt,							// attacker
+   			spectre,								// inflictor
+   			90,										// damage
+   			300,									// damageHeavyArmor
+   			180,									// innerRadius
+   			300,									// outerRadius
+   			SF_ENVEXPLOSION_MASK_BRUSHONLY,			// flags
+   			0,										// distanceFromAttacker
+   			50000,									// explosionForce
+   			DF_ELECTRICAL | DF_STOPS_TITAN_REGEN,	// scriptDamageFlags
+   			damageDef )			// scriptDamageSourceIdentifier
+
 	EmitSoundAtPosition( spectre.GetTeam(), pos, expSFX )
 	CreateShake( pos, 10, 105, 1.25, 768 )
 	StartParticleEffectInWorld( expFX, fxOrg, Vector( 0, 0, 0 ) )
 
-	spectre.Gib( <0, 0, 100> ) //Used to do .Destroy() on the frag drones immediately, but this meant you can't display the obiturary correctly. Instead, since it's dead already just hide it
+// used to do .Gib( <0,0,100> ) but i think that causes a crash when multiple ticks are hit at the same time with a frag???
+// no obituary. we dont care bout it. fuck you.
+	spectre.Destroy()
 }
 
 entity function GetNPCAttackerEnt( entity npc, entity attacker )
 {
-	entity owner = npc.GetBossPlayer()
-	bool ownerIsPlayer = owner != null && owner.IsPlayer()
-
-	if ( IsMultiplayer() )
-		return ownerIsPlayer ? owner : npc
-
-	if ( !IsAlive( attacker ) )
-		return npc
-
-	// dont give player credit, since that does some bad things
-	if ( ownerIsPlayer )
-		return owner
-
-	if ( attacker.IsPlayer() )
-		return GetEnt( "worldspawn" )
-
-	// ROGUELIKE - fix for a random crash???
-	if (!IsValid(attacker))
-		return GetEnt( "worldspawn" )
-	
-	return attacker
+	return GetEnt( "worldspawn" )
 }
 
 

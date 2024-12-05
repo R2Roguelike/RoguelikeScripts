@@ -602,16 +602,6 @@ void function SpawnTitanBatteryOnDeath( entity titan, var damageInfo )
 			entity player = GetPlayerArray()[0]
 			entity playerTitan = GetTitanFromPlayer( player )
 
-			if ( IsValid( playerTitan ) &&
-					(
-						GetDoomedState( playerTitan ) ||
-				 		RandomDropBatteryBasedOnHealth( playerTitan )
-				 	)
-				)
-			{
-				numBatt = 1
-			}
-
 			if ( RoguelikeScorch_IsPerfectDish( player, titan ))
 			{
 				numBatt += 1

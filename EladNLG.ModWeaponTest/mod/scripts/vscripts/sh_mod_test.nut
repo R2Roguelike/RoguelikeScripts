@@ -30,20 +30,23 @@ void function ApplyModWeaponVars( entity weapon )
         if (owner.GetLatestPrimaryWeapon() == weapon)
             weapon.s.lastEquippedTime = Time()
         
-        int ammo = weapon.GetWeaponPrimaryClipCount()
-        int maxAmmo = weapon.GetWeaponPrimaryClipCountMax()
-
-        if (Time() - weapon.s.lastEquippedTime > min(5.0 / maxAmmo, 2.5) && ammo < maxAmmo)
+        if (Roguelike_HasMod( owner, "titan_holster" ))
         {
-            printt(weapon.GetWeaponClassName(), weapon.s.lastEquippedTime, Time())
-            weapon.s.lastEquippedTime = Time()
-            weapon.SetWeaponPrimaryClipCount(minint(maxAmmo, ammo + 1))
+            int ammo = weapon.GetWeaponPrimaryClipCount()
+            int maxAmmo = weapon.GetWeaponPrimaryClipCountMax()
+
+            if (Time() - weapon.s.lastEquippedTime > min(5.0 / maxAmmo, 2.0) && ammo < maxAmmo)
+            {
+                printt(weapon.GetWeaponClassName(), weapon.s.lastEquippedTime, Time())
+                weapon.s.lastEquippedTime = Time()
+                weapon.SetWeaponPrimaryClipCount(minint(maxAmmo, ammo + 1))
+            }
         }
+
         if (IsValid(owner.GetActiveWeapon()) && !owner.GetActiveWeapon().IsWeaponOffhand())
         {
             ModWeaponVars_SetBool( weapon, eWeaponVar.instant_swap_to, true )
         }
-
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.deploy_time, 0.333 )
     }
 
@@ -92,9 +95,20 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
         }
 
         // Frost Walker
-        if (owner.IsSprinting() && Roguelike_HasMod( owner, "frost_walker" ))
+        if (owner.IsSprinting() && Roguelike_HasMod( owner, "frost_walker" ) && owner.IsTitan())
         {
             ScaleCooldown( weapon, 0.5 )
+        }
+        
+        if (weapon.GetInventoryIndex() == 0 && Roguelike_HasMod( owner, "big_boom" ))
+        {
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosionradius, 1.25 )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_inner_radius, 1.25 )
+        }
+
+        if (IsCloaked( owner ) && weapon.GetInventoryIndex() == 0 && Roguelike_HasMod( owner, "cloak_nades" ) && !owner.IsTitan())
+        {
+            ScaleCooldown( weapon, 0.25 )
         }
 
         if (weapon.GetWeaponClassName() == "mp_titanweapon_arc_wave")
@@ -118,48 +132,90 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
     }
     else
     {
-        if (!owner.IsTitan() && Roguelike_HasMod( owner, "weapons_plus" ))
+        ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_stockpile, true )
+        if (!owner.IsTitan())
         {
-            switch (weapon.GetWeaponInfoFileKeyField( "menu_category" ))
+            if (Roguelike_HasMod( owner, "uninterruptable_cloak" ))
             {
-                case "smg":
-                    foreach (int weaponVar in RELOAD_TIME_VARS)
-                        ModWeaponVars_ScaleVar( weapon, weaponVar, 0.8 )
-                    break
-                case "lmg":
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.ammo_clip_size, 1.2 )
-                    break
-                case "ar":
-                    float scalar = 0.8
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_firstshot_hipfire, scalar )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_min_hipfire, scalar )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_max_hipfire, scalar )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_firstshot_ads, scalar )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_min_ads, scalar )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_max_ads, scalar )
-                    break
-                case "shotgun":
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_distance, 1.3 )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_distance, 1.3 )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_very_far_distance, 1.3 )
-                    break
-                case "sniper":
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_rate, 1.25 )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.rechamber_time, 0.9 ) // reduced effect
-                    break
-                case "special":
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosionradius, 1.25 )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_inner_radius, 1.5 )
-                    break
-                case "pistol":
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_value, 1.3 )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_value, 1.3 )
-                    ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_very_far_value, 1.3 )
-                default:
-                    // no effect
-                    break
+                ModWeaponVars_SetBool( weapon, eWeaponVar.does_not_interrupt_cloak, true )
+            }
+            if (Roguelike_HasMod( owner, "weapons_plus" ))
+                WeaponsPlus( weapon, owner )
+            
+            if (Roguelike_HasMod( owner, "ranger" ))
+            {
+                foreach (int weaponVar in HIP_SPREAD_VARS)
+                    ModWeaponVars_ScaleVar( weapon, weaponVar, 0.6 )
+                    
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_distance, 1.3 )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_distance, 1.3 )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_very_far_distance, 1.3 )
+            }
+
+            if (Roguelike_HasMod( owner, "loader" ))
+            {
+                foreach (int weaponVar in RELOAD_TIME_VARS)
+                    ModWeaponVars_ScaleVar( weapon, weaponVar, 0.8 )
+            }
+
+            if (Roguelike_HasMod( owner, "compensator" ))
+            {
+                float scalar = 0.75
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_firstshot_hipfire, scalar )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_min_hipfire, scalar )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_max_hipfire, scalar )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_firstshot_ads, scalar )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_min_ads, scalar )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_max_ads, scalar )
+                scalar = 0.4
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_pitch_random, scalar )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_yaw_random, scalar )
             }
         }
+    }
+}
+
+void function WeaponsPlus( entity weapon, entity owner )
+{
+    switch (weapon.GetWeaponInfoFileKeyField( "menu_category" ))
+    {
+        case "smg":
+            foreach (int weaponVar in RELOAD_TIME_VARS)
+                ModWeaponVars_ScaleVar( weapon, weaponVar, 0.8 )
+            break
+        case "lmg":
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.ammo_clip_size, 1.2 )
+            break
+        case "ar":
+            float scalar = 0.8
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_firstshot_hipfire, scalar )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_min_hipfire, scalar )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_max_hipfire, scalar )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_firstshot_ads, scalar )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_min_ads, scalar )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_scale_max_ads, scalar )
+            break
+        case "shotgun":
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_distance, 1.3 )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_distance, 1.3 )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_very_far_distance, 1.3 )
+            break
+        case "sniper":
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_rate, 1.25 )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.rechamber_time, 0.9 ) // reduced effect
+            break
+        case "special":
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosionradius, 1.25 )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_inner_radius, 1.5 )
+            break
+        case "pistol":
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_value, 1.3 )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_value, 1.3 )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_very_far_value, 1.3 )
+            break
+        default:
+            // no effect
+            break
     }
 }
 

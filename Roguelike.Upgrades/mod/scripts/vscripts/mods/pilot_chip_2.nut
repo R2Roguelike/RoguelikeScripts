@@ -17,6 +17,20 @@ void function PilotChip2_RegisterMods()
         mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }
+    {
+        RoguelikeMod mod = NewMod("ground_friction")
+        mod.name = "shiny boots"
+        mod.description = "Ground friction reduced by ^40FFFF0030%^FFFFFFFF."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 1
+    }
+    {
+        RoguelikeMod mod = NewMod("wall_friction")
+        mod.name = "Anti-friction jumpkit"
+        mod.description = "Wall friction reduced by ^40FFFF0030%^FFFFFFFF."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 1
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)

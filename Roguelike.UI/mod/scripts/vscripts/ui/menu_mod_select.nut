@@ -28,8 +28,8 @@ void function InitRoguelikeModSelectMenu()
 	file.gridData.rows = 4
 	file.gridData.numElements = 20
 	file.gridData.pageType = eGridPageType.HORIZONTAL
-	file.gridData.tileWidth = 96
-	file.gridData.tileHeight = 96
+	file.gridData.tileWidth = ContentScaledXAsInt( 96 )
+	file.gridData.tileHeight = ContentScaledYAsInt( 96 )
 	file.gridData.paddingVert = 8
 	file.gridData.paddingHorz = 8
 	file.gridData.initCallback = Slot_Init
@@ -50,14 +50,14 @@ void function OnModSelectMenuOpen()
     Grid_InitPage( file.menu, file.gridData )
 
     var frame = Hud_GetChild( file.menu, "ButtonFrame" )
-    Hud_SetY( frame, file.y + 104 )
+    Hud_SetY( frame, file.y + ContentScaledYAsInt( 104 ) )
     if (file.isTitanMod)
     {
-        Hud_SetX( frame, file.x + 104 - 528 )
+        Hud_SetX( frame, file.x + ContentScaledXAsInt( 104 - 528 ) )
     }
     else // has to be a pilot mod instead
     {
-        Hud_SetX( frame, file.x - 8 )
+        Hud_SetX( frame, file.x - ContentScaledXAsInt( 8 ) )
     }
 }
 
@@ -130,7 +130,7 @@ void function ModSlot_Hover( var slot, var panel )
 
     Hud_SetText( Hud_GetChild(panel, "Title"), mod.name)
     Hud_SetText( Hud_GetChild(panel, "Description"), format("Energy Cost: ^FFA00000%i^FFFFFFFF\n\n%s", mod.cost, mod.description))
-    Hud_SetHeight( panel, 64 + 16 + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
+    Hud_SetHeight( panel, ContentScaledYAsInt( 64 + 16 ) + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
 }
 
 void function ModSlot_Click( var button )
@@ -158,8 +158,5 @@ void function ModSlot_Click( var button )
 
 void function OnModSelectBGScreen_Activate( var button )
 {
-    print("CALLED!")
-    printt(Hud_GetHudName(uiGlobal.activeMenu))
 	CloseActiveMenu()
-    printt(Hud_GetHudName(uiGlobal.activeMenu))
 }

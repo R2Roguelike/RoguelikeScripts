@@ -29,6 +29,7 @@ void function OnClientAnimEvent_weapon_mgl( entity weapon, string name )
 
 var function OnWeaponPrimaryAttack_weapon_mgl( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	DumpCallstack()
 	entity player = weapon.GetWeaponOwner()
 
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )

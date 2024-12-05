@@ -1465,7 +1465,7 @@ void function ShowGrenadeHint( entity player )
 	if ( GetGreandeAmmoCount( player ) > 0 )
 	{
 		AddButtonPressedPlayerInputCallback( player, IN_OFFHAND0, PlayerThrewGrenade )
-		DisplayOnscreenHint( player, "grenade_hint" )
+		//DisplayOnscreenHint( player, "grenade_hint" )
 		waitthread WaitSignalOrTimeout( player, HINT_DISPLAY_TIME, "threw_grenade" )
 		wait 0.5
 	}
@@ -3110,7 +3110,7 @@ void function DisplayDoubleJumpHint( entity player )
 
 	while( true )
 	{
-		DisplayOnscreenHint( player, "doublejump_hint" )
+		//DisplayOnscreenHint( player, "doublejump_hint" )
 
 		table result = WaitSignal( player, "double_jump_confirmed", "OnDamaged" )
 		ClearOnscreenHint( player )
@@ -3507,7 +3507,7 @@ void function StartPoint_Setup_Battery2Path( entity player )
 
 	thread WaypointThread( player, "#WILDS_OBJECTIVE_BATTERY2", GetEntByScriptName( "waypoint_start" ), GetEntByScriptName( "location_obj_battery2" ) )
 	thread ObjectiveRecurringReminder( player, "rock_block_done" )
-	thread WallrunningReminder( player, "first_wallrun_completed" )
+	//thread WallrunningReminder( player, "first_wallrun_completed" )
 	thread LowBatteryFlyoutNag( player )
 	thread BatteryNag( player )
 
@@ -3591,7 +3591,7 @@ void function WallrunningReminder( entity player, string endFlag )
 	{
 		FlagWait( "show_wallrun_hint" )
 
-		DisplayOnscreenHint( player, "wallrun_reminder" )
+		//DisplayOnscreenHint( player, "wallrun_reminder" )
 		FlagWaitClear( "show_wallrun_hint" )
 
 		ClearOnscreenHint( player )
@@ -3829,7 +3829,7 @@ void function Battery2Combat_ShowCloakHint( entity player )
 	)
 
 	AddButtonPressedPlayerInputCallback( player, IN_OFFHAND1, PlayerUsedCloak )
-	DisplayOnscreenHint( player, "cloak_hint" )
+	//DisplayOnscreenHint( player, "cloak_hint" )
 	waitthread WaitSignalOrTimeout( player, HINT_DISPLAY_TIME, "used_cloak" )
 	wait 0.5
 }
@@ -3991,7 +3991,7 @@ void function ShowMeleeHint( entity player )
 	)
 
 	AddButtonPressedPlayerInputCallback( player, IN_MELEE, PlayerUsedMelee )
-	DisplayOnscreenHint( player, "melee_hint" )
+	//DisplayOnscreenHint( player, "melee_hint" )
 	waitthread WaitSignalOrTimeout( player, HINT_DISPLAY_TIME, "used_melee" )
 	wait 0.5
 }
@@ -4124,7 +4124,7 @@ void function DisplaySpectreLeechHint( entity player, float delay = 0.0 )
 
 	wait delay
 
-	DisplayOnscreenHint( player, "leech_hint" )
+	//DisplayOnscreenHint( player, "leech_hint" )
 
 	OnThreadEnd(
 	function() : ( player )
@@ -4279,7 +4279,7 @@ void function Battery2ShipCrouchHintDelay( entity player )
 	if ( player.IsCrouched() )
 		return
 
-	thread DisplayOnscreenHint( player, "crouch_hint", 5 )
+	//thread DisplayOnscreenHint( player, "crouch_hint", 5 )
 
 	while( !player.IsCrouched() )
 		wait 0.1
@@ -4949,7 +4949,7 @@ void function ShowCloakHint( entity player )
 	)
 
 	AddButtonPressedPlayerInputCallback( player, IN_OFFHAND1, PlayerUsedCloak )
-	DisplayOnscreenHint( player, "cloak_hint" )
+	//DisplayOnscreenHint( player, "cloak_hint" )
 	waitthread WaitSignalOrTimeout( player, HINT_DISPLAY_TIME, "used_cloak" )
 	wait 0.5
 }
@@ -5476,7 +5476,7 @@ void function PilotLink_Dialog( entity player )
 
 	wait 1 //animation is 12 seconds long?
 
-	Remote_CallFunction_Replay( player, "ServerCallback_PilotLinkHud" )
+	//Remote_CallFunction_Replay( player, "ServerCallback_PilotLinkHud" )
 	// Protocol 1 - Link to Pilot
 	waitthread PlayBTDialogue( "diag_sp_pilotLink_WD141_40_01_mcor_bt" )
 
@@ -5487,7 +5487,7 @@ void function PilotLink_Dialog( entity player )
 	FlagWait( "neural_link_complete" )
 
 	// Neural Link: Established... Rifleman Jack Cooper - you are now confirmed as Acting Pilot of BT-7274.
-	waitthread PlayBTDialogue( "diag_sp_pilotLink_WD141_41_01_mcor_bt" )
+	//waitthread PlayBTDialogue( "diag_sp_pilotLink_WD141_41_01_mcor_bt" )
 	wait 1
 
 	// Protocol 2 - Uphold the Mission
@@ -5495,15 +5495,15 @@ void function PilotLink_Dialog( entity player )
 
 	FlagSet( "titan_training_spawn_enemies" )
 	// Our orders are to resume Special Operation #217 - Rendezvous with Major Anderson of the SRS.
-	waitthread PlayBTDialogue( "diag_sp_pilotLink_WD141_46_01_mcor_bt" )
+	//waitthread PlayBTDialogue( "diag_sp_pilotLink_WD141_46_01_mcor_bt" )
 
-	wait 1.0	// need to be timed so that it feels ok.
+	//wait 1.0	// need to be timed so that it feels ok.
 
 	StopMusicTrack( "music_wilds_16d_embark" )
 	PlayMusic( "music_wilds_16c_linking" )
 
 	// I am detecting incoming enemy forces.
-	waitthread PlayBTDialogue( "diag_sp_extra_GB101_19_01_mcor_bt" )
+	//waitthread PlayBTDialogue( "diag_sp_extra_GB101_19_01_mcor_bt" )
 
 	// activate cockpit screens
 	Remote_CallFunction_Replay( player, "ServerCallback_ActivateCockpitScreens" )
@@ -5522,19 +5522,19 @@ void function PilotLink_Dialog( entity player )
 
 	FlagWait( "titan_training_vortex" )
 	// Vortex shield online.
-	waitthread PlayBTDialogue( "diag_sp_pilotLink_WD143a_02_01_mcor_bt" )
+	//waitthread PlayBTDialogue( "diag_sp_pilotLink_WD143a_02_01_mcor_bt" )
 	// The Vortex shield catches incoming rounds and missiles. Release the button to launch any captured objects back at the enemy.
-	waitthread PlayBTDialogue( "diag_sp_pilotLink_WD143a_03_01_mcor_bt" )
+	//waitthread PlayBTDialogue( "diag_sp_pilotLink_WD143a_03_01_mcor_bt" )
 
 	FlagWait( "titan_training_rockets" )
 	// Pilot, the Acolyte Pod is online. This shoulder mounted rocket pod will lock onto multiple enemy targets.
 	// The longer you hold down the button the more locks you will achieve.
-	waitthread PlayBTDialogue( "diag_sp_pilotLink_WD143a_04_01_mcor_bt" )
+	//waitthread PlayBTDialogue( "diag_sp_pilotLink_WD143a_04_01_mcor_bt" )
 
 	FlagWait( "titan_training_completed" )
 
 	// Neural link complete. Primary Weapon Control and Motion Link reestablished.
-	waitthread PlayBTDialogue( "diag_sp_pilotLink_WD143a_05_01_mcor_bt" )
+	//waitthread PlayBTDialogue( "diag_sp_pilotLink_WD143a_05_01_mcor_bt" )
 	FlagSet( "restore_player_control" )
 
 	WaitForEnemyCount( 1, 30 )
@@ -5627,7 +5627,7 @@ void function PilotLink_TitanTraining( entity player )
 	AddDamageCallback( "player", MitigateDifficultyDamageCallback )
 
 	thread PilotLink_PlayerControls( player )
-	DisableMainTitanWeapon( player )
+	//DisableMainTitanWeapon( player )
 	FlagClear( "OnLoadSaveGame_PlayerRecoveryEnabled" )
 
 	// flag gets set when the client side animation of looking around inside the cockpit is done.
@@ -5638,8 +5638,8 @@ void function PilotLink_TitanTraining( entity player )
 
 	// Need to do this well after entering the titan so dying and reloading doesn't cause the weapon to be out.
 	int ammoLoaded = player.GetActiveWeaponPrimaryAmmoLoaded()
-	thread HackDisableOffhand( player, OFFHAND_RIGHT ) // rockets
-	thread HackDisableOffhand( player, OFFHAND_LEFT ) // vortex
+	//thread HackDisableOffhand( player, OFFHAND_RIGHT ) // rockets
+	//thread HackDisableOffhand( player, OFFHAND_LEFT ) // vortex
 	//	thread HackDisableOffhand( player, OFFHAND_TITAN_CENTER ) // smoke
 
 	// clear this here so that it's cleared for sure when the later save happens
@@ -5665,13 +5665,16 @@ void function PilotLink_TitanTraining( entity player )
 
 	// ***** VORTEX AVAILABLE *****
 	FlagSet( "titan_training_vortex" )
-	HackEnableOffhand( player, OFFHAND_LEFT )
+	//HackEnableOffhand( player, OFFHAND_LEFT )
 	entity vortexWeapon = player.GetOffhandWeapon( OFFHAND_LEFT )
 	if ( GetSpDifficulty() < DIFFICULTY_HARD )
 		vortexWeapon.AddMod( "sp_wider_return_spread" )
 
+	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", OFFHAND_RIGHT )
 	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", OFFHAND_LEFT )
-	thread DisplayVortexHint( player )
+	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", OFFHAND_TITAN_CENTER )
+	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", 3 )
+	thread DisplayVortexHint( player )	
 
 	WaitForEnemyCount( 3, 20 )
 
@@ -5693,8 +5696,7 @@ void function PilotLink_TitanTraining( entity player )
 
 	// ***** MISSILES AVAILABLE *****
 	FlagSet( "titan_training_rockets" )
-	HackEnableOffhand( player, OFFHAND_RIGHT )
-	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", OFFHAND_RIGHT )
+	//HackEnableOffhand( player, OFFHAND_RIGHT )
 	thread DisplayMissileSystemHint( player )
 
 	if ( vortexWeapon.HasMod( "sp_wider_return_spread" ) )
@@ -5763,7 +5765,7 @@ void function PilotLink_PlayerControls( entity player )
 	FlagWait( "restore_player_control" )
 
 	// enable main weapon
-	EnableMainTitanWeapon( player )
+	//EnableMainTitanWeapon( player )
 	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", OFFHAND_TITAN_CENTER )
 	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", 3 )
 
@@ -5826,7 +5828,7 @@ void function DisplayVortexHint( entity player )
 	)
 
 	AddButtonPressedPlayerInputCallback( player, IN_OFFHAND1, PlayerUsedVortex )
-	DisplayOnscreenHint( player, "vortex_hint" )
+	DisplayOnscreenHint( player, "roguelike_swap_hint" )
 	WaitSignal( player, "used_vortex" )
 
 	// waiting forever
@@ -5858,7 +5860,7 @@ void function DisplayMissileSystemHint( entity player )
 	)
 
 	AddButtonPressedPlayerInputCallback( player, IN_OFFHAND0, PlayerUsedMissiles )
-	DisplayOnscreenHint( player, "missile_system_hint" )
+	//DisplayOnscreenHint( player, "missile_system_hint" )
 	WaitSignal( player, "used_missiles" )
 
 	WaitForever()

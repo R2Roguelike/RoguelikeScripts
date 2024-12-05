@@ -800,7 +800,7 @@ bool function JustLoadedFromCheckpoint()
 
 bool function LoadedFromSave()
 {
-	ClientCommand(GetFirstPlayer(), "disconnect")
+	ServerToClientStringCommand(GetFirstPlayer(), "run_end")
 	return true
 	
 	printt( "SAVEGAME: Trying to load saveName" )

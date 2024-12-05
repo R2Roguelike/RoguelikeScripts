@@ -33,6 +33,8 @@ void function InventorySlot_Display( var slot, var content )
             Hud_SetColor( slotLabel, 25, 25, 25, 255 )
             float pilotEnergy = float( content.pilotEnergy ) / 15.0
             float titanEnergy = float( content.titanEnergy ) / 15.0
+            Hud_SetBarSegmentInfo( energyBarPilot, ContentScaledXAsInt( 2 ), ContentScaledXAsInt( 4 ) )
+            Hud_SetBarSegmentInfo( energyBarTitan, ContentScaledXAsInt( 2 ), ContentScaledXAsInt( 4 ) )
             Hud_SetBarProgress( energyBarPilot, pilotEnergy )
             Hud_SetBarProgress( energyBarTitan, titanEnergy )
             switch (expect int( content.slot ))

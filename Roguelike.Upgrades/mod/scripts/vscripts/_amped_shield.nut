@@ -30,18 +30,39 @@ void function InventoryRefreshed( entity player )
     {
         int endurance = Roguelike_GetStat( player, STAT_ENDURANCE )
         int speed = Roguelike_GetStat( player, STAT_SPEED )
-        player.SetMaxHealth(100 * (1.0 + Roguelike_GetPilotHealthBonus( endurance )))
+        player.SetMaxHealth(200 * (1.0 + Roguelike_GetPilotHealthBonus( endurance )))
 
         if (player.ContextAction_IsBusy() || player.ContextAction_IsActive())
             player.SetHealth(player.GetMaxHealth())
         
         player.SetMoveSpeedScale(1.0 + Roguelike_GetPilotSpeedBonus( speed ))
+
+        if (Roguelike_HasMod( player, "ground_friction" ))
+        {
+            player.SetGroundFrictionScale( 0.7 )
+        }
+        else
+        {
+            player.SetGroundFrictionScale( 1 )
+        }
+        if (Roguelike_HasMod( player, "wall_friction" ))
+        {
+            player.SetWallrunFrictionScale( 0.7 )
+        }
+        else
+        {
+            player.SetWallrunFrictionScale( 1 )
+        }
     }
 }
 
 void function OnPlayerDamaged( entity player, var damageInfo )
 {
-
+    if (Length(player.GetVelocity()) > 540)
+    {
+        DamageInfo_ScaleDamage( damageInfo, 0 )
+        return
+    }
     if (GetHealthFrac( player ) <= 0.5 && !player.IsTitan())
     {
         int stacks = Roguelike_GetModCount( player, "last_stand" )

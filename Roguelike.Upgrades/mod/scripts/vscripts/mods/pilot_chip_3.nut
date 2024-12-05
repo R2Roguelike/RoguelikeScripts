@@ -32,6 +32,14 @@ void function PilotChip3_RegisterMods()
         mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }
+    
+    {
+        RoguelikeMod mod = NewMod("compensator")
+        mod.name = "Compensator"
+        mod.description = "Recoil randomness significantly reduced. Overall recoil slightly reduced."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 1
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)

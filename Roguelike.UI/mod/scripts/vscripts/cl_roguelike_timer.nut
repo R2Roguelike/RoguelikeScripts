@@ -19,7 +19,13 @@ void function RoguelikeTimer_Init()
     SetConVarFloat("base_tickinterval_sp", 1.0 / 60.0)
     delaythread(0.001) RoguelikeTimer_Think()
     AddCallback_LocalClientPlayerSpawned( LocalPlayerSpawned )
+    AddServerToClientStringCommandCallback( "run_end", RunEnded )
     AddServerToClientStringCommandCallback( "level_end", LevelEnded )
+}
+
+void function RunEnded( array<string> args )
+{
+    RunUIScript( "RunEnded" )
 }
 
 void function LevelEnded( array<string> args )

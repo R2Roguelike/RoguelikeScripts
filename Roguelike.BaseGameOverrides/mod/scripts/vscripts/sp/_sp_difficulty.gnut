@@ -373,19 +373,14 @@ bool function SPMP_Callback_ForceAIMissPlayer( entity npc, entity player )
 	float chanceToHit = 1.0
 
 	if ( player.IsTitan() )
-		return RandomFloat( 1.0 ) >= chanceToHit
-
-	if ( !IsFastPilot( player ) )
-		return RandomFloat( 1.0 ) >= chanceToHit
+		return false
 
 	vector velocity = player.GetVelocity()
 	float speed = Length( velocity )
-	if ( speed < 260 )
-		return RandomFloat( 1.0 ) >= chanceToHit
 
 	if (!player.IsOnGround())
 	{
-		chanceToHit *= 0.5
+		chanceToHit *= 0.75
 	}
 
 	vector entDif = npc.GetOrigin() - player.GetOrigin()
@@ -394,12 +389,16 @@ bool function SPMP_Callback_ForceAIMissPlayer( entity npc, entity player )
 	velocity = Normalize( velocity )
 	float dot = DotProduct( entDif, velocity )
 	
-	chanceToHit *= GraphCapped( speed, 350, 800, 0.75, 0.25 )
+	if ( speed > 350 )
+		chanceToHit *= GraphCapped( speed, 350, 800, 0.75, 0.0 )
 
-	if ( dot < 0.8 )
-		chanceToHit *= 0.5
+	if ( dot < 0.8 && speed > 0 )
+		chanceToHit *= 0.75
 
-	return RandomFloat( 1.0 ) >= chanceToHit
+	printt("chanceToHit", chanceToHit)
+	float rand = RandomFloat( 1.0 )
+	printt(rand, ">", chanceToHit, rand > chanceToHit)
+	return rand > chanceToHit
 }
 
 void function SetProficiencyFromSPDifficulty( entity soldier )
@@ -416,7 +415,7 @@ void function SetProficiencyFromSPDifficulty( entity soldier )
 	switch (GetSpDifficulty())
 	{
 		case DIFFICULTY_EASY:
-			RescaleHealthWithMultiplier( soldier, 0.9 )
+			RescaleHealthWithMultiplier( soldier, 1.0 )
 			break
 		case DIFFICULTY_NORMAL:
 			RescaleHealthWithMultiplier( soldier, 1.0 )

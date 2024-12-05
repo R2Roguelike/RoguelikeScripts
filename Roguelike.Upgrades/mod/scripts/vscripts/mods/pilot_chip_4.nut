@@ -4,7 +4,7 @@ void function PilotChip4_RegisterMods()
 {
     {
         RoguelikeMod mod = NewMod("uninterruptable_cloak")
-        mod.name = "Stealthy Fire"
+        mod.name = "Stealth++"
         mod.description = "Cloak is uninterrupted by firing your weapon."
         mod.icon = $"vgui/hud/white"
         mod.cost = 2

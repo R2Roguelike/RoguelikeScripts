@@ -14,13 +14,7 @@ void function Inventory_Init()
     AddClientCommandCallback( "RefreshInventory", CC_RefreshInventory )
 
     AddCallback_OnClientConnected( OnClientConnected )
-    AddCallback_OnPilotBecomesTitan( EmbarkDisembarkInventoryRefresh )
-    AddCallback_OnTitanBecomesPilot( EmbarkDisembarkInventoryRefresh )
-}
-
-void function EmbarkDisembarkInventoryRefresh( entity player, entity npc_titan )
-{
-    RefreshInventory( player )
+    AddCallback_PlayerClassChanged( RefreshInventory )
 }
 
 void function OnClientConnected( entity player )

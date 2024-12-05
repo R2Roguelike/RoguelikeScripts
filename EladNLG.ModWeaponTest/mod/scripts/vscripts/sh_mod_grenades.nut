@@ -27,6 +27,8 @@ void function ApplyModWeaponVars( entity weapon )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_min_to_fire, 150 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_per_shot, 150 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_default_total, 300 )
+    ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_damage, 2 ) // increase damage
+    ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_damage_heavy_armor, 3 ) // REALLY increase damage against titans
 
     if (weaponClassName == "mp_weapon_thermite_grenade" || weaponClassName == "mp_weapon_grenade_gravity")
     {

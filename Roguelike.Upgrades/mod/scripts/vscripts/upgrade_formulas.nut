@@ -37,5 +37,5 @@ float function Roguelike_GetPilotCooldownReduction( int power )
 
 float function Roguelike_GetTitanCooldownReduction( int power )
 {
-    return pow(0.666, power / 100.0)
+    return pow(0.75, power / 100.0)
 }

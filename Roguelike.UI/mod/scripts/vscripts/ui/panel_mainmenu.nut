@@ -57,7 +57,7 @@ void function InitMainMenuPanel()
 
 	int headerIndex = 0
 	int buttonIndex = 0
-	var campaignHeader = AddComboButtonHeader( comboStruct, headerIndex, "#GAMEMODE_SOLO" )
+	var campaignHeader = AddComboButtonHeader( comboStruct, headerIndex, "ROGUELIKE" )
 	file.spButtons.append( AddComboButton( comboStruct, headerIndex, buttonIndex, "" ) )
 	file.spButtonFuncs.append( DoNothing() )
 	Hud_AddEventHandler( file.spButtons[buttonIndex], UIE_CLICK, RunSPButton0 )
@@ -71,14 +71,6 @@ void function InitMainMenuPanel()
 	Hud_AddEventHandler( file.spButtons[buttonIndex], UIE_CLICK, RunSPButton2 )
 	buttonIndex++
 	UpdateSPButtons()
-
-	headerIndex++
-	buttonIndex = 0
-	var multiplayerHeader = AddComboButtonHeader( comboStruct, headerIndex, "#MULTIPLAYER_ALLCAPS" )
-	file.mpButton = AddComboButton( comboStruct, headerIndex, buttonIndex++, "#MULTIPLAYER_LAUNCH" )
-	Hud_AddEventHandler( file.mpButton, UIE_CLICK, OnPlayMPButton_Activate )
-	file.fdButton = AddComboButton( comboStruct, headerIndex, buttonIndex++, "#GAMEMODE_COOP" )
-	Hud_AddEventHandler( file.fdButton, UIE_CLICK, OnPlayFDButton_Activate )
 
 	headerIndex++
 	buttonIndex = 0
@@ -157,7 +149,6 @@ void function OnShowMainMenuPanel()
 	#endif // PS4_PROG
 
 	UpdateSPButtons()
-	thread UpdatePlayButton( file.mpButton )
 	thread MonitorTrialVersionChange()
 
 	#if DURANGO_PROG
@@ -531,7 +522,7 @@ void function UICodeCallback_GetOnPartyServer()
 void function OnQuitButton_Activate()
 {
 	DialogData dialogData
-	dialogData.header = "#MENU_QUIT_GAME_r1"
+	dialogData.header = "#MENU_QUIT_GAME_CONFIRM"
 
 	AddDialogButton( dialogData, "#CANCEL" )
 	AddDialogButton( dialogData, "#QUIT", Quit )
@@ -576,39 +567,13 @@ void function UpdateSPButtons()
 
 	int buttonIndex = 0
 
-	if ( Script_IsRunningTrialVersion() )
+	if ( HasStartedGameEver() )
 	{
-		if ( HasStartedGameEver() )
-			AddSPButton( buttonIndex, TrainingModeSelect, "#SP_TRIAL_MENU_TRAINING" )
-		else
-			AddSPButton( buttonIndex, LaunchSPNew, "#SP_TRIAL_MENU_TRAINING" )
-		buttonIndex++
-
-		if ( HasStartedGameEver() )
-		{
-			AddSPButton( buttonIndex, TrialMissionSelect, "#SP_TRIAL_MENU_MISSION" )
-			buttonIndex++
-		}
-
-		AddSPButton( buttonIndex, LaunchGamePurchase, "#MENU_GET_THE_FULL_GAME" )
+		AddSPButton( buttonIndex, LaunchSPMissionSelect, "#MENU_MISSION_SELECT" )
 		buttonIndex++
 	}
-	else
-	{
-		if ( HasValidSaveGame() )
-		{
-			AddSPButton( buttonIndex, LaunchSPContinue, "#MENU_CONTINUE_GAME" )
-			buttonIndex++
-		}
 
-		if ( HasStartedGameEver() )
-		{
-			AddSPButton( buttonIndex, LaunchSPMissionSelect, "#MENU_MISSION_SELECT" )
-			buttonIndex++
-		}
-
-		AddSPButton( buttonIndex, LaunchSPNew, "#MENU_NEW_GAME" )
-	}
+	AddSPButton( buttonIndex, Roguelike_StartNewRunMenu, "Start New Run" )
 }
 
 void function AddSPButton( int index, void functionref() func, string text )

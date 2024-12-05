@@ -7,7 +7,7 @@ array<int> function GetKillsForMaxRank(string map)
         case "sp_training":
             return [15,12,9,6]
         case "sp_sewers1":
-            return [135,115,95,75]
+            return [200,130,90,50]
         case "sp_tday":
             return [400,350,300,250]
     }
@@ -55,11 +55,11 @@ float function GetTimeRankMultiplier()
 }
 
 array< array > rankColors = [
-    [255, 32, 32,255],
-    [255,128, 32,255],
-    [255,255, 32,255],
-    [ 32,255, 32,255],
-    [ 32, 32,255,255]
+    [255, 64, 92,255],
+    [255, 92, 64,255],
+    [255,255, 64,255],
+    [ 64,255, 64,255],
+    [ 64, 92,255,255]
 ]
 array function GetColorForRank(int rank)
 {

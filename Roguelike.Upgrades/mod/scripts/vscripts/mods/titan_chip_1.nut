@@ -19,7 +19,7 @@ void function TitanChip1_RegisterMods()
     {
         RoguelikeMod mod = NewMod("checkpoint")
         mod.name = "Devil's Deal"
-        mod.description = "Dying as a titan allows you to load a checkpoint ONCE.\n\nWARNING: This mod cannot be swapped once consumed."
+        mod.description = "Dying as a titan allows you to restart a level ONCE.\n\nWARNING: This mod cannot be swapped once consumed."
         mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }

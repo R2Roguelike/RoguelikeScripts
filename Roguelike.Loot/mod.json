@@ -12,10 +12,7 @@
 		},
 		{
 			"Path": "run_manager.nut",
-			"RunOn": "UI",
-			"UICallback": {
-				"Before": "Inventory_Init"
-			}
+			"RunOn": "UI"
 		},
 		{
 			"Path": "_chests.nut",

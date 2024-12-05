@@ -32,6 +32,7 @@ void function Elites_Add( void functionref( entity ) eliteFunc )
 
 void function Elites_Generate( entity npc )
 {
+    return
     int levelsComplete = GetConVarInt("roguelike_levels_completed")
     float chance = GraphCapped( levelsComplete, 0, 20, 0, 0.5 )
     if (RandomFloat(1) > chance)

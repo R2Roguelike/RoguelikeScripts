@@ -136,13 +136,6 @@ void function CodeCallback_PredictWeaponMods( entity weapon )
     {
         return
     }
-    if (InPrediction() && !IsFirstTimePredicted())
-        return
-    if ("lastModsCalculatedTime" in weapon.s)
-    {
-        if (weapon.s.lastModsCalculatedTime == Time())
-            return
-    }
     weapon.s.lastModsCalculatedTime <- Time()
 
     ModWeaponVars_CalculateWeaponMods( weapon )
@@ -166,14 +159,11 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
 
     if (!IsValid(player))
         return
+    if (!player.IsPlayer())
+        return
     if (!IsValid(player.GetActiveWeapon()))
         return
 
-    if ("lastModsCalculatedTime" in player.s)
-    {
-        if (player.s.lastModsCalculatedTime == Time())
-            return
-    }
     if (IsValid(player.GetActiveWeapon()) && !player.GetActiveWeapon().IsWeaponOffhand() && player.IsTitan())
     {
         if (!("lastActiveWeapon" in player.s))
@@ -268,6 +258,11 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
             if (titan.s.storedAbilities[i] != null)
             {
                 entity newOffhand = expect entity( titan.s.storedAbilities[i] )
+                if (!IsValid(newOffhand))
+                {
+                    titan.GiveOffhandWeapon( GetOffhandWeaponBySlot( titanLoadout, i ), i )
+                    newOffhand = titan.GetOffhandWeapon(i)
+                }
                 titan.GiveExistingOffhandWeapon( newOffhand, i )
 
                 if ("exploitFix" in newOffhand.s)
@@ -308,6 +303,25 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
 //			Remote_CallFunction_Replay( titan, "ServerCallback_NotifyLoadout", titan.GetEncodedEHandle() )
         Remote_CallFunction_Replay( titan, "ServerCallback_UpdateTitanModeHUD" )
     }
+}
+
+string function GetOffhandWeaponBySlot( TitanLoadoutDef titanLoadout, int offhandSlot)
+{
+    switch (offhandSlot)
+    {
+        case OFFHAND_ORDNANCE:
+            return titanLoadout.ordnance
+        case OFFHAND_SPECIAL:
+            return titanLoadout.special
+        case OFFHAND_MELEE:
+            return titanLoadout.melee
+        case OFFHAND_TITAN_CENTER:
+            return titanLoadout.antirodeo
+        case OFFHAND_EQUIPMENT:
+            return titanLoadout.coreAbility
+    }
+
+    return ""
 }
 
 void function RestoreCooldown( entity weapon, float frac )

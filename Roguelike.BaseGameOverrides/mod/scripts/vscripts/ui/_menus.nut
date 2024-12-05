@@ -118,6 +118,7 @@ void function UICodeCallback_ActivateMenus()
 	if ( uiGlobal.menuStack.len() == 0 )
 	{
 		AdvanceMenu( GetMenu( "MainMenu" ) )
+		thread Inventory_Init()
 	}
 
 	if ( uiGlobal.activeMenu == GetMenu( "MainMenu" ) )

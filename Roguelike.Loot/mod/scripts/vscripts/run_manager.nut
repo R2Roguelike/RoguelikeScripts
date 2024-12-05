@@ -8,6 +8,7 @@ global function Roguelike_GetRunData
 global function Roguelike_GetMoney
 global function Roguelike_AddMoney
 global function Roguelike_TakeMoney
+global function RunEnded
 
 struct {
     table saveData 
@@ -17,6 +18,7 @@ struct {
 
 void function Inventory_Init()
 {
+    wait 0.1
     if (NSDoesFileExist("save.json"))
         NSLoadJSONFile( "save.json", void function( table t ) : ()
         {
@@ -24,6 +26,8 @@ void function Inventory_Init()
         },
         void function() : ()
         {
+            while (uiGlobal.menuStack.len() == 0)
+                wait 0
             DialogData dialogData
             dialogData.header = "SAVE LOAD FAILED"
 	        dialogData.image = $"ui/menu/common/dialog_error"
@@ -31,14 +35,47 @@ void function Inventory_Init()
             dialogData.message = "Loading save data failed. Would you like to try again or choose another save file?"
 
             AddDialogButton( dialogData, "Retry" )
-            AddDialogButton( dialogData, "Choose another save file" )
+            AddDialogButton( dialogData, "Delete" )
 
             AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
 
-            OpenDialog( dialogData )
+            delaythread( 0.1 ) OpenDialog( dialogData )
         }
     )
     
+    if (NSDoesFileExist("run_backup.json"))
+        NSLoadJSONFile( "run_backup.json", void function( table t ) : ()
+        {
+            DialogData dialogData
+            dialogData.header = "RUN CHECKPOINT AVAILABLE"
+            dialogData.forceChoice = true
+            dialogData.message = "You quit or crashed mid-run, although a backup was saved. Would you like to continue from the last chapter?"
+
+            AddDialogButton( dialogData, "Yes", void function() : ()
+            {
+                ExecuteLoadingClientCommands_SetStartPoint( expect string(file.runData.map), expect int(file.runData.startPointIndex) )
+                ClientCommand( "map " + expect string(file.runData.map) )
+            } )
+            AddDialogButton( dialogData, "No", void function() : ()
+            {
+                file.isRunActive = false
+                file.runData = {}
+                NSDeleteFile( "run_backup.json" )
+            } )
+
+            AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
+
+            file.runData = t
+            file.isRunActive = true
+
+            delaythread( 0.1 ) OpenDialog( dialogData )
+        }
+    )
+}
+
+void function RunEnded()
+{
+    ClientCommand("disconnect")
 }
 
 void function Roguelike_StartNewRun()
@@ -85,7 +122,10 @@ void function Roguelike_StartNewRun()
     runData.AC3.slot = 3
     runData.AC4 <- ArmorChip_Generate()
     runData.AC4.slot = 4
+    runData.map <- "sp_crashsite"
+    runData.startPointIndex <- 7
 
+    NSSaveJSONFile( "run_backup.json", runData )
 }
 
 void function Roguelike_Reset()
