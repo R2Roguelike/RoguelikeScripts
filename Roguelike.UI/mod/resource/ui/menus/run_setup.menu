@@ -1,0 +1,199 @@
+resource/ui/menus/run_setup.menu
+{
+    menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+        Screen
+        {
+            ControlName				RuiButton
+            wide					%100
+            tall					%100
+            tabPosition             0
+            visible					1
+            scaleImage				1
+            fillColor				"0 0 0 0"
+            drawColor				"0 0 0 0"
+            labelText 				""
+        }
+
+        Vignette
+        {
+            ControlName			ImagePanel
+            InheritProperties	MenuVignette
+        }
+        
+        ButtonRowAnchor
+        {
+            ControlName	Label
+            labelText	""
+
+            xpos	120
+            ypos	160
+        }
+
+        FooterButtons
+        {
+            ControlName				CNestedPanel
+            InheritProperties       FooterButtons
+        }
+        
+        Title
+        {
+            ControlName				Label
+            xpos					0
+            ypos				    -50
+            wide					74
+            tall					27
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            auto_tall_tocontents	1
+            labelText				"INVENTORY"
+            fgcolor_override		"225 225 225 255"
+            textAlignment			center
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					JetBrainsMonoBold_56
+
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	TOP
+            pin_to_sibling_corner	TOP
+        }
+
+        LoadoutSelectLabel
+        {
+            ControlName				Label
+            xpos					0
+            ypos				    -100
+            wide					74
+            tall					27
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            auto_tall_tocontents	1
+            labelText				"SELECT 2 LOADOUTS"
+            fgcolor_override		"225 225 225 255"
+            textAlignment			center
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					JetBrainsMonoBold_36
+
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	CENTER
+            pin_to_sibling_corner	CENTER
+        }
+        
+        LoadoutButton0
+        {
+            ControlName				CNestedPanel
+            xpos					8
+            ypos                    0
+            wide					192
+            tall					64
+            visible					1
+            tabPosition				1
+            zpos					20
+            controlSettingsFile		"Resource/UI/menus/panels/vgui_button_small.res"
+            pin_to_sibling			LoadoutButton1
+            pin_corner_to_sibling	RIGHT
+            pin_to_sibling_corner	LEFT
+        }
+        LoadoutButton1
+        {
+            ControlName				CNestedPanel
+            xpos					0
+            ypos                    16
+            wide					192
+            tall					64
+            visible					1
+            tabPosition				1
+            zpos					20
+            controlSettingsFile		"Resource/UI/menus/panels/vgui_button_small.res"
+            pin_to_sibling			LoadoutSelectLabel
+            pin_corner_to_sibling	TOP
+            pin_to_sibling_corner	BOTTOM
+        }
+        LoadoutButton2
+        {
+            ControlName				CNestedPanel
+            xpos					8
+            ypos                    0
+            wide					192
+            tall					64
+            visible					1
+            tabPosition				1
+            zpos					20
+            controlSettingsFile		"Resource/UI/menus/panels/vgui_button_small.res"
+            pin_to_sibling			LoadoutButton1
+            pin_corner_to_sibling	LEFT
+            pin_to_sibling_corner	RIGHT
+        }
+
+        LoadoutsSelectedCount
+        {
+            ControlName				Label
+            xpos					12
+            ypos				    -1
+            wide					74
+            tall					30
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            auto_tall_tocontents	0
+            labelText				"0/2"
+            fgcolor_override		"225 225 225 255"
+            textAlignment			center
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					JetBrainsMonoBold_36
+
+            pin_to_sibling			LoadoutButton2
+            pin_corner_to_sibling	LEFT
+            pin_to_sibling_corner	RIGHT
+        }
+
+        StartButton
+        {
+            ControlName				CNestedPanel
+            xpos					0
+            ypos                    -96
+            wide					384
+            tall					64
+            visible					1
+            tabPosition				1
+            zpos					20
+            controlSettingsFile		"Resource/UI/menus/panels/vgui_button.res"
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	BOTTOM
+            pin_to_sibling_corner	BOTTOM
+        }
+        DifficultyButton
+        {
+            ControlName				CNestedPanel
+            xpos					0
+            ypos                    8
+            wide					384
+            tall					48
+            visible					1
+            tabPosition				1
+            zpos					20
+            controlSettingsFile		"Resource/UI/menus/panels/vgui_button_small.res"
+            pin_to_sibling			StartButton
+            pin_corner_to_sibling	BOTTOM
+            pin_to_sibling_corner	TOP
+        }
+    }
+}

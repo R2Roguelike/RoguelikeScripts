@@ -129,8 +129,16 @@ void function ModSlot_Hover( var slot, var panel )
     RoguelikeMod mod = file.modChoices[elemNum]
 
     Hud_SetText( Hud_GetChild(panel, "Title"), mod.name)
-    Hud_SetText( Hud_GetChild(panel, "Description"), format("Energy Cost: ^FFA00000%i^FFFFFFFF\n\n%s", mod.cost, mod.description))
-    Hud_SetHeight( panel, ContentScaledYAsInt( 64 + 16 ) + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
+    string description = format("Energy Cost: ^FFA00000%i^FFFFFFFF\n\n%s", mod.cost, mod.description + GetModDescriptionSuffix(mod))
+    if (mod.cost > file.maxUsableEnergy || file.usedMods.contains(file.modChoices[elemNum]))
+    {
+        description += "\n"
+        if (mod.cost > file.maxUsableEnergy)
+            description += "\n<red>Not enough energy</>"
+        if (file.usedMods.contains(file.modChoices[elemNum]))
+            description += "\n<red>Mod already equipped</>"
+    }
+    Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription(description))
 }
 
 void function ModSlot_Click( var button )

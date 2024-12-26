@@ -26,6 +26,12 @@ global const array<int> HIP_SPREAD_VARS = [eWeaponVar.spread_stand_hip, eWeaponV
     eWeaponVar.spread_kick_on_fire_crouch_hip, eWeaponVar.spread_max_kick_air_hip, eWeaponVar.spread_max_kick_stand_hip, 
     eWeaponVar.spread_max_kick_crouch_hip, eWeaponVar.spread_wallrunning, eWeaponVar.spread_wallhanging] // wallhanging is "ads" but aaplies spread on the level of hipfire? keeping it here.
 
+    
+global const array<int> SPREAD_KICK_VARS = [eWeaponVar.spread_kick_on_fire_air_hip, eWeaponVar.spread_kick_on_fire_stand_hip, 
+    eWeaponVar.spread_kick_on_fire_crouch_hip, eWeaponVar.spread_max_kick_air_hip, eWeaponVar.spread_max_kick_stand_hip, 
+    eWeaponVar.spread_max_kick_crouch_hip, eWeaponVar.spread_kick_on_fire_air_ads, eWeaponVar.spread_kick_on_fire_stand_ads, eWeaponVar.spread_kick_on_fire_crouch_ads, 
+    eWeaponVar.spread_max_kick_air_ads, eWeaponVar.spread_max_kick_stand_ads, eWeaponVar.spread_max_kick_crouch_ads] // wallhanging is "ads" but aaplies spread on the level of hipfire? keeping it here.
+
 global const array<int> ADS_SPREAD_VARS = [eWeaponVar.spread_stand_ads, eWeaponVar.spread_crouch_ads, eWeaponVar.spread_air_ads, 
     eWeaponVar.spread_kick_on_fire_air_ads, eWeaponVar.spread_kick_on_fire_stand_ads, eWeaponVar.spread_kick_on_fire_crouch_ads, 
     eWeaponVar.spread_max_kick_air_ads, eWeaponVar.spread_max_kick_stand_ads, eWeaponVar.spread_max_kick_crouch_ads]
@@ -164,12 +170,22 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
     if (!IsValid(player.GetActiveWeapon()))
         return
 
+    if (player.IsOnGround())
+    {
+        player.s.lastGroundPosition <- player.GetOrigin()
+        player.s.lastGroundAngles <- player.GetAngles()
+    }
+
     if (IsValid(player.GetActiveWeapon()) && !player.GetActiveWeapon().IsWeaponOffhand() && player.IsTitan())
     {
         if (!("lastActiveWeapon" in player.s))
             player.s.lastActiveWeapon <- player.GetActiveWeapon().GetWeaponClassName()
         else if (player.GetActiveWeapon().GetWeaponClassName() != player.s.lastActiveWeapon)
         {
+            if (Roguelike_HasMod( player, "quickswap" ))
+            {
+                StatusEffect_AddTimed( player, eStatusEffect.roguelike_ronin_quickswap, 1.0, 0.75, 0.0 )
+            }
             Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetActiveWeapon() )
             player.s.lastActiveWeapon <- player.GetActiveWeapon().GetWeaponClassName()
         }
@@ -188,8 +204,13 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
         ModWeaponVars_CalculateWeaponMods( weapon )
     if ("storedAbilities" in player.s && player.IsTitan())
         foreach (var weapon in player.s.storedAbilities)
+        {
             if (weapon != null && IsValid(weapon))
-                ModWeaponVars_CalculateWeaponMods( expect entity(weapon) )
+            {
+                expect entity(weapon)
+                ModWeaponVars_CalculateWeaponMods( weapon )
+            }
+        }
 }
 
 void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity primary )
@@ -220,16 +241,21 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
         titan.s.storedAbilities <- [null, null, null, null, null, null]
         for ( int i = 0; i < OFFHAND_COUNT; i++ )
         {
+            if (i == OFFHAND_INVENTORY) // ignore equipment
+                continue
             if (!IsValid(titan.GetOffhandWeapon(i)))
                 continue
             entity offhandWeapon = titan.TakeOffhandWeapon_NoDelete( i )
             
-            if (IsValid(offhandWeapon) && (offhandWeapon.IsWeaponRegenDraining()))
+            if (IsValid(offhandWeapon))
             {
-                offhandWeapon.s.exploitFix <- Time()
-            }
+                offhandWeapon.s.storedWeaponOwner <- titan
 
-            offhandWeapon.s.storedWeaponOwner <- titan
+                if (offhandWeapon.IsWeaponRegenDraining())
+                {
+                    offhandWeapon.s.exploitFix <- Time()
+                }
+            }
 
             // maintain offhand index
             titan.s.storedAbilities[i] = offhandWeapon
@@ -244,11 +270,13 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
     {
         for ( int i = 0; i < OFFHAND_COUNT; i++ )
         {
+            if (i == OFFHAND_INVENTORY)
+                continue
+            
             entity offhandWeapon = titan.TakeOffhandWeapon_NoDelete( i )
 
             if (IsValid(offhandWeapon))
             {
-                offhandWeapon.RegenerateAmmoReset()
                 offhandWeapon.s.storedWeaponOwner <- titan
 
                 if (offhandWeapon.IsWeaponRegenDraining())
@@ -263,10 +291,13 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
                     titan.GiveOffhandWeapon( GetOffhandWeaponBySlot( titanLoadout, i ), i )
                     newOffhand = titan.GetOffhandWeapon(i)
                 }
+                if ("storedWeaponOwner" in newOffhand.s)
+                    delete newOffhand.s.storedWeaponOwner
                 titan.GiveExistingOffhandWeapon( newOffhand, i )
 
                 if ("exploitFix" in newOffhand.s)
                 {
+                    printt("exploit fix")
                     float timePassed = Time() - expect float(newOffhand.s.exploitFix)
                     delete newOffhand.s.exploitFix
                     timePassed -= newOffhand.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_start_delay)

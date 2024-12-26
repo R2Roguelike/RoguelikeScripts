@@ -5,8 +5,7 @@ global function GetRandomWithExclusion
 
 // use plug_generator.py to generate, then paste in here and format
 const array< array<int> > ALL_PLUG_COMBINATIONS = [
-    [0, 0, 6], [0, 1, 5], [0, 2, 4], [0, 3, 3], [0, 4, 2], [0, 5, 1], [0, 6, 0], [1, 0, 5], [1, 1, 4], [1, 2, 3], [1, 3, 2], [1, 4, 1], [1, 5, 0], [2, 0, 4], 
-    [2, 1, 3], [2, 2, 2], [2, 3, 1], [2, 4, 0], [3, 0, 3], [3, 1, 2], [3, 2, 1], [3, 3, 0], [4, 0, 2], [4, 1, 1], [4, 2, 0], [5, 0, 1], [5, 1, 0], [6, 0, 0]
+    [1, 1, 4], [1, 2, 3], [1, 3, 2], [1, 4, 1], [2, 1, 3], [2, 2, 2], [2, 3, 1], [3, 1, 2], [3, 2, 1], [4, 1, 1]
 ]
 
 void function ArmorChips_Init()
@@ -24,11 +23,11 @@ table function ArmorChip_Generate()
         stats = [0,0,0,0,0,0],
         slot = expect int(chipSlotOrder[slotIndex]),
         level = 1,
-        moneyInvested = 0
+        moneyInvested = 15 // give 10 dolla when dismantled ()
     }
 
-    chip.pilotEnergy <- GetRandomWithExclusion(0, 7, [] )
-    chip.titanEnergy <- 7 - chip.pilotEnergy
+    chip.pilotEnergy <- GetRandomWithExclusion(1, 8, [])
+    chip.titanEnergy <- 9 - chip.pilotEnergy
 
     runData.chipSlotIndex = (++slotIndex) % 4
 

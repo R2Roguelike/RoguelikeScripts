@@ -2,7 +2,7 @@ WeaponData
 {
     SP_BASE
     {
-		"damage_near_value"   							"14"
-		"damage_far_value"								"10"
+		"damage_near_value"   							"20"
+		"damage_far_value"								"15"
     }
 }

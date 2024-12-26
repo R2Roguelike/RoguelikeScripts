@@ -183,9 +183,14 @@ void function NPCTitanSpawned( entity titan )
 				return
 		}
 	}
-	delaythread(0.001) void function() : (titan) {titan.s.baseHealth <- titan.GetMaxHealth()
-	
-	UpdateMercTitanHealthForDifficulty( titan )}()
+	delaythread(0.001) void function() : (titan) 
+	{
+		if (!IsValid(titan))
+			return
+		titan.s.baseHealth <- titan.GetMaxHealth()
+		
+		UpdateMercTitanHealthForDifficulty( titan )
+	}()
 }
 
 void function BossTitanNoIntro( entity titan )

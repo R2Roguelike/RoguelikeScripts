@@ -19,7 +19,7 @@ void function Mods_Init()
         mod.icon = $"ui/cog"
         mod.cost = 0
         mod.unlockedByDefault = true
-        mod.chip = -1
+        mod.chip = ALL_CHIP_SLOTS
         Roguelike_RegisterMod(mod)
     }
 
@@ -38,6 +38,9 @@ void function Mods_Init()
     
     // SCORCH
     Scorch_RegisterMods()
+
+    // EXPEDITION
+    Expedition_RegisterMods()
     
 }
 
@@ -72,10 +75,10 @@ array<RoguelikeMod> function GetModsForChipSlot( int chipSlot, bool isTitan )
 
 bool function Roguelike_IsModCompatibleWithSlot( RoguelikeMod mod, int chipSlot, bool isTitan )
 {
-    if (mod.chip == -1 && mod.loadout == "")
+    if (mod.chip == ALL_CHIP_SLOTS && mod.loadouts.len() <= 0)
         return true
     
-    return chipSlot == GetModChipSlot(mod) && isTitan == mod.isTitan
+    return ((1 << chipSlot) & GetModChipSlotFlags(mod)) != 0 && isTitan == mod.isTitan
 }
 
 bool function Roguelike_IsModUnlocked( RoguelikeMod mod )
@@ -115,16 +118,16 @@ array function GetAllLockedMods()
     array result
     foreach (RoguelikeMod mod in file.mods)
     {
-        if (!mod.unlockedByDefault && GetModChipSlot(mod) != -1)
+        if (!mod.unlockedByDefault && GetModChipSlotFlags(mod) != ALL_CHIP_SLOTS)
             result.append(mod.uniqueName)
     }
     return result
 }
 
-int function GetModChipSlot(RoguelikeMod mod)
+int function GetModChipSlotFlags(RoguelikeMod mod)
 {
-    if (mod.loadout == "")
-        return mod.chip
+    if (mod.loadouts.len() <= 0)
+        return (1 << mod.chip)
     
     array<string> loadout
 
@@ -133,18 +136,22 @@ int function GetModChipSlot(RoguelikeMod mod)
     else
         loadout = ["mp_weapon_frag_grenade", "mp_ability_cloak"]
     
+    int result = 0;
     for (int i = 0; i < loadout.len(); i++)
     {
-        if (loadout[i] == mod.loadout)
+        if (mod.loadouts.contains(loadout[i]))
         {
             if (mod.useLoadoutChipSlot)
-                return 3 + i
+            {
+                result = result | (1 << (3 + i))
+                continue
+            }
             
-            return mod.chip
+            return (1 << mod.chip)
         }
     }
 
-    return -1
+    return result
 }
 
 #if UI

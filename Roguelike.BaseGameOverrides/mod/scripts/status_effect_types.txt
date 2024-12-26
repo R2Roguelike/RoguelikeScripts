@@ -54,10 +54,17 @@
     lockon_detected_titan
     damage_received_multiplier
 
-    roguelike_daze
-    roguelike_burn
+    roguelike_daze // ronin
+    roguelike_burn // scorch
     roguelike_block_buff
     roguelike_r97_bonus
+    roguelike_ronin_quickswap
+    roguelike_weaken // expedition
+    roguelike_arm // brute
+    roguelike_overload // ion
+    roguelike_stun // northstar?
+    roguelike_expose // legion
+    // TONE USES SONAR AS STATUS EFFECT!!!
 
 /////////////////////////////
 //}

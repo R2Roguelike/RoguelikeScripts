@@ -27,7 +27,7 @@
 		{
 			"Path": "cl_inventory.nut",
 			"RunOn": "CLIENT"
-		},
+		}
 	],
 
 	"ConVars": [
@@ -48,6 +48,11 @@
 		},
 		{
 			"Name": "power_enemy",
+			"Flags": "CHEAT",
+			"DefaultValue": "0"
+		},
+		{
+			"Name": "roguelike_stat_balance",
 			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		}

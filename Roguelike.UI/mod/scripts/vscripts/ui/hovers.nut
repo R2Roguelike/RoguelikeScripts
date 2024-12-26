@@ -15,6 +15,8 @@ struct {
     int kills = 69
     float time = 370
     table< var, void functionref( var, var ) > hoverCallbacks
+    table< string, void functionref( var ) > preHoverCallbacks
+    table< string, void functionref( var ) > postHoverCallbacks
     table< var, string > hoverType
 } file
 
@@ -31,6 +33,15 @@ void function Hover_Init()
 
     //Hud_SetSize( menu, GetScreenSize()[0], GetScreenSize()[1])
     file.menu = menu
+
+    file.preHoverCallbacks[HOVER_SIMPLE] <- void function( var panel ) : (){
+        Hud_SetColor( Hud_GetChild(panel, "TitleStrip"), 64, 64, 64, 255 )
+        Hud_SetColor( Hud_GetChild(panel, "BG"), 48, 48, 48, 255 )
+    }
+
+    file.postHoverCallbacks[HOVER_SIMPLE] <- void function( var panel ) : (){
+        Hud_SetHeight( panel, ContentScaledYAsInt( 64 + 16 ) + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
+    }
 
     Hud_SetVisible( file.menu, true )
     Hud_GetChild(file.menu,HOVER_ARMOR_CHIP).SetPanelAlpha(0.0)
@@ -89,7 +100,13 @@ void function Hover_Update()
                     panel.SetPanelAlpha(alpha)
                 }
 
+                if (hoverType in file.preHoverCallbacks)
+                    file.preHoverCallbacks[hoverType]( panel )
+
                 file.hoverCallbacks[target]( target, panel )
+
+                if (hoverType in file.postHoverCallbacks)
+                    file.postHoverCallbacks[hoverType]( panel )
 
                 Hud_SetWidth(file.menu, Hud_GetWidth( panel ))
                 Hud_SetHeight(file.menu, Hud_GetHeight( panel ))

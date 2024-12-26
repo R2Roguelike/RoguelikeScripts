@@ -2683,7 +2683,7 @@ void function StartPoint_Grave( entity player )
 
 	// might need to move this into don helmet
 	player.UnfreezeControlsOnServer()
-	player.SetPlayerSettingsWithMods( DEFAULT_PILOT_SETTINGS, [ "disable_doublejump" ] )
+	player.SetPlayerSettingsWithMods( DEFAULT_PILOT_SETTINGS, [] ) // player should have dj in roguelike
 	SyncedMelee_Enable( player )
 
 	FlagSet( "give_wallrun" )
@@ -2720,7 +2720,7 @@ void function StartPoint_Skip_Grave( entity player )
 
 	player.SetExtraWeaponMods( [] )
 	player.SetPlayerNetBool( "hideHudIcons", false )
-	player.SetPlayerSettingsWithMods( DEFAULT_PILOT_SETTINGS, [ "disable_doublejump" ] )
+	player.SetPlayerSettingsWithMods( DEFAULT_PILOT_SETTINGS, [] ) // player should have dj in roguelike
 	player.GiveOffhandWeapon( "mp_ability_cloak", OFFHAND_SPECIAL )
 	SyncedMelee_Enable( player )
 }
@@ -3060,34 +3060,8 @@ void function JumpKitCalibrationThread( entity player, float startProgress = 0.0
 
 	file.wallrunCalibrationProgress = startProgress
 	int currentStep = int( floor( file.wallrunCalibrationProgress * JUMPKIT_CALIBRATION_STEPS ) )
-	SetGlobalNetBool( "doubleJumpDisabled", true )
-	player.SetPlayerNetInt( "jumpKitCalibrationStep", currentStep )
-	Remote_CallFunction_Replay( player, "ServerCallback_JumpKitCalibrationStart", currentStep )
 
-	thread JumpKitCalibrationProgressOverTime( player )
-	thread FinalWallrunCalibration( player )
-
-	AddPlayerMovementEventCallback( player, ePlayerMovementEvents.BEGIN_WALLRUN, Callback_WallrunBegin )
-	AddPlayerMovementEventCallback( player, ePlayerMovementEvents.END_WALLRUN, Callback_WallrunEnd )
-	AddPlayerMovementEventCallback( player, ePlayerMovementEvents.TOUCH_GROUND, Callback_GroundTouch )
-
-	FlagWaitAny( "give_doublejump", "exit_combat_cave" )
-
-	// can't clear callback while a wallrun is active
-	while( file.wallrunStatusFlag == eWallrunStatusFlag.IN_PROGRESS )
-		wait 1
-
-	RemovePlayerMovementEventCallback( player, ePlayerMovementEvents.BEGIN_WALLRUN, Callback_WallrunBegin )
-	RemovePlayerMovementEventCallback( player, ePlayerMovementEvents.END_WALLRUN, Callback_WallrunEnd )
-	RemovePlayerMovementEventCallback( player, ePlayerMovementEvents.TOUCH_GROUND, Callback_GroundTouch )
-
-	waitthread WaitForBreakInCombat( player, "exit_combat_cave" )
-
-	if ( !Flag( "give_doublejump" ) )
-	{
-		printt( "calibration not enough" )
-		FlagSet( "give_doublejump" )
-	}
+	FlagSet( "give_doublejump" )
 
 	SetGlobalNetBool( "doubleJumpDisabled", false )
 
@@ -3098,28 +3072,6 @@ void function JumpKitCalibrationThread( entity player, float startProgress = 0.0
 	FlagSet( "DeathHintsEnabled" )
 
 	wait 3
-	AddPlayerMovementEventCallback( player, ePlayerMovementEvents.DOUBLE_JUMP, PlayerDoubleJumped )
-
-	thread DisplayDoubleJumpHint( player )
-}
-
-void function DisplayDoubleJumpHint( entity player )
-{
-	wait 2
-	SetJumpKitCalibrationStep( player, -1 )
-
-	while( true )
-	{
-		//DisplayOnscreenHint( player, "doublejump_hint" )
-
-		table result = WaitSignal( player, "double_jump_confirmed", "OnDamaged" )
-		ClearOnscreenHint( player )
-
-		if ( result.signal == "double_jump_confirmed" )
-			break
-
-		waitthread WaitForBreakInCombat( player, "exit_combat_cave" )
-	}
 }
 
 

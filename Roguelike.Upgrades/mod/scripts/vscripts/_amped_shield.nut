@@ -30,10 +30,13 @@ void function InventoryRefreshed( entity player )
     {
         int endurance = Roguelike_GetStat( player, STAT_ENDURANCE )
         int speed = Roguelike_GetStat( player, STAT_SPEED )
-        player.SetMaxHealth(200 * (1.0 + Roguelike_GetPilotHealthBonus( endurance )))
+        float healthFrac = GetHealthFrac( player )
+        player.SetMaxHealth(175 * (1.0 + Roguelike_GetPilotHealthBonus( endurance )))
 
         if (player.ContextAction_IsBusy() || player.ContextAction_IsActive())
             player.SetHealth(player.GetMaxHealth())
+        else if (IsAlive(player))
+            player.SetHealth( player.GetMaxHealth() * healthFrac )
         
         player.SetMoveSpeedScale(1.0 + Roguelike_GetPilotSpeedBonus( speed ))
 
@@ -181,8 +184,19 @@ void function PilotDamageReductions( entity player, var damageInfo )
 void function Roguelike_PlayerDealtDamage( entity victim, entity player, var damageInfo )
 {
     float damage = DamageInfo_GetDamage( damageInfo )
-    if (DistanceSqr( victim.GetOrigin(), player.GetOrigin() ) < 196.8 * 196.8 && Roguelike_HasMod( player, "bloodthirst") )
+    if (DistanceSqr( victim.GetOrigin(), player.GetOrigin() ) < 196.8 * 196.8 && Roguelike_HasMod( player, "bloodthirst") && !player.IsTitan())
     {
         player.SetHealth( min(player.GetMaxHealth(), player.GetHealth() + damage * 0.3) )
+    }
+    
+    int scriptDamageFlags = DamageInfo_GetCustomDamageType( damageInfo )
+    printt((scriptDamageFlags & DF_HEADSHOT) != 0)
+    printt(Roguelike_HasMod( player, "headshot_booster"))
+    printt(!player.IsTitan())
+    if ((scriptDamageFlags & DF_HEADSHOT) != 0 && Roguelike_HasMod( player, "headshot_booster") && !player.IsTitan())
+    {
+        printt("headshot boost")
+        player.SetHealth( min(player.GetMaxHealth(), player.GetHealth() + damage * 0.1) )
+        DamageInfo_SetDamage( damageInfo, damage * 1.5 )
     }
 }

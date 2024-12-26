@@ -1,3 +1,4 @@
+untyped
 global function MpTitanWeaponShoulderRockets_Init
 global function OnWeaponOwnerChanged_titanweapon_shoulder_rockets
 global function OnWeaponPrimaryAttack_titanweapon_shoulder_rockets
@@ -49,6 +50,7 @@ bool function OnWeaponChargeBegin_titanweapon_shoulder_rockets( entity weapon )
 {
 	// only set this if we are close to fully charged - so the hint doesn't display when we are low on charge
 	// !!!! WARNING: change this if we start using startChargeTime for other things !!!!
+	weapon.s.chargeFrac <- weapon.GetWeaponChargeFraction()
 	if ( weapon.GetWeaponChargeFraction() < 0.5 )
 		weapon.w.startChargeTime = Time()
 	else
@@ -95,11 +97,12 @@ var function OnWeaponPrimaryAttack_titanweapon_shoulder_rockets( entity weapon, 
 
 	if ( smartAmmoFired == 0 )
 	{
-		if ( IsMultiplayer() )
+		if ( Roguelike_HasMod( owner, "dumbfire_rockets" ) )
 		{
-			weapon.SetWeaponBurstFireCount( maxTargetedBurst - int( (weapon.GetWeaponChargeFraction() + shotFrac ) * maxTargetedBurst ) )
-			OnWeaponPrimaryAttack_titanweapon_salvo_rockets( weapon, attackParams )
-
+			weapon.SetWeaponBurstFireCount( 6 )
+			entity missile = weapon.FireWeaponMissile( attackParams.pos, attackParams.dir, SHOULDERROCKETS_MISSILE_SPEED * 5.0, damageTypes.projectileImpact, damageTypes.explosive, true, shouldPredict )
+			missile.InitMissileForRandomDriftFromWeaponSettings( attackParams.pos, attackParams.dir )
+			shotFrac = 1.0 / 18.0
 		}
 		else
 		{
@@ -107,7 +110,10 @@ var function OnWeaponPrimaryAttack_titanweapon_shoulder_rockets( entity weapon, 
 			weapon.SetWeaponBurstFireCount( 1 )
 		}
 
-		weapon.SetWeaponChargeFractionForced( weapon.GetWeaponChargeFraction() + shotFrac )
+		if (attackParams.burstIndex == 0)
+			weapon.SetWeaponChargeFractionForced( expect float(weapon.s.chargeFrac) + shotFrac )
+		else
+			weapon.SetWeaponChargeFractionForced( weapon.GetWeaponChargeFraction() + shotFrac )
 	}
 	else
 	{

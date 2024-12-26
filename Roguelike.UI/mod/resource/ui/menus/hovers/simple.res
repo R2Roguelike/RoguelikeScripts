@@ -37,18 +37,18 @@ resource/ui/menus/hovers/simple.res
         ControlName				Label
         xpos					-8
         ypos				    2
-        wide					74
+        wide					2000
         tall					64
         visible					1
         enabled					1
-        auto_wide_tocontents	1
+        auto_wide_tocontents	0
         //auto_tall_tocontents	1
         labelText				"ARMOR CHIP"
         fgcolor_override		"255 255 255 255"
         textAlignment			west
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMonoBold_43
+        font					JetBrainsMonoBold_36
         allcaps                 1
 
         pin_to_sibling			TitleStrip
@@ -64,7 +64,7 @@ resource/ui/menus/hovers/simple.res
         //auto_wide_tocontents	1
         auto_tall_tocontents	1
         labelText				"Continues the game from your last checkpoint."
-        fgcolor_override		"220 220 220 255"
+        fgcolor_override		"230 230 230 255"
         textAlignment			west
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"

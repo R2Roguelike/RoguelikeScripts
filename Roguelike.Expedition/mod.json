@@ -1,0 +1,29 @@
+{
+    "Name": "Roguelike.Expedition",
+	"Description": "Expedition loadout",
+	"LoadPriority": 6,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "_weaken.nut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Weaken_Init"
+            }
+		},
+		{
+			"Path": "mods/expedition_mods.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		}
+	],
+
+	"ConVars": [
+		{
+			"Name": "player_mods",
+			"Flags": "USERINFO | CHEAT",
+			"DefaultValue": ""
+		}
+	]
+}

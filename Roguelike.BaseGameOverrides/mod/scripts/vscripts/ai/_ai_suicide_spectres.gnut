@@ -82,6 +82,7 @@ void function MakeSuicideSpectre( entity spectre )
 		spectre.SetEnemyChangeCallback( SuicideSpectreEnemyChanged )
 
 	spectre.SetLookDistOverride( SPECTRE_MAX_SIGHT_DIST )
+	spectre.SetDamageNotifications( true )
 	//spectre.SetHearingSensitivity( 10 ) //1 is default
 	spectre.EnableNPCFlag( NPC_MUTE_TEAMMATE )
 
@@ -98,7 +99,7 @@ void function FragDroneArmed( entity npc )
 
 void function FragDroneDeath( entity spectre, var damageInfo )
 {
-	FragDroneDeath_Think( spectre, damageInfo )
+	thread FragDroneDeath_Think( spectre, damageInfo )
 }
 
 // for reloadscripts
@@ -142,7 +143,7 @@ void function FragDroneDeath_Think( entity spectre, var damageInfo )
 
 // used to do .Gib( <0,0,100> ) but i think that causes a crash when multiple ticks are hit at the same time with a frag???
 // no obituary. we dont care bout it. fuck you.
-	spectre.Destroy()
+	spectre.Gib( <0,0,100> )
 }
 
 entity function GetNPCAttackerEnt( entity npc, entity attacker )
@@ -188,6 +189,7 @@ void function SuicideSpectreEnemyChanged( entity spectre )
 void function SpectreWaitToExplode( entity spectre )
 {
 	Assert( spectre.IsNPC() )
+	spectre.EndSignal( "OnDestroy" )
 	spectre.EndSignal( "OnDeath" )
 
 	waitthread SuicideSpectre_WaittillNearEnemyOrExploding( spectre )
@@ -421,7 +423,7 @@ void function SpectreOverloads( entity spectre )
 	for ( ;; )
 	{
 		#if SP
-		if ( spectre.IsInterruptable() && !spectre.Anim_IsActive() )
+		if ( spectre.IsInterruptable() && !spectre.Anim_IsActive() && file.nextOverloadTime <= Time() )
 			break
 		#elseif MP
 		if ( spectre.IsInterruptable() && !spectre.Anim_IsActive() && spectre.IsOnGround() )
@@ -526,7 +528,7 @@ void function SpectreSuicideOnDamaged( entity spectre, var damageInfo )
 	int damageType = DamageInfo_GetCustomDamageType( damageInfo )
 	DamageInfo_SetCustomDamageType( damageInfo, damageType )
 
-	if ( !IsAlive( spectre ) )
+	if ( !IsAlive( spectre ) || !IsValid( spectre ))
 		return
 
 
@@ -556,13 +558,10 @@ void function SpectreSuicideOnDamaged( entity spectre, var damageInfo )
 	{
 		if ( spectre.ai.suicideSpectreExplodingAttacker == null )
 		{
-			if ( spectre.GetHealth() - damage <= 0 || ( IsValid( inflictor ) && IsTick( inflictor ) ) )
-			{
-				float explosionTime = GetSpectreExplosionTime( spectre )
-				SetSuicideSpectreExploding( spectre, attacker, explosionTime )
-				DamageInfo_SetDamage( damageInfo, 0 )
-				return
-			}
+			float explosionTime = GetSpectreExplosionTime( spectre )
+			SetSuicideSpectreExploding( spectre, attacker, explosionTime )
+			DamageInfo_SetDamage( damageInfo, 0 )
+			return
 		}
 		else
 		{
@@ -570,7 +569,7 @@ void function SpectreSuicideOnDamaged( entity spectre, var damageInfo )
 			DamageInfo_SetDamage( damageInfo, 0 )
 			return
 		}
-
-		DamageInfo_SetDamage( damageInfo, damage )
 	}
+
+	DamageInfo_SetDamage( damageInfo, min(spectre.GetHealth() - 1, DamageInfo_GetDamage( damageInfo )))
 }

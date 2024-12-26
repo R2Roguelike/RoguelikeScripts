@@ -758,7 +758,11 @@ TitanLevelLoadoutDefaults function GetTitanLevelLoadoutDefaultsForMapname( strin
 	TitanLevelLoadoutDefaults result
 
 	// All loadouts:
-	result.unlockedWeaponNames		= ["mp_titanweapon_xo16_shorty", "mp_titanweapon_sticky_40mm", "mp_titanweapon_meteor", "mp_titanweapon_leadwall", "mp_titanweapon_rocketeer_rocketstream", "mp_titanweapon_particle_accelerator", "mp_titanweapon_sniper", "mp_titanweapon_predator_cannon" ]
+	result.unlockedWeaponNames		= [
+	"mp_titanweapon_xo16_shorty", "mp_titanweapon_sticky_40mm", 
+	"mp_titanweapon_meteor", "mp_titanweapon_leadwall", 
+	"mp_titanweapon_rocketeer_rocketstream", "mp_titanweapon_particle_accelerator", 
+	"mp_titanweapon_sniper", "mp_titanweapon_predator_cannon" ]
 
 	array<string> playerTitanWeapons = Roguelike_GetTitanLoadouts()
 	result.primaryWeaponName = playerTitanWeapons[0]

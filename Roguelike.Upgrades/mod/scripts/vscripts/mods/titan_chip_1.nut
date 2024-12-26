@@ -12,7 +12,7 @@ void function TitanChip1_RegisterMods()
     {
         RoguelikeMod mod = NewMod("battery_spawn")
         mod.name = "Battery Thief"
-        mod.description = "Slightly increases chance of batteries dropping from enemies."
+        mod.description = "Enemies have a small chance to drop a <green>battery</> upon death."
         mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }

@@ -40,7 +40,7 @@ void function Healthbars_Think()
         if (IsValid(player.GetActiveWeapon()) && player.GetActiveWeapon().GetWeaponOwner() == player)
             attackDir = player.GetActiveWeapon().GetAttackDirection()
 
-        array<VisibleEntityInCone> results = FindVisibleEntitiesInCone( player.CameraPosition(), attackDir, 3937, 15, [ ], TRACE_MASK_BLOCKLOS, VIS_CONE_ENTS_IGNORE_VORTEX, player )
+        array<VisibleEntityInCone> results = FindVisibleEntitiesInCone( player.CameraPosition(), attackDir, 3937, 7, [ ], TRACE_MASK_BLOCKLOS, VIS_CONE_ENTS_IGNORE_VORTEX, player )
 
         foreach (VisibleEntityInCone coneEnt in results)
         {
@@ -199,13 +199,13 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
     var bar = Hud_GetChild( healthbar, "Bar" )
     var shieldBar = Hud_GetChild( healthbar, "ShieldBar" )
     var barBG = Hud_GetChild( healthbar, "BG" )
-    var statusEffectBar = Hud_GetChild( healthbar, "StatusEffectBar" )
-    var statusEffectText = Hud_GetChild( healthbar, "StatusEffectText" )
+    // top, then bottom
+    var statusEffectBars = [ Hud_GetChild( healthbar, "StatusEffectBar2" ), Hud_GetChild( healthbar, "StatusEffectBar" ) ]
+    var statusEffectTexts = [ Hud_GetChild( healthbar, "StatusEffectText2" ), Hud_GetChild( healthbar, "StatusEffectText" ) ]
+    
     while (true)
     {
-        // set title
         string title = GetHealthbarTitle( ent )
-        Hud_SetText( Hud_GetChild( healthbar, "Name" ), title )
         if (!ent.IsTitan())
         {
             file.titanHealthbarEntities[index] = null
@@ -274,7 +274,6 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
         Hud_SetWidth( bar, width )
         Hud_SetWidth( shieldBar, width )
         Hud_SetWidth( barBG, width )
-        Hud_SetWidth( statusEffectBar, width )
 
         // calculate screen pos
         vector mins = ent.GetBoundingMins()
@@ -294,25 +293,40 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
             float(soul.GetShieldHealth()) / float(soul.GetShieldHealthMax()) : 0.0 )
         
         // set status frac
-        Hud_SetVisible( statusEffectBar, player.IsTitan() )
-        Hud_SetVisible( statusEffectText, player.IsTitan() )
-        if (player.IsTitan() && IsValid(player.GetLatestPrimaryWeapon()))
+        
+        array<string> titanLoadouts = Roguelike_GetTitanLoadouts()
+        for (int i = 0; i < 2; i++)
         {
-            entity primary = player.GetLatestPrimaryWeapon()
-            switch (primary.GetWeaponClassName())
+            var statusEffectBar = statusEffectBars[i]
+            var statusEffectText = statusEffectTexts[i]
+
+            bool shouldBeVisible = player.IsTitan() && !isFriendly
+            Hud_SetWidth( statusEffectBar, width )
+            Hud_SetVisible( statusEffectBar, shouldBeVisible )
+            Hud_SetVisible( statusEffectText, shouldBeVisible )
+            if (player.IsTitan())
             {
-                case "mp_titanweapon_leadwall":
-                    Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_daze ))
-                    Hud_SetText( statusEffectText, "Daze")
-                    Hud_SetColor( statusEffectBar, 255, 225, 100, 255 )
-                    Hud_SetColor( statusEffectText, 255, 225, 100, 255 )
-                    break
-                case "mp_titanweapon_meteor":
-                    Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_burn ) * 255.0 / 200.0 )
-                    Hud_SetText( statusEffectText, "Burn")
-                    Hud_SetColor( statusEffectBar, 255, 175, 75, 255 )
-                    Hud_SetColor( statusEffectText, 255, 175, 75, 255 )
-                    break
+                switch (titanLoadouts[i])
+                {
+                    case "mp_titanweapon_leadwall":
+                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_daze ))
+                        Hud_SetText( statusEffectText, "Daze")
+                        Hud_SetColor( statusEffectBar, 255, 225, 100, 255 )
+                        Hud_SetColor( statusEffectText, 255, 225, 100, 255 )
+                        break
+                    case "mp_titanweapon_meteor":
+                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_burn ) * 255.0 / 200.0 )
+                        Hud_SetText( statusEffectText, "Burn")
+                        Hud_SetColor( statusEffectBar, 255, 175, 75, 255 )
+                        Hud_SetColor( statusEffectText, 255, 175, 75, 255 )
+                        break
+                    case "mp_titanweapon_xo16_shorty":
+                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_weaken ) * 255.0 / 35.0 )
+                        Hud_SetText( statusEffectText, "Weaken")
+                        Hud_SetColor( statusEffectBar, 116, 36, 255, 255 )
+                        Hud_SetColor( statusEffectText, 116, 36, 255, 255 )
+                        break
+                }
             }
         }
 

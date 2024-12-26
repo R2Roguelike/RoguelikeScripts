@@ -755,6 +755,43 @@ resource/ui/menus/inventory.menu
             pin_corner_to_sibling	RIGHT
             pin_to_sibling_corner	LEFT
         }
+        TitanPassive
+        {
+            ControlName				Label
+            xpos					128
+            ypos				    -64
+            wide					74
+            tall					96
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            //auto_tall_tocontents	1
+            labelText				"Passive"
+            fgcolor_override		"128 128 128 255"
+            textAlignment			center
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					JetBrainsMonoBold_36
+
+            pin_to_sibling			AC4_TitanMods
+            pin_corner_to_sibling	RIGHT
+            pin_to_sibling_corner	LEFT
+        }
+
+        BalanceSymbol
+        {
+            ControlName		ImagePanel
+            image           "ui/circle_hex"
+            wide			96
+            tall		    96
+            ypos            16
+            visible			1
+            scaleImage		1
+            drawColor		"128 128 128 255"
+            pin_to_sibling			AC4
+            pin_corner_to_sibling	TOP
+            pin_to_sibling_corner	BOTTOM
+        }
 
         // .d88888b  d888888P  .d888888  d888888P .d88888b 
         // 88.    "'    88    d8'    88     88    88.    "'

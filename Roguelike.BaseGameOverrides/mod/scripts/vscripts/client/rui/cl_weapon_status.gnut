@@ -88,7 +88,7 @@ void function ClWeaponStatus_AddClient( entity player )
 	}
 
 	{
-		var rui = CreateCockpitRui( $"ui/inventory_hud.rpak" )
+		var rui = CreateCockpitRui( $"ui/ability_hud.rpak" )
 		RuiSetInt( rui, "xPos", 1 )
 		RuiSetInt( rui, "yPos", 1 )
 		file.dpad_left_hud = rui
@@ -271,7 +271,10 @@ void function UpdateOffhandRuis( entity player )
 	}
 	else
 	{
-		UpdateOffhandRuiVisibility( file.dpad_left_hud, "%weaponSelectOrdnance%" )
+		if (player.IsTitan())
+			UpdateOffhandRuiVisibility( file.dpad_left_hud, "%offhand4%" )
+		else
+			UpdateOffhandRuiVisibility( file.dpad_left_hud, "%weaponSelectOrdnance%" )
 	}
 }
 
@@ -286,8 +289,7 @@ void function InitWeaponStatusRuis( entity player )
 		thread TrackOffhandWeaponSlot( player, file.ability_left_hud, OFFHAND_LEFT )
 		thread TrackOffhandWeaponSlot( player, file.ability_center_hud, OFFHAND_TITAN_CENTER )
 		thread TrackOffhandWeaponSlot( player, file.ability_right_hud, OFFHAND_RIGHT )
-		if ( IsMultiplayer() )
-			thread TrackOffhandWeaponSlot( player, file.dpad_left_hud, OFFHAND_INVENTORY )
+		thread TrackOffhandWeaponSlot( player, file.dpad_left_hud, OFFHAND_INVENTORY )
 	}
 	else
 	{
@@ -403,45 +405,12 @@ void function TrackOffhandWeaponSlot( entity player, var rui, int slot )
 			if ( IsValid( weapon ) && file.slotVisible[slot] )
 			{
 				InitOffhandRui( rui, player, weapon )
-				#if MP
-					if ( slot == OFFHAND_INVENTORY )
-					{
-						if ( player.IsTitan() )
-						{
-							int segments = player.GetWeaponAmmoStockpile( player.GetOffhandWeapon( OFFHAND_INVENTORY ) )
-							segments += player.GetOffhandWeapon( OFFHAND_INVENTORY ).GetWeaponPrimaryClipCount()
-							RuiSetInt( rui, "segments", segments )
-							RuiSetFloat( rui, "minFireFrac", 0.01 )
-						}
-						else
-						{
-							//RuiSetInt( rui, "segments", PlayerInventory_ItemCount( player ) )
-							RuiTrackInt( rui, "segments", player, RUI_TRACK_SCRIPT_NETWORK_VAR_INT, GetNetworkedVariableIndex( "itemInventoryCount" ) )
-							RuiSetFloat( rui, "minFireFrac", 0.01 )
-						}
-					}
-				#elseif SP
-					if ( slot == OFFHAND_INVENTORY )
-					{
-						RuiSetInt( rui, "segments", 1 )
-						RuiSetFloat( rui, "minFireFrac", 0.01 )
-					}
-				#endif
 			}
 			else
 			{
 				RuiSetBool( rui, "isVisible", false )
 			}
 		}
-		#if MP
-		if ( slot == OFFHAND_INVENTORY && file.slotVisible[slot] && player.IsTitan() && IsValid( weapon ) )
-		{
-			int segments = player.GetWeaponAmmoStockpile( player.GetOffhandWeapon( OFFHAND_INVENTORY ) )
-			segments += player.GetOffhandWeapon( OFFHAND_INVENTORY ).GetWeaponPrimaryClipCount()
-			RuiSetInt( rui, "segments", segments )
-			RuiSetFloat( rui, "minFireFrac", 0.01 )
-		}
-		#endif
 
 		lastWeapon = weapon
 		wasVisible = file.slotVisible[slot]

@@ -75,6 +75,10 @@ void function Inventory_Init()
 
 void function RunEnded()
 {
+    // reset run
+    NSDeleteFile( "run_backup.json" )
+    file.isRunActive = false
+    file.runData = {}
     ClientCommand("disconnect")
 }
 
@@ -90,6 +94,7 @@ void function Roguelike_StartNewRun()
     file.isRunActive = true
 
     runData.lockedMods <- GetAllLockedMods()
+    Roguelike_UnlockMods( 10 ) // have the player start with some amount of mods
 
     for (int i = 1; i < 5; i++)
     {

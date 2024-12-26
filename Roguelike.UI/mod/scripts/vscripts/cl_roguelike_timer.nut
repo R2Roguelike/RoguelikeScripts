@@ -20,12 +20,17 @@ void function RoguelikeTimer_Init()
     delaythread(0.001) RoguelikeTimer_Think()
     AddCallback_LocalClientPlayerSpawned( LocalPlayerSpawned )
     AddServerToClientStringCommandCallback( "run_end", RunEnded )
+    AddServerToClientStringCommandCallback( "run_backup", RunBackup )
     AddServerToClientStringCommandCallback( "level_end", LevelEnded )
 }
 
 void function RunEnded( array<string> args )
 {
     RunUIScript( "RunEnded" )
+}
+void function RunBackup( array<string> args )
+{
+    RunUIScript("Roguelike_BackupRun", int( args[0] ))
 }
 
 void function LevelEnded( array<string> args )

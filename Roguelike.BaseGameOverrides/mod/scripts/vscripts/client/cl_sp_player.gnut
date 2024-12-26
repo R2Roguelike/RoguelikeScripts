@@ -420,7 +420,7 @@ void function ResetAbilityBindings( entity player, string newClass )
 	{
 		case "titan":
 			SetStandardAbilityBindingsForTitan( player )
-			SetAbilityBinding( player, 6, "weaponSelectOrdnance", "weaponSelectOrdnance" )		// "+ability 6"
+			SetAbilityBinding( player, 6, "+offhand4", "-offhand4" )		// "+ability 6"
 
 			if ( IsConversationPlaying() )
 				SetAbilityBinding( player, 1, "+scriptCommand2", "-scriptCommand2" )			// "+ability 1"

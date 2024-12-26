@@ -1704,7 +1704,7 @@ void function Rodeo_ApplyBatteryToTitan( entity battery, entity titan )
 
 	int healingAmount
 	if ( IsSingleplayer() )
-		healingAmount = 2000
+		healingAmount = 1000
 	else
 		healingAmount = GetSegmentHealthForTitan( titan )
 

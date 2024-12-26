@@ -1,6 +1,7 @@
 untyped
 global function Burn_Init
 global function RoguelikeScorch_IsPerfectDish
+global function AddBurn
 
 void function Burn_Init()
 {
@@ -9,6 +10,7 @@ void function Burn_Init()
     AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_meteor_thermite, FireWeaponSmallDamage )
     AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_flame_wall, FireWallDamage )
     AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_heat_shield, HeatShieldDamage )
+    AddDamageCallbackSourceID( eDamageSourceId.mp_titancore_flame_wave, FlameWaveDamage )
     AddDamageCallbackSourceID( damagedef_nuclear_core, EruptionDamage )
 }
 
@@ -35,11 +37,6 @@ void function FireWeaponSmallDamage( entity ent, var damageInfo )
     {
         AddBurn( ent, attacker, burn )
     }
-    
-    if (GetBurn( ent ) >= 200 )
-    {
-        thread Eruption( ent, attacker )
-    }
 }
 
 void function FireWeaponDamage( entity ent, var damageInfo )
@@ -56,11 +53,6 @@ void function FireWeaponDamage( entity ent, var damageInfo )
             AddBurn( ent, attacker, 3 )
         else
             AddBurn( ent, attacker, 25 )
-    }
-    
-    if (GetBurn( ent ) >= 200 )
-    {
-        thread Eruption( ent, attacker )
     }
 }
 
@@ -80,11 +72,6 @@ void function FireTrapDamage( entity ent, var damageInfo )
 
     if (attacker != ent || Roguelike_HasMod( attacker, "self_burn" ))
         AddBurn( ent, attacker, burn )
-    
-    if (GetBurn( ent ) >= 200 )
-    {
-        thread Eruption( ent, attacker )
-    }
 }
 
 void function FireWallDamage( entity ent, var damageInfo )
@@ -113,11 +100,6 @@ void function FireWallDamage( entity ent, var damageInfo )
     
     if (attacker != ent || Roguelike_HasMod( attacker, "self_burn" ))
         AddBurn( ent, attacker, burn )
-    
-    if (GetBurn( ent ) >= 200 )
-    {
-        thread Eruption( ent, attacker )
-    }
 }
 
 void function HeatShieldDamage( entity ent, var damageInfo )
@@ -129,15 +111,23 @@ void function HeatShieldDamage( entity ent, var damageInfo )
 
     DamageInfo_ScaleDamage( damageInfo, 0.75 )
 
-    int burn = 4
+    int burn = 7
     
     if (attacker != ent || Roguelike_HasMod( attacker, "self_burn" ))
         AddBurn( ent, attacker, burn )
     
-    if (GetBurn( ent ) >= 200 )
-    {
-        Eruption( ent, attacker )
-    }
+}
+
+void function FlameWaveDamage( entity ent, var damageInfo )
+{
+    entity attacker = DamageInfo_GetAttacker( damageInfo )
+    
+    if (!attacker.IsPlayer())
+        return
+
+    DamageInfo_ScaleDamage( damageInfo, 0.5 ) // reduce base damage by 50%. were gonna cause eruptions lol
+
+    Eruption( ent, attacker ) // always cause an eruption. reset the counter
 }
 
 void function AddBurn( entity ent, entity attacker, int amount )
@@ -156,8 +146,9 @@ void function AddBurn( entity ent, entity attacker, int amount )
     }
 
     int cur = GetBurn( ent )
+    StatusEffect_StopAll( ent, eStatusEffect.roguelike_burn )
     cur += amount
-    StatusEffect_AddTimed( ent, eStatusEffect.roguelike_burn, cur / 255.0, 15.0, 5.0 )
+    StatusEffect_AddEndless( ent, eStatusEffect.roguelike_burn, cur / 255.0 )
 }
 
 int function GetBurn( entity ent )
@@ -183,13 +174,19 @@ void function Eruption( entity victim, entity attacker )
 
     EmitSoundAtPosition( TEAM_ANY, origin, "titan_nuclear_death_explode" )
 
+    if (GetTitanLoadoutFlags() == EXPEDITION_SCORCH)
+    {
+        entity rearm = Roguelike_GetOffhandWeaponByName( attacker, "mp_titanability_rearm" )
+        RestoreCooldown( rearm, 0.2 )
+    }
+
 	entity inflictor = CreateEntity( "script_ref" )
 	inflictor.SetOrigin( origin )
 	inflictor.kv.spawnflags = SF_INFOTARGET_ALWAYS_TRANSMIT_TO_CLIENT
     inflictor.s.eruption <- true
 	DispatchSpawn( inflictor )
     
-    float titanDamage = 1500
+    float titanDamage = 2000
     if (victim == attacker)
     {
         titanDamage = 3000
@@ -230,5 +227,5 @@ bool function RoguelikeScorch_IsPerfectDish( entity player, entity ent )
     if ("burnt" in ent.s)
         return false
 
-    return GetBurn( ent ) >= 150
+    return GetBurn( ent ) >= 100
 }

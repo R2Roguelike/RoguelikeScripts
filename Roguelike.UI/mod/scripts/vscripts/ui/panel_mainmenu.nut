@@ -567,13 +567,15 @@ void function UpdateSPButtons()
 
 	int buttonIndex = 0
 
+	AddSPButton( buttonIndex, Roguelike_StartNewRunMenu, "Start New Run" )
+	buttonIndex++
+
 	if ( HasStartedGameEver() )
 	{
 		AddSPButton( buttonIndex, LaunchSPMissionSelect, "#MENU_MISSION_SELECT" )
 		buttonIndex++
 	}
 
-	AddSPButton( buttonIndex, Roguelike_StartNewRunMenu, "Start New Run" )
 }
 
 void function AddSPButton( int index, void functionref() func, string text )

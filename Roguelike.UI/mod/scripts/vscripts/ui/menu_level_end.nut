@@ -3,6 +3,7 @@ global function AddLevelEndMenu
 global function ClientCallback_LevelEnded
 global function LevelEnd_ResetTolls
 global function Roguelike_UnlockMods
+global function Roguelike_BackupRun
 
 struct {
     var menu
@@ -71,9 +72,8 @@ void function MenuAnimation()
     }
 
     // add power
-    // 8 gained with S, 4 gained with D
     int prevPower = expect int(runData.powerPlayer)
-    int powerGained = RoundToInt(GraphCapped( killsRank, 4, 0, 3, 7 ))
+    int powerGained = RoundToInt(GraphCapped( killsRank, 4, 0, 33, 37 ))
     runData.powerPlayer += powerGained
 
     runData.map <- file.nextMap
@@ -86,16 +86,16 @@ void function MenuAnimation()
     // enemy power always increases by 10.
     int prevLevelsCompleted = GetConVarInt("roguelike_levels_completed")
     int prevEnemyPower = expect int(runData.enemyPower) 
-    int enemyPowerGained = 10
+    int enemyPowerGained = 40
     runData.enemyPower += enemyPowerGained
     runData.levelsCompleted <- prevLevelsCompleted + 1
 
-    int modsUnlocked = minint(2 + (4 - timeRank), expect int(runData.lockedMods.len()))
+    int modsUnlocked = minint(int(GraphCapped(timeRank, 0, 4, 8, 4)), expect int(runData.lockedMods.len()))
     Roguelike_UnlockMods( modsUnlocked )
 
     NSSaveJSONFile( "run_backup.json", runData )
     SetConVarInt("roguelike_levels_completed", prevLevelsCompleted + 1)
-    SetConVarInt("power_enemy", prevEnemyPower + 20)
+    SetConVarInt("power_enemy", prevEnemyPower + enemyPowerGained)
     Hud_SetText(Hud_GetChild(file.menu, "PlayerPower"), string( prevPower ))
     Hud_SetText(Hud_GetChild(file.menu, "EnemyPower"), string( prevEnemyPower ))
 
@@ -141,6 +141,14 @@ void function MenuAnimation()
     Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), format("%i Mods Unlocked", modsUnlocked))
     
     wait 0.2
+}
+
+void function Roguelike_BackupRun( int startPoint )
+{
+    table runData = Roguelike_GetRunData()
+    runData.map <- GetActiveLevel()
+    runData.startPointIndex <- startPoint
+    NSSaveJSONFile( "run_backup.json", runData )
 }
 
 void function Roguelike_UnlockMods( int count )

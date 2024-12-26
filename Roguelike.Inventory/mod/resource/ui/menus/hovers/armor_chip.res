@@ -42,18 +42,18 @@ resource/ui/menus/hovers/armor_chip.res
         ControlName				Label
         xpos					-8
         ypos				    2
-        wide					74
+        wide					2000
         tall					64
         visible					1
         enabled					1
-        auto_wide_tocontents	1
+        auto_wide_tocontents	0
         //auto_tall_tocontents	1
         labelText				"ARMOR CHIP"
         fgcolor_override		"25 25 25 255"
         textAlignment			north-west
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMonoBold_43
+        font					JetBrainsMonoBold_36
 
         pin_to_sibling			TitleStrip
         pin_corner_to_sibling	LEFT
@@ -69,8 +69,8 @@ resource/ui/menus/hovers/armor_chip.res
 		ProgressDirection			1
 		CircularEnabled 		0
 		SegmentFill			1
-		SegmentSize			72
-		SegmentGap			6
+		SegmentSize			93
+		SegmentGap			4
 		visible				1
 
 		fgcolor_override	"25 25 25 75"
@@ -95,8 +95,8 @@ resource/ui/menus/hovers/armor_chip.res
 		ProgressDirection			0
 		CircularEnabled 		0
 		SegmentFill			1
-		SegmentSize			72
-		SegmentGap			6
+		SegmentSize			93
+		SegmentGap			4
 		visible				1
 
 		fgcolor_override	"25 25 25 255"

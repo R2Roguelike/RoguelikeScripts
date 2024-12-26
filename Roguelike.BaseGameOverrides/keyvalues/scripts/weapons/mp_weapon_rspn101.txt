@@ -1,0 +1,8 @@
+WeaponData
+{
+    SP_BASE
+    {
+      "damage_near_value"   							"15"
+      "damage_far_value"								"13"
+    }
+}

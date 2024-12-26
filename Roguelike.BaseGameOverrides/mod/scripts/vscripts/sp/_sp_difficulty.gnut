@@ -11,6 +11,7 @@ global function SetProficiencyFromSPDifficulty
 global function SelectDifficulty
 global function GetLowestDifficultyThisMap
 global function UpdateMercTitanHealthForDifficulty
+global function Roguelike_QuickDeathInsteadOfKill
 
 const float FRIENDLY_TVT_DAMAGE_SCALE = 0.2 // scale damage dealt by militia npc titans against IMC
 const float BT_TVT_DAMAGE_SCALE = 0.5 // scale damage dealt by BT npc against IMC titans
@@ -26,7 +27,7 @@ const float DIFFICULTY_NORMAL_DAMAGE_SCALAR = 1.0 // damage against player is mu
 const float DIFFICULTY_HARD_DAMAGE_SCALAR = 1.0 // damage against player is multiplied by this number on Hard.
 // NO INCREASE HERE, TITANS HAVE 0 CD HERE LOL
 const float DIFFICULTY_MASTER_DAMAGE_SCALAR = 1.0 // damage against player is multiplied by this number on Master.
-const float PLAYER_TITAN_DAMAGE_SCALAR = 1 // damage against player titan multiplied by this
+const float PLAYER_TITAN_DAMAGE_SCALAR = 0.5 // damage against player titan multiplied by this
 
 struct
 {
@@ -73,9 +74,28 @@ void function SPDifficulty_Init()
 	// titans are easier when player is doomed
 	AddSpawnCallback( "npc_titan", NPCTitan_OnSpawned )
 	AddCallback_OnTitanDoomed( OnTitanDoomed )
+	AddCallback_OnNPCKilled( NPCKilled )
 	AddClientCommandCallback( "ClientCommand_RequestSPDifficultyChange", ClientCommand_RequestSPDifficultyChange )
 
 	file.lowestDifficulty = GetSpDifficulty()
+}
+
+void function NPCKilled( entity ent, entity attacker, var damageInfo )
+{
+	if (!attacker.IsPlayer())
+		return
+
+	if (Roguelike_HasMod( attacker, "grenade_cd" ) && !attacker.IsTitan())
+	{
+		entity ordnance = attacker.GetOffhandWeapon(0)
+		ordnance.SetWeaponPrimaryClipCount( minint(ordnance.GetWeaponPrimaryClipCount() + 15, ordnance.GetWeaponPrimaryClipCountMax()) )
+	}
+	if (Roguelike_HasMod( attacker, "tactical_cd" ) && !attacker.IsTitan())
+	{
+		entity tactical = attacker.GetOffhandWeapon(1)
+		float regenRate = tactical.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_rate)
+		tactical.SetWeaponPrimaryClipCount( minint(tactical.GetWeaponPrimaryClipCount() + int(1.5 * regenRate), tactical.GetWeaponPrimaryClipCountMax()) )
+	}
 }
 
 void function NPCTitan_OnSpawned( entity titan )
@@ -138,6 +158,18 @@ void function SpPlayer_OnDamaged( entity player, var damageInfo )
 	if ( attacker == player )
 		return
 
+	const array<string> badTriggers = ["trigger_hurt", "trigger_quickdeath", "worldspawn"]
+	printt(attacker, DamageInfo_GetForceKill( damageInfo ))
+	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo ) 
+	if ((damageSourceId == eDamageSourceId.fall || badTriggers.contains(attacker.GetClassName())) && DamageInfo_GetForceKill( damageInfo ) && GetMapName() != "sp_s2s") // if you fall off in the ark, kinda your fault tbh =-=
+	{
+		printt("fell off")
+		// hack. all deaths from triggers should be quickdeaths
+		DamageInfo_SetForceKill( damageInfo, false )
+		DamageInfo_SetDamage( damageInfo, 0 )
+		thread Roguelike_QuickDeathInsteadOfKill( player )
+	}
+
 	if ( player.IsTitan() )
 	{
 		int armor = Roguelike_GetStat( player, STAT_ARMOR )
@@ -169,6 +201,39 @@ void function SpPlayer_OnDamaged( entity player, var damageInfo )
 			}
 		}
 	}
+}
+
+void function Roguelike_QuickDeathInsteadOfKill( entity player )
+{
+	vector origin = expect vector(player.s.lastGroundPosition)
+	vector angles = expect vector(player.s.lastGroundAngles)
+	const float FADE_TIME = 0.1
+	Signal( player, "QuickDeath" )
+
+	ScreenFade( player, 0, 0, 0, 255, FADE_TIME, 2.2, FFADE_IN | FFADE_PURGE )
+	player.FreezeControlsOnServer()
+	player.p.doingQuickDeath = true
+	
+	EmitSoundOnEntity( player, "quickdeath_fadeout_to_fadein" )
+	EmitSoundOnEntity( player, "Player_Death_Begin")
+	
+	wait FADE_TIME
+	
+	player.DisableWeapon()
+	player.SetOrigin( origin )
+	player.SetAngles( angles )
+	player.SetVelocity( <0,0,0> )
+
+	Signal( player, "QuickDeathPlayerTeleported" )
+
+	StopSoundOnEntity( player, "quickdeath_fadeout_to_fadein" )
+
+	wait 2.1
+
+	player.UnfreezeControlsOnServer()
+	player.p.doingQuickDeath = false
+	player.EnableWeapon()
+	EmitSoundOnEntity( player, "Player_Death_PrespawnTransition" )
 }
 
 void function LowerNPCTitanProficiency()
@@ -304,7 +369,7 @@ void function SetTitanProficiency( entity npcTitan )
 		{
 			int proficiencyAdjust = int( npcTitan.kv.ProficiencyAdjust )
 			int weaponProficiency = int( npcTitan.kv.WeaponProficiency )
-			int newProf = int( clamp( weaponProficiency + proficiencyAdjust, eWeaponProficiency.POOR, eWeaponProficiency.PERFECT ) )
+			int newProf = int( clamp( weaponProficiency, eWeaponProficiency.POOR, eWeaponProficiency.PERFECT ) )
 
 			// printt( npcTitan )
 			// printt( npcTitan.kv.WeaponProficiency )

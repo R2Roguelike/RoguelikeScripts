@@ -168,6 +168,9 @@ void function StartPoints_EntitiesDidLoad()
 	{
 		StartPoint startPoint = file.startPointsArray[ i ]
 		SetCurrentStartPoint( startPoint.startPointEnum )
+
+		// ROGUELIKE - backup run every startpoint
+		ServerToClientStringCommand( player, "run_backup " + i )
 		waitthread startPoint.main( player )
 	}
 }

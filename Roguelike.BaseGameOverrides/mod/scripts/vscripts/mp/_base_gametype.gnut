@@ -1391,13 +1391,11 @@ void function CodeCallback_WeaponFireInCloak( entity player )
 	if ( !WeaponInterruptsCloak( player.GetActiveWeapon() ) )
 		return
 
-	if ( player.IsTitan() )  // Fix timing issue with auto-eject cloak and firing your weapon as a Titan cancelling it.  This assumes we never want cloaked titans!
+	if ( Roguelike_HasMod( player, "uninterruptable_cloak" ))
 		return
 
-	if (Roguelike_HasMod( player, "uninterruptable_cloak" ))
-	{	
+	if ( player.IsTitan() )  // Fix timing issue with auto-eject cloak and firing your weapon as a Titan cancelling it.  This assumes we never want cloaked titans!
 		return
-	}
 
 	// if ( player.cloakedForever )
 	// {

@@ -214,7 +214,7 @@ float function HandleBlockingAndCalcDamageScaleForHit( entity blockingEnt, var d
 				int power = Roguelike_GetStat( blockingEnt, STAT_POWER )
 				float intensity = StatusEffect_Get( blockingEnt, eStatusEffect.roguelike_block_buff )
 				StatusEffect_StopAll( blockingEnt, eStatusEffect.roguelike_block_buff )
-				intensity += originalDamage / 5.0 / 255.0 * Roguelike_GetTitanCooldownReduction( power )
+				intensity += originalDamage / 3.0 / 255.0
 				StatusEffect_AddTimed( blockingEnt, eStatusEffect.roguelike_block_buff, intensity, 5.0 + intensity * 5.0, intensity * 5.0 )
 				return 0.0
 			}

@@ -285,12 +285,22 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	}
 
 	DamageInfo_ScaleDamage( damageInfo, scalar )
+
+	// balance increases all damage by player by 25%
+	if (attackerIsPlayer && GetConVarBool("roguelike_stat_balance") && attacker != ent)
+		DamageInfo_ScaleDamage( damageInfo, 1.25 )
+		
+	if (attackerIsPlayer)
+		Roguelike_PlayerDealtDamage( ent, attacker, damageInfo )
 	
 	// Added via AddEntityCallback_OnDamaged
 	foreach ( callbackFunc in ent.e.entDamageCallbacks )
 	{
 		callbackFunc( ent, damageInfo )
 	}
+
+	if (DamageInfo_GetDamage( damageInfo ) == 0)
+		return
 	#if VERBOSE_DAMAGE_PRINTOUTS
 		printt( "    after AddEntityCallback_OnDamaged callbacks:", DamageInfo_GetDamage( damageInfo ) )
 	#endif
@@ -360,8 +370,6 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		printt( "    	Shield Damage:", titanDamage.shieldDamage )
 	#endif
 	
-	if (attackerIsPlayer)
-		Roguelike_PlayerDealtDamage( ent, attacker, damageInfo )
 	// Added via AddEntityCallback_OnPostDamaged
 	foreach ( callbackFunc in ent.e.entPostDamageCallbacks )
 	{

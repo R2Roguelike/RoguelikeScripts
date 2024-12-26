@@ -40,6 +40,20 @@ void function PilotChip3_RegisterMods()
         mod.icon = $"vgui/hud/white"
         mod.cost = 1
     }
+    {
+        RoguelikeMod mod = NewMod("headshot_booster")
+        mod.name = "Headshot Booster"
+        mod.description = "Hitting a headshot <cyan>heals you</> and grants that headshot <cyan>a +50% damage bonus</>."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("random_headshot")
+        mod.name = "Random Crits"
+        mod.description = "All hits have a <cyan>20% chance</> to become a <burn>headshot</>.\n<red>BUT,</> headshots can no longer be acquired by hitting the head."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 2
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)

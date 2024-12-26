@@ -7,6 +7,10 @@
 	
 	"Scripts": [
 		{
+			"Path": "ui/vgui_button.nut",
+			"RunOn": "UI"
+		},
+		{
 			"Path": "cl_roguelike_timer.nut",
 			"RunOn": "CLIENT",
             "ClientCallback": {
@@ -50,14 +54,17 @@
 			"RunOn": "UI"
 		},
 		{
-			"Path": "ui/vgui_button.nut",
-			"RunOn": "UI"
-		},
-		{
 			"Path": "ui/menu_mod_select.nut",
 			"RunOn": "UI",
 			"UICallback": {
 				"Before": "ModSelect_Init"
+			}
+		},
+		{
+			"Path": "ui/menu_run_setup.nut",
+			"RunOn": "UI",
+			"UICallback":{
+				"Before": "RunSetup_Init"
 			}
 		},
 		{

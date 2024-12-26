@@ -114,7 +114,7 @@ vector function WorldToScreenPos( vector position )
 	float aspectRatio = screenSize[0] / screenSize[1]
 	float targetAspectRatio = 1.77777778
 
-    vector result = <float( pos[0] ) / screenSize[0] / aspectRatio * targetAspectRatio * 5, float( pos[1] ) / screenSize[1] * 5, 0 >
+    vector result = <float( pos[0] ) / screenSize[0] * 5, float( pos[1] ) / screenSize[1] * 5, 0 >
     //print(result)
     return result
 }

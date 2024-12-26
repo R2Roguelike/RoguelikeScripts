@@ -47,7 +47,7 @@ void function Scorch_RegisterMods()
     {
         RoguelikeMod mod = NewMod("let_[insert_pronoun_here]_cook")
         mod.name = "The Perfect Dish"
-        mod.description = "Enemies killed that were never inflicted with Eruption, but are above 75% burn, spawn an additional battery."
+        mod.description = "Enemies killed that were never inflicted with Eruption, but are above 50% burn, spawn an additional <green>battery</>."
         mod.icon = $"vgui/hud/white"
         mod.cost = 3
     }
@@ -65,7 +65,7 @@ RoguelikeMod function NewMod(string uniqueName)
     RoguelikeMod mod = Roguelike_NewMod(uniqueName)
 
     mod.useLoadoutChipSlot = true
-    mod.loadout = "mp_titanweapon_meteor"
+    mod.loadouts = [ PRIMARY_SCORCH ]
     mod.chip = 1
     mod.isTitan = true
     

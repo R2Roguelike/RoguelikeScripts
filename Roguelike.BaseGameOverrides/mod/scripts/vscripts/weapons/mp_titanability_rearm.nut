@@ -1,4 +1,5 @@
 //TODO: FIX REARM WHILE FIRING SALVO ROCKETS
+untyped
 
 global function OnWeaponPrimaryAttack_titanability_rearm
 global function OnWeaponAttemptOffhandSwitch_titanability_rearm
@@ -14,27 +15,44 @@ var function OnWeaponPrimaryAttack_titanability_rearm( entity weapon, WeaponPrim
 		PlayerUsedOffhand( weaponOwner, weapon )
 
 	entity ordnance = weaponOwner.GetOffhandWeapon( OFFHAND_RIGHT )
-	if ( IsValid( ordnance ) )
+	
+	array offhandWeapons = weaponOwner.GetOffhandWeapons()
+	if (weaponOwner.IsPlayer() && Roguelike_HasMod( weaponOwner, "rearm_reload" ))
 	{
-		ordnance.SetWeaponPrimaryClipCount( ordnance.GetWeaponPrimaryClipCountMax() )
+		entity primary = weaponOwner.GetLatestPrimaryWeapon()
+		primary.SetWeaponPrimaryClipCount(primary.GetWeaponPrimaryClipCountMax())
+	}
+	if (weaponOwner.IsPlayer() && Roguelike_HasMod( weaponOwner, "rearm_reset" ))
+	{
+	#if SERVER
+		if ("storedAbilities" in weaponOwner.s)
+			offhandWeapons.extend(weaponOwner.s.storedAbilities)
+	#endif
+	}
+	foreach (entity offhand in offhandWeapons)
+	{
+		if (offhand == weapon)
+			continue
+		
+		if (!IsValid(offhand))
+			continue
+		
+		if (offhand.GetInventoryIndex() == OFFHAND_INVENTORY)
+			continue // dont reset equipment!
+
+		if (offhand.GetWeaponPrimaryClipCountMax() > 0)
+		offhand.SetWeaponPrimaryClipCount( offhand.GetWeaponPrimaryClipCountMax() )
 		#if SERVER
-		if ( ordnance.IsChargeWeapon() )
-			ordnance.SetWeaponChargeFractionForced( 0 )
+		if ( offhand.IsChargeWeapon() )
+			offhand.SetWeaponChargeFractionForced( 0 )
 		#endif
 	}
-	entity defensive = weaponOwner.GetOffhandWeapon( OFFHAND_LEFT )
-	if ( IsValid( defensive ) )
-	{
-		if (defensive.IsChargeWeapon() && IsServer())
-				defensive.SetWeaponChargeFractionForced( 0 )
-		else if (IsMultiplayer())
-			defensive.SetWeaponPrimaryClipCount( defensive.GetWeaponPrimaryClipCountMax() )
-	}
+
 	#if SERVER
 	if ( weaponOwner.IsPlayer() )//weapon.HasMod( "rapid_rearm" ) &&  )
 			weaponOwner.Server_SetDodgePower( 100.0 )
 	#endif
-	//weapon.SetWeaponPrimaryClipCount( 0 )//used to skip the fire animation
+	weapon.SetWeaponPrimaryClipCount( 0 )//used to skip the fire animation
 	return 0
 }
 
@@ -47,28 +65,29 @@ var function OnWeaponNPCPrimaryAttack_titanability_rearm( entity weapon, WeaponP
 
 bool function OnWeaponAttemptOffhandSwitch_titanability_rearm( entity weapon )
 {
-
-	bool allowSwitch = true
 	entity weaponOwner = weapon.GetWeaponOwner()
 
-	entity ordnance = weaponOwner.GetOffhandWeapon( OFFHAND_RIGHT )
-	entity defensive = weaponOwner.GetOffhandWeapon( OFFHAND_LEFT )
+	bool allowSwitch = false
+	foreach (entity offhand in weaponOwner.GetOffhandWeapons())
+	{
+		if (offhand == weapon)
+			continue
 
-	if ( ordnance.GetWeaponPrimaryClipCount() == ordnance.GetWeaponPrimaryClipCountMax() && defensive.GetWeaponPrimaryClipCount() == defensive.GetWeaponPrimaryClipCountMax() )
-		allowSwitch = false
+		if (!IsValid(offhand))
+			continue
 
-	if ( ordnance.IsBurstFireInProgress() )
-		allowSwitch = false
+		if ( offhand.GetWeaponPrimaryClipCountMax() > 0 && offhand.GetWeaponPrimaryClipCount() < offhand.GetWeaponPrimaryClipCountMax() )
+			allowSwitch = true
+			
+		if ( offhand.IsChargeWeapon() && offhand.GetWeaponChargeFraction() > 0.0 )
+			allowSwitch = true
+	}
 
-	if ( ordnance.IsChargeWeapon() && ordnance.GetWeaponChargeFraction() > 0.0 )
-		allowSwitch = true
-	
-	if ( defensive.IsChargeWeapon() && defensive.GetWeaponChargeFraction() > 0.0  )
-		allowSwitch = true
 	//if ( weapon.HasMod( "rapid_rearm" ) )
 	//{
-		if ( weaponOwner.GetDodgePower() < 100 )
-			allowSwitch = true
+		// using rearm (40 sec cooldown) to regen just dashes feels stupid imo
+		//if ( weaponOwner.GetDodgePower() < 100 )
+		//	allowSwitch = true
 	//}
 
 	if( !allowSwitch && IsFirstTimePredicted() )

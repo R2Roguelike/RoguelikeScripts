@@ -602,9 +602,19 @@ void function SpawnTitanBatteryOnDeath( entity titan, var damageInfo )
 			entity player = GetPlayerArray()[0]
 			entity playerTitan = GetTitanFromPlayer( player )
 
+			if (Roguelike_HasMod( player, "battery_spawn" ) && RandomFloat( 1.0 ) < 0.05)
+			{
+				numBatt += 1
+			}
 			if ( RoguelikeScorch_IsPerfectDish( player, titan ))
 			{
 				numBatt += 1
+			}
+			if (Roguelike_HasMod( player, "executioner_meal" ) && player.IsTitan() && damageInfo != null)
+			{
+				array<int> swordDamageSourceIds = [ eDamageSourceId.melee_titan_sword, eDamageSourceId.mp_titancore_shift_core ]
+				if (swordDamageSourceIds.contains(DamageInfo_GetDamageSourceIdentifier( damageInfo )))
+					numBatt += 1
 			}
 		}
 	}

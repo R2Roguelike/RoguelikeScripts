@@ -5,7 +5,7 @@ void function Ronin_RegisterMods()
     {
         RoguelikeMod mod = NewMod("daze_arc_wave")
         mod.name = "Dazing Arc Wave"
-        mod.description = "Arc Wave deals ^FFE16400Daze^FFFFFFFF to enemies. Additional copies increase Daze dealt."
+        mod.description = "Arc Wave deals <daze>Daze</> to enemies. Additional copies increase Daze dealt."
         mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }
@@ -20,16 +20,15 @@ void function Ronin_RegisterMods()
         // NOT IMPLEMENTED
         RoguelikeMod mod = NewMod("reflective_sword")
         mod.name = "Reflective Sword"
-        mod.description = "Sword block blocks ^40FF4000100%^FFFFFFFF damage.\nBlocked damage ^40FFFF00charges your next sword hit^FFFFFFFF.\nSword block ^FF404000no longer blocks ANY damage^FFFFFFFF while at max charge."
+        mod.description = "Sword block blocks <green>100%</> damage.\nBlocked damage <cyan>charges your next sword hit</>.\nSword block <red>no longer blocks ANY damage</> while at max charge."
         mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }
-    if (false)
     {
         // NOT IMPLEMENTED
         RoguelikeMod mod = NewMod("quickswap")
         mod.name = "Quickswap"
-        mod.description = "Firing your shotgun right after switching to it deals ^FF404000massive damage^FFFFFFFF and ^FFE16400maximum Daze^FFFFFFFF."
+        mod.description = "Firing your shotgun right after switching to it deals <red>massive damage</> and <daze>maximum Daze</>."
         mod.icon = $"vgui/hud/white"
         mod.cost = 3
     }
@@ -61,6 +60,13 @@ void function Ronin_RegisterMods()
         mod.icon = $"vgui/hud/white"
         mod.cost = 3
     }
+    {
+        RoguelikeMod mod = NewMod("executioner_meal")
+        mod.name = "Executioners Meal"
+        mod.description = "Enemies finished off with your sword spawn a <green>battery</>."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 3
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)
@@ -68,7 +74,7 @@ RoguelikeMod function NewMod(string uniqueName)
     RoguelikeMod mod = Roguelike_NewMod(uniqueName)
 
     mod.useLoadoutChipSlot = true
-    mod.loadout = "mp_titanweapon_leadwall"
+    mod.loadouts = [PRIMARY_RONIN]
     mod.chip = 1
     mod.isTitan = true
     

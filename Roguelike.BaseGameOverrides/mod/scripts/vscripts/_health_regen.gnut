@@ -29,7 +29,7 @@ void function PilotHealthRegenThinkSP( entity player )
 
 	while ( IsValid( player ) )
 	{
-		wait( 0.001 )
+		wait( 0.19 )
 
 		if ( !IsAlive( player ) )
 			continue

@@ -122,6 +122,7 @@ resource/ui/menus/panels/inventory_slot.res
 		xpos					0
 		wide					96
 		tall					96
+		zpos					1000
 	}
 	
 	SwapEffect
