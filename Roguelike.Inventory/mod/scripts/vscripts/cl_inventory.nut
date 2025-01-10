@@ -1,6 +1,11 @@
 untyped
 globalize_all_functions
 
+void function Roguelike_ItemAcquired( table item )
+{
+    printt(item)
+}
+
 int function Roguelike_GetModCount( entity player, string modName )
 {
     array<string> modsArr = split( GetConVarString("player_mods"), " ")

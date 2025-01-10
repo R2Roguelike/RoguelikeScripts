@@ -12,9 +12,9 @@ void function Elites_Init()
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT )
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT_MOD )
 	PrecacheImpactEffectTable( ARC_CANNON_FX_TABLE )
-    //Elites_Add( Elite_BubbleShield )
+    Elites_Add( Elite_BubbleShield )
     //Elites_Add( Elite_Healing )
-    Elites_Add( Elite_Invulnerable )
+    //Elites_Add( Elite_Invulnerable )
 }
 
 string function GetEliteType( entity npc )
@@ -32,9 +32,8 @@ void function Elites_Add( void functionref( entity ) eliteFunc )
 
 void function Elites_Generate( entity npc )
 {
-    return
     int levelsComplete = GetConVarInt("roguelike_levels_completed")
-    float chance = GraphCapped( levelsComplete, 0, 20, 0, 0.5 )
+    float chance = GraphCapped( levelsComplete, 0, 5, 0.05, 0.333 )
     if (RandomFloat(1) > chance)
         return
     
@@ -46,8 +45,16 @@ void function Elites_Generate( entity npc )
 
 void function Elite_BubbleShield( entity npc )
 {
+    if (npc.GetMaxHealth() <= 0)
+        return
     npc.s.elite <- "bubble_shield"
-    Highlight_SetEnemyHighlight( npc, "elite_bubble_shield" )
+    Highlight_SetEnemyHighlight( npc, "elite_bubble_shield")
+    if (npc.IsTitan())
+    {
+        npc.SetNPCMoveFlag( NPCMF_WALK_ALWAYS, true ) // reduce HP by 33% since they can be frustrating to fight against
+        npc.SetNPCMoveSpeedScale( 0.333 ) // reduce HP by 33% since they can be frustrating to fight against
+        StatusEffect_AddEndless( npc, eStatusEffect.dodge_speed_slow, 0.75 )
+    }
 
     // hopefully this prevents them from dashing?
     // they can get annoying as a titan since you have to practically
@@ -71,8 +78,14 @@ entity function TestBubbleShield( int team, vector origin, vector angles, entity
 	entity bubbleShield = CreateEntity( "prop_dynamic" )
 	bubbleShield.SetValueForModelKey( $"models/fx/xo_shield.mdl" )
 	bubbleShield.kv.solid = SOLID_VPHYSICS
-    bubbleShield.kv.rendercolor = "81 130 151"
+    bubbleShield.kv.rendercolor = "255 255 0"
     bubbleShield.kv.contents = (int(bubbleShield.kv.contents) | CONTENTS_NOGRAPPLE)
+
+    if (owner != null && owner.IsTitan())
+    {
+        origin += <0,0,60>
+    }
+    
 	bubbleShield.SetOrigin( origin )
 	bubbleShield.SetAngles( angles )
      // Blocks bullets, projectiles but not players and not AI
@@ -80,8 +93,9 @@ entity function TestBubbleShield( int team, vector origin, vector angles, entity
     bubbleShield.kv.VisibilityFlags = ENTITY_VISIBLE_TO_ENEMY
 	bubbleShield.SetBlocksRadiusDamage( true )
 	DispatchSpawn( bubbleShield )
-	bubbleShield.Hide()
-	bubbleShield.SetPassThroughThickness( 250 )
+	//bubbleShield.Hide()
+	bubbleShield.SetPassThroughThickness( 250 ) 
+    //bubbleShield.SetTeam( owner.GetTeam() )
 	//bubbleShield.SetPassThroughDirection( 0 )
 
 	SetTeam( bubbleShield, team )
@@ -90,24 +104,6 @@ entity function TestBubbleShield( int team, vector origin, vector angles, entity
 	vector coloredFXOrigin = origin + Vector( 0, 0, 25 )
 	table bubbleShieldDotS = expect table( bubbleShield.s )
     
-    //Create friendly and enemy colored particle systems
-    entity friendlyColoredFX = StartParticleEffectInWorld_ReturnEntity( BUBBLE_SHIELD_FX_PARTICLE_SYSTEM_INDEX, coloredFXOrigin, <0, 0, 0> )
-    SetTeam( friendlyColoredFX, team )
-    friendlyColoredFX.SetParent( bubbleShield )
-    friendlyColoredFX.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY
-    EffectSetControlPointVector(  friendlyColoredFX, 1, FRIENDLY_COLOR_FX )
-
-    entity enemyColoredFX = StartParticleEffectInWorld_ReturnEntity( BUBBLE_SHIELD_FX_PARTICLE_SYSTEM_INDEX, coloredFXOrigin, <0, 0, 0> )
-    SetTeam( enemyColoredFX, team )
-    enemyColoredFX.SetParent( bubbleShield )
-    enemyColoredFX.kv.VisibilityFlags = ENTITY_VISIBLE_TO_ENEMY
-    EffectSetControlPointVector( enemyColoredFX, 1, ENEMY_COLOR_FX )
-
-    bubbleShieldDotS.friendlyColoredFX <- friendlyColoredFX
-    bubbleShieldDotS.enemyColoredFX <- enemyColoredFX
-    bubbleShieldFXs.append( friendlyColoredFX )
-    bubbleShieldFXs.append( enemyColoredFX )
-        
 
 	bubbleShield.SetParent(owner)
 
@@ -190,6 +186,7 @@ void function Elite_Healing( entity npc )
 {
     npc.s.elite <- "healing"
     Highlight_SetEnemyHighlight( npc, "elite_healing" )
+    npc.kv.rendercolor = "0 255 0"
     //TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
 
     npc.EndSignal("OnDeath")
@@ -207,7 +204,7 @@ void function Elite_Healing( entity npc )
                 healingAmount = 400 //
             
             if (ent == npc || GetEliteType(npc) == "healing")
-                healingAmount = healingAmount / 5 // slightly reduced
+                healingAmount = healingAmount / 3 // heavily reduced!
 
             ent.SetHealth( minint( ent.GetMaxHealth(), ent.GetHealth() + healingAmount ))
 

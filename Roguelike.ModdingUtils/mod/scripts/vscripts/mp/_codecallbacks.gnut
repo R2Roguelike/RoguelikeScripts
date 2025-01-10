@@ -45,6 +45,22 @@ void function OnClientConnected( entity player )
 {
 	AccumulatedDamageData damageData
 	file.playerAccumulatedDamageData[player] <- damageData
+
+	thread void function() : (player)
+	{
+		while (true)
+		{
+			wait 0
+			if (player.IsOnGround() && !player.IsWallRunning() 
+				&& !player.IsWallHanging()
+				&& !player.p.doingQuickDeath 
+				&& !player.IsTraversing())
+			{
+				player.s.lastGroundPosition <- player.GetOrigin()
+				player.s.lastGroundAngles <- player.GetAngles()
+			}
+		}
+	}()
 }
 
 // TODO: Get an equivalent callback happening on the client, so we can stop using ServerCallback_PlayerTookDamage which is always out of date to some degree.
@@ -277,12 +293,20 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	float scalar = 1.0
 	if (powerDiff <= 0)
 	{
-		scalar = 100.0 / (100 + (-powerDiff * POWER_SCALAR))
+		if (ent.IsTitan())
+		{
+			scalar = 100.0 / (100 + (-powerDiff * HEALTH_SCALAR_TITAN))
+		}
+		else
+		{
+			scalar = 100.0 / (100 + (-powerDiff * HEALTH_SCALAR))
+		}
 	}
 	else
 	{
 		scalar = (100 + (powerDiff * POWER_SCALAR)) / 100.0
 	}
+	printt(scalar)
 
 	DamageInfo_ScaleDamage( damageInfo, scalar )
 

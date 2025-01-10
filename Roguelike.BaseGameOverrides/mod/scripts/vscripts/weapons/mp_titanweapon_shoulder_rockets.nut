@@ -100,7 +100,7 @@ var function OnWeaponPrimaryAttack_titanweapon_shoulder_rockets( entity weapon, 
 		if ( Roguelike_HasMod( owner, "dumbfire_rockets" ) )
 		{
 			weapon.SetWeaponBurstFireCount( 6 )
-			entity missile = weapon.FireWeaponMissile( attackParams.pos, attackParams.dir, SHOULDERROCKETS_MISSILE_SPEED * 5.0, damageTypes.projectileImpact, damageTypes.explosive, true, shouldPredict )
+			entity missile = weapon.FireWeaponMissile( attackParams.pos, attackParams.dir, SHOULDERROCKETS_MISSILE_SPEED * 10.0, damageTypes.projectileImpact, damageTypes.explosive, true, shouldPredict )
 			missile.InitMissileForRandomDriftFromWeaponSettings( attackParams.pos, attackParams.dir )
 			shotFrac = 1.0 / 18.0
 		}

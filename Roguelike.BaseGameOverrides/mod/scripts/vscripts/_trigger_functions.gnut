@@ -163,6 +163,8 @@ function RunTriggerEditorClassFunctions( entity trigger )
 
 void function TriggerSetFlagOnTrigger( entity trigger )
 {
+	Roguelike_ModifyTrigger( trigger )
+	
 	trigger.EndSignal( "OnDestroy" )
 
 	string flag

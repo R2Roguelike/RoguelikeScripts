@@ -1,5 +1,6 @@
 WeaponData
 {
+    "inventory_slot"                "secondary"
     SP_BASE
     {
       "damage_near_value"   							"26"

@@ -10,18 +10,18 @@ void function Expedition_RegisterMods()
         mod.cost = 3
     }
     {
-        RoguelikeMod mod = NewMod("rearm_reload")
-        mod.name = "Rearm and Reload"
-        mod.description = "Rearming <cyan>reloads your XO-16</>."
+        RoguelikeMod mod = NewMod("quick_rearm")
+        mod.name = "Quick Rearm"
+        mod.description = "Rearm cooldown reduced by 66%. Other abilty cooldowns <red>increased by 300%</>."
         mod.icon = $"vgui/hud/white"
-        mod.cost = 1
+        mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("rearm_reset")
         mod.name = "Rearm and Reset"
         mod.description = "Rearming <cyan>resets cooldowns for your other loadout as well</>."
         mod.icon = $"vgui/hud/white"
-        mod.cost = 3
+        mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("vortex_absorb_ammo")
@@ -51,6 +51,13 @@ void function Expedition_RegisterMods()
         mod.description = "Accuracy and range <cyan>greatly increased</>. Fire rate <red>decreased by 16%</>."
         mod.icon = $"vgui/hud/white"
         mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("atg_missile")
+        mod.name = "Automatic Missile Launcher"
+        mod.description = "On Hit: 50% chance to launch a missile."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 3
     }
 }
 

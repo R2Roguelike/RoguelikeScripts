@@ -12,7 +12,7 @@ float function Roguelike_GetPilotSpeedBonus( int speed )
 
 float function Roguelike_GetTitanDamageMultiplier( int armor )
 {
-    return 9000.0 / (7200.0 + 60.0 * armor)
+    return 9000.0 / (7500.0 + 60.0 * armor)
 }
 
 float function Roguelike_GetTitanDamageResist( int armor )
@@ -22,9 +22,11 @@ float function Roguelike_GetTitanDamageResist( int armor )
     return resist
 }
 
+// -90% dash cooldown? why the fuck not...
 float function Roguelike_GetDashCooldownMultiplier( int energy )
 {
-    return 1.2 * pow(0.5, energy / 100.0) // +20% cd when low, -40% when max
+    //return Graph( energy, 0, 150, 1.2, 0.1 )
+    return 1.2 * pow(0.3, energy / 100.0) // +20% cd when low, -90% when max
 }
 
 float function Roguelike_GetCoreGainBonus( int energy )
@@ -34,12 +36,12 @@ float function Roguelike_GetCoreGainBonus( int energy )
 
 float function Roguelike_GetPilotCooldownReduction( int power )
 {
-    return 1.2 * pow(0.5, power / 100.0) // +20% cd when low, -40% when max
+    return 1.2 * pow(0.4, power / 100.0) // +20% cd when low, -40% when max
 }
 
 float function Roguelike_GetTitanCooldownReduction( int power )
 {
-    return 1.2 * pow(0.625, power / 100.0) // +20% when low, -25% when high
+    return 1.2 * pow(0.4, power / 100.0) // +20% when low, -25% when high
 }
 
 // bitwise OR of two bits corresponding to titan loadouts
@@ -56,20 +58,42 @@ bool function Roguelike_PlayerHasLoadout(string weapon)
     return Roguelike_GetTitanLoadouts().contains(weapon)
 }
 
+int function Roguelike_GetUpgradePrice( table item )
+{
+    int level = expect int(item.level)
+    int price = 50 + (level * 25) + expect int(item.priceOffset)
+
+    return price
+}
+
+int function Roguelike_GetItemMaxLevel( table item )
+{
+    switch (item.type)
+    {
+        case "armor_chip":
+            return MAX_CHIP_LEVEL
+        case "weapon":
+            int rarity = expect int(item.rarity)
+            return 3
+    }
+
+    return 0
+}
+
 // first element is name, 2nd element is description
 array<string> function GetTitanLoadoutPassiveData()
 {
     switch (GetTitanLoadoutFlags())
     {
         case SCORCH_RONIN:
-            return ["Sword of Flame",
-            "Sword Core adds <burn>Burn</> on hit."]
+            return ["Early Ignition",
+            "<cyan>Arc Wave</> causes enemies over 75% <burn>Burn</> on to immediately <burn>Erupt</>. Eruptions caused by Arc Wave <daze>Daze</> nearby enemies."]
         case EXPEDITION_RONIN:
-            return ["Effect Cycle",
-            "Whenever <daze>Daze</> is consumed, inflict <weak>Weaken</>. Whenever <weak>Weaken</> is consumed, inflict <daze>Daze</>."]
+            return ["weakling executioner",
+            "Your sword deals increased damage to <weak>Weak</> enemies. Consumed <daze>Daze</> is converted into <cyan>Missile cooldown</>"]
         case EXPEDITION_SCORCH:
-            return ["Rearm the Furnace",
-            "<weak>Weaken</> sources inflict <burn>Burn</> as well. Eruptions restore cooldown for <cyan>rearm</>."]
+            return ["Portal",
+            "<burn>Heat Shield</> absorbs. <cyan>Vortex Shield</> releases."]
     }
 
     return ["No Passive", "No passive is active for this loadout combination."]

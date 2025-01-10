@@ -149,6 +149,11 @@ void function AddBurn( entity ent, entity attacker, int amount )
     StatusEffect_StopAll( ent, eStatusEffect.roguelike_burn )
     cur += amount
     StatusEffect_AddEndless( ent, eStatusEffect.roguelike_burn, cur / 255.0 )
+
+    if (cur >= 200)
+    {
+        thread Eruption( ent, attacker )
+    }
 }
 
 int function GetBurn( entity ent )
@@ -177,7 +182,8 @@ void function Eruption( entity victim, entity attacker )
     if (GetTitanLoadoutFlags() == EXPEDITION_SCORCH)
     {
         entity rearm = Roguelike_GetOffhandWeaponByName( attacker, "mp_titanability_rearm" )
-        RestoreCooldown( rearm, 0.2 )
+        if (rearm != null)
+            RestoreCooldown( rearm, 0.2 )
     }
 
 	entity inflictor = CreateEntity( "script_ref" )
@@ -214,8 +220,10 @@ void function EruptionDamage( entity ent, var damageInfo )
     if (!("eruption" in inflictor.s))
         return
 
+    DamageInfo_ScaleDamage( damageInfo, 0.5 )
+
     if (attacker == ent && Roguelike_HasMod( attacker, "self_burn" ))
-        DamageInfo_ScaleDamage( damageInfo, 0.5 )
+        DamageInfo_ScaleDamage( damageInfo, 0.3333 )
 }
 
 bool function RoguelikeScorch_IsPerfectDish( entity player, entity ent )

@@ -3430,13 +3430,13 @@ entity function SpawnBT( entity player, vector origin )
 
 	SoulTitanCore_SetNextAvailableTime( npcTitan.GetTitanSoul(), 1.0 ) // Give BT a full core for max effect
 
-	if ( file.lastBTweaponName != "" )
+	/*if ( file.lastBTweaponName != "" )
 	{
 		TitanLoadoutDef loadout = expect TitanLoadoutDef( GetTitanLoadoutForPrimary( file.lastBTweaponName ) )
 		loadout.setFile = "titan_buddy"
 		TakeAllWeapons( npcTitan )
 		GiveTitanLoadout( npcTitan, loadout )
-	}
+	}*/
 
 	return npcTitan
 }

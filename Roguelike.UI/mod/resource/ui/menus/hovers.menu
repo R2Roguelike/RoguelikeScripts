@@ -23,7 +23,7 @@ resource/ui/menus/hovers.menu
 
             image			"vgui/hud/white"
 
-            drawColor	"0 0 0 0    "
+            drawColor	"0 0 0 0"
             scaleImage			1
             enabled             0
             interactable        0
@@ -40,6 +40,22 @@ resource/ui/menus/hovers.menu
             ControlName			CNestedPanel
             Classname			GridButtonClass
             controlSettingsFile	"resource/ui/menus/hovers/armor_chip.res"
+            classname "ModSlot"
+            xpos            0
+            ypos			0
+            wide			400
+            tall			400
+            visible			1
+            scaleImage		1
+
+            zpos			1
+        }
+
+        Weapon
+        {
+            ControlName			CNestedPanel
+            Classname			GridButtonClass
+            controlSettingsFile	"resource/ui/menus/hovers/weapon.res"
             classname "ModSlot"
             xpos            0
             ypos			0

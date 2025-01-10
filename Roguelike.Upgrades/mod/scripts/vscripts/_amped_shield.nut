@@ -66,25 +66,9 @@ void function OnPlayerDamaged( entity player, var damageInfo )
         DamageInfo_ScaleDamage( damageInfo, 0 )
         return
     }
-    if (GetHealthFrac( player ) <= 0.5 && !player.IsTitan())
+    if (GetHealthFrac( player ) <= 0.5 && !player.IsTitan() && Roguelike_HasMod( player, "last_stand" ))
     {
-        int stacks = Roguelike_GetModCount( player, "last_stand" )
-
-        switch (stacks)
-        {
-            case 1:
-                DamageInfo_ScaleDamage( damageInfo, 0.75 )
-                break
-            case 2:
-                DamageInfo_ScaleDamage( damageInfo, 0.6 )
-                break
-            case 3:
-                DamageInfo_ScaleDamage( damageInfo, 0.45 )
-                break
-            case 4:
-                DamageInfo_ScaleDamage( damageInfo, 0.3 )
-                break
-        }
+        DamageInfo_ScaleDamage( damageInfo, 0.5 )
     }
 
     if (player.IsTitan())
@@ -141,15 +125,7 @@ void function PilotDamageReductions( entity player, var damageInfo )
         {
             if (Roguelike_HasMod( player, "masochist" ))
             {
-                DamageInfo_ScaleDamage( damageInfo, 0.5 )
-            }
-            if (Roguelike_HasMod( player, "skull_emoji" ))
-            {
-                DamageInfo_ScaleDamage( damageInfo, 0.4 )
-                float damage = DamageInfo_GetDamage( damageInfo )
-                // hp - damage = 5
-                // hp - 5
-                DamageInfo_SetDamage( damageInfo, max(min(player.GetHealth() - 5, damage), 0) )
+                DamageInfo_ScaleDamage( damageInfo, 0.333 )
             }
         }
         return
@@ -183,6 +159,9 @@ void function PilotDamageReductions( entity player, var damageInfo )
 
 void function Roguelike_PlayerDealtDamage( entity victim, entity player, var damageInfo )
 {
+    if (!IsAlive( player ))
+        return
+    
     float damage = DamageInfo_GetDamage( damageInfo )
     if (DistanceSqr( victim.GetOrigin(), player.GetOrigin() ) < 196.8 * 196.8 && Roguelike_HasMod( player, "bloodthirst") && !player.IsTitan())
     {
@@ -190,13 +169,27 @@ void function Roguelike_PlayerDealtDamage( entity victim, entity player, var dam
     }
     
     int scriptDamageFlags = DamageInfo_GetCustomDamageType( damageInfo )
-    printt((scriptDamageFlags & DF_HEADSHOT) != 0)
-    printt(Roguelike_HasMod( player, "headshot_booster"))
-    printt(!player.IsTitan())
+    int damageSourceID = DamageInfo_GetDamageSourceIdentifier( damageInfo )
     if ((scriptDamageFlags & DF_HEADSHOT) != 0 && Roguelike_HasMod( player, "headshot_booster") && !player.IsTitan())
     {
         printt("headshot boost")
         player.SetHealth( min(player.GetMaxHealth(), player.GetHealth() + damage * 0.1) )
         DamageInfo_SetDamage( damageInfo, damage * 1.5 )
+    }
+
+    if (Roguelike_HasMod( player, "atg_missile" ) && RandomFloat(1.0) < 0.5 && damageSourceID != eDamageSourceId.mp_titanweapon_shoulder_rockets && player.IsTitan())
+    {
+        entity activeWeapon = player.GetActiveWeapon()
+        entity weapon = Roguelike_GetOffhandWeaponByName( player, "mp_titanweapon_shoulder_rockets" )
+        if (weapon == null)
+            return
+        printt("firing missile!!")
+        vector right = AnglesToRight( player.EyeAngles() )
+        entity missile = weapon.FireWeaponMissile( player.CameraPosition(), <0,0,1> - right * RandomFloatRange(-0.5, 0.5), 1000.0, damageTypes.projectileImpact, damageTypes.explosive, false, false )
+        activeWeapon.EmitWeaponSound( "ShoulderRocket_Paint_Fire_1P" )
+        missile.SetMissileTarget( victim, < 0, 0, 0 > )
+        missile.proj.damageScale = damage / 100.0 * 0.5
+        missile.proj.isChargedShot = true
+        missile.SetHomingSpeeds( 250, 250 )
     }
 }

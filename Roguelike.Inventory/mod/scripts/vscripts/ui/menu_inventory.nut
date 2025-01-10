@@ -4,6 +4,7 @@ global function OpenInventoryMenu
 global function FormatDescription
 global function GetModDescriptionSuffix
 global function Roguelike_GetStat
+global function Roguelike_ForceRefreshInventory
 
 struct {
     var menu
@@ -16,7 +17,6 @@ struct {
     array<var> modSlots
     float startDismantleTime = -1.0
     float endDismantleTime = -1.0
-    bool isBalanced
     int totalPilot = 0
     int totalTitan = 0
 } file
@@ -39,14 +39,14 @@ void function InitInventoryMenu()
     AddMenuEventHandler( file.menu, eUIEvent.MENU_OPEN, OnOpen )
     AddMenuEventHandler( file.menu, eUIEvent.MENU_CLOSE, OnClose )
 
-	file.gridData.columns = 8
+	file.gridData.columns = 7
 	file.gridData.rows = 2
 	file.gridData.numElements = 16
 	file.gridData.pageType = eGridPageType.HORIZONTAL
-	file.gridData.tileWidth = ContentScaledXAsInt( 96 )
-	file.gridData.tileHeight = ContentScaledYAsInt( 96 )
-	file.gridData.paddingVert = 8
-	file.gridData.paddingHorz = 8
+	file.gridData.tileWidth = ContentScaledXAsInt( 80 )
+	file.gridData.tileHeight = ContentScaledYAsInt( 80 )
+	file.gridData.paddingVert = int( ContentScaledX( 8 ) )
+	file.gridData.paddingHorz = int( ContentScaledX( 8 ) )
 	file.gridData.initCallback = Slot_Init
 
     GridMenuInit( file.menu, file.gridData )
@@ -58,8 +58,12 @@ void function InitInventoryMenu()
     AddHover( Hud_GetChild( file.menu, "AC3" ), ArmorChip_Hover, HOVER_ARMOR_CHIP )
     AddHover( Hud_GetChild( file.menu, "AC4" ), ArmorChip_Hover, HOVER_ARMOR_CHIP )
 
+    AddHover( Hud_GetChild(file.menu, "WeaponPrimary"), Weapon_Hover, HOVER_WEAPON )
+    AddHover( Hud_GetChild(file.menu, "WeaponSecondary"), Weapon_Hover, HOVER_WEAPON )
+
     AddHover( Hud_GetChild( file.menu, "BalanceSymbol" ), void function( var symbol, var panel ) : (){
-        if (file.isBalanced)
+        table runData = Roguelike_GetRunData()
+        if (runData.balanced)
         {
             Hud_SetColor( Hud_GetChild(panel, "TitleStrip"), 255, 122, 244, 255 )
             Hud_SetColor( Hud_GetChild(panel, "BG"), 204, 98, 195, 255 )
@@ -71,7 +75,7 @@ void function InitInventoryMenu()
         {
             Hud_SetText( Hud_GetChild(panel, "Title"), "???")
             bool tooMuchTitan = file.totalTitan > file.totalPilot
-            Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription(format("You lack balance in your perspective...\n\n%i pilot | %i titan", file.totalPilot, file.totalTitan)) )
+            Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription(format("You lack balance in your perspective...\n\n%i titan | %i pilot", file.totalTitan / 7, file.totalPilot / 7)) )
         }
     }, HOVER_SIMPLE )
 
@@ -144,8 +148,8 @@ void function AttemptDismantle( var fuck )
             StopUISound( "UI_CTF_1P_FlagReturnMeter" )
         })
         file.startDismantleTime = Time()
-        file.endDismantleTime = Time() + 1.0
-        wait 1.0
+        file.endDismantleTime = Time() + 0.5
+        wait 0.5
         
         // DISMANTLE
         int elemNum = Grid_GetElemNumForButton( slot )
@@ -257,6 +261,9 @@ void function RefreshInventory()
     InventorySlot_Display( Hud_GetChild(file.menu, "AC3"), runData.AC3 )
     InventorySlot_Display( Hud_GetChild(file.menu, "AC4"), runData.AC4 )
 
+    InventorySlot_Display( Hud_GetChild(file.menu, "WeaponPrimary"), runData.WeaponPrimary )
+    InventorySlot_Display( Hud_GetChild(file.menu, "WeaponSecondary"), runData.WeaponSecondary )
+
     Hud_SetText( Hud_GetChild(file.menu, "AC3_TitanHelp"), GetTitanNameFromWeapon(Roguelike_GetTitanLoadouts()[0]) )
     Hud_SetText( Hud_GetChild(file.menu, "AC4_TitanHelp"), GetTitanNameFromWeapon(Roguelike_GetTitanLoadouts()[1]) )
 
@@ -268,10 +275,19 @@ void function RefreshInventory()
         int totalEnergyUsed = GetTotalEnergyUsed( i, false )
         if (totalEnergyUsed > expect int(runData["AC" + i].pilotEnergy))
         {
-            // reset all mods, total energy used is more than max energy
+            // remove mods until energy debt is gone
+            // may not remove debt completely if mods are not swappable
+            // but we dont care since that means the user cant equip 
+            // anything regardless
             for (int j = 0; j < MOD_SLOTS; j++)
             {
-                runData[FormatModIndex(i, false, j)] <- 0
+                string modIndex = FormatModIndex(i, false, j)
+                RoguelikeMod mod = GetModForIndex(runData[modIndex])
+                
+                if (mod.isSwappable)
+                {
+                    runData[modIndex] <- GetModByName("empty").index
+                }
             }
             totalEnergyUsed = 0
         }
@@ -280,10 +296,19 @@ void function RefreshInventory()
         totalEnergyUsed = GetTotalEnergyUsed( i, true )
         if (totalEnergyUsed > expect int(runData["AC" + i].titanEnergy))
         {
-            // reset all mods, total energy used is more than max energy
+            // remove mods until energy debt is gone
+            // may not remove debt completely if mods are not swappable
+            // but we dont care since that means the user cant equip 
+            // anything regardless
             for (int j = 0; j < MOD_SLOTS; j++)
             {
-                runData[FormatModIndex(i, true, j)] <- 0
+                string modIndex = FormatModIndex(i, true, j)
+                RoguelikeMod mod = GetModForIndex(runData[modIndex])
+
+                if (mod.isSwappable)
+                {
+                    runData[modIndex] <- GetModByName("empty").index
+                }
             }
             totalEnergyUsed = 0
         }
@@ -301,17 +326,6 @@ void function RefreshInventory()
             AddHover( modSlot, ModSlot_Hover, HOVER_SIMPLE )
         }
     }
-
-    string modConVar = ""
-    for (int i = 1; i < 5; i++)
-    {
-        for (int j = 0; j < MOD_SLOTS; j++)
-        {
-            modConVar += runData["AC" + i + "_PilotMod" + j] + " "
-            modConVar += runData["AC" + i + "_TitanMod" + j] + " "
-        }
-    }
-    SetConVarString( "player_mods", strip( modConVar ) )
 
     string statsConVar = ""
 
@@ -343,19 +357,21 @@ void function RefreshInventory()
         Hud_SetText( Hud_GetChild(statPanel, "Value"), string( total ) )
         statsConVar += total + " "
     }
-    file.isBalanced = file.totalPilot == file.totalTitan
-    SetConVarBool("roguelike_stat_balance", file.isBalanced)
-    if (file.isBalanced)
-    {
-        Hud_SetColor(Hud_GetChild( file.menu, "BalanceSymbol" ), 255, 122, 244, 255 )
+    runData.balanced = file.totalPilot == file.totalTitan
+    if (runData.balanced)
+    { 
+        Hud_SetColor(Hud_GetChild( file.menu, "BalanceSymbol" ), 255,122, 244, 255 )
     }
     else
     {
         Hud_SetColor(Hud_GetChild( file.menu, "BalanceSymbol" ), 64, 64, 64, 255 )
     }
+    // HACK: should be moved to Roguelike_ApplyRunDataToConVars
     SetConVarString( "player_stats", strip( statsConVar ) )
 
-    if (IsFullyConnected() && GetUIPlayer())
+    Roguelike_ApplyRunDataToConVars()
+
+    if (IsFullyConnected() && GetUIPlayer() && !uiGlobal.isLoading)
     {
         ClientCommand( "RefreshInventory" )
     }
@@ -382,6 +398,9 @@ bool function Slot_Init( var button, int elemNum )
             case "armor_chip":
                 AddHover( button, ArmorChip_Hover, HOVER_ARMOR_CHIP )
                 break
+            case "weapon":
+                AddHover( button, Weapon_Hover, HOVER_WEAPON )
+                break
         }
     }
     else
@@ -389,6 +408,81 @@ bool function Slot_Init( var button, int elemNum )
         InventorySlot_Display( button, null )
     }
     return true
+}
+
+void function Weapon_Hover( var slot, var panel )
+{
+    table data = {}
+    bool isEquipped = StartsWith( Hud_GetHudName(slot), "Weapon" )
+    if (isEquipped)
+    {
+        data = expect table( Roguelike_GetRunData()[Hud_GetHudName(slot)] )
+    }
+    else
+    {
+        int elemNum = Grid_GetElemNumForButton( slot )
+        data = expect table(Roguelike_GetInventory()[elemNum])
+    }
+
+    Hud_EnableKeyBindingIcons( Hud_GetChild( panel, "FooterText") )
+    int level = expect int(data.level)
+    int price = Roguelike_GetUpgradePrice( data )
+    array<string> options = []
+    if (level < Roguelike_GetItemMaxLevel( data ))
+    {
+        options.append( "%[X_BUTTON|MOUSE2]%Upgrade (" + price + "$)" )
+    }
+    else
+    {
+        options.append("MAX LEVEL")
+    }
+    if (!isEquipped)
+        options.append("%[X_BUTTON|F]%Dismantle")
+    Hud_SetText( Hud_GetChild( panel, "LevelLabel"), format("Level %i/%i", level, Roguelike_GetItemMaxLevel( data )))
+    Hud_SetText( Hud_GetChild( panel, "FooterText" ), JoinStringArray( options, " " ) )
+
+    string weaponClassName = expect string(data.weapon)
+
+    string description = "Primary Weapon"
+    string slot = RoguelikeWeapon_GetSlot( weaponClassName )
+    switch (slot)
+    {
+        case "special":
+            description = "<green>Special Weapon"
+            break
+        case "secondary":
+            description = "Secondary Weapon"
+            break
+    }
+    Hud_SetText( Hud_GetChild( panel, "SubTitle" ), FormatDescription( description ) )
+
+    Hud_SetText( Hud_GetChild(panel, "Title"), GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "shortprintname" ))
+    string weaponDesc = GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "description" )
+    weaponDesc += "\n\n"
+
+    int rarity = expect int(data.rarity)
+    switch (rarity)
+    {
+        case RARITY_UNCOMMON:
+            weaponDesc += FormatDescription(format("Uncommon: x%.2f Damage\n\n", 1.15))
+            break
+        case RARITY_RARE:
+            weaponDesc += FormatDescription(format("Rare: x%.2f Damage\n\n", 1.2))
+            break
+        case RARITY_EPIC:
+            weaponDesc += FormatDescription(format("Epic: x%.2f Damage\n\n", 1.25))
+            break
+        case RARITY_LEGENDARY:
+            weaponDesc += FormatDescription(format("Legendary: x%.2f Damage\n\n", 1.))
+            break
+    }
+
+    if (level > 0)
+    {
+        weaponDesc += FormatDescription(format("Level %i: x%.2f Damage\n\n", level, 1.0 + 0.15 * level))
+    }
+    
+    Hud_SetText( Hud_GetChild(panel, "Description"), weaponDesc )
 }
 
 void function InventorySlot_Click( var button )
@@ -416,6 +510,32 @@ void function InventorySlot_Click( var button )
             
             RefreshInventory()
             break
+        case "weapon":
+            string weaponClassName = expect string(curSlot.weapon)
+            string weaponSlot = RoguelikeWeapon_GetSlot( weaponClassName )
+            switch (weaponSlot)
+            {
+                case "primary":
+                    table equippedChip = expect table(runData["WeaponPrimary"])
+                    runData["WeaponPrimary"] = curSlot
+                    inventory[elemNum] = equippedChip
+                    EmitUISound( "menu_loadout_ordinance_select" )
+                    SwapSequence(slot)
+                    SwapSequenceAlt(Hud_GetChild(file.menu, "WeaponPrimary"))
+                    break
+                case "special":
+                case "secondary":
+                    table equippedChip = expect table(runData["WeaponSecondary"])
+                    runData["WeaponSecondary"] = curSlot
+                    inventory[elemNum] = equippedChip
+                    EmitUISound( "menu_loadout_ordinance_select" )
+                    SwapSequence(slot)
+                    SwapSequenceAlt(Hud_GetChild(file.menu, "WeaponSecondary"))
+                    break
+            }
+            RefreshInventory()
+            break
+
     }    
 }
 
@@ -426,12 +546,12 @@ void function SwapSequence( var slot )
         var swapEffect = Hud_GetChild(slot, "SwapEffect")
         var swapEffect2 = Hud_GetChild(slot, "SwapEffect2")
         
-        int scaled48 = ContentScaledYAsInt(48)
+        int scaled48 = ContentScaledYAsInt(40)
         if (t <= 0.5)
         {
             float width = GraphCapped( t, 0.0, 0.5, 0, scaled48)
             Hud_SetY( swapEffect, 0 )
-            Hud_SetY( swapEffect2, ContentScaledYAsInt(96) - width )
+            Hud_SetY( swapEffect2, ContentScaledYAsInt(80) - width )
             Hud_SetHeight( swapEffect, width )
             Hud_SetHeight( swapEffect2, width )
         }
@@ -454,7 +574,7 @@ void function SwapSequenceAlt( var slot )
         var swapEffect = Hud_GetChild(slot, "SwapEffect")
         var swapEffect2 = Hud_GetChild(slot, "SwapEffect2")
         
-        int scaled48 = ContentScaledYAsInt(48)
+        int scaled48 = ContentScaledYAsInt(40)
         if (t <= 0.5)
         {
             float width = GraphCapped( t, 0, 0.5, 0, scaled48)
@@ -468,7 +588,7 @@ void function SwapSequenceAlt( var slot )
         {
             float width = GraphCapped( t, 0.5, 1.0, scaled48, 0)
             Hud_SetY( swapEffect, 0 )
-            Hud_SetY( swapEffect2, ContentScaledYAsInt(96) - width )
+            Hud_SetY( swapEffect2, ContentScaledYAsInt(80) - width )
             Hud_SetHeight( swapEffect, width )
             Hud_SetHeight( swapEffect2, width )
         }
@@ -480,7 +600,10 @@ string function GetTitanDescription(string weapon)
     switch (weapon)
     {
         case "mp_titanweapon_xo16_shorty":
-            return "Expedition"
+            return "Ol' Reliable...\n\nExpedition's status effect is <weak>Weak</>." + 
+                "\n<weak>Weak</> is inflicted by <cyan>hitting enemies with missiles</>.\n" +
+                "Your primary gains bonus damage agains <weak>Weak</> enemies.\n\n" +
+                "<weak>Weak</> Focusing a single target to cause an eruption will deal damage to nearby enemies as well."
 
         case "mp_titanweapon_sticky_40mm":
             return "Tone"
@@ -589,7 +712,7 @@ string function FormatDescription(string desc)
     result = StringReplace( result, "<daze>",  "^FFE16400", true )
     result = StringReplace( result, "<warn>",  "^FFA00000", true )
     result = StringReplace( result, "<burn>",  "^FFAF4B00", true )
-    result = StringReplace( result, "<green>", "^40FF4000", true )
+    result = StringReplace( result, "<green>", "^60FF6000", true )
     result = StringReplace( result, "<red>",   "^FF404000", true )
     result = StringReplace( result, "<weak>",  "^7424FF00", true )
     result = StringReplace( result, "<magic>", "^FF7AF400", true )
@@ -614,32 +737,48 @@ void function AttemptUpgrade( var env )
     var slot = GetCurrentHoverTarget()
     if (slot == null)
         return
-    if (!("armorChip" in slot.s))
-        return
 
     table data = {}
-    if (StartsWith( Hud_GetHudName(slot), "AC" ))
+    if (StartsWith( Hud_GetHudName(slot), "AC" ) || StartsWith( Hud_GetHudName(slot), "Weapon" ))
     {
         data = expect table( Roguelike_GetRunData()[Hud_GetHudName(slot)] )
     }
     else
     {
+        try
+        {
+            
         int elemNum = Grid_GetElemNumForButton( slot )
         data = expect table(Roguelike_GetInventory()[elemNum])
+        }
+        catch (e)
+        {
+            return
+        }
     }
 
-    if (data.level >= 4 || Roguelike_GetMoney() < 35)
+    int price = Roguelike_GetUpgradePrice( data )
+    if (data.level >= Roguelike_GetItemMaxLevel( data ) || (Roguelike_GetMoney() < price && !GetConVarBool("roguelike_unlock_all")))
     {
         EmitUISound( "HUD_MP_BountyHunt_BankBonusPts_Deposit_End_Unsuccessful_1P" )
         return
     }
     
     EmitUISound( "HUD_MP_BountyHunt_BankBonusPts_Deposit_End_Successful_1P" )
-    Roguelike_TakeMoney( 35 )
-    data.moneyInvested += 35
+    Roguelike_TakeMoney( price )
+
     data.level += 1
-    data.titanEnergy += 1
-    data.pilotEnergy += 1
+    data.moneyInvested += price
+
+    switch (data.type)
+    {
+        case "armor_chip":
+            data.titanEnergy += 1
+            data.pilotEnergy += 1
+            break
+        case "weapon":
+            break
+    }
 
     RefreshInventory()
 }
@@ -647,7 +786,8 @@ void function AttemptUpgrade( var env )
 void function ArmorChip_Hover( var slot, var panel )
 {
     table data = {}
-    if (StartsWith( Hud_GetHudName(slot), "AC" ))
+    bool isEquipped = StartsWith( Hud_GetHudName(slot), "AC" )
+    if (isEquipped)
     {
         data = expect table( Roguelike_GetRunData()[Hud_GetHudName(slot)] )
     }
@@ -657,10 +797,21 @@ void function ArmorChip_Hover( var slot, var panel )
         data = expect table(Roguelike_GetInventory()[elemNum])
     }
 
-    slot.s.armorChip <- true
-
-    Hud_SetHeight( panel, ContentScaledYAsInt( 296 ) )
     Hud_EnableKeyBindingIcons( Hud_GetChild( panel, "FooterText") )
+    int level = expect int(data.level)
+    int price = Roguelike_GetUpgradePrice( data )
+    array<string> options = []
+    if (level < Roguelike_GetItemMaxLevel( data ))
+    {
+        options.append( "%[X_BUTTON|MOUSE2]%Upgrade (" + price + "$)" )
+    }
+    else
+    {
+        options.append("MAX LEVEL")
+    }
+    if (!isEquipped)
+        options.append("%[X_BUTTON|F]%Dismantle")
+    Hud_SetText( Hud_GetChild( panel, "FooterText" ), JoinStringArray( options, " " ) )
 
     var titleStrip = Hud_GetChild(panel, "TitleStrip")
     var title = Hud_GetChild(panel, "Title")
@@ -670,10 +821,25 @@ void function ArmorChip_Hover( var slot, var panel )
     var energyLabel = Hud_GetChild(panel, "EnergyCount")
     
     Hud_SetColor( energyLabel, 25, 25, 25, 255 )
-    Hud_SetText( energyLabel, format("%i Titan | %i Pilot", data.titanEnergy, data.pilotEnergy) )
+    Hud_SetText( energyLabel, format("Level %i/%i", data.level + 1, Roguelike_GetItemMaxLevel( data ) + 1) )
 
     Hud_SetBarProgress( barBG, 1.0 )
-    Hud_SetBarProgress( levelBar, data.level / 4.0 )
+    Hud_SetX( levelBar, 0 )
+    
+    
+    int segmentCount = 14
+    int length = Hud_GetWidth( levelBar )
+    int gap = segmentCount - length % segmentCount
+    if (segmentCount - length % segmentCount < 1)
+        gap = (segmentCount - length % segmentCount) + segmentCount
+
+    int segmentWidth = (length + gap) / segmentCount - gap
+
+    Hud_SetBarSegmentInfo( levelBar, gap, segmentWidth )
+    Hud_SetBarSegmentInfo( barBG, gap, segmentWidth )
+
+    int totalEnergy = expect int(data.pilotEnergy) + expect int(data.titanEnergy)
+    Hud_SetBarProgress( levelBar, float(totalEnergy) / 14.0 - 0.0001 )
     Hud_SetColor( levelBar, 25, 25, 25, 255 )
     Hud_SetColor( title, 25, 25, 25, 255 )
 
@@ -769,6 +935,8 @@ void function UpdateMenuState()
 
 void function UpdateInventory()
 {
+    if (IsFullyConnected())
+        Roguelike_StartNewRun()
 	for ( ;; )
 	{
 		WaitSignal( uiGlobal.signalDummy, "LevelStartedLoading" )
@@ -780,6 +948,11 @@ void function UpdateInventory()
 
         RefreshInventory()
 	}
+}
+
+void function Roguelike_ForceRefreshInventory()
+{
+    RefreshInventory()
 }
 
 int function Roguelike_GetStat( int stat )

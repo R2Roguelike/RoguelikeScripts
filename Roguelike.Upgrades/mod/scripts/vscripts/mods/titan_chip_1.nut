@@ -16,6 +16,7 @@ void function TitanChip1_RegisterMods()
         mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }
+    if (false)
     {
         RoguelikeMod mod = NewMod("checkpoint")
         mod.name = "Devil's Deal"
@@ -38,7 +39,7 @@ void function TitanChip1_RegisterMods()
         mod.icon = $"vgui/hud/white"
         mod.cost = 1
     }
-    /*
+    if (false)
     {
         RoguelikeMod mod = NewMod("checkpoint_used")
         mod.name = "Devil's Cost"
@@ -46,7 +47,6 @@ void function TitanChip1_RegisterMods()
         mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }
-    */
 }
 
 RoguelikeMod function NewMod(string uniqueName)

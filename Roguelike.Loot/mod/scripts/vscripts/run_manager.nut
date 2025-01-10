@@ -8,7 +8,9 @@ global function Roguelike_GetRunData
 global function Roguelike_GetMoney
 global function Roguelike_AddMoney
 global function Roguelike_TakeMoney
+global function Roguelike_ApplyRunDataToConVars
 global function RunEnded
+global function __SetPower
 
 struct {
     table saveData 
@@ -53,6 +55,7 @@ void function Inventory_Init()
 
             AddDialogButton( dialogData, "Yes", void function() : ()
             {
+                Roguelike_ApplyRunDataToConVars()
                 ExecuteLoadingClientCommands_SetStartPoint( expect string(file.runData.map), expect int(file.runData.startPointIndex) )
                 ClientCommand( "map " + expect string(file.runData.map) )
             } )
@@ -96,15 +99,6 @@ void function Roguelike_StartNewRun()
     runData.lockedMods <- GetAllLockedMods()
     Roguelike_UnlockMods( 10 ) // have the player start with some amount of mods
 
-    for (int i = 1; i < 5; i++)
-    {
-        for (int j = 0; j < MOD_SLOTS; j++)
-        {
-            runData["AC" + i + "_PilotMod" + j] <- 0
-            runData["AC" + i + "_TitanMod" + j] <- 0
-        }
-    }
-
     // these arrays are to prevent the player from getting
     // 3+ of the same armor chip slot in a row, and to 
     // gurantee the player gets a preferred chip slot
@@ -113,11 +107,27 @@ void function Roguelike_StartNewRun()
     runData.chipSlotOrder.randomize()
     runData.chipSlotIndex <- 0
 
+    runData.balanced <- false
+
     runData.powerPlayer <- 0
     runData.enemyPower <- 0
     runData.levelsCompleted <- 0
 
     runData.money <- 0
+
+    runData.map <- "sp_crashsite"
+    runData.startPointIndex <- 7
+    printt(GetConVarString("roguelike_titan_loadout"))
+    runData.loadouts <- GetConVarString("roguelike_titan_loadout")
+
+    for (int i = 1; i <= 4; i++)
+    {
+        for (int j = 0; j < MOD_SLOTS; j++)
+        {
+            runData["AC" + i + "_PilotMod" + j] <- GetModByName("empty").index
+            runData["AC" + i + "_TitanMod" + j] <- GetModByName("empty").index
+        }
+    }
 
     runData.AC1 <- ArmorChip_Generate()
     runData.AC1.slot = 1
@@ -127,10 +137,79 @@ void function Roguelike_StartNewRun()
     runData.AC3.slot = 3
     runData.AC4 <- ArmorChip_Generate()
     runData.AC4.slot = 4
-    runData.map <- "sp_crashsite"
-    runData.startPointIndex <- 7
+
+    runData.WeaponPrimary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_vinson", RARITY_COMMON, "primary" )
+    runData.WeaponSecondary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_autopistol", RARITY_COMMON, "secondary" )
+
+    Roguelike_ForceRefreshInventory()
 
     NSSaveJSONFile( "run_backup.json", runData )
+}
+
+void function Roguelike_ApplyRunDataToConVars()
+{
+    table runData = Roguelike_GetRunData()
+
+    SetConVarInt("roguelike_levels_completed", expect int(runData.levelsCompleted))
+    SetConVarInt("power_player", expect int(runData.powerPlayer))
+    SetConVarInt("power_enemy", expect int(runData.enemyPower))
+    SetConVarString("roguelike_titan_loadout", expect string(runData.loadouts))
+    SetConVarBool("roguelike_stat_balance", expect bool(runData.balanced))
+    
+    // server doesnt care about mod order since it only uses this
+    // userinfo convar to check which mods to apply
+    // technically this makes mods and stats client authoritative
+    // but since this is singleplayer and co-op will never happen
+    // (that co-op mod will never get finished ;-;) then we kinda
+    // ... dont care.
+    if (!("AC1_PilotMod0" in runData))
+    {
+        return
+    }
+    array<string> modIndexList
+    for (int i = 1; i < 5; i++)
+    {
+        for (int j = 0; j < MOD_SLOTS; j++)
+        {
+            modIndexList.append(string(runData["AC" + i + "_PilotMod" + j]))
+            modIndexList.append(string(runData["AC" + i + "_TitanMod" + j]))
+        }
+    }
+    SetConVarString( "player_mods", JoinStringArray( modIndexList, " " ) )
+    
+    array<string> weapons = []
+    array<string> weaponPerks = []
+    for (int i = 0; i < 2; i++)
+    {
+        string slotName = i == 1 ? "WeaponSecondary" : "WeaponPrimary"
+        string otherSlotName = i == 0 ? "WeaponSecondary" : "WeaponPrimary"
+        table slot = expect table(runData[slotName])
+        array<string> perks = []
+        int level = expect int(slot.level)
+        int rarity = expect int(slot.rarity)
+        perks.append("level_" + level)
+        switch (rarity)
+        {
+            case RARITY_UNCOMMON:
+                perks.append("uncommon")
+                break
+            case RARITY_RARE:
+                perks.append("rare")
+                break
+            case RARITY_EPIC:
+                perks.append("epic")
+                break
+            case RARITY_LEGENDARY:
+                perks.append("legendary")
+                break
+        }
+
+        weaponPerks.append(JoinStringArray(perks, ","))
+
+        weapons.append(expect string(slot.weapon))
+    }
+    SetConVarString( "player_weapon_perks", JoinStringArray( weaponPerks, " " ) )
+    SetConVarString( "player_weapons", JoinStringArray( weapons, " " ) )
 }
 
 void function Roguelike_Reset()
@@ -142,18 +221,29 @@ void function Roguelike_Reset()
 void function Roguelike_GenerateLoot()
 {
     print("GENERATING LOOT")
-    int r = RandomInt(3)
+    int r = RandomInt(2)
 
+    table item = {}
     switch (r)
     {
         case 0:
+            item = RoguelikeWeapon_Generate()
+            break
         case 1:
-        case 2:
-            // TODO
-        case 3: 
-            file.runData.inventory.append(ArmorChip_Generate())
-            return
+            item = ArmorChip_Generate()
+            break
     }
+    file.runData.inventory.append(item)
+}
+
+void function __SetPower( int player, int enemy )
+{
+    table runData = Roguelike_GetRunData()
+
+    runData.powerPlayer <- player
+    runData.enemyPower <- enemy
+
+    Roguelike_ApplyRunDataToConVars()
 }
 
 array function Roguelike_GetInventory()

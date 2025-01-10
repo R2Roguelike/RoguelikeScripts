@@ -8,6 +8,8 @@ global struct RoguelikeMod
     bool isTitan = false
     int chip = 0
     array<string> loadouts = []
+    bool isHidden = false
+    bool isSwappable = true
     // uses the loadout-dedicated chip slots.
     // e.g. if you equip scorch and northstar, scorch mods will be available in chip 3
     // but if you equip tone and scorch, scorch mods will be available in chip 4
@@ -35,7 +37,9 @@ global struct StatusEffectData
 
 // how much (in percent) health and damage enemies get for every power above the player
 // additive
-global const float POWER_SCALAR = 1.0
+global const float POWER_SCALAR = 2.0
+global const float HEALTH_SCALAR = 1.5
+global const float HEALTH_SCALAR_TITAN = 2.0
 
 global const int MOD_SLOTS = 4;
 
@@ -48,6 +52,14 @@ global const int STAT_POWER     = 2;
 global const int STAT_TEMPER    = 3;
 global const int STAT_SPEED     = 4;
 global const int STAT_ENDURANCE = 5;
+
+global const int MAX_CHIP_LEVEL = 3;
+
+global const int RARITY_COMMON = 0;
+global const int RARITY_UNCOMMON = 1;
+global const int RARITY_RARE = 2;
+global const int RARITY_EPIC = 3;
+global const int RARITY_LEGENDARY = 4;
 
 global const array<string> STAT_NAMES = ["Armor", "Energy", "Power", "Temper", "Speed", "Endurance"]
 

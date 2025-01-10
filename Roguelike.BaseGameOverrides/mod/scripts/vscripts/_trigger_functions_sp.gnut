@@ -1,3 +1,4 @@
+untyped
 global function TriggerFunctionsSP_Init
 
 global function TriggerSpawnSpawner
@@ -6,6 +7,8 @@ global function QuickDeathTrigger_SetIsPunitive
 global function ClearQuickDeath
 global function QuickDeathTrigger_SetRealDeathFadeToBlack
 global function TestDevSpawnPoint
+global function TriggerQuickDeathCheckpointOnTrigger
+global function TriggerQuickDeathOnTrigger
 
 const DEBUG_DEADLY_FOG = false
 
@@ -598,6 +601,7 @@ void function ClearQuickDeath()
 
 void function TriggerQuickDeathOnTrigger( entity trigger )
 {
+	Roguelike_ModifyTrigger( trigger )
 	EndSignal( trigger, "OnDestroy" )
 
 	while ( true )
@@ -606,6 +610,11 @@ void function TriggerQuickDeathOnTrigger( entity trigger )
 		entity player = expect entity( results.activator )
 		if ( !IsAlive( player ) || !player.IsPlayer() )
 			continue
+
+		if ("maxZ" in trigger.s && player.GetOrigin().z > float(trigger.s["maxZ"]))
+			continue
+
+		printt(trigger.GetOrigin())
 
 		if ( QuickDeathKillPlayer( player ) )
 		{
@@ -660,6 +669,7 @@ void function QuickDeathRestorePlayer( entity player, entity trigger )
 	float endWait = Time() + totalWait
 
 	Signal( player, "QuickDeath" )
+	player.p.doingQuickDeath = true
 
 	// fullscreen fade to color, hold, then fade away
 	ScreenFade( player, fadeColorR, fadeColorG, fadeColorB, 255, FADE_TIME, viewBlockedTime, FFADE_IN | FFADE_PURGE )
@@ -668,6 +678,9 @@ void function QuickDeathRestorePlayer( entity player, entity trigger )
 
 	player.FreezeControlsOnServer()
 	StartQuickDeathTrigger( player )
+
+	vector quickDeathOrigin = expect vector( player.p.quickDeathOrigin )
+	vector quickDeathAngles = expect vector( player.p.quickDeathAngles )
 
 	if ( deathSound != "" )
 	{
@@ -685,8 +698,8 @@ void function QuickDeathRestorePlayer( entity player, entity trigger )
 
 	// Move the player back to last checkpoint location while screen is black
 	player.DisableWeapon()
-	player.SetOrigin( expect vector( player.p.quickDeathOrigin ) )
-	player.SetAngles( expect vector( player.p.quickDeathAngles ) )
+	player.SetOrigin( quickDeathOrigin )
+	player.SetAngles( quickDeathAngles )
 	player.SetVelocity( <0,0,0> )
 
 	Signal( player, "QuickDeathPlayerTeleported" )

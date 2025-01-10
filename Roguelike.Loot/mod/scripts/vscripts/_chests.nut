@@ -22,15 +22,23 @@ void function EntitiesDidLoad()
     TimerStart()
 
     entity worldspawn = GetEnt( "worldspawn" )
+
+    
+    /*entity legendaryChest = CreatePropDynamic( $"models/containers/pelican_case_large.mdl", < -2880, -5530, 206 >, <0,10,0>, SOLID_VPHYSICS )
+    Highlight_SetNeutralHighlight( legendaryChest, "roguelike_legendary_chest" )
+    legendaryChest.Solid()
+    legendaryChest.SetUsable()
+    legendaryChest.SetUsableRadius( 200 )
+    legendaryChest.SetUsePrompts( "me do nothing come back later", "me do nothing come back later" )*/
     //vector worldMins = expect vector( worldspawn.kv.world_mins )
     //vector worldMaxs = expect vector( worldspawn.kv.world_maxs )
 
-    for (int i = 0; i < 150;)
+    for (int i = 0; i < 75;)
     {
         vector rand = <RandomFloatRange(-40000, 40000), RandomFloatRange(-40000, 40000),RandomFloatRange(-30000, 30000)>
         //                                                           vvv lowering this makes func more likely
         //
-        TraceResults tr = TraceLine( rand, <rand.x, rand.y, rand.z - TRACE_DIST>, [], TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
+        TraceResults tr = TraceLine( rand, <rand.x, rand.y, rand.z - TRACE_DIST>, [], TRACE_MASK_PLAYERSOLID, TRACE_COLLISION_GROUP_PLAYER )
         if (!IsValid(tr.hitEnt))
         {
             failedToNoTrace++
@@ -72,8 +80,8 @@ void function EntitiesDidLoad()
         if (invalidLocation)
             continue
         
-        entity prop = CreatePropDynamic( $"models/containers/pelican_case_large.mdl", navPoint, <0,RandomFloatRange(-180, 180),0>, SOLID_VPHYSICS )
-        Highlight_SetNeutralHighlight( prop, "interact_object_los" )
+        entity prop = CreatePropDynamic( $"models/containers/pelican_case_large.mdl", navPoint + <0,0,1>, <0,RandomFloatRange(-180, 180),0>, SOLID_VPHYSICS )
+        Highlight_SetNeutralHighlight( prop, "roguelike_chest" )
         prop.Solid()
         prop.SetUsable()
         prop.SetUsableRadius( 200 )
@@ -86,6 +94,7 @@ void function EntitiesDidLoad()
             var playerActivator = prop.WaitSignal("OnPlayerUse").player
             expect entity( playerActivator )
             print("bruhu")
+            Highlight_ClearNeutralHighlight( prop )
             prop.SetModel( $"models/containers/pelican_case_large_open.mdl" )
             prop.UnsetUsable()
             EmitSoundOnEntity( playerActivator, "UI_PostGame_FDSlideStop" )

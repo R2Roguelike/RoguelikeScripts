@@ -149,7 +149,7 @@ void function PlayerDidDamageText( float damage, vector damagePosition, entity v
 	}
 	else
 	{
-		scalar = (100 + (powerDiff * POWER_SCALAR)) / 100.0
+		scalar = (100 + (powerDiff * POWER_SCALAR * 2)) / 100.0
 	}
 	
 	damagePosition = victim.GetOrigin() + <0,0,victim.GetBoundingMaxs().z>

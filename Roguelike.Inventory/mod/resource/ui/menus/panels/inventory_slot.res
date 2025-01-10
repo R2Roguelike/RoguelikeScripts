@@ -9,8 +9,8 @@ resource/ui/menus/panels/inventory_slot.res
 		drawColor	"0 0 0 135"
 		scaleImage			1
 
-		wide				96
-		tall				96
+		wide				 80
+		tall				 80
 
 		"xpos"			"0"
 		"ypos"			"0"
@@ -26,8 +26,8 @@ resource/ui/menus/panels/inventory_slot.res
 		scaleImage			1
 		visible				1
 
-		wide				64
-		tall				64
+		wide				48
+		tall				48
 
 		pin_to_sibling "BG"
 		pin_corner_to_sibling	CENTER
@@ -75,18 +75,18 @@ resource/ui/menus/panels/inventory_slot.res
 		SegmentGap			2
 		visible				1
 
-		fgcolor_override	"220 220 220 255"
+		fgcolor_override	"0 0 0 128"
 		scaleImage			1
 
-		wide				88
+		wide				72
 		tall				2
 
-		"xpos"			"-4"
+		"xpos"			"0"
 		"ypos"			"-4"
 
 		pin_to_sibling "BG"
-		pin_corner_to_sibling	BOTTOM_LEFT
-		pin_to_sibling_corner	BOTTOM_LEFT
+		pin_corner_to_sibling	BOTTOM
+		pin_to_sibling_corner	BOTTOM
 	}
 	EnergyBar2
 	{
@@ -94,25 +94,25 @@ resource/ui/menus/panels/inventory_slot.res
 		image			    "vgui/hud/white"
 		fg_image			"vgui/hud/white"
 
-		ProgressDirection			1
+		ProgressDirection			0
 		CircularEnabled 		0
 		SegmentFill			1
 		SegmentSize			4
 		SegmentGap			2
 		visible				1
 
-		fgcolor_override	"255 176 0 255"
+		fgcolor_override	"220 220 220 255"
 		scaleImage			1
 
-		wide				88
+		wide				72
 		tall				2
 
-		"xpos"			"-4"
+		"xpos"			"0"
 		"ypos"			"-4"
 
 		pin_to_sibling "BG"
-		pin_corner_to_sibling	BOTTOM_RIGHT
-		pin_to_sibling_corner	BOTTOM_RIGHT
+		pin_corner_to_sibling	BOTTOM
+		pin_to_sibling_corner	BOTTOM
 	}
 
 	Button
@@ -120,8 +120,8 @@ resource/ui/menus/panels/inventory_slot.res
 		ControlName				RuiButton
 		labelText				""
 		xpos					0
-		wide					96
-		tall					96
+		wide					 80
+		tall					 80
 		zpos					1000
 	}
 	
@@ -134,7 +134,7 @@ resource/ui/menus/panels/inventory_slot.res
 		drawColor	"255 255 255 255"
 		scaleImage			1
 
-		wide				96
+		wide				 80
 		tall				0
 
 		"xpos"			"0"
@@ -149,7 +149,7 @@ resource/ui/menus/panels/inventory_slot.res
 		drawColor	"255 255 255 255"
 		scaleImage			1
 
-		wide				96
+		wide				 80
 		tall				0
 
 		"xpos"			"0"

@@ -42,6 +42,16 @@
 			"DefaultValue": ""
 		},
 		{
+			"Name": "player_weapons",
+			"Flags": "USERINFO | CHEAT",
+			"DefaultValue": ""
+		},
+		{
+			"Name": "player_weapon_perks",
+			"Flags": "USERINFO | CHEAT",
+			"DefaultValue": ""
+		},
+		{
 			"Name": "power_player",
 			"Flags": "CHEAT",
 			"DefaultValue": "0"

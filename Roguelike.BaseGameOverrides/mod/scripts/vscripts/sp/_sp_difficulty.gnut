@@ -27,7 +27,7 @@ const float DIFFICULTY_NORMAL_DAMAGE_SCALAR = 1.0 // damage against player is mu
 const float DIFFICULTY_HARD_DAMAGE_SCALAR = 1.0 // damage against player is multiplied by this number on Hard.
 // NO INCREASE HERE, TITANS HAVE 0 CD HERE LOL
 const float DIFFICULTY_MASTER_DAMAGE_SCALAR = 1.0 // damage against player is multiplied by this number on Master.
-const float PLAYER_TITAN_DAMAGE_SCALAR = 0.5 // damage against player titan multiplied by this
+const float PLAYER_TITAN_DAMAGE_SCALAR = 0.75 // damage against player titan multiplied by this
 
 struct
 {
@@ -460,9 +460,7 @@ bool function SPMP_Callback_ForceAIMissPlayer( entity npc, entity player )
 	if ( dot < 0.8 && speed > 0 )
 		chanceToHit *= 0.75
 
-	printt("chanceToHit", chanceToHit)
 	float rand = RandomFloat( 1.0 )
-	printt(rand, ">", chanceToHit, rand > chanceToHit)
 	return rand > chanceToHit
 }
 
@@ -480,16 +478,16 @@ void function SetProficiencyFromSPDifficulty( entity soldier )
 	switch (GetSpDifficulty())
 	{
 		case DIFFICULTY_EASY:
-			RescaleHealthWithMultiplier( soldier, 1.0 )
+			RescaleHealthWithMultiplier( soldier, 0.8 )
 			break
 		case DIFFICULTY_NORMAL:
-			RescaleHealthWithMultiplier( soldier, 1.0 )
+			RescaleHealthWithMultiplier( soldier, 0.9 )
 			break
 		case DIFFICULTY_HARD:
-			RescaleHealthWithMultiplier( soldier, 1.1 )
+			RescaleHealthWithMultiplier( soldier, 1.0 )
 			break
 		case DIFFICULTY_MASTER:
-			RescaleHealthWithMultiplier( soldier, 1.2 )
+			RescaleHealthWithMultiplier( soldier, 1.1 )
 			break
 	}
 

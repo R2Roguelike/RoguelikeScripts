@@ -7,8 +7,8 @@ resource/ui/menus/panels/mod_set.res
         classname "ModSlot"
         xpos            0
         ypos			0
-        wide			96
-        tall			96
+        wide			 80
+        tall			 80
         visible			1
         scaleImage		1
         scriptID        0
@@ -22,8 +22,8 @@ resource/ui/menus/panels/mod_set.res
         classname "ModSlot"
         xpos            8
         ypos			0
-        wide			96
-        tall			96
+        wide			 80
+        tall			 80
         visible			1
         scaleImage		1
         scriptID        1
@@ -41,8 +41,8 @@ resource/ui/menus/panels/mod_set.res
         classname "ModSlot"
         xpos            8
         ypos			0
-        wide			96
-        tall			96
+        wide			 80
+        tall			 80
         visible			1
         scaleImage		1
         scriptID        2
@@ -60,8 +60,8 @@ resource/ui/menus/panels/mod_set.res
         classname "ModSlot"
         xpos            8
         ypos			0
-        wide			96
-        tall			96
+        wide			 80
+        tall			 80
         visible			1
         scaleImage		1
         scriptID        3

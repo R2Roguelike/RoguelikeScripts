@@ -84,6 +84,7 @@ TitanLoadoutDef function GetTitanLoadoutForRow( var dataTable, int row )
 	if (loadout.antirodeo == "mp_titanability_smoke")
 		loadout.antirodeo = "mp_titanability_rearm"
 	loadout.melee			= GetDataTableString( dataTable, row, GetDataTableColumnByName( dataTable, "melee" ) )
+	//if (SERVER && GetPlayerArray().len() > 0 && Roguelike_HasMod( player))
 	loadout.ordnance		= GetDataTableString( dataTable, row, GetDataTableColumnByName( dataTable, "ordnance" ) )
 	loadout.coreAbility		= GetDataTableString( dataTable, row, GetDataTableColumnByName( dataTable, "coreAbility" ) )
 	loadout.setFileMods 	= GetSetFileModsForSettingType( "titan", [ loadout.passive1, loadout.passive2, loadout.passive3,loadout.passive4,loadout.passive5,loadout.passive6 ] )

@@ -443,7 +443,7 @@ void function TrackATWeaponSlot( entity player, var rui )
 			if ( IsValid( weapon ) && file.slotVisible[OFFHAND_INVENTORY] && !isHoldingWeapon )
 			{
 				InitOffhandRui( rui, player, weapon )
-				RuiSetFloat2( rui, "iconSizeScale", <1.5,0.75,0> )
+				//RuiSetFloat2( rui, "iconSizeScale", <1.5,0.75,0> )
 			}
 			else
 			{

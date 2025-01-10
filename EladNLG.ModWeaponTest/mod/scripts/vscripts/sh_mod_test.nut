@@ -83,7 +83,14 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_rate, 1.0 + 0.5 * StatusEffect_Get( owner, eStatusEffect.roguelike_r97_bonus ) * 255 )
     }
     }*/
-    if (weapon.GetWeaponClassName() == "mp_titanweapon_xo16_shorty" && Roguelike_HasMod( owner, "xo16_long_range"))
+    string weaponClassName = weapon.GetWeaponClassName()
+    if (weaponClassName == "mp_titanability_rearm" && Roguelike_HasMod( owner, "quick_rearm" ))
+        ScaleCooldown( weapon, 0.333 )
+    if (["mp_titanweapon_vortex_shield", "mp_titanweapon_shoulder_rockets"].contains(weaponClassName) && Roguelike_HasMod( owner, "quick_rearm" ))
+    {
+        ScaleCooldown( weapon, 4 ) // +300%
+    }
+    if (weaponClassName == "mp_titanweapon_xo16_shorty" && Roguelike_HasMod( owner, "xo16_long_range"))
     {
         ModWeaponVars_SetBool( weapon, eWeaponVar.looping_sounds, false )
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_rate, 0.833333 )
@@ -106,7 +113,7 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
             ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_very_far_distance, 0.6 )
 
     }
-    if (weapon.GetWeaponClassName() == "mp_titanweapon_shoulder_rockets" && Roguelike_HasMod( owner, "dumbfire_rockets" ))
+    if (weaponClassName == "mp_titanweapon_shoulder_rockets" && Roguelike_HasMod( owner, "dumbfire_rockets" ))
     {
         ModWeaponVars_SetFloat( weapon, eWeaponVar.charge_time, 0.001 )
         ModWeaponVars_SetFloat( weapon, eWeaponVar.smart_ammo_search_angle, 0.0 )
@@ -125,6 +132,9 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
     }
     if (weapon.IsWeaponOffhand())
     {
+        
+        ScaleCooldown( weapon, max(GetConVarFloat("cooldown_reduction"), 0.001) )
+        
         if (owner.IsTitan())
         {
             int power = Roguelike_GetStat( owner, STAT_POWER )
@@ -155,7 +165,7 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
             ScaleCooldown( weapon, 0.25 )
         }
 
-        if (weapon.GetWeaponClassName() == "mp_titanweapon_arc_wave")
+        if (weaponClassName == "mp_titanweapon_arc_wave")
         {
             if (IsAlive( owner ) && IsTitanCoreFiring( owner ) // are we using core
             && Roguelike_HasMod( owner, "overcharged_arc_wave" )) // overcharged waves decreases cooldown for arc wave whenever we use core
@@ -174,7 +184,33 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
     {
         if (!owner.IsTitan())
         {
-            ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_stockpile, true )
+            #if CLIENT
+            string weaponPerksConVar = GetConVarString( "player_weapon_perks" )
+            #elseif SERVER
+            string weaponPerksConVar = expect string( owner.GetUserInfoString( "player_weapon_perks" ) )
+            #endif
+            array<string> weaponPerks
+            if (weaponPerksConVar.len() > 0 && weapon.GetInventoryIndex() < 2)
+                weaponPerks = split( split( weaponPerksConVar, " " )[weapon.GetInventoryIndex()], "," )
+
+            if (weaponPerks.contains("uncommon"))
+                ModWeaponVars_ScaleDamage( weapon, 1.15 )
+            else if (weaponPerks.contains("rare"))
+                ModWeaponVars_ScaleDamage( weapon, 1.3 )
+            else if (weaponPerks.contains("epic"))
+                ModWeaponVars_ScaleDamage( weapon, 1.4 )
+            else if (weaponPerks.contains("legendary"))
+                ModWeaponVars_ScaleDamage( weapon, 1.5 )
+            
+            //printt(weaponPerks.len())
+            if (weaponPerks.len() > 0 && StartsWith(weaponPerks[0], "level_"))
+            {
+                int level = int( weaponPerks[0].slice( 6, weaponPerks[0].len() ))
+                ModWeaponVars_ScaleDamage( weapon, 1.0 + 0.15 * level )
+            }
+
+
+            ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_stockpile, weapon.GetWeaponInfoFileKeyField("inventory_slot") != "special" )
             if (Roguelike_HasMod( owner, "weapons_plus" ))
                 WeaponsPlus( weapon, owner )
             

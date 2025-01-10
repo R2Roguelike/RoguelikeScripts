@@ -6,6 +6,7 @@ global function GetCurrentHoverTarget
 
 global const string HOVER_ARMOR_CHIP = "ArmorChip"
 global const string HOVER_SIMPLE = "Simple"
+global const string HOVER_WEAPON = "Weapon"
 
 struct {
     var menu
@@ -43,9 +44,17 @@ void function Hover_Init()
         Hud_SetHeight( panel, ContentScaledYAsInt( 64 + 16 ) + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
     }
 
+    file.preHoverCallbacks[HOVER_ARMOR_CHIP] <- void function (var panel) : (){
+        Hud_SetHeight( panel, ContentScaledYAsInt( 296 ) )
+    }
+    file.preHoverCallbacks[HOVER_WEAPON] <- void function (var panel) : (){
+        Hud_SetHeight( panel, ContentScaledYAsInt( 296 ) )
+    }
+
     Hud_SetVisible( file.menu, true )
     Hud_GetChild(file.menu,HOVER_ARMOR_CHIP).SetPanelAlpha(0.0)
     Hud_GetChild(file.menu,HOVER_SIMPLE).SetPanelAlpha(0.0)
+    Hud_GetChild(file.menu,HOVER_WEAPON).SetPanelAlpha(0.0)
 
     delaythread(0.001) Hover_Update()
 }
@@ -116,7 +125,7 @@ void function Hover_Update()
             vector loc = mousePos
 
             // when using controller, dont hover next to mouse, hover next to element
-            if (IsControllerModeActive())
+            if (IsControllerModeActive() && target != null)
                 loc = <Hud_GetAbsX( target ) + Hud_GetWidth( target ), Hud_GetAbsY( target ), 0>
 
             // prevent going outside of screen

@@ -1,0 +1,7 @@
+WeaponData
+{
+    "inventory_slot"                "secondary"
+    SP_BASE
+    {
+    }
+}

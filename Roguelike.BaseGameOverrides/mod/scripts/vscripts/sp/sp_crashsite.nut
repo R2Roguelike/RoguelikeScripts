@@ -6284,7 +6284,7 @@ void function ShowObjectiveHint( entity player, float timeout = 0.0 )
 	if ( player.GetPlayerNetBool( "showObjective" ) )
 		return
 
-	DisplayOnscreenHint( player, "objective_hint" )
+	//DisplayOnscreenHint( player, "objective_hint" )
 	if ( timeout <= 0 )
 		WaitSignal( player, "ShowingObjective" )
 	else

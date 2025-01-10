@@ -12,7 +12,7 @@ resource/ui/menus/panels/stat.res
         wide				64
         tall			    64
 
-        "xpos"			"16"
+        "xpos"			"8"
         "ypos"			"8"
     }
 
@@ -31,7 +31,7 @@ resource/ui/menus/panels/stat.res
         //bgcolor_override 		"0 0 0 200"
         font					JetBrainsMonoBold_36
 
-		wide				96
+		wide				 80
         tall                32
         wrap                0
 

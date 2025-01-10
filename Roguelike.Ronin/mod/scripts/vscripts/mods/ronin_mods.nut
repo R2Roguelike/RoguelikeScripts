@@ -67,6 +67,13 @@ void function Ronin_RegisterMods()
         mod.icon = $"vgui/hud/white"
         mod.cost = 3
     }
+    {
+        RoguelikeMod mod = NewMod("always_sword")
+        mod.name = "Sword Sheath"
+        mod.description = "You always use your sword for melee."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 1
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)

@@ -32,6 +32,7 @@ void function InitRoguelikeRunSetupMenu()
     {
         if (VGUIButton_GetState( panel ) == eVGUIButtonState.Locked)
             return
+        Roguelike_StartNewRun()
 		ExecuteLoadingClientCommands_SetStartPoint( "sp_crashsite", 7 )
 		ClientCommand( "map sp_crashsite" )
     } )

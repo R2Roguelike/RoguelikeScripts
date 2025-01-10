@@ -100,26 +100,29 @@ void function RoguelikeTimer_OnKilledByPlayer( entity victim )
 {
     if (!IsValid( victim ))
     {
-        AddKills( 1 )
+        AddKillsAndMoney( 1, 5 )
         return
     }
     if (victim.IsTitan())
     {
-        AddKills( 8 )
+        AddKillsAndMoney( 8, 20 )
         return
     }
     
     if (IsSuperSpectre( victim ))
     {
-        AddKills( 3 )
+        AddKillsAndMoney( 3, 10 )
         return
     }
     
-    AddKills( 1 )
+    AddKillsAndMoney( 1, 5 )
 }
 
-void function AddKills( int amt )
+void function AddKillsAndMoney( int amt, int money = -1 )
 {
+    if (money == -1)
+        money = amt
+    
     file.kills += amt
-    RunUIScript( "Roguelike_AddMoney", amt )
+    RunUIScript( "Roguelike_AddMoney", money )
 }

@@ -31,14 +31,47 @@ void function OnPlayerJump( entity player )
 void function RefreshInventory( entity player )
 {
     string mods = expect string( player.GetUserInfoString("player_mods") )
+    string weapons = expect string( player.GetUserInfoString("player_weapons") )
+    string weaponPerks = expect string( player.GetUserInfoString("player_weapon_perks") )
     string stats = expect string( player.GetUserInfoString("player_stats") )
 
     array<string> modsList = split( mods, " " )
     array<string> statsList = split( stats, " " )
+    // weapon mod1,mod2,mod3 weapon2 mod1,mod2,mod3
+    array<string> weaponsList = split( weapons, " " )
+    array<string> weaponPerksList = split( weaponPerks, " " )
 
     player.s.mods <- []
     player.s.stats <- []
 
+    if (!player.IsTitan())
+    {
+
+        array<entity> mainWeapons = player.GetMainWeapons()
+        bool shouldSwapWeapons = false
+        for (int i = 0; i < 2; i++)
+        {
+            if (mainWeapons.len() < 2 && weaponsList.len() >= 2)
+            {
+                shouldSwapWeapons = true
+                break
+            }
+            if (mainWeapons[i].GetWeaponClassName() != weaponsList[i])
+                shouldSwapWeapons = true
+        }
+
+        if (shouldSwapWeapons)
+        {
+            foreach (entity mainWeapon in mainWeapons)
+                player.TakeWeaponNow( mainWeapon.GetWeaponClassName() )
+            
+            for (int i = 0; i < weaponsList.len(); i++)
+            {
+                entity weapon = player.GiveWeapon(weaponsList[i])
+            }
+        }
+
+    }
     foreach (string s in modsList)
     {
         if (s == "")

@@ -9,8 +9,8 @@ resource/ui/menus/panels/mod_slot.res
 		drawColor	"0 0 0 135"
 		scaleImage			1
 
-		wide				96
-		tall				96
+		wide				 80
+		tall				 80
 
 		"xpos"			"0"
 		"ypos"			"0"
@@ -107,8 +107,8 @@ resource/ui/menus/panels/mod_slot.res
 	{
 		ControlName				RuiButton
 		xpos					0
-		wide					96
-		tall					96
+		wide					 80
+		tall					 80
 			labelText				""
 		zpos				3
 	}

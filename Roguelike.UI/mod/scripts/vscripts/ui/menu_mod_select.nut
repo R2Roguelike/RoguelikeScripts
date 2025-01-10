@@ -28,10 +28,10 @@ void function InitRoguelikeModSelectMenu()
 	file.gridData.rows = 4
 	file.gridData.numElements = 20
 	file.gridData.pageType = eGridPageType.HORIZONTAL
-	file.gridData.tileWidth = ContentScaledXAsInt( 96 )
-	file.gridData.tileHeight = ContentScaledYAsInt( 96 )
-	file.gridData.paddingVert = 8
-	file.gridData.paddingHorz = 8
+	file.gridData.tileWidth = ContentScaledXAsInt( 80 )
+	file.gridData.tileHeight = ContentScaledYAsInt( 80 )
+	file.gridData.paddingVert = int( ContentScaledX( 8 ) )
+	file.gridData.paddingHorz = int( ContentScaledX( 8 ) )
 	file.gridData.initCallback = Slot_Init
 
     GridMenuInit( file.menu, file.gridData )
@@ -50,10 +50,10 @@ void function OnModSelectMenuOpen()
     Grid_InitPage( file.menu, file.gridData )
 
     var frame = Hud_GetChild( file.menu, "ButtonFrame" )
-    Hud_SetY( frame, file.y + ContentScaledYAsInt( 104 ) )
+    Hud_SetY( frame, file.y + ContentScaledYAsInt( 88 ) )
     if (file.isTitanMod)
     {
-        Hud_SetX( frame, file.x + ContentScaledXAsInt( 104 - 528 ) )
+        Hud_SetX( frame, file.x + ContentScaledXAsInt( 88 - 448 ) )
     }
     else // has to be a pilot mod instead
     {

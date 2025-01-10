@@ -73,7 +73,7 @@ void function MenuAnimation()
 
     // add power
     int prevPower = expect int(runData.powerPlayer)
-    int powerGained = RoundToInt(GraphCapped( killsRank, 4, 0, 33, 37 ))
+    int powerGained = RoundToInt(GraphCapped( killsRank, 4, 0, 30, 35 ))
     runData.powerPlayer += powerGained
 
     runData.map <- file.nextMap
@@ -81,21 +81,18 @@ void function MenuAnimation()
     runData.startPointIndex <- file.startPointIndex
     printt(runData.startPointIndex)
 
-    SetConVarInt("power_player", prevPower + powerGained)
-
     // enemy power always increases by 10.
-    int prevLevelsCompleted = GetConVarInt("roguelike_levels_completed")
+    int levelsCompleted = GetConVarInt("roguelike_levels_completed")
+    levelsCompleted++
     int prevEnemyPower = expect int(runData.enemyPower) 
     int enemyPowerGained = 40
     runData.enemyPower += enemyPowerGained
-    runData.levelsCompleted <- prevLevelsCompleted + 1
+    runData.levelsCompleted <- levelsCompleted
 
     int modsUnlocked = minint(int(GraphCapped(timeRank, 0, 4, 8, 4)), expect int(runData.lockedMods.len()))
     Roguelike_UnlockMods( modsUnlocked )
 
     NSSaveJSONFile( "run_backup.json", runData )
-    SetConVarInt("roguelike_levels_completed", prevLevelsCompleted + 1)
-    SetConVarInt("power_enemy", prevEnemyPower + enemyPowerGained)
     Hud_SetText(Hud_GetChild(file.menu, "PlayerPower"), string( prevPower ))
     Hud_SetText(Hud_GetChild(file.menu, "EnemyPower"), string( prevEnemyPower ))
 
@@ -106,6 +103,8 @@ void function MenuAnimation()
     Hud_SetBarProgress(Hud_GetChild(file.menu, "TimeBar"), 0.0)
     Hud_SetText(Hud_GetChild(file.menu, "TimeRank"), "")
     Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), "")
+    
+    Roguelike_ApplyRunDataToConVars()
     
     wait 0.1
     

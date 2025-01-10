@@ -45,6 +45,9 @@ void function Healthbars_Think()
         foreach (VisibleEntityInCone coneEnt in results)
         {
             entity ent = coneEnt.ent
+            // dont show player healthbar above them???
+            if (ent == player)
+                continue
             file.hitEnts.append(ent)
             
             if (ent.IsTitan())

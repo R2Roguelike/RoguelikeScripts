@@ -1,6 +1,8 @@
 untyped
 global function Weaken_Init
 global function AddWeaken
+global function RemoveWeaken
+global function GetWeaken
 
 void function Weaken_Init()
 {
@@ -12,22 +14,28 @@ void function Weaken_Init()
 void function RocketDamage( entity ent, var damageInfo )
 {
     entity attacker = DamageInfo_GetAttacker( damageInfo )
-    
+    entity inflictor = DamageInfo_GetInflictor( damageInfo )
+
     if (!attacker.IsPlayer())
         return
+
+    if (IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.proj.isChargedShot) // atg missile
+    {
+    }
     if (Roguelike_HasMod(attacker, "inverse_relationship") && attacker != ent)
     {
         int weaken = GetWeaken( ent )
         if (weaken > 0)
         {
-            DamageInfo_ScaleDamage( damageInfo, 3 )
-            RemoveWeaken( ent, attacker, 3 )
+            DamageInfo_ScaleDamage( damageInfo, 6 )
+            RemoveWeaken( ent, attacker, 6 )
         }
         return
     }
     if (attacker != ent)
-        AddWeaken( ent, attacker, 4 )
+        AddWeaken( ent, attacker, 3 )
 }
+
 
 void function PrimaryDamage( entity ent, var damageInfo )
 {
@@ -38,14 +46,14 @@ void function PrimaryDamage( entity ent, var damageInfo )
     
     if (Roguelike_HasMod( attacker, "inverse_relationship" ) && attacker != ent)
     {
-        AddWeaken( ent, attacker, 1 )
+        AddWeaken( ent, attacker, 2 )
         return
     }
     int weaken = GetWeaken( ent )
     if (weaken > 0)
     {
         DamageInfo_ScaleDamage( damageInfo, 1.25 )
-        RemoveWeaken( ent, attacker, 1 )
+        RemoveWeaken( ent, attacker, 2 )
     }
 }
 
@@ -59,9 +67,7 @@ void function CoreDamage( entity ent, var damageInfo )
         return
     
     entity coreWeapon = attacker.GetActiveWeapon() // will always be equipped cuz its hitscan!!!
-    printt("hit!")
     coreWeapon.SetWeaponPrimaryClipCount(minint(coreWeapon.GetWeaponPrimaryClipCountMax(), coreWeapon.GetWeaponPrimaryClipCount() + 1))
-    printt(coreWeapon.GetWeaponPrimaryClipCount())
 }
 
 void function AddWeaken( entity ent, entity attacker, int amount )
@@ -90,7 +96,7 @@ void function RemoveWeaken( entity ent, entity attacker, int amount )
     cur = maxint(cur - amount, 0)
     if (GetTitanLoadoutFlags() == EXPEDITION_RONIN)
     {
-        AddDaze( ent, attacker, amount * 14 / 255.0 )
+        AddDaze( ent, attacker, amount * 10 / 255.0 )
     }
     if (cur > 0)
         StatusEffect_AddEndless( ent, eStatusEffect.roguelike_weaken, cur / 255.0 )

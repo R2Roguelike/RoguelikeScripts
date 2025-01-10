@@ -17,11 +17,6 @@ var function OnWeaponPrimaryAttack_titanability_rearm( entity weapon, WeaponPrim
 	entity ordnance = weaponOwner.GetOffhandWeapon( OFFHAND_RIGHT )
 	
 	array offhandWeapons = weaponOwner.GetOffhandWeapons()
-	if (weaponOwner.IsPlayer() && Roguelike_HasMod( weaponOwner, "rearm_reload" ))
-	{
-		entity primary = weaponOwner.GetLatestPrimaryWeapon()
-		primary.SetWeaponPrimaryClipCount(primary.GetWeaponPrimaryClipCountMax())
-	}
 	if (weaponOwner.IsPlayer() && Roguelike_HasMod( weaponOwner, "rearm_reset" ))
 	{
 	#if SERVER

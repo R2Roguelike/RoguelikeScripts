@@ -1,5 +1,6 @@
 untyped
 global function ModWeaponVars_ScaleVar
+global function ModWeaponVars_ScaleDamage
 global function AddCallback_ApplyModWeaponVars
 global function CodeCallback_ApplyModWeaponVars
 #if SERVER
@@ -64,6 +65,28 @@ struct
     array<CallbackArray> weaponVarCallbacks
 } file
 
+void function ModWeaponVars_ScaleDamage( entity weapon, float scalar )
+{
+    const array<int> DAMAGE_VARS = [eWeaponVar.damage_near_value, eWeaponVar.damage_far_value, eWeaponVar.damage_near_value_titanarmor,
+                                    eWeaponVar.damage_far_value_titanarmor, eWeaponVar.damage_very_far_value, eWeaponVar.explosion_damage]
+
+    foreach (int weaponVar in DAMAGE_VARS)
+    {
+        switch (ModWeaponVars_GetType(weaponVar))
+        {
+            case 1:
+                ModWeaponVars_SetInt( weapon, weaponVar, int(RoundToNearestInt(weapon.GetWeaponSettingInt(weaponVar) * scalar) ) )
+                break
+            case 2:
+                ModWeaponVars_SetFloat( weapon, weaponVar, weapon.GetWeaponSettingFloat(weaponVar) * scalar )
+                break
+            default:
+                throw "WeaponVar is not of type int or float!"
+                break
+        }
+    }
+}
+
 void function ModWeaponVars_ScaleVar( entity weapon, int weaponVar, float scalar )
 {
     switch (ModWeaponVars_GetType(weaponVar))
@@ -110,6 +133,11 @@ void function AddCallback_ApplyModWeaponVars( int priority, void functionref( en
 
 void function CodeCallback_ApplyModWeaponVars( entity weapon )
 {
+    if (!IsValid( weapon ))
+    {
+        printt("INVALID WEAPON PASSED IN?! IS GAME ABOUT TO CRASH?!")
+        return
+    }
     #if CLIENT
     if (weapon.GetClassName() != "weaponx")
     {
@@ -120,6 +148,10 @@ void function CodeCallback_ApplyModWeaponVars( entity weapon )
     if (weapon.GetWeaponOwner() != GetLocalClientPlayer())
         return
     #endif
+
+    // its not ready yet :(
+    if (weapon.GetWeaponClassName() == "")
+        return
 
     foreach (CallbackArray arr in file.weaponVarCallbacks)
     {
@@ -170,12 +202,6 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
     if (!IsValid(player.GetActiveWeapon()))
         return
 
-    if (player.IsOnGround())
-    {
-        player.s.lastGroundPosition <- player.GetOrigin()
-        player.s.lastGroundAngles <- player.GetAngles()
-    }
-
     if (IsValid(player.GetActiveWeapon()) && !player.GetActiveWeapon().IsWeaponOffhand() && player.IsTitan())
     {
         if (!("lastActiveWeapon" in player.s))
@@ -213,6 +239,12 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
         }
 }
 
+void function Roguelike_ModifyTitanLoadout( entity player, TitanLoadoutDef loadout )
+{
+    if (Roguelike_HasMod( player, "always_sword" ))
+        loadout.melee = "melee_titan_sword"
+}
+
 void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity primary )
 {
 	Assert( titan.IsTitan() )
@@ -228,6 +260,8 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
     if ( titanLoadout == null )
         return
     expect TitanLoadoutDef( titanLoadout )
+    
+    Roguelike_ModifyTitanLoadout( titan, titanLoadout )
 
     //table<int,float> cooldowns = GetWeaponCooldownsForTitanLoadoutSwitch( titan )
 
@@ -286,7 +320,7 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
             if (titan.s.storedAbilities[i] != null)
             {
                 entity newOffhand = expect entity( titan.s.storedAbilities[i] )
-                if (!IsValid(newOffhand))
+                if (!IsValid(newOffhand) || newOffhand.GetWeaponClassName() != GetOffhandWeaponBySlot( titanLoadout, i ))
                 {
                     titan.GiveOffhandWeapon( GetOffhandWeaponBySlot( titanLoadout, i ), i )
                     newOffhand = titan.GetOffhandWeapon(i)
@@ -371,6 +405,7 @@ void function RestoreCooldown( entity weapon, float frac )
             weapon.SetWeaponPrimaryClipCountNoRegenReset( minint( ammo + RoundToInt(frac * maxAmmo), maxAmmo ) )
             break
         
+        case "charged_shot":
         case "chargeFrac":
         case "vortex_drain":
             weapon.SetWeaponChargeFractionForced( weapon.GetWeaponChargeFraction() - frac )
@@ -397,16 +432,23 @@ void function RestoreCooldown( entity weapon, float frac )
 
 entity function Roguelike_GetOffhandWeaponByName( entity player, string weapon )
 {
+    printt(player, weapon)
     array<entity> currentOffhandWeapons = player.GetOffhandWeapons()
 
     foreach (entity w in currentOffhandWeapons)
+    {
+        printt( w.GetWeaponClassName())
         if (w.GetWeaponClassName() == weapon)
             return w
+    }
+
+    if (!("storedAbilities" in player.s))
+        return null
         
     foreach (var w in player.s.storedAbilities)
     {
         printt(w, typeof(w))
-        if (w == null)
+        if (w == null || !IsValid(w))
             continue
         if (w.GetWeaponClassName() == weapon)
             return expect entity(w)
@@ -429,6 +471,7 @@ void function ScaleCooldown( entity weapon, float scalar )
             ModWeaponVars_ScaleVar( weapon, eWeaponVar.regen_ammo_refill_rate, 1.0 / scalar )
             break
         
+        case "charged_shot":
         case "chargeFrac":
         case "vortex_drain":
             ModWeaponVars_ScaleVar( weapon, eWeaponVar.charge_cooldown_time, scalar )

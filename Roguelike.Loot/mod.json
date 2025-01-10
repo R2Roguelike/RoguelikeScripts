@@ -11,6 +11,10 @@
 			"RunOn": "UI"
 		},
 		{
+			"Path": "ui_weapon.nut",
+			"RunOn": "UI"
+		},
+		{
 			"Path": "run_manager.nut",
 			"RunOn": "UI"
 		},
@@ -19,6 +23,13 @@
 			"RunOn": "SERVER",
 			"ServerCallback": {
 				"After": "Chests_Init"
+			}
+		},
+		{
+			"Path": "_trigger_modifications.nut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+				"After": "TriggerModifications_Init"
 			}
 		}
 	],

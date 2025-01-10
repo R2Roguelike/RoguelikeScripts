@@ -254,6 +254,26 @@ function Highlight_Init()
 	HighlightContext_SetDrawFunc( highlight, eHighlightDrawFunc.LOS )
 	HighlightContext_SetAfterPostProcess( highlight, false )
 
+	highlight = RegisterHighlight( "roguelike_chest" )
+	HighlightContext_SetOutline( highlight, HIGHLIGHT_OUTLINE_WEAPON_PICKUP )
+	//HighlightContext_SetFill( highlight, HIGHLIGHT_FILL_OBJECTIVE )
+	HighlightContext_SetRadius( highlight, 3 )
+	HighlightContext_SetParam( highlight, 0, <0.25, 0.25, 1> )
+	HighlightContext_SetDrawFunc( highlight, eHighlightDrawFunc.ALWAYS )
+	HighlightContext_SetFarFadeDistance( highlight, 6000.0 )
+	HighlightContext_SetADSFade( highlight, false )
+	HighlightContext_SetAfterPostProcess( highlight, false )
+
+	highlight = RegisterHighlight( "roguelike_legendary_chest" )
+	HighlightContext_SetOutline( highlight, HIGHLIGHT_OUTLINE_OBJECTIVE )
+	//HighlightContext_SetFill( highlight, HIGHLIGHT_FILL_OBJECTIVE )
+	HighlightContext_SetRadius( highlight, 3 )
+	HighlightContext_SetParam( highlight, 0, <1, 1, 0.25> )
+	HighlightContext_SetDrawFunc( highlight, eHighlightDrawFunc.LOS_LINE )
+	HighlightContext_SetFarFadeDistance( highlight, 6000.0 )
+	HighlightContext_SetADSFade( highlight, false )
+	HighlightContext_SetAfterPostProcess( highlight, false )
+
 	highlight = RegisterHighlight( "interact_object_always_far" )
 	HighlightContext_SetOutline( highlight, HIGHLIGHT_OUTLINE_CUSTOM_COLOR )
 	HighlightContext_SetRadius( highlight, 3 )
@@ -261,7 +281,7 @@ function Highlight_Init()
 	HighlightContext_SetDrawFunc( highlight, eHighlightDrawFunc.ALWAYS )
 	HighlightContext_SetFarFadeDistance( highlight, 5000.0 )
 	HighlightContext_SetADSFade( highlight, false )
-	HighlightContext_SetAfterPostProcess( highlight, false )
+	HighlightContext_SetAfterPostProcess( highlight, true )
 
 	highlight = RegisterHighlight( "health_pickup" )
 	HighlightContext_SetOutline( highlight, HIGHLIGHT_OUTLINE_CUSTOM_COLOR )
@@ -528,7 +548,7 @@ function Highlight_Init()
 	highlight = RegisterHighlight( "elite_bubble_shield" )
 	HighlightContext_SetOutline( highlight, HIGHLIGHT_OUTLINE_CUSTOM_COLOR )
 	HighlightContext_SetFill( highlight, HIGHLIGHT_FILL_CUSTOM_COLOR_FADED )
-	HighlightContext_SetParam( highlight, 0, <4.0, 1.0, 0.0> )
+	HighlightContext_SetParam( highlight, 0, <4.0, 4.0, 1.0> )
 	HighlightContext_SetParam( highlight, 1, <1.0, 1.0, 1.0> )
 	HighlightContext_SetRadius( highlight, 1 )
 	HighlightContext_SetDrawFunc( highlight, eHighlightDrawFunc.LOS_LINE_ENTSONLYCONTENTSBLOCK )
@@ -1027,9 +1047,7 @@ void function ClHighlight_UpdateHighlightFlags( entity ent, int contextId )
 		return
 	}
 
-	if ( highlight.nearDist != ent.Highlight_GetNearFadeDist() )
-		ent.Highlight_SetNearFadeDist( highlight.nearDist )
-
+	ent.Highlight_SetNearFadeDist( highlight.nearDist )
 	ent.Highlight_SetFarFadeDist( highlight.farDist )
 	ent.Highlight_SetFlag( HIGHLIGHT_FLAG_ADS_FADE, highlight.adsFade )
 	ent.Highlight_SetFlag( HIGHLIGHT_FLAG_REQUIRE_NOT_FULL_HEALTH, highlight.requiresNotFullHealth )
@@ -1320,6 +1338,11 @@ float function GetHullTraceSizeForEnt( entity ent )
 float function GetMidpointHeight( entity ent )
 {
 	return ( ent.GetBoundingMaxs().z - ent.GetBoundingMins().z ) * 0.5
+}
+
+void function ClHighlight_RoguelikeChest_LineThink( entity ent, HighlightContext highlight )
+{
+
 }
 
 void function ClHighlight_DrawWhenLOS_LineThink( entity ent, HighlightContext highlight )

@@ -18,7 +18,7 @@ resource/ui/roguelike_timer.res
 
 		visible				1
 		zpos				200
-        wide                96
+        wide                 80
 		tall				45
 		labelText			"12:51"
 		allCaps				1

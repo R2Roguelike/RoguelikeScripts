@@ -89,6 +89,15 @@ void function SwordDamage( entity ent, var damageInfo )
         DamageInfo_SetDamage( damageInfo, damage + 621.0 * blockIntensity )
     }
 
+    if (GetTitanLoadoutFlags() == EXPEDITION_RONIN)
+    {
+        int weaken = GetWeaken( ent )
+        float scalar = GraphCapped( weaken, 0, 20, 1, 1.5 )
+        RemoveWeaken( ent, attacker, 20 )
+        DamageInfo_ScaleDamage( damageInfo, scalar )
+    }
+
+
     float daze = StatusEffect_Get( ent, eStatusEffect.roguelike_daze )
     StatusEffect_StopAll( ent, eStatusEffect.roguelike_daze )
     
@@ -106,9 +115,9 @@ void function SwordDamage( entity ent, var damageInfo )
 
     DamageInfo_ScaleDamage( damageInfo, GraphCapped(daze, 0, 0.5, 1, 2) )
 
-    if (GetTitanLoadoutFlags() == EXPEDITION_RONIN)
+    if (GetTitanLoadoutFlags() == SCORCH_RONIN)
     {
-        AddWeaken( ent, attacker, RoundToInt( GraphCapped(daze, 0, 0.5, 0, 10) ) )
+        AddBurn( ent, attacker, 30 )
     }
 
     daze -= 0.5
@@ -139,16 +148,20 @@ void function SwordCoreDamage( entity ent, var damageInfo )
             int power = Roguelike_GetStat( attacker, STAT_POWER )
             DamageInfo_SetDamage( damageInfo, damage + 621.0 * blockIntensity )
         }
+        
+        if (GetTitanLoadoutFlags() == EXPEDITION_RONIN)
+        {
+            int weaken = GetWeaken( ent )
+            float scalar = GraphCapped( weaken, 0, 20, 1, 1.5 )
+            RemoveWeaken( ent, attacker, 20 )
+            DamageInfo_ScaleDamage( damageInfo, scalar )
+        }
 
         float daze = StatusEffect_Get( ent, eStatusEffect.roguelike_daze )
         StatusEffect_StopAll( ent, eStatusEffect.roguelike_daze )
         
         DamageInfo_ScaleDamage( damageInfo, GraphCapped(daze, 0, 0.5, 1, 2) )
 
-        if (GetTitanLoadoutFlags() == EXPEDITION_RONIN)
-        {
-            AddWeaken( ent, attacker, RoundToInt( GraphCapped(daze, 0, 0.5, 0, 10) ) )
-        }
         if (GetTitanLoadoutFlags() == SCORCH_RONIN)
         {
             AddBurn( ent, attacker, 150 )

@@ -40,24 +40,24 @@ resource/ui/menus/hovers/armor_chip.res
     Title
     {
         ControlName				Label
-        xpos					-8
-        ypos				    2
+        xpos					0
+        ypos				    -8
         wide					2000
-        tall					64
+        tall					32
         visible					1
         enabled					1
         auto_wide_tocontents	0
         //auto_tall_tocontents	1
-        labelText				"ARMOR CHIP"
+        labelText				"CHIP"
         fgcolor_override		"25 25 25 255"
-        textAlignment			north-west
+        textAlignment			center
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
         font					JetBrainsMonoBold_36
 
         pin_to_sibling			TitleStrip
-        pin_corner_to_sibling	LEFT
-        pin_to_sibling_corner	LEFT
+        pin_corner_to_sibling	TOP
+        pin_to_sibling_corner	TOP
     }
 
 	EnergyBarBG
@@ -66,25 +66,25 @@ resource/ui/menus/hovers/armor_chip.res
 		image			    "vgui/hud/white"
 		fg_image			"vgui/hud/white"
 
-		ProgressDirection			1
+		ProgressDirection			0
 		CircularEnabled 		0
 		SegmentFill			1
-		SegmentSize			93
-		SegmentGap			4
+		SegmentSize			59
+		SegmentGap			6
 		visible				1
 
 		fgcolor_override	"25 25 25 75"
 		scaleImage			1
 
-		wide				384
+		wide				380
 		tall				12
 
-		"xpos"			"-8"
-		"ypos"			"-8"
+		"xpos"			"0"
+		"ypos"			"-7"
 
 		pin_to_sibling "TitleStrip"
-		pin_corner_to_sibling	BOTTOM_LEFT
-		pin_to_sibling_corner	BOTTOM_LEFT
+		pin_corner_to_sibling	BOTTOM
+		pin_to_sibling_corner	BOTTOM
 	}
 	EnergyBar1
 	{
@@ -95,22 +95,22 @@ resource/ui/menus/hovers/armor_chip.res
 		ProgressDirection			0
 		CircularEnabled 		0
 		SegmentFill			1
-		SegmentSize			93
-		SegmentGap			4
+		SegmentSize			59
+		SegmentGap			6
 		visible				1
 
 		fgcolor_override	"25 25 25 255"
 		scaleImage			1
 
-		wide				384
+		wide				380
 		tall				12
 
-		"xpos"			"-8"
-		"ypos"			"-8"
+		"xpos"			"0"
+		"ypos"			"0"
 
-		pin_to_sibling "TitleStrip"
-		pin_corner_to_sibling	BOTTOM_LEFT
-		pin_to_sibling_corner	BOTTOM_LEFT
+		pin_to_sibling "EnergyBarBG"
+		pin_corner_to_sibling	BOTTOM_RIGHT
+		pin_to_sibling_corner	BOTTOM_RIGHT
 	}
 
 	EnergyCount
@@ -131,7 +131,7 @@ resource/ui/menus/hovers/armor_chip.res
         //bgcolor_override 		"0 0 0 200"
         font					JetBrainsMonoBold_17
 
-        pin_to_sibling			EnergyBar1
+        pin_to_sibling			EnergyBarBG
         pin_corner_to_sibling	BOTTOM_RIGHT
         pin_to_sibling_corner	TOP_RIGHT
 	}
@@ -295,7 +295,7 @@ resource/ui/menus/hovers/armor_chip.res
         ControlName				Label
         visible					1
         enabled					1
-        //auto_wide_tocontents	1
+        auto_wide_tocontents	0
         auto_tall_tocontents	1
         labelText				"%[X_BUTTON|MOUSE2]%Upgrade (35$) %[X_BUTTON|F]%Dismantle"
         fgcolor_override		"255 255 255 255"
@@ -304,7 +304,7 @@ resource/ui/menus/hovers/armor_chip.res
         //bgcolor_override 		"0 0 0 200"
         font					JetBrainsMonoBold_20
 
-		wide				384
+		wide				4000
         tall                28
         wrap                0
 
