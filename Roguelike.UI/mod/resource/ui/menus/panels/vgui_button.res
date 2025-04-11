@@ -112,6 +112,28 @@ resource/ui/menus/panels/vgui_button.res
 		pin_to_sibling_corner		CENTER
 	}
 
+	Value
+	{
+		ControlName			Label
+		xpos				-8
+		ypos				-5
+
+		visible				1
+		wide                64
+		tall				64
+		labelText			""
+		allCaps				1
+		font				JetBrainsMono_17
+		auto_wide_tocontents	1
+		auto_tall_tocontents    1
+		textAlignment		center
+		fgcolor_override 	"225 225 225 255"
+
+		pin_to_sibling				BG
+		pin_corner_to_sibling		BOTTOM_RIGHT
+		pin_to_sibling_corner		BOTTOM_RIGHT
+	}
+
 	Button
 	{
 		ControlName				RuiButton

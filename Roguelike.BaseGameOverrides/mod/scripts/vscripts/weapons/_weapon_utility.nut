@@ -3843,10 +3843,16 @@ void function PlayerUsedOffhand( entity player, entity offhandWeapon )
 			continue
 
 		#if SERVER
+			Roguelike_PlayerUsedOffhand( player, offhandWeapon, index )
+
 			if ( player.IsTitan() )
+			{
 				player.p.lastTitanOffhandUseTime[ index ] = Time()
+			}
 			else
+			{
 				player.p.lastPilotOffhandUseTime[ index ] = Time()
+			}
 
 			#if MP
 				string weaponName = offhandWeapon.GetWeaponClassName()

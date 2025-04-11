@@ -71,11 +71,11 @@ void function ModSelect_SetContext( string modSlot, int x, int y )
     int maxEnergy = 0
     if (file.isTitanMod)
     {
-        maxEnergy = expect int(runData["AC" + file.chipIndex].titanEnergy)
+        maxEnergy = expect int(runData["ACTitan" + file.chipIndex].energy)
     }
     else
     {
-        maxEnergy = expect int(runData["AC" + file.chipIndex].pilotEnergy)
+        maxEnergy = expect int(runData["ACPilot" + file.chipIndex].energy)
     }
     int usedEnergy = GetTotalEnergyUsed(file.chipIndex, file.isTitanMod)
     
@@ -108,11 +108,16 @@ bool function Slot_Init( var slot, int elemNum )
         slot.s.clickCallback <- true
     }
 
+    table runData = Roguelike_GetRunData()
     RemoveHover( slot )
     if (elemNum < file.modChoices.len())
     {
         AddHover( slot, ModSlot_Hover, HOVER_SIMPLE )
         ModSlot_DisplayMod( slot, file.modChoices[elemNum] )
+        if (runData.newMods.contains(file.modChoices[elemNum].uniqueName))
+        {
+            Hud_SetVisible( Hud_GetChild(slot, "Notification"), true )
+        }
         if (file.modChoices[elemNum].cost > file.maxUsableEnergy || file.usedMods.contains(file.modChoices[elemNum]))
             Hud_SetVisible(Hud_GetChild(slot, "Overlay"), true)
     }
@@ -127,6 +132,12 @@ void function ModSlot_Hover( var slot, var panel )
 {
     int elemNum = Grid_GetElemNumForButton( slot )
     RoguelikeMod mod = file.modChoices[elemNum]
+    table runData = Roguelike_GetRunData()
+    if (runData.newMods.contains(mod.uniqueName))
+    {
+        runData.newMods.removebyvalue(mod.uniqueName)
+        Hud_SetVisible( Hud_GetChild(slot, "Notification"), false )
+    }
 
     Hud_SetText( Hud_GetChild(panel, "Title"), mod.name)
     string description = format("Energy Cost: ^FFA00000%i^FFFFFFFF\n\n%s", mod.cost, mod.description + GetModDescriptionSuffix(mod))

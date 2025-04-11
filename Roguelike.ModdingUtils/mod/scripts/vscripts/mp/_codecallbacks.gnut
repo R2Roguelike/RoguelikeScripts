@@ -13,6 +13,7 @@ global function CodeCallback_OnTouchHealthKit
 global function CodeCallback_OnPlayerGrappled
 global function CodeCallback_OnProjectileGrappled
 global function DamageInfo_ScaleDamage
+global function DamageInfo_AddDamageBonus
 global function CodeCallback_CheckPassThroughAddsMods
 global function SetTitanMeterGainScale
 
@@ -54,7 +55,8 @@ void function OnClientConnected( entity player )
 			if (player.IsOnGround() && !player.IsWallRunning() 
 				&& !player.IsWallHanging()
 				&& !player.p.doingQuickDeath 
-				&& !player.IsTraversing())
+				&& !player.IsTraversing()
+				&& player.GetGroundEntity() == GetEntByIndex( 0 ))
 			{
 				player.s.lastGroundPosition <- player.GetOrigin()
 				player.s.lastGroundAngles <- player.GetAngles()
@@ -63,6 +65,7 @@ void function OnClientConnected( entity player )
 	}()
 }
 
+float additiveDMGBonus = 1.0
 // TODO: Get an equivalent callback happening on the client, so we can stop using ServerCallback_PlayerTookDamage which is always out of date to some degree.
 void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 {
@@ -79,10 +82,13 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 
 	if ( IsValid( attacker ) )
 	{
+		verboseDamagePrintouts = VERBOSE_DAMAGE_PRINTOUTS && (attacker.IsPlayer() || ent.IsPlayer())
 		attackerIsPlayer = attacker.IsPlayer()
 		attackerIsTitan = attacker.IsTitan()
 		attackerIsNPC = attacker.IsNPC()
 	}
+	else
+		verboseDamagePrintouts = false
 
 	// Set damage source correctly when npc grunts or titans try to melee us
 	if ( attackerIsNPC && DamageInfo_GetCustomDamageType( damageInfo ) & DF_MELEE )
@@ -112,7 +118,8 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		}
 	}
 
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
+	{
 		printt( "CodeCallback_DamagePlayerOrNPC ent:", ent )
 		printt( "    Attacker:", DamageInfo_GetAttacker( damageInfo ) )
 		printt( "    Inflictor:", DamageInfo_GetInflictor( damageInfo ) )
@@ -127,7 +134,10 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 			printt( "    SourceID:", GetObitFromDamageSourceID( sourceID ) )
 
 		PrintDamageFlags( DamageInfo_GetCustomDamageType( damageInfo ) )
-	#endif
+	}
+
+	float prevValue = additiveDMGBonus
+	additiveDMGBonus = 1.0
 
 	if ( !ScriptCallback_ShouldEntTakeDamage( ent, damageInfo ) )
 	{
@@ -172,15 +182,15 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		}
 	}
 
+	if ( inflictor.IsProjectile() && inflictor.proj.damageScale != 1.0 )
+	{
+		DamageInfo_ScaleDamage( damageInfo, inflictor.proj.damageScale )
+	}
+
 	if ( IsValid( inflictor ) )
 	{
 		if ( inflictor.IsProjectile() && entIsPlayer )
 		{
-			if ( inflictor.proj.damageScale != 1.0 )
-			{
-				DamageInfo_ScaleDamage( damageInfo, inflictor.proj.damageScale )
-			}
-
 			// Don't take damage from projectiles created before you where spawned.
 			if ( inflictor.GetProjectileCreationTime() < ent.s.respawnTime && ( Time() - ent.s.respawnTime ) < 2.0 )
 			{
@@ -201,14 +211,12 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if ( DamageInfo_GetDamage( damageInfo ) <= 0 )
 		return
 
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 		printt( "    rounded damage amount:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
 
 	HandleLocationBasedDamage( ent, damageInfo )
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 		printt( "    after location based damage:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
 
 	// use AddDamageCallbackSourceID( "classname", function ) to registed functions
 	// moved this up since northstar uses this to add more damage
@@ -229,16 +237,15 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		if ( IsValid( soul ) && SoulHasPassive( soul, ePassives.PAS_GUARDIAN_CHIP ) )
 		{
 			DamageInfo_SetDamage( damageInfo, DamageInfo_GetDamage( damageInfo ) * 0.8 )
-			#if VERBOSE_DAMAGE_PRINTOUTS
+			if (verboseDamagePrintouts)
 				printt( "After guardian chip :", DamageInfo_GetDamage( damageInfo ) )
-			#endif
 		}
 	}
 
 	RunClassDamageCallbacks( ent, damageInfo )
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 		printt( "    after class damage callbacks:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
+		
 	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
 		return
 
@@ -250,9 +257,9 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 			entity soul = attacker.GetTitanSoul()
 			if ( IsValid( soul ) )
 			{
-				float damageAmpScale = 1.0 + StatusEffect_Get( soul, eStatusEffect.titan_damage_amp )
-				if ( damageAmpScale != 1.0 )
-					DamageInfo_ScaleDamage( damageInfo, damageAmpScale )
+				float damageAmpScale = StatusEffect_Get( soul, eStatusEffect.titan_damage_amp )
+				if ( damageAmpScale > 0.0 )
+					DamageInfo_AddDamageBonus( damageInfo, damageAmpScale )
 			}
 		}
 
@@ -268,54 +275,85 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		}
 	}
 
+	if ("damageMult" in attacker.s)
+		DamageInfo_ScaleDamage( damageInfo, expect float(attacker.s.damageMult) )
+
+	if (GetBurn( ent ) > 0 && !BURN_DAMAGE_SOURCES.contains(damageSourceId))
+		DamageInfo_ScaleDamage( damageInfo, 1.0 + GetBurn( ent ) * 0.01 )
+	
+    float blockIntensity = StatusEffect_Get( attacker, eStatusEffect.roguelike_block_buff )
+    if (blockIntensity > 0.0)
+    {
+		DamageInfo_AddDamageBonus( damageInfo, 0.35 * blockIntensity )
+    }
+
+	if (attacker.IsPlayer() && "lastRearm" in attacker.s && Roguelike_IsWeaponDamage( damageInfo ))
+	{
+		if (Time() - attacker.s.lastRearm <= 10.0 && Roguelike_HasMod( attacker, "rearm_reload" ))
+			DamageInfo_AddDamageBonus( damageInfo, 0.25 )
+	}
+
+	// WEAK - 
+	if ( GetWeaken( ent ) > 0 && Roguelike_IsWeaponDamage( damageInfo ) )
+		DamageInfo_AddDamageBonus( damageInfo, 0.25 )
+
+	if ( GetWeaken( attacker ) > 0 )
+		DamageInfo_ScaleDamage( damageInfo, 0.25 )
+
 	float damageMultiplier = 1.0 + StatusEffect_Get( ent, eStatusEffect.damage_received_multiplier )
 	if ( damageMultiplier != 1.0 )
 		DamageInfo_ScaleDamage( damageInfo, damageMultiplier )
 
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 		printt( "    after damageSourceID callbacks:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
+		
 	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
 		return
 
 	RunClassDamageFinalCallbacks( ent, damageInfo )
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 		printt( "    after class damage final callbacks:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
+
 	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
 		return
-
-	// ROGUELIKE - power calculations
-	int attackerPower = attackerIsPlayer ? GetConVarInt("power_player") : GetConVarInt("power_enemy")
-	int entPower = entIsPlayer ? GetConVarInt("power_player") : GetConVarInt("power_enemy")
-	int powerDiff = attackerPower - entPower
-
-	float scalar = 1.0
-	if (powerDiff <= 0)
-	{
-		if (ent.IsTitan())
-		{
-			scalar = 100.0 / (100 + (-powerDiff * HEALTH_SCALAR_TITAN))
-		}
-		else
-		{
-			scalar = 100.0 / (100 + (-powerDiff * HEALTH_SCALAR))
-		}
-	}
-	else
-	{
-		scalar = (100 + (powerDiff * POWER_SCALAR)) / 100.0
-	}
-	printt(scalar)
-
-	DamageInfo_ScaleDamage( damageInfo, scalar )
-
-	// balance increases all damage by player by 25%
-	if (attackerIsPlayer && GetConVarBool("roguelike_stat_balance") && attacker != ent)
-		DamageInfo_ScaleDamage( damageInfo, 1.25 )
 		
 	if (attackerIsPlayer)
 		Roguelike_PlayerDealtDamage( ent, attacker, damageInfo )
+
+	// ROGUELIKE - power calculations
+	int entPower = GetConVarInt("power_enemy_def")
+
+	if (ent.IsTitan() && IsMercTitan( ent ))
+		entPower += 200
+	
+	// non-player attacks / non-titans arent affected by DEF
+	if (!attackerIsPlayer || ent.GetArmorType() != ARMOR_TYPE_HEAVY)
+		entPower = 0
+
+	float scalar = 500.0 / (500.0 + entPower)
+
+	DamageInfo_ScaleDamage( damageInfo, scalar )
+	
+	if (verboseDamagePrintouts)
+		printt( "    after DEF:", DamageInfo_GetDamage( damageInfo ) )
+	
+	if (verboseDamagePrintouts)
+		printt( format("    Additive DMG: %.1f%%", additiveDMGBonus * 100.0 ) )
+
+	DamageInfo_ScaleDamage( damageInfo, additiveDMGBonus )
+
+	if (verboseDamagePrintouts)
+		printt( "    After Additive DMG:", DamageInfo_GetDamage( damageInfo ) )
+
+	if ((DamageInfo_GetCustomDamageType( damageInfo ) & DF_MELEE) != 0)
+	{
+		ent.Signal("MeleeDamage")
+	}
+	
+	/*if ( attacker.IsPlayer() && GetTitanLoadoutFlags() & TITAN_BITS[PRIMARY_RONIN]
+	&& damageSourceId != eDamageSourceId.melee_titan_sword
+	&& damageSourceId != eDamageSourceId.mp_titancore_shift_core )
+		AddDaze( ent, attacker, DamageInfo_GetDamage( damageInfo ) / 2500.0 )*/
 	
 	// Added via AddEntityCallback_OnDamaged
 	foreach ( callbackFunc in ent.e.entDamageCallbacks )
@@ -325,9 +363,9 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 
 	if (DamageInfo_GetDamage( damageInfo ) == 0)
 		return
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 		printt( "    after AddEntityCallback_OnDamaged callbacks:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
+	
 	
 	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_DOOMED_HEALTH_LOSS )
 		DamageInfo_AddDamageFlags( damageInfo, DAMAGEFLAG_NOPAIN )
@@ -385,14 +423,12 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 			PlayerDamageFeedback( ent, damageInfo )
 	}
 
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 		printt( "    After player damage mod:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
 
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 	if ( titanDamage.shieldDamage > 0 )
 		printt( "    	Shield Damage:", titanDamage.shieldDamage )
-	#endif
 	
 	// Added via AddEntityCallback_OnPostDamaged
 	foreach ( callbackFunc in ent.e.entPostDamageCallbacks )
@@ -446,10 +482,11 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if ( entIsPlayer && !entIsTitan )
 		PilotDamageFlinch( ent, damageInfo )
 
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
+	{
 		printt( "    final damage done:", DamageInfo_GetDamage( damageInfo ) )
 		printt( "	 health: " + ent.GetHealth() )
-	#endif
+	}
 
 	RunClassPostDamageCallbacks( ent, damageInfo )
 
@@ -459,6 +496,8 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	#endif
 
 	attacker.Signal( "DamagedPlayerOrNPC" )
+
+	additiveDMGBonus = prevValue
 }
 
 void function EarnMeterDamageConversion( var damageInfo, entity attacker, entity ent, float savedDamage, TitanDamage titanDamage )
@@ -928,6 +967,16 @@ void function CodeCallback_OnProjectileGrappled( entity player, entity projectil
 void function DamageInfo_ScaleDamage( var damageInfo, float scalar )
 {
 	DamageInfo_SetDamage( damageInfo, DamageInfo_GetDamage( damageInfo ) * scalar )
+}
+
+void function DamageInfo_AddDamageBonus( var damageInfo, float scalar )
+{
+	if (verboseDamagePrintouts)
+	{
+		var stackInfos = getstackinfos(2)
+		printt( format("    +%.1f%%: %s:%s", scalar * 100.0, string( stackInfos.src ), string( stackInfos.line )) )
+	}
+	additiveDMGBonus += scalar
 }
 
 string function CodeCallback_CheckPassThroughAddsMods( entity player, entity hitEnt, string currWeaponName )

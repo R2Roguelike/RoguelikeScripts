@@ -112,6 +112,7 @@ function RemoteFunctions_Init()
 
 	RegisterBossTitanRemoteFunctions()
 
+	Remote_RegisterFunction( "ServerCallback_FlashCockpitInvulnerable" )
 	Remote_RegisterFunction( "ServerCallback_FPS_Test" )// This is for local FPS tests using myscripts for standardized optimization
 	Remote_RegisterFunction( "ServerCallback_FPS_Avg" )// general callback for more people to use - soupy
 	Remote_RegisterFunction( "DebugSetFrontline" )
@@ -188,7 +189,7 @@ function RemoteFunctions_Init()
 	// SP end
 
 	// COOP || SP start
-	Remote_RegisterFunction( "ServerCallback_ForcePlayMusic" )
+	RegisterNetworkedVariable( "coreAgain", SNDC_PLAYER_GLOBAL, SNVT_BOOL, false )
 	// COOP || SP end
 
 	//HACK: these nv's should eventually be code driven concepts
@@ -214,6 +215,7 @@ function RemoteFunctions_Init()
 
 	RegisterEntityVar_AllSynced( "player", "titanRequestNum", null )
 	RegisterEntityVar_AllSynced( "player", "titanRequestSkipped", 0 )
+	RegisterEntityVar_AllSynced( "npc_titan", "burn", 0 )
 	RegisterServerVar( "titanNextRequestEventTime", 0 )
 	RegisterServerVar( "titanNextRequestEventType", TITAN_REQUEST_WAITING_FOR_WAVE )
 
@@ -426,6 +428,9 @@ function RemoteFunctions_Init()
 
 	RegisterEntityVar( "player", "drawFastballHud", false )
 	RegisterEntityVar( "player", "reviveBleedingOut", 0.0, true )
+	RegisterEntityVar( "player", "reviveHealedTime", 0.0, true )
+	RegisterEntityVar( "player", "reviveHealedTime", 0.0, true )
+	
 	RegisterEntityVar( "player", "reviveHealedTime", 0.0, true )
 
 	// SP Objectives
@@ -770,6 +775,7 @@ function RemoteFunctions_Init()
 	Remote_RegisterFunction( "ScriptCallback_Beacon_FreeTrialOverMessage" )
 	
 	Remote_RegisterFunction( "Roguelike_GenerateLoot" )
+	Remote_RegisterFunction( "ServerCallback_Roguelike_AddMoney" )
 
 	RegisterNetworkedVariable( "rewardState", SNDC_PLAYER_GLOBAL, SNVT_INT, 0 )
 	RegisterNetworkedVariable( "goalState", SNDC_PLAYER_GLOBAL, SNVT_INT, 0 )
@@ -786,6 +792,8 @@ function RemoteFunctions_Init()
 	RegisterNetworkedVariable( "upgradeCount", SNDC_TITAN_SOUL, SNVT_INT, 0 )
 
 	RegisterServerVar( "startPointIndex", 0 )
+	RegisterServerVar( "startTime", 0.0 )
+	RegisterServerVar( "roguelikeKills", 0 )
 
 	#if CLIENT
 			Cl_EarnMeter_RegisterNetworkFunctions()

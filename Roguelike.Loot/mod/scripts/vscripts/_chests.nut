@@ -1,5 +1,6 @@
 untyped
 global function Chests_Init
+global function Roguelike_SetIgnoreBan
 
 const float TRACE_DIST = 150 // lowering this makes the function more likely to generate at lower ceilings, at cost of load time
 const float HULL_EXTENTS = 80 // lowering this makes the funtion find a navmesh point nearer to the random point, at cost of load time
@@ -8,6 +9,11 @@ const float HULL_EXTENTS = 80 // lowering this makes the funtion find a navmesh 
 void function Chests_Init()
 {
     AddCallback_EntitiesDidLoad( EntitiesDidLoad )
+}
+
+void function Roguelike_SetIgnoreBan( entity ent )
+{
+    ent.s.ignoreBan <- true
 }
 
 void function EntitiesDidLoad()
@@ -33,9 +39,9 @@ void function EntitiesDidLoad()
     //vector worldMins = expect vector( worldspawn.kv.world_mins )
     //vector worldMaxs = expect vector( worldspawn.kv.world_maxs )
 
-    for (int i = 0; i < 75;)
+    for (int i = 0; i < 60;)
     {
-        vector rand = <RandomFloatRange(-40000, 40000), RandomFloatRange(-40000, 40000),RandomFloatRange(-30000, 30000)>
+        vector rand = <RandomFloatRange(-30000, 30000), RandomFloatRange(-30000, 30000),RandomFloatRange(-30000, 30000)>
         //                                                           vvv lowering this makes func more likely
         //
         TraceResults tr = TraceLine( rand, <rand.x, rand.y, rand.z - TRACE_DIST>, [], TRACE_MASK_PLAYERSOLID, TRACE_COLLISION_GROUP_PLAYER )
@@ -45,7 +51,7 @@ void function EntitiesDidLoad()
             continue
         }
         
-        vector ornull navPoint = NavMesh_ClampPointForHullWithExtents( tr.endPos, HULL_HUMAN, <HULL_EXTENTS, HULL_EXTENTS, 30> )
+        vector ornull navPoint = NavMesh_ClampPointForHullWithExtents( tr.endPos, HULL_HUMAN, <HULL_EXTENTS, HULL_EXTENTS, 72> )
 
         if (navPoint == null)
         {
@@ -83,11 +89,12 @@ void function EntitiesDidLoad()
         entity prop = CreatePropDynamic( $"models/containers/pelican_case_large.mdl", navPoint + <0,0,1>, <0,RandomFloatRange(-180, 180),0>, SOLID_VPHYSICS )
         Highlight_SetNeutralHighlight( prop, "roguelike_chest" )
         prop.Solid()
-        prop.SetUsable()
+        prop.SetUsable( )
         prop.SetUsableRadius( 200 )
         prop.SetUsePrompts( "Hold %use% to open chest", "Press %use% to open chest" )
         //prop.SetParent(tr.hitEnt)
         //DispatchSpawn( prop )
+         printt("<", navPoint.x, ",", navPoint.y, ",", navPoint.z, ">")
 
         thread void function() : (prop)
         {

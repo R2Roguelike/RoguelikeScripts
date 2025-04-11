@@ -16,7 +16,7 @@ Resource/UI/HudScripted_mp.res
 		ControlName			CNestedPanel
  
 		wide				768
-		tall				128
+		tall				256
 
 		ypos				-16
 
@@ -65,4 +65,27 @@ Resource/UI/HudScripted_mp.res
 		pin_corner_to_sibling		CENTER
 		pin_to_sibling_corner		CENTER
 	}
+
+    ItemAcquired
+    {
+		ControlName			Label
+		xpos				0
+		ypos				50
+
+		visible				1
+		zpos				200
+        wide                1280
+		tall				24
+		labelText			"Item Acquired - Press %[titan_loadout_select|scoreboard_focus]% to open your inventory"
+		allCaps				0
+		font				JetBrainsMono_17
+		auto_wide_to_contents	0
+        auto_tall_tocontents    1
+		textAlignment		center
+		fgcolor_override 	"255 255 255 255"
+
+		pin_to_sibling				Screen
+		pin_corner_to_sibling		TOP
+		pin_to_sibling_corner		CENTER
+    }
 }

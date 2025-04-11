@@ -330,22 +330,32 @@ function CodeCallback_RegisterClass_CPlayer()
 	}
 	
     function CPlayer::GetUserInfoString( key, defaultValue = "" )
-    {
+    {	
+		// HACK: GetUserInfoKV crashes if we dont wait a bit after a save is loaded
+		// as a pilot 
+		if (GetLastCheckPointLoadTime() - Time() < 0.5)
+			return defaultValue
         return GetUserInfoKVString_Internal( this, key, defaultValue )
     }
 	
     function CPlayer::GetUserInfoInt( key, defaultValue = 0 )
     {
+		if (GetLastCheckPointLoadTime() - Time() < 0.5)
+			return defaultValue
         return GetUserInfoKVInt_Internal( this, key, defaultValue )
     }
 
     function CPlayer::GetUserInfoFloat( key, defaultValue = 0 )
     {
+		if (GetLastCheckPointLoadTime() - Time() < 0.5)
+			return defaultValue
         return GetUserInfoKVFloat_Internal( this, key, defaultValue )
     }
 
     function CPlayer::GetUserInfoBool( key, defaultValue = false )
     {
+		if (GetLastCheckPointLoadTime() - Time() < 0.5)
+			return defaultValue
         return GetUserInfoKVBool_Internal( this, key, defaultValue )
     }
 }

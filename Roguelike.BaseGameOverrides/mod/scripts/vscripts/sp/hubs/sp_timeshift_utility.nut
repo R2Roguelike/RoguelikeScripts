@@ -4785,6 +4785,7 @@ void function QuickSkit( entity player, entity skitNode, string failsafeFlagToSt
 		if( IsSpawner( ent ) )
 		{
 			actor = ent.SpawnEntity()
+			Roguelike_SetIgnoreBan( actor )
 			actor.kv.spawnflags = SF_NPC_ALLOW_SPAWN_SOLID
 			DispatchSpawn( actor )
 			isSpawnSkit = true

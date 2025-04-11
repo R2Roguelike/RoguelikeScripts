@@ -55,7 +55,9 @@
     damage_received_multiplier
 
     roguelike_daze // ronin
+    roguelike_shotgun_buff // bruh
     roguelike_burn // scorch
+    roguelike_core_on_kill // scorch
     roguelike_block_buff
     roguelike_r97_bonus
     roguelike_ronin_quickswap
@@ -63,7 +65,7 @@
     roguelike_arm // brute
     roguelike_overload // ion
     roguelike_stun // northstar?
-    roguelike_expose // legion
+    roguelike_puncture // legion
     // TONE USES SONAR AS STATUS EFFECT!!!
 
 /////////////////////////////

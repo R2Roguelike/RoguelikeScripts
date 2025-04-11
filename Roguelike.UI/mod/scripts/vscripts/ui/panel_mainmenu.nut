@@ -5,6 +5,7 @@ global function UpdatePromoData
 
 global function UICodeCallback_GetOnPartyServer
 global function UICodeCallback_MainMenuPromosUpdated
+global function UpdateSPButtons
 
 struct
 {
@@ -71,6 +72,14 @@ void function InitMainMenuPanel()
 	Hud_AddEventHandler( file.spButtons[buttonIndex], UIE_CLICK, RunSPButton2 )
 	buttonIndex++
 	UpdateSPButtons()
+
+	headerIndex++
+	buttonIndex = 0
+	AddComboButtonHeader( comboStruct, headerIndex, "ANOMALIES" )
+	var b = AddComboButton( comboStruct, headerIndex, buttonIndex++, "Coming" )
+	//Hud_AddEventHandler( b, UIE_CLICK, ActivateControlsMenu )
+	var c = AddComboButton( comboStruct, headerIndex, buttonIndex++, "Soon!" )
+	//Hud_AddEventHandler( c, UIE_CLICK, AdvanceMenuEventHandler( GetMenu( "AudioMenu" ) ) )
 
 	headerIndex++
 	buttonIndex = 0
@@ -567,7 +576,18 @@ void function UpdateSPButtons()
 
 	int buttonIndex = 0
 
-	AddSPButton( buttonIndex, Roguelike_StartNewRunMenu, "Start New Run" )
+	if (Roguelike_IsRunActive())
+	{
+
+		AddSPButton( buttonIndex, Roguelike_ContinueRun, "Continue" )
+		buttonIndex++
+	}
+	else
+	{
+		//Hud_SetText( Hud_GetChild( file.menu ))
+	}
+
+	AddSPButton( buttonIndex, Roguelike_StartNewRunMenu, "New Run" )
 	buttonIndex++
 
 	if ( HasStartedGameEver() )

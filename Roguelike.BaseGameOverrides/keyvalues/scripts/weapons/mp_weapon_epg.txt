@@ -1,0 +1,8 @@
+WeaponData
+{
+	"inventory_slot"		"special"
+	SP_BASE
+	{
+		"explosion_damage"								"90"
+	}
+}

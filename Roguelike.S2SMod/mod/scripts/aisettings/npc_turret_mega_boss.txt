@@ -1,0 +1,15 @@
+#base "npc_turret_mega.txt"
+npc_turret_mega_boss
+{
+	DefaultModelName		"models/turrets/turret_imc_lrg.mdl"
+	DefaultWeapon			"mp_weapon_mega_turret"
+
+	windup_time 					1.0
+	YawSpeed						180
+	AimAngularSpeed					180
+	aimConeCos						-1.0	// 25 degree
+	aimConeCloseCos					-1.0	// 25 degree
+	ArmorType						heavy
+
+	Health				15000
+}

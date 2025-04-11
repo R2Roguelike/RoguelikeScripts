@@ -243,6 +243,11 @@ void function ShowGhost( entity ghost )
 	ghost.Show()
 }
 
+void function HealPlayer( entity player, int amount )
+{
+	player.SetHealth(minint(player.GetMaxHealth(), player.GetHealth() + amount))
+}
+
 
 // Used in Timeshift and Boomtown to see if a teleport target pos will result in the player hull being stuck in geo.
 bool function PlayerPosInSolid( entity player, vector targetPos )

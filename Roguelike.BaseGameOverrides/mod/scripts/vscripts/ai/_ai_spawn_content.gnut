@@ -41,7 +41,7 @@ function CommonNPCOnSpawned( entity npc )
 {
 	npc.ai.spawnTime = Time()
 	npc.ai.spawnOrigin = npc.GetOrigin()
-
+	
 	if ( npc.HasKey( "script_goal_radius" ) )
 	{
 		var radius = npc.kv.script_goal_radius
@@ -411,7 +411,23 @@ function CommonNPCOnSpawned( entity npc )
 
 	thread AssaultLinkedMoveTarget( npc )
 
-	if (eliteAllowed)
+	array<string> banned = [
+		"npc_dropship",
+		"npc_soldier",
+		"npc_stalker",
+		"npc_spectre"
+	]
+	if (npc.GetTeam() == TEAM_IMC && banned.contains(npc.GetClassName()))
+	{
+		delaythread(0.001) void function() : (npc, banned) 
+		{ 
+			if (IsAlive(npc) && banned.contains(npc.GetClassName()) && !("ignoreBan" in npc.s)) {
+				printt(npc, "is gone")
+				npc.Kill_Deprecated_UseDestroyInstead(0.05)
+			}
+		}()
+	}
+	else if (eliteAllowed)
 		Elites_Generate( npc )
 	
 

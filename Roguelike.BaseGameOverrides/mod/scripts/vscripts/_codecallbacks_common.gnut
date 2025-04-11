@@ -79,12 +79,31 @@ struct
 
 void function CodeCallback_DamageEntity( entity ent, var damageInfo )
 {
+	entity attacker = DamageInfo_GetAttacker( damageInfo )
+	verboseDamagePrintouts = VERBOSE_DAMAGE_PRINTOUTS && IsValid(attacker) && (attacker.IsPlayer() || ent.IsPlayer())
 	// gametype script decides if ent should take damage
 	if ( !ScriptCallback_ShouldEntTakeDamage( ent, damageInfo ) )
 	{
 		DamageInfo_SetDamage( damageInfo, 0 )
 		return
 	}
+	
+	if (verboseDamagePrintouts)
+		printt( "CodeCallback_DamageEntity() top:", DamageInfo_GetDamage( damageInfo ) )
+
+	if ( DamageInfo_GetDamageSourceIdentifier( damageInfo ) == damagedef_titan_step )
+		HandleFootstepDamage( ent, damageInfo )
+
+	RunClassDamageCallbacks( ent, damageInfo )
+	if (verboseDamagePrintouts)
+		printt( "    after class damage callbacks:", DamageInfo_GetDamage( damageInfo ) )
+
+	// Added via AddEntityCallback_OnDamaged
+	foreach ( callbackFunc in ent.e.entDamageCallbacks )
+		callbackFunc( ent, damageInfo )
+
+	if (verboseDamagePrintouts)
+		printt( "    after AddEntityCallback_OnDamaged() callbacks:", DamageInfo_GetDamage( damageInfo ) )
 
 	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 	if ( damageSourceId in shGlobal.damageSourceIdCallbacks )
@@ -92,34 +111,12 @@ void function CodeCallback_DamageEntity( entity ent, var damageInfo )
 		foreach ( callbackFunc in shGlobal.damageSourceIdCallbacks[ damageSourceId ] )
 			callbackFunc( ent, damageInfo )
 	}
-	
-	#if VERBOSE_DAMAGE_PRINTOUTS
-		printt( "CodeCallback_DamageEntity() top:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
-
-	if ( DamageInfo_GetDamageSourceIdentifier( damageInfo ) == damagedef_titan_step )
-		HandleFootstepDamage( ent, damageInfo )
-
-	RunClassDamageCallbacks( ent, damageInfo )
-	#if VERBOSE_DAMAGE_PRINTOUTS
-		printt( "    after class damage callbacks:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
-
-	// Added via AddEntityCallback_OnDamaged
-	foreach ( callbackFunc in ent.e.entDamageCallbacks )
-		callbackFunc( ent, damageInfo )
-	#if VERBOSE_DAMAGE_PRINTOUTS
-		printt( "    after AddEntityCallback_OnDamaged() callbacks:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
-
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 		printt( "    after damageSourceId callbacks:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
 
 	RunClassDamageFinalCallbacks( ent, damageInfo )
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 		printt( "    after class damage final callbacks:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
 
 	// make destructible vehicles take more damage from DF_EXPLOSION damage type
 	if ( "isDestructibleVehicle" in ent.s && DamageInfo_GetCustomDamageType( damageInfo ) & DF_EXPLOSION )
@@ -139,9 +136,8 @@ void function CodeCallback_DamageEntity( entity ent, var damageInfo )
 		callbackFunc( ent, damageInfo )
 	}
 
-	#if VERBOSE_DAMAGE_PRINTOUTS
+	if (verboseDamagePrintouts)
 		printt( "CodeCallback_DamageEntity() bottom:", DamageInfo_GetDamage( damageInfo ) )
-	#endif
 
 	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
 		return
@@ -274,7 +270,10 @@ void function RunClassDamageCallbacks( entity ent, var damageInfo )
 	{
 		callbackFunc( ent, damageInfo )
 		if ( DamageInfo_GetDamage( damageInfo ) == 0 )
+		{
+			printt(string(callbackFunc), "cancelled all damage")
 			return
+		}
 	}
 }
 

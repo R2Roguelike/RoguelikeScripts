@@ -108,8 +108,8 @@ WeaponData
 	{
 		"damage_near_value"   							"250"
 		"damage_far_value"								"250"
-		"damage_near_value_titanarmor"					"1500"
-		"damage_far_value_titanarmor"					"1500"
+		"damage_near_value_titanarmor"					"1000"
+		"damage_far_value_titanarmor"					"1000"
 
 		// Damage - When Used by NPCs
 		"npc_damage_near_value"   						"150"

@@ -222,8 +222,9 @@ void function Player_AddClient( entity player )
 
 	// ROGUELIKE - disable vanilla loadout swap
 	RegisterConCommandTriggeredCallback( "titan_loadout_select", Pressed_TitanLoadoutSelect )
-	RegisterConCommandTriggeredCallback( "scoreboard_focus", Pressed_TitanLoadoutSelect )
-	RegisterConCommandTriggeredCallback( "scoreboard_toggle_focus", Pressed_TitanLoadoutSelect )
+	RegisterConCommandTriggeredCallback( "+showscores", Pressed_TitanLoadoutSelect ) 
+	RegisterConCommandTriggeredCallback( "scoreboard_focus", Pressed_SwapLoadouts )
+	//RegisterConCommandTriggeredCallback( "scoreboard_toggle_focus", Pressed_TitanLoadoutSelect )
 
 	Create_DamageIndicatorHUD()
 
@@ -356,6 +357,12 @@ void function ClientCodeCallback_OnHudReloadScheme()
 */
 
 
+
+function Pressed_SwapLoadouts( entity player )
+{
+	player.ClientCommand("+weaponcycle")
+	delaythread(0.001) void function() : (player) { player.ClientCommand("-weaponcycle") }()
+}
 
 function Pressed_TitanLoadoutSelect( entity player )
 {
@@ -1136,12 +1143,6 @@ function ServerCallback_OnEntityKilled( attackerEHandle, victimEHandle, scriptDa
 	entity attacker = attackerEHandle ? GetHeavyWeightEntityFromEncodedEHandle( attackerEHandle ) : null
 	entity localClientPlayer = GetLocalClientPlayer()
 
-	if (victim != attacker)
-	{
-		if ( attacker == localClientPlayer || (IsValid(victim) && "damagedByPlayer" in victim.s) )
-			RoguelikeTimer_OnKilledByPlayer( victim )
-	}
-
 	if ( !IsValid( victim ) )
 		return
 
@@ -1304,7 +1305,7 @@ void function OnSmallMantle( entity firstPersonProxy )
 	}
 	else
 	{
-		//printt( "mantle_smallmantle, no stealth passive" )
+		printt( "mantle_smallmantle, no stealth passive" )
 		EmitSoundOnEntity( firstPersonProxy, "mantle_smallmantle" )
 	}
 }
@@ -1319,7 +1320,7 @@ void function OnMediumMantle( entity firstPersonProxy )
 	}
 	else
 	{
-		//printt( "mantle_mediummantle, no stealth passive" )
+		printt( "mantle_mediummantle, no stealth passive" )
 		EmitSoundOnEntity( firstPersonProxy, "mantle_mediummantle" )
 	}
 }
@@ -1334,7 +1335,7 @@ void function OnLowMantle( entity firstPersonProxy )
 	}
 	else
 	{
-		//printt( "mantle_lowmantle, no stealth passive" )
+		printt( "mantle_lowmantle, no stealth passive" )
 		EmitSoundOnEntity( firstPersonProxy, "mantle_lowmantle" )
 	}
 }
@@ -1349,7 +1350,7 @@ void function OnExtraLowMantle( entity firstPersonProxy )
 	}
 	else
 	{
-		//printt( "mantle_extralowmantle, no stealth passive" )
+		printt( "mantle_extralowmantle, no stealth passive" )
 		EmitSoundOnEntity( firstPersonProxy, "mantle_extralow" )
 	}
 }

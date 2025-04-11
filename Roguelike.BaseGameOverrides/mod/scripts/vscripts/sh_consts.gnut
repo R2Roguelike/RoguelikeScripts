@@ -58,6 +58,7 @@ global const PVE_SANDBOX = "pve_sandbox"
 global const TITAN_BRAWL = "ttdm"
 
 global const VERBOSE_DAMAGE_PRINTOUTS = false
+global bool verboseDamagePrintouts = false
 
 global const SAVEGAME_VERSION = 18 // increment when saves need to be tossed
 global const PERSISTENCE_INIT_VERSION = 231

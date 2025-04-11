@@ -2,6 +2,12 @@ untyped
 global function Daze_Init
 global function GetLastDodgeTime
 global function AddDaze
+global function GetDaze
+global function GetShotgunBuff
+global function SetShotgunBuff
+
+const int MAX_DAZE_STACKS = 3;
+const int MAX_SHOTGUN_BUFF_STACKS = 4;
 
 struct {
     float lastDodgeTime = -99.9
@@ -25,6 +31,13 @@ void function OnPlayerDodge( entity player )
 {
     print("dodge!")
     file.lastDodgeTime = Time()
+    printt(player.GetVelocity())
+    player.SetVelocity( <1000,0,100> )
+    printt(player.GetVelocity())
+    if (Roguelike_HasMod( player, "dash_iframes" ))
+    {
+        Remote_CallFunction_Replay( player, "ServerCallback_FlashCockpitInvulnerable" )
+    }
 }
 
 float function GetLastDodgeTime()
@@ -35,21 +48,25 @@ float function GetLastDodgeTime()
 void function ShotgunDamage( entity ent, var damageInfo )
 {
     entity attacker = DamageInfo_GetAttacker( damageInfo )
+    entity inflictor = DamageInfo_GetInflictor( damageInfo )
 
-
-    if (ent.IsNPC() && attacker.IsPlayer())
+    if (ent.IsNPC() && attacker.IsPlayer() && IsValid(inflictor))
     {
+        float damage = DamageInfo_GetDamage( damageInfo )
         float daze = StatusEffect_Get( ent, eStatusEffect.roguelike_daze )
-        float dazeToAdd = 20.0 / 255.0
-        if (Roguelike_HasMod( attacker, "quickswap" ) && StatusEffect_Get( attacker, eStatusEffect.roguelike_ronin_quickswap ) > 0.0)
+        
+        if (Roguelike_HasMod( attacker, "quickswap" ) && ("quickswap" in inflictor.s))
         {
-            StatusEffect_StopAll( attacker, eStatusEffect.roguelike_ronin_quickswap ) // only one pellet gets to trigger the effect
-            
-            DamageInfo_SetDamage( damageInfo, DamageInfo_GetDamage( damageInfo ) + 1000 ) // i think this is good?
-            dazeToAdd = 1.0 // max daze!
+            DamageInfo_AddDamageBonus( damageInfo, 1 ) // i think this is good?
+            //dazeToAdd = 1.0 // max daze!
+        }
+
+        if (("buffed" in inflictor.s))
+        {
+            DamageInfo_ScaleDamage( damageInfo, 2.3333333 )
         }
         
-        AddDaze( ent, attacker, dazeToAdd )
+        //AddDaze( ent, attacker, dazeToAdd )
     }
 }
 
@@ -60,11 +77,8 @@ void function ArcWaveDamage( entity ent, var damageInfo )
     if (ent.IsNPC() && attacker.IsPlayer())
     {
         float daze = StatusEffect_Get( ent, eStatusEffect.roguelike_daze )
-        float dazeToAdd = 0.0
-        if (Roguelike_HasMod( attacker, "daze_arc_wave"))
-        {
-            AddDaze( ent, attacker, 128.0 / 255.0 )
-        }
+
+        AddDaze( ent, attacker, 3 )
 
         if (Roguelike_HasMod( attacker, "conduction" ))
         {
@@ -80,57 +94,28 @@ void function SwordDamage( entity ent, var damageInfo )
     if (!ent.IsNPC() || !attacker.IsPlayer())
         return
 
-    float blockIntensity = StatusEffect_Get( attacker, eStatusEffect.roguelike_block_buff )
-    if (blockIntensity > 0.0)
-    {
-        StatusEffect_StopAll( attacker, eStatusEffect.roguelike_block_buff )
-        float damage = DamageInfo_GetDamage( damageInfo )
-        int power = Roguelike_GetStat( attacker, STAT_POWER )
-        DamageInfo_SetDamage( damageInfo, damage + 621.0 * blockIntensity )
-    }
+    float bonusDamage = 0.0
 
-    if (GetTitanLoadoutFlags() == EXPEDITION_RONIN)
-    {
-        int weaken = GetWeaken( ent )
-        float scalar = GraphCapped( weaken, 0, 20, 1, 1.5 )
-        RemoveWeaken( ent, attacker, 20 )
-        DamageInfo_ScaleDamage( damageInfo, scalar )
-    }
-
-
-    float daze = StatusEffect_Get( ent, eStatusEffect.roguelike_daze )
-    StatusEffect_StopAll( ent, eStatusEffect.roguelike_daze )
+    bool crit = (DamageInfo_GetCustomDamageType( damageInfo ) & DF_CRITICAL) > 0
     
-    if (Roguelike_HasMod( attacker, "offensive_daze_hits" ) && daze)
+    int daze = GetDaze( ent )
+    StatusEffect_StopAll( ent, eStatusEffect.roguelike_daze )
+    SetShotgunBuff( attacker, GetShotgunBuff( attacker ) + daze + 1)
+    
+    if (Roguelike_HasMod( attacker, "offensive_daze_hits" ) && daze > 0)
     {
+        printt("restoring")
         entity arcWave = attacker.GetOffhandWeapon( OFFHAND_ORDNANCE )
-        RestoreCooldown( arcWave, GraphCapped(daze, 0, 0.5, 0, 0.333) )
+        RestoreCooldown( arcWave, 0.333 )
 
         if ("storedAbilities" in attacker.s && IsValid(attacker.s.storedAbilities[0]))
         {
-            entity otherOffensive = expect entity(attacker.s.storedAbilities[0])
-            RestoreCooldown( otherOffensive, GraphCapped(daze, 0, 0.5, 0, 0.333) )
+            entity otherOffensive = expect entity(attacker.s.storedAbilities[OFFHAND_ORDNANCE])
+            RestoreCooldown( otherOffensive, 0.333 )
         }
     }
 
-    DamageInfo_ScaleDamage( damageInfo, GraphCapped(daze, 0, 0.5, 1, 2) )
-
-    if (GetTitanLoadoutFlags() == SCORCH_RONIN)
-    {
-        AddBurn( ent, attacker, 30 )
-    }
-
-    daze -= 0.5
-
-    StatusEffect_AddEndless( ent, eStatusEffect.roguelike_daze, daze )
-
-    print(Time() - file.lastDodgeTime)
-    if (Roguelike_HasMod( attacker, "ronin_dash_melee" ) && Time() - file.lastDodgeTime <= 1.0)
-    {
-        DamageInfo_ScaleDamage( damageInfo, 1.69 )
-        DamageInfo_AddCustomDamageType( damageInfo, DF_CRITICAL )
-    }
-
+    DamageInfo_AddDamageBonus(damageInfo, bonusDamage)
 }
 
 // give reduced multipliers for everything or swordcore becomes too strong
@@ -140,52 +125,54 @@ void function SwordCoreDamage( entity ent, var damageInfo )
 
     if (ent.IsNPC() && attacker.IsPlayer())
     {
-        float blockIntensity = StatusEffect_Get( attacker, eStatusEffect.roguelike_block_buff )
-        if (blockIntensity > 0.0)
-        {
-            StatusEffect_StopAll( attacker, eStatusEffect.roguelike_block_buff )
-            float damage = DamageInfo_GetDamage( damageInfo )
-            int power = Roguelike_GetStat( attacker, STAT_POWER )
-            DamageInfo_SetDamage( damageInfo, damage + 621.0 * blockIntensity )
-        }
-        
-        if (GetTitanLoadoutFlags() == EXPEDITION_RONIN)
-        {
-            int weaken = GetWeaken( ent )
-            float scalar = GraphCapped( weaken, 0, 20, 1, 1.5 )
-            RemoveWeaken( ent, attacker, 20 )
-            DamageInfo_ScaleDamage( damageInfo, scalar )
-        }
+        float damageBonus = 0.0
 
-        float daze = StatusEffect_Get( ent, eStatusEffect.roguelike_daze )
+        int daze = GetDaze( ent )
         StatusEffect_StopAll( ent, eStatusEffect.roguelike_daze )
         
-        DamageInfo_ScaleDamage( damageInfo, GraphCapped(daze, 0, 0.5, 1, 2) )
-
-        if (GetTitanLoadoutFlags() == SCORCH_RONIN)
+        if (daze > 0 && Roguelike_HasMod( attacker, "sword_core_daze" ))
         {
-            AddBurn( ent, attacker, 150 )
+            DamageInfo_AddDamageBonus( damageInfo, 0.5 )
+            daze--
         }
+        AddDaze( ent, attacker, daze )
 
-        daze -= 0.5
-
-        StatusEffect_AddEndless( ent, eStatusEffect.roguelike_daze, daze )
-
-        print(Time() - file.lastDodgeTime)
-        if (Roguelike_HasMod( attacker, "ronin_dash_melee") && Time() - file.lastDodgeTime <= 1.0)
-        {
-            DamageInfo_ScaleDamage( damageInfo, 1.345 )
-            DamageInfo_AddCustomDamageType( damageInfo, DF_CRITICAL )
-        }
+        DamageInfo_AddDamageBonus( damageInfo, damageBonus )
     }
 }
 
-void function AddDaze( entity ent, entity attacker, float amount )
+int function GetDaze( entity ent )
+{
+    return RoundToInt( StatusEffect_Get( ent, eStatusEffect.roguelike_daze ) * 255.0 )
+}
+
+int function GetShotgunBuff( entity ent )
+{
+    return RoundToInt( StatusEffect_Get( ent, eStatusEffect.roguelike_shotgun_buff ) * 255.0 )
+}
+
+void function SetShotgunBuff( entity ent, int amt )
+{
+    StatusEffect_StopAll( ent, eStatusEffect.roguelike_shotgun_buff )
+    StatusEffect_AddEndless( ent, eStatusEffect.roguelike_shotgun_buff, min((amt + 0.001) / 255.0, MAX_SHOTGUN_BUFF_STACKS / 255.0) )
+}
+
+void function AddDaze( entity ent, entity attacker, int amount )
 {
     float daze = StatusEffect_Get( ent, eStatusEffect.roguelike_daze )
     if (amount > 0.0)
     {
+        int cur = GetDaze( ent )
+        int overflow = (cur + amount) - MAX_DAZE_STACKS
+        if (overflow > 0)
+        {
+            int curBuffStacks = GetShotgunBuff( attacker )
+            SetShotgunBuff( attacker, curBuffStacks + overflow )
+            amount -= overflow
+        }
+
         StatusEffect_StopAll( ent, eStatusEffect.roguelike_daze )
-        StatusEffect_AddEndless( ent, eStatusEffect.roguelike_daze, daze + amount )
+        StatusEffect_AddEndless( ent, eStatusEffect.roguelike_daze, min((daze + amount + 0.001) / 255.0, MAX_DAZE_STACKS / 255.0) )
+        printt(GetDaze(ent))
     }
 }

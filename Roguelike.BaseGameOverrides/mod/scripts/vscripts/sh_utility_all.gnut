@@ -703,6 +703,54 @@ array<string> function UntypedArrayToStringArray( array arr )
 	return newArray
 }
 
+string function AlignStringWithMonoFontEast( string str )
+{
+	array<string> lines = split( str, "\n" )
+	int longestIndex = 0
+	int longestCount = 0
+	for (int i = 0; i < lines.len(); i++)
+	{
+		if (ActualStringLen(lines[i]) > longestCount)
+		{
+			longestIndex = i
+			longestCount = ActualStringLen(lines[i])
+		}
+	}
+
+	for (int i = 0; i < lines.len(); i++)
+	{
+		printt(lines[i], PadStringFromTheBack( lines[i], longestCount ) )
+		lines[i] = PadStringFromTheBack( lines[i], longestCount )
+	}
+
+	return JoinStringArray( lines, "\n" )
+}
+
+int function ActualStringLen( string str )
+{
+	int count = 0
+	for (int i = 0; i < str.len(); i++)
+	{
+		if (str[i] == '^')
+		{
+			i += 7
+			count--
+			continue
+		}
+		count++
+	}
+	return count
+}
+
+string function PadStringFromTheBack( string str, int len )
+{
+	string result = ""
+	for ( int i = ActualStringLen(str); i <= len; i++ )
+		result += " "
+
+	return result + str
+}
+
 string function PadString( string str, int len )
 {
 	for ( int i = str.len(); i < len; i++ )
@@ -1597,6 +1645,21 @@ string function JoinStringArray( array<string> strings, string separator )
 	return output;
 }
 
+string function JoinIntArray( array<int> ints, string separator )
+{
+	string output = "";
+
+	foreach( int i, int val in ints )
+	{
+		if (i == 0)
+			output += string( val )
+		else
+			output += separator + val
+	}
+
+	return output;
+}
+
 bool function StartsWith( string target, string startsWith )
 {
 	return target.find( startsWith ) == 0
@@ -1611,9 +1674,16 @@ void function FindAndRemove( array<entity> arr, entity target )
 	}
 }
 
+
+string cachedVal
+array<string> cachedResult
 array<string> function Roguelike_GetTitanLoadouts()
 {
-	return split( GetConVarString("roguelike_titan_loadout"), " " )
+	if (GetConVarString("roguelike_titan_loadout") == cachedVal)
+		return cachedResult
+	cachedVal = GetConVarString("roguelike_titan_loadout")
+	cachedResult = split( GetConVarString("roguelike_titan_loadout"), " " )
+	return cachedResult
 }
 
 array<string> function Roguelike_GetPilotLoadouts()
@@ -1632,7 +1702,7 @@ string function GetTitanNameFromWeapon(string weapon)
     switch (weapon)
     {
         case "mp_titanweapon_xo16_shorty":
-            return "Expedition"
+            return "Expedition?"
         case "mp_titanweapon_sticky_40mm":
             return "Tone"
         case "mp_titanweapon_meteor":

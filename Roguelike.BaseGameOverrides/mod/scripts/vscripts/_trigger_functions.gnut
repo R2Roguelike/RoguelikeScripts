@@ -516,7 +516,10 @@ void function TriggerDeathFall( entity trigger )
 
 		if ( IsAlive( player ) )
 		{
-			Roguelike_QuickDeathInsteadOfKill( player )
+			if (GetMapName() != "sp_s2s" && GetMapName() != "sp_boomtown")
+				Roguelike_QuickDeathInsteadOfKill( player )
+			else
+				KillPlayer( player, eDamageSourceId.fall )
 		}
 	}
 }

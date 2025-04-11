@@ -11,7 +11,7 @@
 	"ConVars": [
 		{
 			"Name": "roguelike_titan_loadout",
-			"Flags": "CHEAT",
+			"Flags": "CHEAT | ARCHIVE_PLAYERPROFILE",
 			"DefaultValue": "mp_titanweapon_leadwall mp_titanweapon_meteor"
 		}
 	]

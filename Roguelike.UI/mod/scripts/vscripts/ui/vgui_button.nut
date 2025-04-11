@@ -4,6 +4,7 @@ global function VGUIButton_OnClick
 global function VGUIButton_SetText
 global function VGUIButton_SetState
 global function VGUIButton_GetState
+global function VGUIButton_SetValueText
 
 global enum eVGUIButtonState
 {
@@ -76,6 +77,7 @@ void function OnGetFocus( var button )
         case eVGUIButtonState.Selected:
             Hud_GetChild( panel, "BG" ).SetColor( 219, 157, 0, 255 )
             Hud_GetChild( panel, "Label" ).SetColor( 0, 0, 0, 255 )
+            Hud_GetChild( panel, "Value" ).SetColor( 0, 0, 0, 255 )
             break
         case eVGUIButtonState.Locked:
             Hud_GetChild( panel, "BG" ).SetColor( 220, 220, 220, 255 )
@@ -104,6 +106,7 @@ void function OnLoseFocus( var button )
         case eVGUIButtonState.Selected:
             Hud_GetChild( panel, "BG" ).SetColor( 0, 0, 0, 128 )
             Hud_GetChild( panel, "Label" ).SetColor( 219, 157, 0, 255 )
+            Hud_GetChild( panel, "Value" ).SetColor( 219, 157, 0, 255 )
             Hud_GetChild( panel, "GoldBorder" ).SetVisible( true )
             break
         case eVGUIButtonState.Locked:
@@ -126,6 +129,13 @@ void function VGUIButton_SetState( var panel, int state )
         OnGetFocus( button )
     else
         OnLoseFocus( button )
+}
+
+void function VGUIButton_SetValueText( var panel, string value )
+{
+    var valueText = Hud_GetChild( panel, "Value" )
+
+    Hud_SetText( valueText, value )
 }
 
 int function VGUIButton_GetState( var panel )

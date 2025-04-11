@@ -6,6 +6,17 @@
 	"Version": "1.0.0",
 	
 	"Scripts": [
+		{
+			"Path": "_puncture.nut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Puncture_Init"
+            }
+		},
+		{
+			"Path": "mods/legion_mods.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		}
 	],
 
 	"ConVars": [

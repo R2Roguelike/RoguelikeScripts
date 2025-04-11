@@ -16,10 +16,5 @@
     "barrel": "long",// barrel types
     "mag": "tactical",
     "perk1": "",
-    "perk2": "",
-    // TITAN DATACORE
-    "personality": "",
-    "power_usage": "",
-    "perk1": "",
     "perk2": ""
 }

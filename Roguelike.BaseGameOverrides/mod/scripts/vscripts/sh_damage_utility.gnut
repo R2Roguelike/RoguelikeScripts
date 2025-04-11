@@ -49,19 +49,93 @@ bool function CritWeaponInDamageInfo( var damageInfo )
 	return inflictor.GetProjectileWeaponSettingBool( eWeaponVar.critical_hit )
 }
 
+float function Roguelike_GetCritRate( entity player, entity victim, var damageInfo )
+{
+	float base = Roguelike_BaseCritRate( Roguelike_GetStat( player, STAT_ENERGY ) )
+
+	if (StatusEffect_Get( victim, eStatusEffect.roguelike_puncture ) > 0.0)
+		base += 0.25
+		
+	if ("weaponCrit" in player.s)
+	{
+		if (Time() - player.s.lastWeaponHitTime > 3.0)
+			player.s.weaponCrit = 0
+		
+		base += 0.005 * expect int(player.s.weaponCrit)
+		if (verboseDamagePrintouts)
+			printt(format("+%.1f%% Crit Rate from Weapon Crit", 1 * expect int(player.s.weaponCrit)))
+	}
+
+	bool guranteedCrit = false
+
+	if (Roguelike_HasMod( player, "ronin_dash_melee" ) && Time() - GetLastDodgeTime() < 1.0)
+		guranteedCrit = true
+
+	if (guranteedCrit)
+		base += 1.0
+
+	return base
+}
+
+float function Roguelike_GetCritDMG( entity player, entity victim, var damageInfo )
+{
+	float base = Roguelike_BaseCritDMG( Roguelike_GetStat( player, STAT_POWER ) )
+
+	entity weapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
+	if ( IsValid( weapon ) && weapon.GetWeaponClassName() == "mp_titanweapon_predator_cannon" && weapon.HasMod("LongRangeAmmo") 
+		&& Roguelike_HasMod( player, "focus_crystal") )
+		base += 0.25
+
+
+	return base
+}
+
 float function GetCriticalScaler( ent, damageInfo )
 {
+	expect entity (ent)
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
 	int hitBox = DamageInfo_GetHitBox( damageInfo )
 	local damageAmount = DamageInfo_GetDamage( damageInfo )
+	bool randomCrits = !CritWeaponInDamageInfo( damageInfo )
 
-	if ( !CritWeaponInDamageInfo( damageInfo ) )
+	if (!attacker.IsPlayer()) // enemies dont crit
 		return 1.0
 
-	if ( !IsCriticalHit( attacker, ent, hitBox, damageAmount, DamageInfo_GetDamageType( damageInfo ) ) )
-		return 1.0
 
-	return DamageInfo_GetDamageCriticalHitScale( damageInfo )
+	float critRate = Roguelike_GetCritRate( attacker, ent, damageInfo )
+	float critDMG = Roguelike_GetCritDMG( attacker, ent, damageInfo )
+
+	if (critRate > 1.0 && ent.IsTitan())
+	{
+		if (Roguelike_HasMod( attacker, "puncture_crit_dmg" ))
+			critDMG += critRate - 1.0
+	}
+
+	if ( !randomCrits )
+	{
+		critDMG += critRate // non-random crit weapons convert crit rate to crit dmg
+	}
+
+	if (verboseDamagePrintouts)
+	{
+		printt(format("   Crit Rate: %.1f%%", critRate * 100.0))
+		printt(format("   Crit DMG:  %.1f%%", critDMG * 100.0))
+		printt("   Random Crits: ", randomCrits)
+	}
+
+	bool hitCritSpot = IsCriticalHit( attacker, ent, hitBox, damageAmount, DamageInfo_GetDamageType( damageInfo ) )
+
+	if ( (RandomFloat(1.0) < critRate && randomCrits) || (hitCritSpot && !randomCrits) )
+	{	
+		if (verboseDamagePrintouts)
+			print(format("   Critical Hit! +%.1f%% DMG", critDMG * 100.0 ))
+
+		DamageInfo_AddCustomDamageType( damageInfo, DF_CRITICAL )
+		return 1.0 + critDMG
+	}
+
+	DamageInfo_RemoveCustomDamageType( damageInfo, DF_CRITICAL )
+	return 1.0
 }
 #endif // SERVER
 
@@ -92,9 +166,7 @@ bool function IsValidHeadShot( var damageInfo = null, entity victim = null, enti
 		return false
 	
 	bool hasRandomHeadshots = !attacker.IsTitan() && Roguelike_HasMod( attacker, "random_headshot" )
-	if (hasRandomHeadshots && RandomFloat( 1.0 ) > 0.15)
-		return false
-	else if ( !hasRandomHeadshots && hitGroup != HITGROUP_HEAD )
+	if ( (!hasRandomHeadshots || RandomFloat( 1.0 ) > 0.15) && hitGroup != HITGROUP_HEAD )
 		return false
 
 

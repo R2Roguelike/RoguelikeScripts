@@ -52,12 +52,12 @@
 			"DefaultValue": ""
 		},
 		{
-			"Name": "power_player",
+			"Name": "power_enemy_hp",
 			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
-			"Name": "power_enemy",
+			"Name": "power_enemy_def",
 			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},

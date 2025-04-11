@@ -171,7 +171,7 @@ resource/ui/menus/hovers/armor_chip.res
         wrap                1
 
 		"xpos"			"-8"
-		"ypos"			"0"
+		"ypos"			"-4"
 
 		pin_to_sibling			TitleStrip
 		pin_corner_to_sibling	BOTTOM_RIGHT

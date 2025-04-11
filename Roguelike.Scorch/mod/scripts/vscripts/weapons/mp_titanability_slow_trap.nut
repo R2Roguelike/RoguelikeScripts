@@ -14,7 +14,7 @@ const asset DAMAGE_AREA_MODEL = $"models/fx/xo_shield.mdl"
 const asset SLOW_TRAP_MODEL = $"models/weapons/titan_incendiary_trap/w_titan_incendiary_trap.mdl"
 const asset SLOW_TRAP_FX_ALL = $"P_meteor_Trap_start"
 const float SLOW_TRAP_LIFETIME = 12.0
-const float SLOW_TRAP_BUILD_TIME = 1.0
+const float SLOW_TRAP_BUILD_TIME = 0.25
 const float SLOW_TRAP_RADIUS = 240
 const asset TOXIC_FUMES_FX 	= $"P_meteor_trap_gas"
 const asset TOXIC_FUMES_S2S_FX 	= $"P_meteor_trap_gas_s2s"
@@ -209,7 +209,7 @@ void function OnSlowTrapDamaged( entity damageArea, var damageInfo )
 		if ( isExplosiveBarrel )
 			CreateExplosiveBarrelExplosion( damageArea )
 		IgniteTrap( damageArea, damageInfo, isExplosiveBarrel )
-		DamageInfo_SetDamage( damageInfo, 1001 )
+		DamageInfo_SetDamage( damageInfo, 10001 )
 	}
 	else
 	{
@@ -259,6 +259,8 @@ function IgniteTrap( entity damageArea, var damageInfo, bool isExplosiveBarrel =
 	float duration = FLAME_WALL_THERMITE_DURATION
 	if ( GAMETYPE == GAMEMODE_SP )
 		duration *= SP_FLAME_WALL_DURATION_SCALE
+	if (Roguelike_HasMod( owner, "fire_duration" ))
+		duration *= 2
 	entity inflictor = CreateOncePerTickDamageInflictorHelper( duration + 1.0 )
 	inflictor.SetOrigin( origin )
 
@@ -497,6 +499,9 @@ bool function CreateSlowTrapSegment( entity projectile, int projectileCount, ent
 
 		if ( GAMETYPE == GAMEMODE_SP )
 			duration *= SP_FLAME_WALL_DURATION_SCALE
+			
+		if (Roguelike_HasMod( owner, "fire_duration" ))
+			duration *= 2
 
 		if ( !movingGeo )
 		{

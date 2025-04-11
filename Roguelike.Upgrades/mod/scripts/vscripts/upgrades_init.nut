@@ -37,9 +37,10 @@ global struct StatusEffectData
 
 // how much (in percent) health and damage enemies get for every power above the player
 // additive
-global const float POWER_SCALAR = 2.0
-global const float HEALTH_SCALAR = 1.5
-global const float HEALTH_SCALAR_TITAN = 2.0
+global const float POWER_SCALAR = 0.5
+global const float HEALTH_SCALAR = 0.75
+global const float HEALTH_SCALAR_TITAN = 1.5
+global const float DEF_SCALAR_TITAN = 20
 
 global const int MOD_SLOTS = 4;
 
@@ -53,20 +54,32 @@ global const int STAT_TEMPER    = 3;
 global const int STAT_SPEED     = 4;
 global const int STAT_ENDURANCE = 5;
 
+global const int TITAN_CHIP_CHASSIS = 1;
+global const int TITAN_CHIP_UTILITY = 2;
+global const int TITAN_CHIP_WEAPON = 3;
+global const int TITAN_CHIP_CORE = 3;
+global const int TITAN_CHIP_ABILITIES = 4;
+
 global const int MAX_CHIP_LEVEL = 3;
 
-global const int RARITY_COMMON = 0;
-global const int RARITY_UNCOMMON = 1;
-global const int RARITY_RARE = 2;
-global const int RARITY_EPIC = 3;
-global const int RARITY_LEGENDARY = 4;
+global const int RARITY_COMMON      = 0;
+global const int RARITY_UNCOMMON    = 1;
+global const int RARITY_RARE        = 2;
+global const int RARITY_EPIC        = 3;
+global const int RARITY_LEGENDARY   = 4;
+
+global const int ENEMY_DEF_PER_LEVEL      = 75;
+global const int ENEMY_DEF_PER_LEVEL_EASY = 50;
+global const int ENEMY_HP_PER_LEVEL       = 500;
+
+global const int CHIP_MAIN_STAT_MULT = 5;
 
 global const array<string> STAT_NAMES = ["Armor", "Energy", "Power", "Temper", "Speed", "Endurance"]
 
 global const string PRIMARY_EXPEDITION = "mp_titanweapon_xo16_shorty"
 global const string PRIMARY_TONE = "mp_titanweapon_sticky_40mm"
 global const string PRIMARY_SCORCH = "mp_titanweapon_meteor"
-global const string PRIMARY_BRUTE = "mp_titanweapon_meteor"
+global const string PRIMARY_BRUTE = "mp_titanweapon_rocketeer_rocketstream"
 global const string PRIMARY_ION = "mp_titanweapon_particle_accelerator"
 global const string PRIMARY_RONIN = "mp_titanweapon_leadwall"
 global const string PRIMARY_NORTHSTAR = "mp_titanweapon_sniper"

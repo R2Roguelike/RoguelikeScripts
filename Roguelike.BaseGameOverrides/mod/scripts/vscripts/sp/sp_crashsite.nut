@@ -3854,6 +3854,9 @@ void function LedgeGuys( entity player )
 	npcArray = ArrayClosest( npcArray, player.GetOrigin() )
 	Assert( npcArray.len() >= 2 )
 
+	foreach (entity npc in npcArray)
+		Roguelike_SetIgnoreBan( npc )
+
 	entity npc1 = npcArray[0]
 	entity npc2 = npcArray[1]
 	entity npc3 = npcArray[2]
@@ -4410,8 +4413,6 @@ void function Battery2ReturnEnemies( entity player )
 		npc.SetAngles( node.GetAngles() )
 	}
 
-	thread ReturnEnemiesDialogue( player, npcArray )
-
 	player.WaitSignal( "combat_started" )
 
 /*
@@ -4436,80 +4437,6 @@ void function Battery2ReturnEnemies( entity player )
 
 	FlagWait( "scavengers_dead" )
 	FlagClear( "pause_battery_nag" )
-}
-
-void function ReturnEnemiesDialogue( entity player, array<entity> npcArray )
-{
-	player.EndSignal( "OnDestroy" )
-
-	entity npc1 = npcArray[0]
-	entity npc2 = npcArray[1]
-	entity npc3 = npcArray[2]
-
-	OnThreadEnd(
-		function() : ( player, npcArray )
-		{
-			player.Signal( "combat_started" )
-
-			foreach( npc in npcArray )
-			{
-				if ( IsAlive( npc ) )
-				{
-					npc.ClearIdleAnim()
-					npc.DisableLookDistOverride()
-				}
-			}
-		}
-	)
-
-	foreach( npc in npcArray )
-	{
-		npc.SetLookDistOverride( 640 )
-		npc.EndSignal( "OnHearCombat" )
-		npc.EndSignal( "OnFoundEnemy" )
-		npc.EndSignal( "OnSeeEnemy" )
-		npc.EndSignal( "OnDeath" )
-	}
-
-	FlagWait( "battery2_crossed_river" )
-	wait 2
-
-
-	// these should be replaced with new converstaions
-/*
-	Around BT
-	- A Vanguard-class Titan.
-	- These things are rare. We should sell it.
-	- No bloody way. Those weren't Blisk's orders.
-	- That guy doesn't scare me. None of those mercenaries do.
-	- Sure. You say that now. Just wait till they got a gun to your head.
-
-	- I still got my piece of MacAllan's Titan from Demeter.
-	- I wouldn't bring up Demeter when Blisk's around.
-	- Careful - I wouldn't bring up Demeter when Blisk's around. You remember what happened to Manny.
-	- Yeah. Yeah...yeah. Maybe you're right...uh...let's forget I said anything.
-*/
-
-
-	waitthread PlayGabbyDialogue( "diag_sp_batteryA_WD122_01_01_mcor_grunt1", npc1 )
-	waitthread PlayGabbyDialogue( "diag_sp_batteryA_WD122_01_01_mcor_grunt2", npc2 )
-	waitthread PlayGabbyDialogue( "diag_sp_batteryA_WD122_01_01_mcor_grunt3", npc3 )
-	waitthread PlayGabbyDialogue( "diag_sp_batteryA_WD122_04_01_imc_grunt1", npc1 )
-	waitthread PlayGabbyDialogue( "diag_sp_batteryA_WD122_05_01_imc_grunt3", npc3 )
-
-	wait 6
-
-	foreach( npc in npcArray )
-	{
-		if ( IsAlive( npc ) )
-			npc.DisableLookDistOverride()
-	}
-
-	waitthread PlayGabbyDialogue( "diag_sp_patrolchat_WD703_01_01_mcor_grunt5", npc1 )
-	waitthread PlayGabbyDialogue( "diag_sp_patrolchat_WD703_02_01_mcor_grunt6", npc2 )
-	waitthread PlayGabbyDialogue( "diag_sp_patrolchat_WD703_03_01_mcor_grunt5", npc1 )
-
-	wait 4
 }
 
 //	########     ###    ########   #######          ########     ###    ######## ##     ##
@@ -4558,7 +4485,7 @@ void function StartPoint_Battery3Path( entity player )
 	GetEntByScriptName( "battery3_path_ramp_down" ).Show()
 	GetEntByScriptName( "battery3_path_ramp_down" ).Solid()
 
-	FlagWait( "battery_tracker2_commence" )
+	//FlagWait( "battery_tracker2_commence" )
 	waitthread BatteryTracker2( player )
 
 //	Objective_Set( "#WILDS_OBJECTIVE_BATTERY3", GetEntByScriptName( "location_obj_battery3" ).GetOrigin() )
@@ -4767,6 +4694,9 @@ void function Battery3Path_CanyonCombat( entity player )
 	array<entity> npcSpawnerArray = GetSpawnerArrayByScriptName( "path2_canyon_guy" )
 	array<entity> npcArray = SpawnFromSpawnerArray( npcSpawnerArray )
 
+	foreach (entity npc in npcArray)
+		Roguelike_SetIgnoreBan( npc )
+	
 	npcArray = ArrayClosest( npcArray, player.GetOrigin() )
 	Assert( npcArray.len() >= 2 )
 
@@ -5511,10 +5441,10 @@ void function PilotLink_Dialog( entity player )
 	wait 1
 
 	// Pilot, I detect more IMC salvage teams on the way.
-	waitthread PlayBTDialogue( "diag_sp_postFight_WD171a_01_01_mcor_bt" )
+	//waitthread PlayBTDialogue( "diag_sp_postFight_WD171a_01_01_mcor_bt" )
 	// Our only chance of survival is to uphold our mission of rendezvousing with Major Anderson.
 	// Until then, you and I are on our own.
-	waitthread PlayBTDialogue( "diag_sp_postFight_WD171a_03_01_mcor_bt" )
+	//waitthread PlayBTDialogue( "diag_sp_postFight_WD171a_03_01_mcor_bt" )
 
 	FlagSet( "ready_for_level_end" )
 

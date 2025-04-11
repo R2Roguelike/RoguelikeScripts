@@ -509,6 +509,9 @@ void function Cl_SP_UpdateCoreIcon( int loadoutIndex )
 	if ( !player.IsTitan() )
 		return
 
+	if ( IsTitanCoreFiring( player ) ) // we want the player to know which titan core is firing
+		return
+
 	if ( loadoutIndex == -1 )
 	{
 		array<entity> weapons = player.GetMainWeapons()
@@ -518,6 +521,8 @@ void function Cl_SP_UpdateCoreIcon( int loadoutIndex )
 
 		entity primaryWeapon = player.GetLatestPrimaryWeapon()
 		primaryWeaponName = primaryWeapon.GetWeaponClassName()
+		if (primaryWeaponName == "melee_titan_sword")
+			primaryWeaponName = "mp_titanweapon_leadwall"
 	}
 	else
 	{

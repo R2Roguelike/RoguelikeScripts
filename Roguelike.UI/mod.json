@@ -83,6 +83,11 @@
             "Name": "roguelike_levels_completed",
             "DefaultValue": "0",
             "Flags": "FCVAR_CHEAT"
+		},
+		{
+            "Name": "barchangestyle",
+            "DefaultValue": "3",
+            "Flags": ""
 		}
 	]
 }

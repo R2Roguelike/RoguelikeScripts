@@ -111,7 +111,7 @@ void function Hover_Update()
 
                 if (hoverType in file.preHoverCallbacks)
                     file.preHoverCallbacks[hoverType]( panel )
-
+                
                 file.hoverCallbacks[target]( target, panel )
 
                 if (hoverType in file.postHoverCallbacks)
@@ -137,14 +137,14 @@ void function Hover_Update()
             {
                 loc.x = loc.x + 20
             }
-
+        
             if (loc.y > screenSize[1] / 2)
             {
-                loc.y = max(loc.y - Hud_GetHeight(file.menu) - 20, screenSize[1] / 2 - Hud_GetHeight(file.menu) / 2)
+                loc.y = min(loc.y + 20, screenSize[1] - Hud_GetHeight(file.menu) - 20)
             }
             else
             {
-                loc.y = min(loc.y + 20, screenSize[1] / 2 - Hud_GetHeight(file.menu) / 2)
+                loc.y = max(loc.y - Hud_GetHeight(file.menu) - 20, 20)
             }
 
             Hud_SetPos( file.menu, loc.x, loc.y )

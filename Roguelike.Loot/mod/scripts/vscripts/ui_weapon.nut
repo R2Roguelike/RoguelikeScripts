@@ -24,14 +24,7 @@ const array<string> allowedWeapons = [
 	"mp_weapon_sniper",
 	"mp_weapon_doubletake",
 	"mp_weapon_dmr",
-	//explosive
-	"mp_weapon_epg",
-	"mp_weapon_pulse_lmg",
-	"mp_weapon_softball",
-	"mp_weapon_smr",
 	// shotguns
-	"mp_weapon_shotgun",
-	"mp_weapon_mastiff",
 	//"mp_weapon_peacekraber",
 	// ???
 	"mp_weapon_arc_launcher",
@@ -41,6 +34,15 @@ const array<string> allowedWeapons = [
 	"mp_weapon_shotgun_pistol",
 	"mp_weapon_semipistol",
 	"mp_weapon_autopistol",
+]
+
+array<string> allowedMovementTools = [
+	"mp_weapon_epg",
+	"mp_weapon_pulse_lmg",
+	"mp_weapon_softball",
+	"mp_weapon_smr",
+	"mp_weapon_shotgun",
+	"mp_weapon_mastiff"
 ]
 
 void function RoguelikeWeapon_Init()
@@ -65,15 +67,15 @@ table function RoguelikeWeapon_Generate()
 {
 	table runData = Roguelike_GetRunData()
 	string weapon = allowedWeapons.getrandom()
+	if (CoinFlip())
+		weapon = allowedMovementTools.getrandom()
     int levelsComplete = expect int(runData.levelsCompleted)
     int baseRarity = levelsComplete / 2
     float chanceForBetterRarity = GraphCapped( levelsComplete % 2, 0, 2, 0, 1 )
     if (RandomFloat(1) < chanceForBetterRarity)
         baseRarity++
-    if (baseRarity < RARITY_COMMON)
-        baseRarity = RARITY_COMMON
-    if (baseRarity > RARITY_LEGENDARY)
-        baseRarity = RARITY_LEGENDARY
+		
+    baseRarity = minint(RARITY_LEGENDARY, maxint(baseRarity, RARITY_COMMON))
 	
 	return RoguelikeWeapon_CreateWeapon( weapon, baseRarity, RoguelikeWeapon_GetSlot( weapon ) )
 }

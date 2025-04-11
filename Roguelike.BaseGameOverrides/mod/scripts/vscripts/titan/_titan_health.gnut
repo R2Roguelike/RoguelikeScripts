@@ -232,7 +232,7 @@ void function PlayerOrNPCTitanTookDamage( entity titan, var damageInfo, bool cri
 		return
 
 	// zero out small forces
-	if ( LengthSqr( DamageInfo_GetDamageForce( damageInfo ) ) < 30000 * 30000 )
+	if ( LengthSqr( DamageInfo_GetDamageForce( damageInfo ) ) < 300 * 300 )
 		DamageInfo_SetDamageForce( damageInfo, < 0, 0, 0 > )
 
 	titanDamage.shieldDamage = CheckSpecialCaseShieldDamage( soul, titan, damageInfo )
@@ -968,8 +968,8 @@ void function AddCreditToTitanCoreBuilder( entity titan, float credit )
 
 	if ( titan.IsPlayer() )
 	{
-		int energy = Roguelike_GetStat( bossPlayer, STAT_ENERGY )
-		credit *= 1.0 + Roguelike_GetCoreGainBonus( energy )
+		int power = Roguelike_GetStat( bossPlayer, STAT_POWER )
+		credit *= Roguelike_GetTitanCoreGain( power )
 		if ( !IsValid( bossPlayer ) )
 			return
 

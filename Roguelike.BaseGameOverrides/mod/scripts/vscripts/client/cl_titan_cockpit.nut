@@ -31,10 +31,11 @@ global function FlashCockpitLight
 global function PlayCockpitSparkFX
 
 global function FlashCockpitHealth
-global function FlashCockpitHealths
+global function SetCockpitHealthColorTemp
 
 global function UpdateEjectHud_SetButtonPressTime
 global function UpdateEjectHud_SetButtonPressCount
+global function ServerCallback_FlashCockpitInvulnerable
 
 global function SetUnlimitedDash
 #if MP
@@ -530,6 +531,11 @@ void function UpdateEjectHud_SetButtonPressCount( entity player, int buttonCount
 
 	//if ( file.cockpitAdditionalRui != null )
 	//	RuiSetInt( file.cockpitAdditionalRui, "ejectButtonCount", buttonCount )
+}
+
+void function ServerCallback_FlashCockpitInvulnerable()
+{
+	SetCockpitHealthColorTemp( <1, 0.5, -1>, 0.5 )
 }
 
 void function UpdateTitanCockpitVisibility()
@@ -1575,12 +1581,12 @@ void function LinkCoreHint( entity soul )
 
 
 
-void function FlashCockpitHealths( vector color, float extraDuration )
+void function SetCockpitHealthColorTemp( vector color, float offset = 0.7 )
 {
 	if ( file.cockpitRui == null )
 		return
 
-	RuiSetGameTime( file.cockpitRui, "startFlashTime", Time() + extraDuration )
+	RuiSetGameTime( file.cockpitRui, "startFlashTime", Time() - offset )
 	RuiSetFloat3( file.cockpitRui, "flashColor", color )
 }
 

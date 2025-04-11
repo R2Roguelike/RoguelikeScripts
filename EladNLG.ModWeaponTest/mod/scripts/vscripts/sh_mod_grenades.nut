@@ -11,24 +11,42 @@ const array<string> MOD_GRENADES = [
 
 void function Sh_ModGrenades_Init()
 {
-    AddCallback_ApplyModWeaponVars( WEAPON_VAR_PRIORITY_OVERRIDE, ApplyModWeaponVars )
+    AddCallback_ApplyModWeaponVars( WEAPON_VAR_PRIORITY_OVERRIDE, Grenades_ApplyModWeaponVars )
+    #if SERVER
+    foreach (string grenade in MOD_GRENADES)
+        AddDamageCallbackSourceID( eDamageSourceId[grenade], GrenadeDamage )
+    #endif
 }
 
-void function ApplyModWeaponVars( entity weapon )
+#if SERVER
+void function GrenadeDamage( entity ent, var damageInfo )
 {
-    entity owner = weapon.GetWeaponOwner()
+    entity attacker = DamageInfo_GetAttacker( damageInfo )
+    if (!attacker.IsPlayer())
+        return
+    
+    if (attacker == ent)
+    {
+        print("self damage")
+        return
+    }
+    
+    DamageInfo_ScaleDamage( damageInfo, 1.75 )
+    DamageInfo_ScaleDamage( damageInfo, Roguelike_GetGrenadeDamageBoost( Roguelike_GetStat( attacker, STAT_TEMPER ) ) )
+}
+#endif
 
+void function Grenades_ApplyModWeaponVars( entity weapon )
+{
     string weaponClassName = weapon.GetWeaponClassName()
     if (!MOD_GRENADES.contains(weaponClassName))
         return
 
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_clip_size, 300 )
+    ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_default_total, 300 )
     ModWeaponVars_SetFloat( weapon, eWeaponVar.regen_ammo_refill_rate, 10.0 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_min_to_fire, 150 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_per_shot, 150 )
-    ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_default_total, 300 )
-    ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_damage, 2 ) // increase damage
-    ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_damage_heavy_armor, 2 ) // REALLY increase damage against titans
 
     if (weaponClassName == "mp_weapon_thermite_grenade" || weaponClassName == "mp_weapon_grenade_gravity")
     {

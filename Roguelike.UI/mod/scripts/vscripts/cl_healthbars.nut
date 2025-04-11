@@ -30,7 +30,7 @@ void function Healthbars_Think()
     
     while (true)
     {
-        wait 0
+        wait 0.001
         file.hitEnts.clear()
 
         // HEALTHBAR CHECKS
@@ -67,9 +67,28 @@ void function Healthbars_Think()
         }
         
         bool isUsingRonin = IsValid(player.GetLatestPrimaryWeapon()) ? player.GetLatestPrimaryWeapon().GetWeaponClassName() == "mp_titanweapon_leadwall" : false
-        bool hasMod = Roguelike_HasMod( player, "reflective_sword" )
-        Hud_SetVisible( HudElement("CrosshairBar"), hasMod && isUsingRonin )
-        Hud_SetBarProgress( HudElement("CrosshairBar"), GraphCapped(StatusEffect_Get(player, eStatusEffect.roguelike_block_buff), 0, 1, 0.370, 0.625))
+        if (isUsingRonin)
+        {
+            bool hasMod = Roguelike_HasMod( player, "reflective_sword" )
+            Hud_SetVisible( HudElement("CrosshairBar"), hasMod )
+            Hud_SetBarProgress( HudElement("CrosshairBar"), GraphCapped(StatusEffect_Get(player, eStatusEffect.roguelike_block_buff), 0, 1, 0.370, 0.625))
+            Hud_SetColor( HudElement("CrosshairBar"), 255, 255, 255, 255 )
+        }
+        else if (!player.IsTitan())
+        {
+            bool hasMod = Roguelike_HasMod( player, "speed_shield" )
+            Hud_SetVisible( HudElement("CrosshairBar"), hasMod )
+            float speed = Length2D(player.GetVelocity())
+            Hud_SetBarProgress( HudElement("CrosshairBar"), GraphCapped(speed, 0, 546, 0.370, 0.625))
+            if (speed > 546)
+                Hud_SetColor( HudElement("CrosshairBar"), 0, 255, 255, 255 )
+            else
+                Hud_SetColor( HudElement("CrosshairBar"), 144, 144, 144, 255 )
+        }
+        else
+        {
+            Hud_SetVisible( HudElement("CrosshairBar"), false )
+        }
     }
     
 }
@@ -105,13 +124,14 @@ void function HealthBar( var healthbarsPanel, entity ent )
     string title = GetHealthbarTitle( ent )
     Hud_SetText( Hud_GetChild( healthbar, "Name" ), "" )
 
+    // children
+    var bar = Hud_GetChild( healthbar, "Bar" )
+
     // alpha vars
     float alpha = 0.0
     float lastLookTime = Time()
     float lastFrameTime = Time()
 
-    // children
-    var bar = Hud_GetChild( healthbar, "Bar" )
     while (true)
     {
         if (ent.IsTitan())
@@ -132,7 +152,7 @@ void function HealthBar( var healthbarsPanel, entity ent )
             lastLookTime = Time()
 
         // set alpha
-        if (Time() - lastLookTime > 0.5)
+        if (Time() - lastLookTime > 1.5)
             alpha -= 8.0 * delta
         else alpha += 8.0 * delta
         alpha = clamp(alpha, 0, 0.8)
@@ -146,6 +166,7 @@ void function HealthBar( var healthbarsPanel, entity ent )
         {
             bar.SetColor( ENEMY_BAR_COLOR )
         }
+        Hud_SetBarProgress( bar, GetHealthFrac(ent) )
 
         // calculate screen pos
         vector mins = ent.GetBoundingMins()
@@ -160,7 +181,7 @@ void function HealthBar( var healthbarsPanel, entity ent )
 
         // set health frac
         // TODO: set shield frac
-        Hud_SetBarProgress( bar, GetHealthFrac(ent) )
+        float healthFrac = GetHealthFrac(ent)
 
         lastFrameTime = Time()
         wait 0
@@ -192,20 +213,25 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
 		}
     )
 
+    // children
+    var bar = Hud_GetChild( healthbar, "Bar" )
+    var shieldBar = Hud_GetChild( healthbar, "ShieldBar" )
+    var barBG = Hud_GetChild( healthbar, "BG" )
+    var changeBar = Hud_GetChild( healthbar, "ChangeBar" )
+    // top, then bottom
+    var statusEffectBars = [ Hud_GetChild( healthbar, "StatusEffectBar2" ), Hud_GetChild( healthbar, "StatusEffectBar" ) ]
+    var statusEffectTexts = [ Hud_GetChild( healthbar, "StatusEffectText2" ), Hud_GetChild( healthbar, "StatusEffectText" ) ]
 
     // alpha variables
     float alpha = 0.0
     float lastLookTime = Time()
     float lastFrameTime = Time()
+    float lastLastHealthFrac = 0.0
+    float lastHealthFrac = GetHealthFrac(ent)
+    float lastHealthChangeTime = -9.9
+    print("init")
+    Hud_SetBarProgress( changeBar, lastLastHealthFrac )
 
-    // children
-    var bar = Hud_GetChild( healthbar, "Bar" )
-    var shieldBar = Hud_GetChild( healthbar, "ShieldBar" )
-    var barBG = Hud_GetChild( healthbar, "BG" )
-    // top, then bottom
-    var statusEffectBars = [ Hud_GetChild( healthbar, "StatusEffectBar2" ), Hud_GetChild( healthbar, "StatusEffectBar" ) ]
-    var statusEffectTexts = [ Hud_GetChild( healthbar, "StatusEffectText2" ), Hud_GetChild( healthbar, "StatusEffectText" ) ]
-    
     while (true)
     {
         string title = GetHealthbarTitle( ent )
@@ -241,7 +267,7 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
             lastLookTime = Time()
 
         // alpha calculation
-        if (Time() - lastLookTime > 0.5)
+        if (Time() - lastLookTime > 1.5)
             alpha -= 8.0 * delta
         else alpha += 8.0 * delta
         alpha = clamp(alpha, 0, 1.0)
@@ -256,11 +282,14 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
             healthPerSegment = 1500.0
             switch (GetConVarInt("sp_difficulty"))
             {
-                case 2:
+                case 1:
                     healthPerSegment = 2000.0
                     break
-                case 3:
+                case 2:
                     healthPerSegment = 2500.0
+                    break
+                case 3:
+                    healthPerSegment = 3000.0
                     break
             }
             if (title == "BT-7274")
@@ -275,8 +304,10 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
         else width += int((segments % 1.0) * 24)
 
         Hud_SetWidth( bar, width )
+        Hud_SetWidth( changeBar, width )
         Hud_SetWidth( shieldBar, width )
         Hud_SetWidth( barBG, width )
+        Hud_SetWidth( healthbar, width )
 
         // calculate screen pos
         vector mins = ent.GetBoundingMins()
@@ -291,7 +322,15 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
         Hud_SetZ( healthbar, 10000.0 / Distance(worldPos, player.CameraPosition()))
 
         // set health frac
-        Hud_SetBarProgress( bar, GetHealthFrac(ent) )
+        float healthFrac = GetHealthFrac(ent)
+        Hud_SetBarProgress( bar, healthFrac )
+        if (healthFrac != lastHealthFrac)
+        {
+            lastHealthChangeTime = Time()
+            lastLastHealthFrac = lastHealthFrac
+            lastHealthFrac = healthFrac
+        }
+        Hud_SetBarProgress( changeBar, lastLastHealthFrac )
         Hud_SetBarProgress( shieldBar, IsValid(soul) && soul.GetShieldHealthMax() > 0.0 ? 
             float(soul.GetShieldHealth()) / float(soul.GetShieldHealthMax()) : 0.0 )
         
@@ -312,22 +351,29 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
                 switch (titanLoadouts[i])
                 {
                     case "mp_titanweapon_leadwall":
-                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_daze ))
+                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_daze ) * 255.0 / 3.0 )
                         Hud_SetText( statusEffectText, "Daze")
                         Hud_SetColor( statusEffectBar, 255, 225, 100, 255 )
                         Hud_SetColor( statusEffectText, 255, 225, 100, 255 )
                         break
                     case "mp_titanweapon_meteor":
-                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_burn ) * 255.0 / 200.0 )
-                        Hud_SetText( statusEffectText, "Burn")
+                        float burn = StatusEffect_Get( ent, eStatusEffect.roguelike_burn ) * 255.0
+                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_burn ) * 255.0 / 50.0 )
+                        Hud_SetText( statusEffectText, RoundToInt(burn + 100) + "% DMG")
                         Hud_SetColor( statusEffectBar, 255, 175, 75, 255 )
                         Hud_SetColor( statusEffectText, 255, 175, 75, 255 )
                         break
                     case "mp_titanweapon_xo16_shorty":
-                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_weaken ) * 255.0 / 35.0 )
+                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_weaken ) )
                         Hud_SetText( statusEffectText, "Weaken")
-                        Hud_SetColor( statusEffectBar, 116, 36, 255, 255 )
-                        Hud_SetColor( statusEffectText, 116, 36, 255, 255 )
+                        Hud_SetColor( statusEffectBar, 177, 94, 255, 255 )
+                        Hud_SetColor( statusEffectText, 177, 94, 255, 255 )
+                        break
+                    case "mp_titanweapon_predator_cannon":
+                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_puncture ) )
+                        Hud_SetText( statusEffectText, "Puncture")
+                        Hud_SetColor( statusEffectBar, 255, 64, 64, 255 )
+                        Hud_SetColor( statusEffectText, 255, 64, 64, 255 )
                         break
                 }
             }
@@ -364,10 +410,12 @@ void function Healthbars_SetMenuState( int state )
     switch (state)
     {
         case 0:
+            clGlobal.isMenuOpen = false
             Hud_SetVisible(HudElement("Healthbars"), true)
             break
         case 1:
         case 2:
+            clGlobal.isMenuOpen = true
             Hud_SetVisible(HudElement("Healthbars"), false)
             break
     }

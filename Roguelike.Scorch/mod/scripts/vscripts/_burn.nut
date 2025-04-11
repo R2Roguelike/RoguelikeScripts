@@ -2,6 +2,16 @@ untyped
 global function Burn_Init
 global function RoguelikeScorch_IsPerfectDish
 global function AddBurn
+global function GetBurn
+
+global array<int> BURN_DAMAGE_SOURCES = [
+    eDamageSourceId.mp_titanweapon_heat_shield,
+    eDamageSourceId.mp_titancore_flame_wave,
+    eDamageSourceId.mp_titanweapon_flame_wall,
+    eDamageSourceId.mp_titanability_slow_trap,
+    eDamageSourceId.mp_titanweapon_meteor,
+    eDamageSourceId.mp_titanweapon_meteor_thermite
+]
 
 void function Burn_Init()
 {
@@ -26,14 +36,19 @@ void function FireWeaponSmallDamage( entity ent, var damageInfo )
 
     bool isFlamethrower = "flamethrower" in inflictor.s
 
-    int burn = 5
+    int burn = 2
     if (isFlamethrower)
     {
-        DamageInfo_ScaleDamage( damageInfo, 0.25 )
-        burn = 2
+        //DamageInfo_ScaleDamage( damageInfo, 0.25 )
+    }
+    
+    if (attacker == ent && Roguelike_HasMod( attacker, "warmth" ) && attacker.IsTitan())
+    {
+        DamageInfo_ScaleDamage( damageInfo, 0 )
+        HealPlayer( attacker, 10 )
     }
 
-    if (attacker != ent || Roguelike_HasMod( attacker, "self_burn" ))
+    if (attacker != ent)
     {
         AddBurn( ent, attacker, burn )
     }
@@ -47,12 +62,18 @@ void function FireWeaponDamage( entity ent, var damageInfo )
 
     entity inflictor = DamageInfo_GetInflictor( damageInfo )
 
-    if (attacker != ent || Roguelike_HasMod( attacker, "self_burn" ))
+    if (attacker != ent)
     {
         if (inflictor.ProjectileGetMods().contains("flamethrower"))
-            AddBurn( ent, attacker, 3 )
+            AddBurn( ent, attacker, 5 )
         else
-            AddBurn( ent, attacker, 25 )
+            AddBurn( ent, attacker, 50 )
+    }
+
+    if (attacker == ent && Roguelike_HasMod( attacker, "warmth" ) && attacker.IsTitan())
+    {
+        DamageInfo_ScaleDamage( damageInfo, 0 )
+        HealPlayer( attacker, 10 )
     }
 }
 
@@ -62,15 +83,22 @@ void function FireTrapDamage( entity ent, var damageInfo )
     if (!attacker.IsPlayer())
         return
         
-    DamageInfo_ScaleDamage( damageInfo, 0.75 )
+    DamageInfo_ScaleDamage( damageInfo, 0.25 )
 
-    int burn = 3
+    int burn = 2
     if (Roguelike_HasMod( attacker, "offense_canister"))
-        DamageInfo_ScaleDamage( damageInfo, 2.0 )
-    if (Roguelike_HasMod( attacker, "concentrated_canister" ))
-        burn = 6
+    {
+        DamageInfo_AddDamageBonus( damageInfo, 1.0 )
+        burn = 5
+    }
 
-    if (attacker != ent || Roguelike_HasMod( attacker, "self_burn" ))
+    if (attacker == ent && Roguelike_HasMod( attacker, "warmth" ) && attacker.IsTitan())
+    {
+        DamageInfo_ScaleDamage( damageInfo, 0 )
+        HealPlayer( attacker, 10 )
+    }
+
+    if (attacker != ent)
         AddBurn( ent, attacker, burn )
 }
 
@@ -89,16 +117,16 @@ void function FireWallDamage( entity ent, var damageInfo )
     if (isHighWall)
         wallPower++
     
+    DamageInfo_ScaleDamage( damageInfo, 0.25 )
+
     if (isDashWall)
     {
-        DamageInfo_ScaleDamage( damageInfo, 1.5 )
+        DamageInfo_AddDamageBonus( damageInfo, 1.0 )
     }
-    else
-        DamageInfo_ScaleDamage( damageInfo, 0.75 )
 
-    int burn = 4 + wallPower * 4
+    int burn = 2
     
-    if (attacker != ent || Roguelike_HasMod( attacker, "self_burn" ))
+    if (attacker != ent)
         AddBurn( ent, attacker, burn )
 }
 
@@ -109,11 +137,11 @@ void function HeatShieldDamage( entity ent, var damageInfo )
     if (!attacker.IsPlayer())
         return
 
-    DamageInfo_ScaleDamage( damageInfo, 0.75 )
+    DamageInfo_ScaleDamage( damageInfo, 0.5 )
 
-    int burn = 7
-    
-    if (attacker != ent || Roguelike_HasMod( attacker, "self_burn" ))
+    int burn = 2
+
+    if (attacker != ent)
         AddBurn( ent, attacker, burn )
     
 }
@@ -125,12 +153,17 @@ void function FlameWaveDamage( entity ent, var damageInfo )
     if (!attacker.IsPlayer())
         return
 
-    DamageInfo_ScaleDamage( damageInfo, 0.5 ) // reduce base damage by 50%. were gonna cause eruptions lol
+    printt("shit")
+    StatusEffect_StopAll( ent, eStatusEffect.roguelike_burn )
+    DamageInfo_ScaleDamage( damageInfo, 0.25 ) // reduce base damage by 50%. were gonna cause eruptions lol
+    StatusEffect_AddTimed( ent, eStatusEffect.roguelike_burn, 100.0 / 255.0, 15.0, 5.0 )
+    if (Roguelike_HasMod( attacker, "again" ))
+    StatusEffect_AddTimed( ent, eStatusEffect.roguelike_core_on_kill, 1.0, 15.0, 5.0 )
 
-    Eruption( ent, attacker ) // always cause an eruption. reset the counter
+    Eruption( ent, attacker ) // always cause an eruption.
 }
 
-void function AddBurn( entity ent, entity attacker, int amount )
+void function AddBurn( entity ent, entity attacker, int amount, float duration = 5.0 )
 {
     if (amount <= 0)
         return
@@ -146,13 +179,22 @@ void function AddBurn( entity ent, entity attacker, int amount )
     }
 
     int cur = GetBurn( ent )
-    StatusEffect_StopAll( ent, eStatusEffect.roguelike_burn )
-    cur += amount
-    StatusEffect_AddEndless( ent, eStatusEffect.roguelike_burn, cur / 255.0 )
+
+    int maxBaseBurn = 50
+
+    if (Roguelike_HasMod( attacker, "high_temp"))
+        maxBaseBurn += 25
+    
+    if (cur < maxBaseBurn)
+    {
+        StatusEffect_StopAll( ent, eStatusEffect.roguelike_burn )
+        StatusEffect_AddTimed( ent, eStatusEffect.roguelike_burn, minint(cur + amount, maxBaseBurn) / 255.0, duration + 2.0, 2.0 )
+    }
 
     if (cur >= 200)
     {
-        thread Eruption( ent, attacker )
+        // disabled atm
+        //thread Eruption( ent, attacker )
     }
 }
 
@@ -164,7 +206,6 @@ int function GetBurn( entity ent )
 // god help you.
 void function Eruption( entity victim, entity attacker )
 {
-    StatusEffect_StopAll( victim, eStatusEffect.roguelike_burn )
     if (victim.IsPlayer())
     {
         Remote_CallFunction_Replay( __p(), "ServerCallback_ScreenShake", 6, 100, 4.0 )
@@ -178,13 +219,6 @@ void function Eruption( entity victim, entity attacker )
     PlayFX( TITAN_NUCLEAR_CORE_FX_3P, origin + Vector( 0, 0, -10 ), Vector(0,RandomInt(360),0) )
 
     EmitSoundAtPosition( TEAM_ANY, origin, "titan_nuclear_death_explode" )
-
-    if (GetTitanLoadoutFlags() == EXPEDITION_SCORCH)
-    {
-        entity rearm = Roguelike_GetOffhandWeaponByName( attacker, "mp_titanability_rearm" )
-        if (rearm != null)
-            RestoreCooldown( rearm, 0.2 )
-    }
 
 	entity inflictor = CreateEntity( "script_ref" )
 	inflictor.SetOrigin( origin )
@@ -201,7 +235,7 @@ void function Eruption( entity victim, entity attacker )
         origin,								// origin
         attacker,						// owner
         inflictor,							// inflictor
-        300,						// normal damage
+        1000,						// normal damage
         titanDamage,					// heavy armor damage
         500,						// inner radius
         750,						// outer radius
@@ -222,7 +256,7 @@ void function EruptionDamage( entity ent, var damageInfo )
 
     DamageInfo_ScaleDamage( damageInfo, 0.5 )
 
-    if (attacker == ent && Roguelike_HasMod( attacker, "self_burn" ))
+    if (attacker == ent)
         DamageInfo_ScaleDamage( damageInfo, 0.3333 )
 }
 
@@ -232,8 +266,6 @@ bool function RoguelikeScorch_IsPerfectDish( entity player, entity ent )
         return false
     if (!player.IsTitan())
         return false
-    if ("burnt" in ent.s)
-        return false
 
-    return GetBurn( ent ) >= 100
+    return GetBurn( ent ) >= 50
 }

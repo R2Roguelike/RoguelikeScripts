@@ -38,7 +38,7 @@ void function MpTitanWeaponShoulderRockets_Init()
 
 bool function OnWeaponAttemptOffhandSwitch_titanweapon_shoulder_rockets( entity weapon )
 {
-	return weapon.GetWeaponChargeFraction() <= 0.8
+	return weapon.GetWeaponChargeFraction() < 0.999
 }
 
 void function OnWeaponOwnerChanged_titanweapon_shoulder_rockets( entity weapon, WeaponOwnerChangedParams changeParams )

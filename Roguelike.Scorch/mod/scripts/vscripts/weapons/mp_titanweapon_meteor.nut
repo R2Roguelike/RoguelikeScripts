@@ -384,7 +384,9 @@ entity function CreatePhysicsThermiteTrail( vector origin, entity owner, entity 
 
 	prop_physics.SetVelocity( velocity )
 	if ( killDelay > 0 )
+	{
 		EntFireByHandle( prop_physics, "Kill", "", killDelay, null, null )
+	}
 
 	prop_physics.SetOwner( owner )
 	AI_CreateDangerousArea( prop_physics, projectile, METEOR_THERMITE_DAMAGE_RADIUS_DEF, TEAM_INVALID, true, false )
@@ -404,7 +406,9 @@ entity function CreateThermiteTrail( vector origin, vector angles, entity owner,
 	AddActiveThermiteBurn( particle )
 
 	if ( killDelay > 0.0 )
+	{
 		EntFireByHandle( particle, "Kill", "", killDelay, null, null )
+	}
 
 	thread PROTO_ThermiteCausesDamage( particle, owner, inflictor, damageSourceId )
 
@@ -469,14 +473,21 @@ function PlayerOrNPCFire_Meteor( WeaponPrimaryAttackParams attackParams, playerF
 	if ( shouldCreateProjectile )
 	{
 		float speed	= 1.0 // 2200.0
-
- 		//TODO:: Calculate better attackParams.dir if auto-titan using mortarShots
-		entity bolt = weapon.FireWeaponBolt( attackParams.pos, attackParams.dir, speed, METEOR_DAMAGE_FLAGS, METEOR_DAMAGE_FLAGS, playerFired , 0 )
-		if ( bolt != null )
+		
+		int count = 1
+		if (playerFired && Roguelike_HasMod( weapon.GetWeaponOwner(), "buy1get1free" ))
+			count++
+		for (int i = 0; i < count; i++)
 		{
-			EmitSoundOnEntity( bolt, "weapon_thermitelauncher_projectile_3p" )
-			if (weapon.HasMod("flamethrower"))
-				bolt.SetModel($"models/dev/empty_model.mdl")
+			printt(i)
+			//TODO:: Calculate better attackParams.dir if auto-titan using mortarShots
+			entity bolt = weapon.FireWeaponBolt( attackParams.pos, attackParams.dir + <RandomFloatRange(-0.05, 0.05), RandomFloatRange(-0.05, 0.05), 0> * i, speed, METEOR_DAMAGE_FLAGS, METEOR_DAMAGE_FLAGS, playerFired , 0 )
+			if ( bolt != null )
+			{
+				EmitSoundOnEntity( bolt, "weapon_thermitelauncher_projectile_3p" )
+				if (weapon.HasMod("flamethrower"))
+					bolt.SetModel($"models/dev/empty_model.mdl")
+			}
 		}
 	}
 

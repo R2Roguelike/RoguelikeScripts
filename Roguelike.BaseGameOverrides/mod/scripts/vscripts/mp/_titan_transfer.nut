@@ -448,6 +448,7 @@ function TitanBecomesPilot( entity player, entity titan )
 	player.SetTitle( "" )
 
 	RetrievePilotWeapons( player )
+	Roguelike_RefreshInventory( player )
 
 	if ( Riff_AmmoLimit() != eAmmoLimit.Default )
 	{
@@ -528,6 +529,11 @@ function PilotBecomesTitan( entity player, entity titan, bool fullCopy = true )
 		}
 	}
 	#endif
+
+	string setActiveWeapon = titan.GetLatestPrimaryWeapon().GetWeaponClassName()
+	if (!Roguelike_GetTitanLoadouts().contains(setActiveWeapon))
+		setActiveWeapon = Roguelike_GetTitanLoadouts()[0]
+	printt(setActiveWeapon)
 
 	if ( fullCopy )
 	{
@@ -643,6 +649,10 @@ function PilotBecomesTitan( entity player, entity titan, bool fullCopy = true )
 	player.SetOrigin( titan.GetOrigin() )
 	player.SetAngles( titan.GetAngles() )
 	player.SetVelocity( Vector( 0,0,0 ) )
+	
+	Roguelike_RefreshInventory( player )
+	player.SetActiveWeaponByName(setActiveWeapon)
+	Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetMainWeapons()[Roguelike_GetTitanLoadouts().find(setActiveWeapon)] )
 
 	soul.e.embarkCount++
 	soul.Signal( "PlayerEmbarkedTitan", { player = player } )

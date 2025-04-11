@@ -2,17 +2,22 @@ globalize_all_functions
 
 float function Roguelike_GetPilotHealthBonus( int endurance )
 {
-    return endurance / 100.0 - 0.2
+    return endurance / 100.0
+}
+
+float function Roguelike_GetPilotSelfDamageMult( int endurance )
+{
+    return pow(0.8, endurance / 50.0)
 }
 
 float function Roguelike_GetPilotSpeedBonus( int speed )
 {
-    return speed / 125.0
+    return speed / 150.0 * 0.8
 }
 
 float function Roguelike_GetTitanDamageMultiplier( int armor )
 {
-    return 9000.0 / (7500.0 + 60.0 * armor)
+    return 500.0 / (500.0 + 10.0 * armor)
 }
 
 float function Roguelike_GetTitanDamageResist( int armor )
@@ -29,19 +34,32 @@ float function Roguelike_GetDashCooldownMultiplier( int energy )
     return 1.2 * pow(0.3, energy / 100.0) // +20% cd when low, -90% when max
 }
 
-float function Roguelike_GetCoreGainBonus( int energy )
+float function Roguelike_BaseCritRate( int energy )
 {
-    return energy / 200.0 - 0.2
+    //return Graph( energy, 0, 150, 1.2, 0.1 )
+    return (5.0 + energy) / (50.0 + energy)
+}
+
+float function Roguelike_BaseCritDMG( int energy )
+{
+    //return Graph( energy, 0, 150, 1.2, 0.1 )
+    return 0.25 + 0.01 * energy
 }
 
 float function Roguelike_GetPilotCooldownReduction( int power )
 {
-    return 1.2 * pow(0.4, power / 100.0) // +20% cd when low, -40% when max
+    return 1.25 * pow(0.4, power / 100.0) // +50% cd when low, -40% when max
 }
 
-float function Roguelike_GetTitanCooldownReduction( int power )
+float function Roguelike_GetGrenadeDamageBoost( int power )
 {
-    return 1.2 * pow(0.4, power / 100.0) // +20% when low, -25% when high
+    // +233%
+    return pow(1.012, power) // +50% cd when low, -40% when max
+}
+
+float function Roguelike_GetTitanCoreGain( int power )
+{
+    return 0.5 + 0.005 * power // -20% when low
 }
 
 // bitwise OR of two bits corresponding to titan loadouts
@@ -53,7 +71,7 @@ int function GetTitanLoadoutFlags()
     return TITAN_BITS[titanLoadouts[0]] | TITAN_BITS[titanLoadouts[1]]
 }
 
-bool function Roguelike_PlayerHasLoadout(string weapon)
+bool function Roguelike_HasTitanLoadout(string weapon)
 {
     return Roguelike_GetTitanLoadouts().contains(weapon)
 }
@@ -80,21 +98,13 @@ int function Roguelike_GetItemMaxLevel( table item )
     return 0
 }
 
+string function GetTitanOrPilotFromBool( bool isTitan )
+{
+    return isTitan ? "Titan" : "Pilot"
+}
+
 // first element is name, 2nd element is description
 array<string> function GetTitanLoadoutPassiveData()
 {
-    switch (GetTitanLoadoutFlags())
-    {
-        case SCORCH_RONIN:
-            return ["Early Ignition",
-            "<cyan>Arc Wave</> causes enemies over 75% <burn>Burn</> on to immediately <burn>Erupt</>. Eruptions caused by Arc Wave <daze>Daze</> nearby enemies."]
-        case EXPEDITION_RONIN:
-            return ["weakling executioner",
-            "Your sword deals increased damage to <weak>Weak</> enemies. Consumed <daze>Daze</> is converted into <cyan>Missile cooldown</>"]
-        case EXPEDITION_SCORCH:
-            return ["Portal",
-            "<burn>Heat Shield</> absorbs. <cyan>Vortex Shield</> releases."]
-    }
-
     return ["No Passive", "No passive is active for this loadout combination."]
 }

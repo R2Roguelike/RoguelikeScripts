@@ -1,0 +1,9 @@
+{
+    "Name": "S2S modifications",
+    "Scripts": [
+		{
+			"Path": "weapons/sp_weapon_mega_turret_boss.nut",
+			"RunOn": "SERVER || CLIENT"
+		}
+    ]
+}

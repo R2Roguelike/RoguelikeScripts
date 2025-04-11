@@ -52,8 +52,8 @@ void function MenuAnimation()
     array<int> killRanks = GetKillsForMaxRank(uiGlobal.loadedLevel)
 
     // calculate ranks
-    int timeRank = 4
-    for (int i = 0; i < 4; i++)
+    int timeRank = 2
+    for (int i = 0; i < 2; i++)
     {
         if (file.time > timeRanks[i] * GetTimeRankMultiplier())
             continue
@@ -61,8 +61,8 @@ void function MenuAnimation()
         timeRank = i
         break
     }
-    int killsRank = 4
-    for (int i = 0; i < 4; i++)
+    int killsRank = 2
+    for (int i = 0; i < 2; i++)
     {
         if (file.kills < killRanks[i])
             continue
@@ -71,10 +71,13 @@ void function MenuAnimation()
         break
     }
 
+    int levelsCompleted = GetConVarInt("roguelike_levels_completed")
+    levelsCompleted++
+
     // add power
     int prevPower = expect int(runData.powerPlayer)
-    int powerGained = RoundToInt(GraphCapped( killsRank, 4, 0, 30, 35 ))
-    runData.powerPlayer += powerGained
+    int powerGained = [300 + 75 * levelsCompleted, 200 + 50 * levelsCompleted, 120 + 30 * levelsCompleted][killsRank]
+    Roguelike_AddMoney( powerGained )
 
     runData.map <- file.nextMap
     printt(runData.map)
@@ -82,19 +85,28 @@ void function MenuAnimation()
     printt(runData.startPointIndex)
 
     // enemy power always increases by 10.
-    int levelsCompleted = GetConVarInt("roguelike_levels_completed")
-    levelsCompleted++
-    int prevEnemyPower = expect int(runData.enemyPower) 
-    int enemyPowerGained = 40
-    runData.enemyPower += enemyPowerGained
+    int prevEnemyBonusHP = expect int(runData.enemyBonusHP) 
+    int prevEnemyDEF = expect int(runData.enemyDEF) 
+    int enemyHPGained = 500
+    int enemyDEFGained = 100
+
+    switch (GetConVarInt("sp_difficulty"))
+    {
+        case 0:
+        case 1:
+            enemyDEFGained = 75
+            break
+    }
+    runData.enemyBonusHP += enemyHPGained
+    runData.enemyDEF += enemyDEFGained
     runData.levelsCompleted <- levelsCompleted
 
-    int modsUnlocked = minint(int(GraphCapped(timeRank, 0, 4, 8, 4)), expect int(runData.lockedMods.len()))
+    int modsUnlocked = [7,5,3][timeRank]
     Roguelike_UnlockMods( modsUnlocked )
 
     NSSaveJSONFile( "run_backup.json", runData )
-    Hud_SetText(Hud_GetChild(file.menu, "PlayerPower"), string( prevPower ))
-    Hud_SetText(Hud_GetChild(file.menu, "EnemyPower"), string( prevEnemyPower ))
+    Hud_SetText(Hud_GetChild(file.menu, "EnemyDEF"), string( prevEnemyDEF ))
+    Hud_SetText(Hud_GetChild(file.menu, "EnemyPower"), "+" + string( prevEnemyBonusHP ))
 
     Hud_SetBarProgress(Hud_GetChild(file.menu, "KillsBar"), 0.0)
     Hud_SetText(Hud_GetChild(file.menu, "KillsRank"), "")
@@ -116,22 +128,22 @@ void function MenuAnimation()
 
     Hud_SetText(Hud_GetChild(file.menu, "KillsRank"), GetRankName(killsRank))
     Hud_GetChild(file.menu, "KillsRank").SetColor(GetColorForRank(killsRank))
-    Hud_SetText(Hud_GetChild(file.menu, "KillsReward"), format("+%i Power", powerGained))
+    Hud_SetText(Hud_GetChild(file.menu, "KillsReward"), format("+%i$", powerGained))
 
     wait 0.2 
 
     EmitUISound( "UI_PostGame_CoinPlace" )
-    Hud_SetText(Hud_GetChild(file.menu, "PlayerPower"), string( prevPower + powerGained ))
+    Hud_SetText(Hud_GetChild(file.menu, "EnemyDEF"), string( prevEnemyDEF + enemyDEFGained ))
 
     wait 0.2
 
-    Hud_SetText(Hud_GetChild(file.menu, "EnemyPower"), string( prevEnemyPower + enemyPowerGained ))
+    Hud_SetText(Hud_GetChild(file.menu, "EnemyPower"), "+" + string( prevEnemyBonusHP + enemyHPGained ))
     
     wait 0.2
 
     EmitUISound( "UI_PostGame_TitanSlideStop" )
 
-    float timeFill = GraphCapped( file.time, timeRanks[3] * GetTimeRankMultiplier(), timeRanks[0] * GetTimeRankMultiplier(), 0, 1 )
+    float timeFill = GraphCapped( file.time, timeRanks[1] * GetTimeRankMultiplier(), timeRanks[0] * GetTimeRankMultiplier(), 0, 1 )
     Hud_SetBarProgress(Hud_GetChild(file.menu, "TimeBar"), timeFill)
     Hud_GetChild(file.menu, "TimeBar").SetColor(GetColorForRank(timeRank))
 
@@ -161,11 +173,36 @@ void function Roguelike_UnlockMods( int count )
         printt(modStruct.name)
         runData.lockedMods.fastremovebyvalue(mod)
         runData.unlockedMods.append(mod)
+        runData.newMods.append(mod)
     }
 }
 
 void function ClientCallback_LevelEnded( string nextMap, int startPointIndex, int kills, float time )
 {
+    // replace abyss 1 with abyss 3
+    if (nextMap == "sp_boomtown_start")
+    {
+        nextMap = "sp_boomtown_end"
+        startPointIndex = 0
+    }
+    // replace enc 1 with enc 2
+    if (nextMap == "sp_hub_timeshift" && startPointIndex == 0)
+    {
+        nextMap = "sp_timeshift_spoke02"
+        startPointIndex = 0
+    }
+    // replace enc ch.3 with beacon 2
+    if (nextMap == "sp_hub_timeshift" && startPointIndex == 7)
+    {
+        nextMap = "sp_beacon_spoke0"
+        startPointIndex = 0
+    }
+    // replace beacon 3 w/ trial by fire
+    if (nextMap == "sp_beacon" && startPointIndex == 2)
+    {
+        nextMap = "sp_tday"
+        startPointIndex = 0
+    }
     file.nextMap = nextMap
     file.startPointIndex = startPointIndex
     file.kills = kills

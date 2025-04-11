@@ -55,7 +55,7 @@ void function HACK_Delayed_PushForceADS( entity primaryWeapon )
 {
 	EndSignal( primaryWeapon, "OnDestroy" )
 	wait 0.1 // doesn't work until you wait a frame... WHY
-	primaryWeapon.SetForcedADS()
+	//primaryWeapon.SetForcedADS()
 }
 
 void function RemoveAmmoStatusEffect( entity player )
@@ -182,6 +182,8 @@ void function ToggleAmmoMods( entity weapon, entity primaryWeapon, entity weapon
 
 			#if SERVER
 			ToggleWeaponMods( weaponOwner, primaryWeapon, weapon )
+			if (primaryWeapon.GetWeaponPrimaryClipCount() <= 20 && weaponOwner.IsPlayer() && Roguelike_HasMod( weaponOwner, "swap_load" ) )
+				primaryWeapon.SetWeaponPrimaryClipCount(primaryWeapon.GetWeaponPrimaryClipCountMax())
 			#endif
 		}
 	)

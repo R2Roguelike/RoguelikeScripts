@@ -612,7 +612,7 @@ void function SpawnTitanBatteryOnDeath( entity titan, var damageInfo )
 			}
 			if (Roguelike_HasMod( player, "executioner_meal" ) && player.IsTitan() && damageInfo != null)
 			{
-				array<int> swordDamageSourceIds = [ eDamageSourceId.melee_titan_sword, eDamageSourceId.mp_titancore_shift_core ]
+				array<int> swordDamageSourceIds = [ eDamageSourceId.mp_titancore_shift_core ]
 				if (swordDamageSourceIds.contains(DamageInfo_GetDamageSourceIdentifier( damageInfo )))
 					numBatt += 1
 			}

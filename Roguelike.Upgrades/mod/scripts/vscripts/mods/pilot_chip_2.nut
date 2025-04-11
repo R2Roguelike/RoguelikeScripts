@@ -31,6 +31,13 @@ void function PilotChip2_RegisterMods()
         mod.icon = $"vgui/hud/white"
         mod.cost = 1
     }
+    {
+        RoguelikeMod mod = NewMod("bhopper")
+        mod.name = "2much4zblock"
+        mod.description = "+300% air acceleration."
+        mod.icon = $"vgui/hud/white"
+        mod.cost = 1
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)

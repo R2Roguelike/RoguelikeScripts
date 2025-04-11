@@ -32,6 +32,8 @@ void function Mods_Init()
     // TITAN GENERAL
     TitanChip1_RegisterMods()
     TitanChip2_RegisterMods()
+    TitanChip3_RegisterMods()
+    TitanChip4_RegisterMods()
 
     // RONIN
     Ronin_RegisterMods()
@@ -42,6 +44,10 @@ void function Mods_Init()
     // EXPEDITION
     Expedition_RegisterMods()
     
+    // LEGION
+    Legion_RegisterMods()
+
+    printt("Registered", file.mods.len())
 }
 
 void function Roguelike_RegisterMod( RoguelikeMod mod )
@@ -61,12 +67,13 @@ RoguelikeMod function Roguelike_NewMod( string uniqueName )
 
 
 #if UI
-array<RoguelikeMod> function GetModsForChipSlot( int chipSlot, bool isTitan )
+array<RoguelikeMod> function GetModsForChipSlot( int chipSlot, bool isTitan, bool includeLocked = false )
 {
     array<RoguelikeMod> mods
     foreach (RoguelikeMod mod in file.mods)
     {
-        if (Roguelike_IsModCompatibleWithSlot( mod, chipSlot, isTitan ) && Roguelike_IsModUnlocked( mod ))
+        bool unlocked = includeLocked || Roguelike_IsModUnlocked( mod )
+        if (Roguelike_IsModCompatibleWithSlot( mod, chipSlot, isTitan ) && unlocked)
             mods.append(mod)
     }
 
@@ -78,7 +85,7 @@ bool function Roguelike_IsModCompatibleWithSlot( RoguelikeMod mod, int chipSlot,
     if (mod.chip == ALL_CHIP_SLOTS && mod.loadouts.len() <= 0)
         return true
     
-    return ((1 << chipSlot) & GetModChipSlotFlags(mod)) != 0 && isTitan == mod.isTitan
+    return GetModChipSlotFlags(mod) == chipSlot && isTitan == mod.isTitan
 }
 
 bool function Roguelike_IsModUnlocked( RoguelikeMod mod )
@@ -127,7 +134,7 @@ array function GetAllLockedMods()
 int function GetModChipSlotFlags(RoguelikeMod mod)
 {
     if (mod.loadouts.len() <= 0)
-        return (1 << mod.chip)
+        return mod.chip
     
     array<string> loadout
 
@@ -143,11 +150,10 @@ int function GetModChipSlotFlags(RoguelikeMod mod)
         {
             if (mod.useLoadoutChipSlot)
             {
-                result = result | (1 << (3 + i))
-                continue
+                return (3 + i)
             }
             
-            return (1 << mod.chip)
+            return mod.chip
         }
     }
 

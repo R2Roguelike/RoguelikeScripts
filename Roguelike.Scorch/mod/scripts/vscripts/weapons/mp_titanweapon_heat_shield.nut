@@ -267,7 +267,7 @@ void function HeatShieldDamage_Think( entity weapon )
 	while( true )
 	{
 		//Letting the weapon raise before firing.
-		wait 0.099 // fixes inconsistent fire rate
+		wait 0.049 // fixes inconsistent fire rate
 		vector attackPos = weapon.GetAttachmentOrigin( attach_id )
 		RadiusDamage(
 			attackPos,										//center,

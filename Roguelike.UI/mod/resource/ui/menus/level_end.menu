@@ -349,7 +349,7 @@ resource/ui/menus/level_end.menu
             zpos				200
             wide                256
             tall				24
-            labelText			"Enemy Power"
+            labelText			"Enemy HP"
             allCaps				1
             font				JetBrainsMono_43
             auto_wide_to_contents	0
@@ -361,7 +361,7 @@ resource/ui/menus/level_end.menu
             pin_corner_to_sibling		BOTTOM
             pin_to_sibling_corner		TOP
         }
-        PlayerPower
+        EnemyDEF
         {
             ControlName			Label
             xpos				-50
@@ -383,7 +383,7 @@ resource/ui/menus/level_end.menu
             pin_corner_to_sibling		TOP_RIGHT
             pin_to_sibling_corner		RIGHT
         }
-        PlayerPowerLabel
+        EnemyDEFLabel
         {
             ControlName			Label
             xpos				-1
@@ -393,7 +393,7 @@ resource/ui/menus/level_end.menu
             zpos				200
             wide                256
             tall				24
-            labelText			"Your Power"
+            labelText			"Enemy DEF"
             allCaps				1
             font				JetBrainsMono_43
             auto_wide_to_contents	0
@@ -401,7 +401,7 @@ resource/ui/menus/level_end.menu
             textAlignment		center
             fgcolor_override 	"255 255 255 255"
 
-            pin_to_sibling				PlayerPower
+            pin_to_sibling				EnemyDEF
             pin_corner_to_sibling		TOP
             pin_to_sibling_corner		BOTTOM
         }

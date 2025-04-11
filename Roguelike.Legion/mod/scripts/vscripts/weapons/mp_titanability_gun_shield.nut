@@ -66,9 +66,9 @@ void function GunShieldThink( entity weapon, entity shieldWeapon, entity owner, 
 	owner.EndSignal( "SettingsChanged")
 
 	weapon.e.gunShieldActive = true
-	weapon.SetForcedADS()
-	if ( owner.IsPlayer() )
-		owner.SetMeleeDisabled()
+	//weapon.SetForcedADS()
+	//if ( owner.IsPlayer() )
+	//	owner.SetMeleeDisabled()
 
 	OnThreadEnd(
 	function() : ( weapon, owner )
@@ -85,8 +85,8 @@ void function GunShieldThink( entity weapon, entity shieldWeapon, entity owner, 
 			}
 			if ( IsValid( owner ) )
 			{
-				if ( owner.IsPlayer() )
-					owner.ClearMeleeDisabled()
+				//if ( owner.IsPlayer() )
+				//	owner.ClearMeleeDisabled()
 				owner.Signal( "GunShieldEnd" )
 			}
 		}

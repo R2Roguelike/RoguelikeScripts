@@ -4,6 +4,7 @@ global function Roguelike_GetModCount
 global function Roguelike_HasMod
 global function AddCallback_InventoryRefreshed
 global function Roguelike_GetStat
+global function Roguelike_RefreshInventory
 
 struct {
     array<void functionref( entity )> onInventoryRefreshed
@@ -14,14 +15,26 @@ void function Inventory_Init()
     AddClientCommandCallback( "RefreshInventory", CC_RefreshInventory )
 
     AddCallback_OnClientConnected( OnClientConnected )
-    AddCallback_PlayerClassChanged( RefreshInventory )
+    AddCallback_OnLoadSaveGame( void function( entity player ) : () {
+        delaythread(0.1) Roguelike_RefreshInventory( player )
+    })
+    //AddCallback_PlayerClassChanged( RefreshInventory )
 }
 
 void function OnClientConnected( entity player )
 {
     RefreshInventory( player )
-    
+
     AddPlayerMovementEventCallback( player, ePlayerMovementEvents.JUMP, OnPlayerJump )
+
+    
+    delaythread(0.1) void function() : (player) { wait 0.001; SetServerVar( "startTime", Time() ); RefreshInventory( player ) }()
+    
+}
+
+void function Roguelike_RefreshInventory( entity player )
+{
+    RefreshInventory( player )
 }
 
 void function OnPlayerJump( entity player )
@@ -30,10 +43,14 @@ void function OnPlayerJump( entity player )
 
 void function RefreshInventory( entity player )
 {
-    string mods = expect string( player.GetUserInfoString("player_mods") )
-    string weapons = expect string( player.GetUserInfoString("player_weapons") )
-    string weaponPerks = expect string( player.GetUserInfoString("player_weapon_perks") )
-    string stats = expect string( player.GetUserInfoString("player_stats") )
+    printt("refresh inventory")
+    // should use GetUserInfoString, but we dont
+    // cause it crashes when the player loads a save
+    // :(
+    string mods = GetConVarString("player_mods")
+    string weapons = GetConVarString("player_weapons")
+    string weaponPerks = GetConVarString("player_weapon_perks")
+    string stats = GetConVarString("player_stats")
 
     array<string> modsList = split( mods, " " )
     array<string> statsList = split( stats, " " )
@@ -74,11 +91,12 @@ void function RefreshInventory( entity player )
     }
     foreach (string s in modsList)
     {
-        if (s == "")
+        if (s == "" || s == "0")
             continue
         
         int index = int( s )
-        player.s.mods.append(index)
+        RoguelikeMod mod = GetModForIndex( index )
+        player.s.mods.append(mod.uniqueName)
     }
 
     foreach (string s in statsList)
@@ -107,6 +125,17 @@ void function RefreshInventory( entity player )
                 w.RemoveMod("flamethrower")
             }
         }
+        if (w.GetWeaponClassName() == "mp_titanweapon_xo16_shorty")
+        {
+            if (Roguelike_HasMod( player, "xo16_accelerator" ))
+            {
+                w.AddMod("accelerator")
+            }
+            else
+            {
+                w.RemoveMod("accelerator")
+            }
+        }
     }
 }
 
@@ -125,12 +154,11 @@ int function Roguelike_GetModCount( entity player, string modName )
 {
     if (!("mods" in player.s))
         return 0
-    RoguelikeMod mod = GetModByName( modName )
 
     int result = 0
     foreach (var modIndex in player.s.mods)
     {
-        if (modIndex == mod.index)
+        if (modIndex == modName)
             result++
     }
 
@@ -141,16 +169,8 @@ bool function Roguelike_HasMod( entity player, string modName )
 {
     if (!("mods" in player.s))
         return false
-    RoguelikeMod mod = GetModByName( modName )
 
-    int result = 0
-    foreach (var modIndex in player.s.mods)
-    {
-        if (modIndex == mod.index)
-            return true
-    }
-
-    return false
+    return expect bool(player.s.mods.contains(modName))
 }
 
 int function Roguelike_GetStat( entity player, int stat )

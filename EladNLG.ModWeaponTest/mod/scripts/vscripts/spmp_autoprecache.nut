@@ -69,6 +69,7 @@ void function PrecacheJack()
 	//PrecacheWeapon( "mp_weapon_rspn101_csgo" )
     PrecacheModel( $"models/containers/pelican_case_large_open.mdl" )
     PrecacheModel( $"models/containers/pelican_case_large.mdl" )
+	PrecacheWeapon("mp_weapon_mega_turret_boss");
 	foreach ( string weaponName in allowedWeapons )
 	{
 		//print(weaponName)

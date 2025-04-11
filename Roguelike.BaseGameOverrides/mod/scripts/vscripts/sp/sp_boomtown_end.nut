@@ -685,7 +685,7 @@ void function MakeReapersVulnerableAfterFlag( array<entity> reapers )
 // -------------------------------------------------------------------------------------------------------------------------
 void function StartPoint_BossFight( entity player )
 {
-	thread AshFight_IntroSpectacleThink( player )
+	//thread AshFight_IntroSpectacleThink( player )
 	thread AshFight_SpawnEnemies()
 
 	if ( !Flag( "played_music_boomtown_01_jumblerun" ) )

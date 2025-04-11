@@ -21,19 +21,10 @@ void function RocketDamage( entity ent, var damageInfo )
 
     if (IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.proj.isChargedShot) // atg missile
     {
-    }
-    if (Roguelike_HasMod(attacker, "inverse_relationship") && attacker != ent)
-    {
-        int weaken = GetWeaken( ent )
-        if (weaken > 0)
-        {
-            DamageInfo_ScaleDamage( damageInfo, 6 )
-            RemoveWeaken( ent, attacker, 6 )
-        }
-        return
+        return // do NOT add weaken. thanks
     }
     if (attacker != ent)
-        AddWeaken( ent, attacker, 3 )
+        AddWeaken( ent, attacker, 30 )
 }
 
 
@@ -43,17 +34,11 @@ void function PrimaryDamage( entity ent, var damageInfo )
     
     if (!attacker.IsPlayer())
         return
-    
-    if (Roguelike_HasMod( attacker, "inverse_relationship" ) && attacker != ent)
-    {
-        AddWeaken( ent, attacker, 2 )
-        return
-    }
+
     int weaken = GetWeaken( ent )
     if (weaken > 0)
     {
-        DamageInfo_ScaleDamage( damageInfo, 1.25 )
-        RemoveWeaken( ent, attacker, 2 )
+        //RemoveWeaken( ent, attacker, 5 )
     }
 }
 
@@ -75,15 +60,10 @@ void function AddWeaken( entity ent, entity attacker, int amount )
     if (amount <= 0)
         return
 
-    if (GetTitanLoadoutFlags() == EXPEDITION_SCORCH)
-    {
-        AddBurn( ent, attacker, amount * 3 )
-    }
-
     int cur = GetWeaken( ent )
     StatusEffect_StopAll( ent, eStatusEffect.roguelike_weaken )
-    cur = minint(cur + amount, 100)
-    StatusEffect_AddEndless( ent, eStatusEffect.roguelike_weaken, cur / 255.0 )
+    cur = cur + amount
+    StatusEffect_AddTimed( ent, eStatusEffect.roguelike_weaken, cur / 255.0, 16.0 * cur / 255.0, 16.0 * cur / 255.0 )
 }
 
 void function RemoveWeaken( entity ent, entity attacker, int amount )
@@ -93,13 +73,9 @@ void function RemoveWeaken( entity ent, entity attacker, int amount )
 
     int cur = GetWeaken( ent )
     StatusEffect_StopAll( ent, eStatusEffect.roguelike_weaken )
-    cur = maxint(cur - amount, 0)
-    if (GetTitanLoadoutFlags() == EXPEDITION_RONIN)
-    {
-        AddDaze( ent, attacker, amount * 10 / 255.0 )
-    }
+    cur = cur - amount
     if (cur > 0)
-        StatusEffect_AddEndless( ent, eStatusEffect.roguelike_weaken, cur / 255.0 )
+        StatusEffect_AddTimed( ent, eStatusEffect.roguelike_weaken, cur / 255.0, 16.0 * cur / 255.0, 16.0 * cur / 255.0 )
 }
 
 int function GetWeaken( entity ent )

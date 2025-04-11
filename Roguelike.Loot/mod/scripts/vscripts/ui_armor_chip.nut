@@ -1,12 +1,10 @@
 untyped
 global function ArmorChips_Init
 global function ArmorChip_Generate
+global function ArmorChip_GetStats
+global function AddStatsArrays
+global function ArmorChip_ForceSlot
 global function GetRandomWithExclusion
-
-// use plug_generator.py to generate, then paste in here and format
-const array< array<int> > ALL_PLUG_COMBINATIONS = [
-    [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]
-]
 
 void function ArmorChips_Init()
 {
@@ -28,7 +26,9 @@ table function ArmorChip_Generate()
 
     table chip = {
         type = "armor_chip",
-        stats = [0,0,0,0,0,0],
+        mainStat = RandomInt( 6 ),
+        subStats = [],
+        boosts = [],
         slot = expect int(chipSlotOrder[slotIndex]),
         level = 0,
         priceOffset = 0,
@@ -36,39 +36,98 @@ table function ArmorChip_Generate()
         moneyInvested = 30 + 15 * (baseRarity) // give 20 dolla when dismantled ()
     }
 
+    chip.isTitan <- expect int(chip.mainStat) < 3
+
     chip.rarity <- baseRarity
 
-    chip.pilotEnergy <- GetRandomWithExclusion(0, 3, [])
-    chip.titanEnergy <- 3 - chip.pilotEnergy
+    chip.energy <- 2
 
-    chip.pilotEnergy = maxint(expect int(chip.pilotEnergy) + baseRarity - 1, 0)
-    chip.titanEnergy = maxint(expect int(chip.titanEnergy) + baseRarity - 1, 0)
+    array<int> subStats = [0,1,2]
+    for (int i = 0; i < subStats.len() && !chip.isTitan; i++)
+        subStats[i] += 3
+    subStats.fastremovebyvalue(expect int(chip.mainStat))
+
+    int subStatCount = 0
+    if (baseRarity > RARITY_COMMON)
+        subStatCount++
+    for (int i = 0; i < minint(subStatCount, 2); i++)
+    {
+        int result = subStats.getrandom()
+        subStats.fastremovebyvalue(result)
+        chip.subStats.append(result)
+    }
+    chip.subStats.sort()
+
+    chip.energy = maxint(expect int(chip.energy) + minint(baseRarity, RARITY_EPIC), 0)
     chip.priceOffset += baseRarity * 25
 
     runData.chipSlotIndex = (++slotIndex) % 4
 
-    array<int> plug = [1, 2, 4]
-    plug.randomize()
-    for (int i = 0; i < 3; i++)
-    {
-        chip.stats[i] += plug[i]
-    }
-
-    plug = [1, 2, 4]
-    plug.randomize()
-    for (int i = 0; i < 3; i++)
-    {
-        chip.stats[i + 3] += plug[i]
-    }
-
     return chip
 }
 
-// returns between [min, max] excluding the inner results
+array<int> function ArmorChip_GetStats( table data )
+{
+    array<int> stats = [0,0,0,0,0,0]
+
+    int chipStatIndex = expect int(data.mainStat)
+    stats[chipStatIndex] += CHIP_MAIN_STAT_MULT * expect int(data.energy)
+    
+    
+    foreach (int index, int val in data.subStats)
+    {
+        int count = 1
+        if (data.rarity == RARITY_EPIC)
+            count = 2
+        if (data.rarity == RARITY_LEGENDARY)
+            count = 3
+        foreach (var boost in data.boosts)
+        {
+            if (boost == index)
+                count++
+        }
+        stats[val] += count * 4
+    }
+
+    return stats
+}
+
+void function AddStatsArrays(array<int> a, array<int> b)
+{
+    if (a.len() != b.len())
+        throw "arrays not of equal len"
+    
+    for (int i = 0; i < a.len(); i++)
+    {
+        a[i] += b[i]
+    }
+}
+
+table function ArmorChip_ForceSlot( int slot, bool isTitan )
+{
+    table data = ArmorChip_Generate()
+    data.isTitan = isTitan
+    data.slot = slot
+    data.mainStat = RandomInt( 3 ) + (isTitan ? 0 : 3)
+    data.subStats.clear()
+
+    array<int> subStats = [0,1,2,3,4,5]
+    subStats.fastremovebyvalue(expect int(data.mainStat))
+
+    for (int i = 0; i < data.rarity; i++)
+    {
+        int result = subStats.getrandom()
+        subStats.fastremovebyvalue(result)
+        data.subStats.append(result)
+    }
+    return data
+}
+
+// returns between [min, max) excluding the inner results
 // 3, 12, 2
-// 3, 4, 5, 6, [7, 8], 9, 10, 11, 12\
+// 3, 4, 5, 6, [7, 8], 9, 10, 11
 int function GetRandomWithExclusion(int start, int end, array<int> exclude) {
-    int random = start + RandomInt(end - start + 1 - exclude.len());
+    int random = start + RandomInt(end - start - exclude.len());
     foreach (int ex in exclude) {
         if (random < ex) {
             break;

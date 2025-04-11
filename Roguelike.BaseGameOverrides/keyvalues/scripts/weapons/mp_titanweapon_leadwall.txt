@@ -1,5 +1,21 @@
 WeaponData
 {
     // nerf, shotgun shouldnt deal 1500 per shot lol
-	"critical_hit_damage_scale"						"1.2"
+	"critical_hit_damage_scale"						"1.5"
+	"fire_sound_1_player_1p"						"Weapon_Leadwall_Fire_1P"
+
+	SP_BASE
+	{
+		"damage_near_distance"							"600"
+		"damage_far_distance" 							"1000"
+		"damage_near_value"   							"150"
+		"damage_far_value"								"100"
+		"damage_near_value_titanarmor"					"75"
+		"damage_far_value_titanarmor" 					"60"
+
+		"ammo_min_to_fire"								"1"
+
+		"enable_highlight_networking_on_creation"		"1"
+		"projectile_ricochet_max_count"					"1"
+	}
 }

@@ -72,6 +72,8 @@ var function OnWeaponPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAttack
 
 	#if SERVER
 	float duration = weapon.HasMod( "pas_scorch_firewall" ) ? PAS_SCORCH_FIREWALL_DURATION : FLAME_WALL_THERMITE_DURATION
+	if (Roguelike_HasMod( weaponOwner, "fire_duration" ))
+		duration *= 2
 	entity inflictor = CreateOncePerTickDamageInflictorHelper( duration )
 	#endif
 
@@ -171,6 +173,8 @@ bool function CreateThermiteWallSegment( entity projectile, int projectileCount,
 			damageSource = eDamageSourceId.mp_titanweapon_flame_wall
 			duration = mods.contains( "pas_scorch_firewall" ) ? PAS_SCORCH_FIREWALL_DURATION : FLAME_WALL_THERMITE_DURATION
 		}
+		if (Roguelike_HasMod( owner, "fire_duration" ))
+			duration *= 2
 
 		if ( IsSingleplayer() )
 		{

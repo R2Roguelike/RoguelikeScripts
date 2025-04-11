@@ -53,6 +53,25 @@ function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, bool pl
 	vector attackAngles = VectorToAngles( attackParams.dir )
 	vector baseUpVec = AnglesToUp( attackAngles )
 	vector baseRightVec = AnglesToRight( attackAngles )
+	bool buffed = false
+	bool quickswap = false
+
+	if (owner.IsPlayer() )
+	{
+		if (StatusEffect_Get( owner, eStatusEffect.roguelike_shotgun_buff ) > 0)
+		{
+			#if SERVER
+			SetShotgunBuff( owner, GetShotgunBuff( owner ) - 1 )
+			#endif
+			buffed = true
+			weapon.EmitWeaponSound( "Weapon_ArcLauncher_Fire_1P" )
+			weapon.PlayWeaponEffect( $"wpn_muzzleflash_arc_cannon_fp", $"wpn_muzzleflash_arc_cannon", "muzzle_flash" )
+		}
+		if (StatusEffect_Get( owner, eStatusEffect.roguelike_ronin_quickswap ) > 0)
+		{
+			quickswap = true
+		}
+	}
 
 	if ( shouldCreateProjectile )
 	{
@@ -81,6 +100,10 @@ function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, bool pl
 			entity bolt = weapon.FireWeaponBolt( attackParams.pos, attackDir, projectileSpeed, damageTypes.largeCaliber | DF_SHOTGUN, damageTypes.largeCaliber | DF_SHOTGUN, playerFired, index )
 			if ( bolt )
 			{
+				if (buffed)
+					bolt.s.buffed <- true
+				if (quickswap)
+					bolt.s.quickswap <- true
 				bolt.kv.gravity = 0.4 // 0.09
 
 				if ( weapon.GetWeaponClassName() == "mp_weapon_shotgun_doublebarrel" )

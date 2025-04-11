@@ -68,6 +68,14 @@
 		{
 			"Path": "mods/titan_chip_2.nut",
 			"RunOn": "UI || SERVER || CLIENT"
+		},
+		{
+			"Path": "mods/titan_chip_3.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		},
+		{
+			"Path": "mods/titan_chip_4.nut",
+			"RunOn": "UI || SERVER || CLIENT"
 		}
 	],
 

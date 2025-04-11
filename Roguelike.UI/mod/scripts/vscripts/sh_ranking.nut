@@ -5,15 +5,18 @@ array<int> function GetKillsForMaxRank(string map)
     switch (map)
     {
         case "sp_training":
-            return [15,12,9,6]
-        case "sp_sewers1":
-            return [200,130,90,50]
+            return [15,9]
         case "sp_tday":
-            return [400,350,300,250]
+            return [400,300]
+        case "sp_timeshift_spoke02":
+        case "sp_hub_timeshift":
+            return [15,10]
+        case "sp_boomtown_end":
+            return [80, 60]
     }
 
     //     [C,B,A,S]
-    return [100,75,62,50]
+    return [100,60]
 }
 
 array<int> function GetTimeForMaxRank(string map)
@@ -21,27 +24,31 @@ array<int> function GetTimeForMaxRank(string map)
     switch (map)
     {
         case "sp_training":
-            return [120, 165, 210, 255]
-        case "sp_sewers1":
-            return [420, 600, 960, 1320]
-        case "sp_boomtown_start":
-            return [180, 240, 300, 360]
-        case "sp_boomtown":
-            return [420, 480, 540, 600]
-        case "sp_boomtown_end":
-            return [180, 240, 300, 360]
-        case "sp_timeshift_spoke02":
-            return [180, 220, 270, 320]
-        case "sp_hub_timeshift":
-            return [150, 200, 250, 300]
-        case "sp_tday":
-            return [300, 400, 500, 600]
+            return [180, 210]
         case "sp_crashsite":
-            return [400, 600, 900, 1200]
+            return [480, 900]
+        case "sp_sewers1":
+            return [480, 720]
+        case "sp_boomtown_start":
+            return [180, 300]
+        case "sp_boomtown":
+            return [420, 540]
+        case "sp_boomtown_end":
+            return [240, 360]
+        case "sp_timeshift_spoke02":
+            return [180, 270]
+        case "sp_hub_timeshift":
+            return [210, 420]
+        case "sp_tday":
+            return [500, 700]
+        case "sp_s2s":
+            return [720, 1200]
+        case "sp_skyway_v1":
+            return [720, 1200]
     }
 
     //     [S,A,B,C]
-    return [400, 600, 900, 1200]
+    return [400, 600]
 }
 
 float function GetTimeRankMultiplier()
@@ -50,15 +57,15 @@ float function GetTimeRankMultiplier()
 }
 
 array< array > rankColors = [
-    [255, 64, 92,255],
-    [255, 92, 64,255],
+    [255,192, 64,255],
+    [192, 64,192,255],
+    [ 64,192,255,255],
     [255,255, 64,255],
     [ 64,255, 64,255],
-    [ 64, 92,255,255]
 ]
 array function GetColorForRank(int rank)
 {
-    rank = maxint(0, minint(rank, 4))
+    rank = maxint(0, minint(rank, 2))
     return rankColors[rank]
 }
 
@@ -72,10 +79,6 @@ string function GetRankName(int rank)
             return "A"
         case 2:
             return "B"
-        case 3:
-            return "C"
-        case 4:
-            return "D"
     }
 
     return "?"

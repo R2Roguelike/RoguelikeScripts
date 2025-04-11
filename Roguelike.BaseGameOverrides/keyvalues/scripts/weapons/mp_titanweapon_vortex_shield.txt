@@ -3,6 +3,7 @@ WeaponData
     SP_BASE
     {
         "charge_time"                   "3.25"
-        "charge_cooldown_time"          "18"
+        "charge_cooldown_time"          "9999"
+        "charge_cooldown_delay"          "9999"
     }
 }

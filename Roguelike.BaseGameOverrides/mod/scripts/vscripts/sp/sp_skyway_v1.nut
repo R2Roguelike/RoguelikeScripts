@@ -1133,6 +1133,7 @@ void function BliskTortureRoom( entity scriptRef, entity player, string animatio
 {
 	//Spawn Blisk
 	entity blisk = SpawnBlisk_TortureRoom()
+	Roguelike_SetIgnoreBan( blisk )
 	blisk.SetModel( SW_BLISK_MODEL )
 	blisk.NotSolid()
 
@@ -6911,7 +6912,7 @@ void function SP_ExplodingPlanetThread( entity player )
 	dropship.Anim_Stop()
 	thread PlayAnim( dropship, "ref" )
 	dropship.SetNextThinkNow()
-	dropship.RenderWithViewModels( true )
+	//dropship.RenderWithViewModels( true )
 
 	entity spacenode = GetEnt( "spacenode_1" )
 
@@ -6926,7 +6927,6 @@ void function SP_ExplodingPlanetThread( entity player )
 	ClearPlayerAnimViewEntity(player)
 
 	thread AnimateStuff( player, planet, dropship, mover )
-	wait 5000000
 
 	// entity idleMover = CreateScriptMover()
 	// idleMover.SetParent( dropship, "RESCUE", false, 0.0 )
@@ -6999,6 +6999,28 @@ void function SP_ExplodingPlanetThread( entity player )
 
 	// mover.NonPhysicsMoveTo( targetOrigin, 35.0, 0.0, 10.0 )
 	// mover.NonPhysicsRotateTo( targetAngles + <0,60,0>, 35.0, 0.0, 10.0 )
+	
+	delaythread( 4.75 ) Remote_CallFunction_Replay( player, "ServerCallback_DoRumble", 0 )
+	delaythread( 5.5 ) Remote_CallFunction_Replay( player, "ServerCallback_DoRumble", 2 )
+	wait 20.5
+	waitthread PlayDialogue( "TYPHON_1a", player )
+	wait 0.75
+	waitthread PlayDialogue( "TYPHON_1b", player )
+	wait 0.75
+	waitthread PlayDialogue( "TYPHON_1c", player )
+	wait 1.9
+	thread TyphonDialogue( player )
+	wait 1.0
+
+	float fadetime = 4.0
+	ScreenFadeToBlack( player, fadetime, 20.0 )
+	wait fadetime
+	dropship.ClearParent()
+	player.ClearParent()
+	mover.Destroy()
+	player.SetPlayerSettingsWithMods( "civilian_solo_pilot", [] )
+	Remote_CallFunction_NonReplay( player, "ServerCallback_SetTyphonColorCorrectionWeight", 0.0, 0.1 )
+	wait 5.0
 }
 
 void function TyphonDialogue( entity player )
@@ -7015,8 +7037,8 @@ void function AnimateStuff( entity player, entity planet, entity dropship, entit
 
 	// delaythread( 4.5 ) FlashWhite( player, 0.1, 0.3, 255.0 )
 	delaythread( 4.5 ) Remote_CallFunction_Replay( player, "ServerCallback_GlowFlash", 1.0, 5.0 )
-	//thread PlayAnimTeleport( dropship, "dropship_planet_ex_ending", mover )
-	//thread PlayAnim( planet, "planet_ex_ending" )
+	thread PlayAnimTeleport( dropship, "dropship_planet_ex_ending", mover )
+	thread PlayAnim( planet, "planet_ex_ending" )
 	FirstPersonSequenceStruct sequence
 	sequence.blendTime = 0.0
 	sequence.firstPersonAnim = "ptpov_planet_ex_ending"

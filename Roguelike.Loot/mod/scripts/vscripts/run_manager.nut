@@ -53,25 +53,11 @@ void function Inventory_Init()
             dialogData.forceChoice = true
             dialogData.message = "You quit or crashed mid-run, although a backup was saved. Would you like to continue from the last chapter?"
 
-            AddDialogButton( dialogData, "Yes", void function() : ()
-            {
-                Roguelike_ApplyRunDataToConVars()
-                ExecuteLoadingClientCommands_SetStartPoint( expect string(file.runData.map), expect int(file.runData.startPointIndex) )
-                ClientCommand( "map " + expect string(file.runData.map) )
-            } )
-            AddDialogButton( dialogData, "No", void function() : ()
-            {
-                file.isRunActive = false
-                file.runData = {}
-                NSDeleteFile( "run_backup.json" )
-            } )
-
             AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
 
             file.runData = t
             file.isRunActive = true
-
-            delaythread( 0.1 ) OpenDialog( dialogData )
+            UpdateSPButtons()
         }
     )
 }
@@ -90,14 +76,15 @@ void function Roguelike_StartNewRun()
     table runData = {
         inventory = [],
         length = "short",
-        unlockedMods = []
+        unlockedMods = [],
+        newMods = []
     }
 
     file.runData = runData
     file.isRunActive = true
 
     runData.lockedMods <- GetAllLockedMods()
-    Roguelike_UnlockMods( 10 ) // have the player start with some amount of mods
+    Roguelike_UnlockMods( 20 ) // have the player start with some amount of mods
 
     // these arrays are to prevent the player from getting
     // 3+ of the same armor chip slot in a row, and to 
@@ -110,7 +97,8 @@ void function Roguelike_StartNewRun()
     runData.balanced <- false
 
     runData.powerPlayer <- 0
-    runData.enemyPower <- 0
+    runData.enemyBonusHP <- 0
+    runData.enemyDEF <- 0
     runData.levelsCompleted <- 0
 
     runData.money <- 0
@@ -129,17 +117,18 @@ void function Roguelike_StartNewRun()
         }
     }
 
-    runData.AC1 <- ArmorChip_Generate()
-    runData.AC1.slot = 1
-    runData.AC2 <- ArmorChip_Generate()
-    runData.AC2.slot = 2
-    runData.AC3 <- ArmorChip_Generate()
-    runData.AC3.slot = 3
-    runData.AC4 <- ArmorChip_Generate()
-    runData.AC4.slot = 4
+    runData.ACPilot1 <- ArmorChip_ForceSlot( 1, false )
+    runData.ACPilot2 <- ArmorChip_ForceSlot( 2, false )
+    runData.ACPilot3 <- ArmorChip_ForceSlot( 3, false )
+    runData.ACPilot4 <- ArmorChip_ForceSlot( 4, false )
+
+    runData.ACTitan1 <- ArmorChip_ForceSlot( 1, true )
+    runData.ACTitan2 <- ArmorChip_ForceSlot( 2, true )
+    runData.ACTitan3 <- ArmorChip_ForceSlot( 3, true )
+    runData.ACTitan4 <- ArmorChip_ForceSlot( 4, true )
 
     runData.WeaponPrimary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_vinson", RARITY_COMMON, "primary" )
-    runData.WeaponSecondary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_autopistol", RARITY_COMMON, "secondary" )
+    runData.WeaponSecondary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_epg", RARITY_COMMON, "secondary" )
 
     Roguelike_ForceRefreshInventory()
 
@@ -151,8 +140,8 @@ void function Roguelike_ApplyRunDataToConVars()
     table runData = Roguelike_GetRunData()
 
     SetConVarInt("roguelike_levels_completed", expect int(runData.levelsCompleted))
-    SetConVarInt("power_player", expect int(runData.powerPlayer))
-    SetConVarInt("power_enemy", expect int(runData.enemyPower))
+    SetConVarInt("power_enemy_hp", expect int(runData.enemyBonusHP))
+    SetConVarInt("power_enemy_def", expect int(runData.enemyDEF))
     SetConVarString("roguelike_titan_loadout", expect string(runData.loadouts))
     SetConVarBool("roguelike_stat_balance", expect bool(runData.balanced))
     
@@ -234,14 +223,25 @@ void function Roguelike_GenerateLoot()
             break
     }
     file.runData.inventory.append(item)
+
+    Roguelike_ForceRefreshInventory()
+
+    Roguelike_AddMoney( RandomIntRange(25, 50) )
+
+    if (IsFullyConnected())
+        RunClientScript( "Roguelike_ItemGained" )
 }
 
-void function __SetPower( int player, int enemy )
+void function __SetPower( int levelsCompleted )
 {
     table runData = Roguelike_GetRunData()
 
-    runData.powerPlayer <- player
-    runData.enemyPower <- enemy
+    runData.enemyBonusHP <- ENEMY_HP_PER_LEVEL * levelsCompleted
+    int defPerLevel = ENEMY_DEF_PER_LEVEL
+    if (GetConVarInt("sp_difficulty") <= 1)
+        defPerLevel = ENEMY_DEF_PER_LEVEL_EASY
+    runData.enemyDEF <- defPerLevel * levelsCompleted
+    runData.levelsCompleted = levelsCompleted
 
     Roguelike_ApplyRunDataToConVars()
 }

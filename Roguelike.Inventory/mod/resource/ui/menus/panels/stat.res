@@ -41,4 +41,29 @@ resource/ui/menus/panels/stat.res
 		pin_corner_to_sibling	TOP
 		pin_to_sibling_corner	BOTTOM
     }
+    Diff
+    {
+        
+        ControlName				Label
+        visible					1
+        enabled					1
+        //auto_wide_tocontents	1
+        auto_tall_tocontents	0
+        labelText				"-3"
+        fgcolor_override		"255 0 0 255"
+        textAlignment			center
+        //fgcolor_override 		"255 255 255 255"
+        //bgcolor_override 		"0 0 0 200"
+        font					JetBrainsMono_17
+
+		wide				 80
+        tall                17
+        wrap                0
+
+		"xpos"			"0"
+		"ypos"			"0"
+		pin_to_sibling			Value
+		pin_corner_to_sibling	TOP
+		pin_to_sibling_corner	BOTTOM
+    }
 }

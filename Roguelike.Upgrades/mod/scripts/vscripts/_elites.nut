@@ -2,6 +2,7 @@ untyped
 global function Elites_Init
 global function Elites_Add
 global function Elites_Generate
+global function GetEliteType
 
 struct {
     array<void functionref( entity )> eliteFuncs
@@ -9,12 +10,14 @@ struct {
 
 void function Elites_Init()
 {
+    RegisterSignal("MeleeDamage")
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT )
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT_MOD )
 	PrecacheImpactEffectTable( ARC_CANNON_FX_TABLE )
     Elites_Add( Elite_BubbleShield )
-    //Elites_Add( Elite_Healing )
-    //Elites_Add( Elite_Invulnerable )
+    Elites_Add( Elite_Healing )
+    Elites_Add( Elite_Invulnerable )
+    Elites_Add( Elite_Enraged )
 }
 
 string function GetEliteType( entity npc )
@@ -40,11 +43,30 @@ void function Elites_Generate( entity npc )
     if (npc.GetTeam() != TEAM_IMC)
         return
 
-    thread file.eliteFuncs.getrandom()( npc )
+    delaythread(0.001) void function() : (npc)
+    {
+        if (IsValid(npc)) file.eliteFuncs.getrandom()( npc )
+    }()
+}
+
+void function Elite_Enraged( entity npc )
+{
+    if (npc.IsInvulnerable())
+        return
+    if (npc.GetMaxHealth() <= 0)
+        return
+    npc.s.elite <- "enraged"
+    Highlight_SetEnemyHighlight( npc, "elite_enraged")
+    npc.SetNPCMoveSpeedScale( 2.0 ) // lololol
+    npc.s.healthMult <- 2.0
+    npc.s.damageMult <- 2.0
+    UpdateNPCForSpDifficulty( npc ) // update health
 }
 
 void function Elite_BubbleShield( entity npc )
 {
+    if (npc.IsInvulnerable())
+        return
     if (npc.GetMaxHealth() <= 0)
         return
     npc.s.elite <- "bubble_shield"
@@ -52,7 +74,7 @@ void function Elite_BubbleShield( entity npc )
     if (npc.IsTitan())
     {
         npc.SetNPCMoveFlag( NPCMF_WALK_ALWAYS, true ) // reduce HP by 33% since they can be frustrating to fight against
-        npc.SetNPCMoveSpeedScale( 0.333 ) // reduce HP by 33% since they can be frustrating to fight against
+        npc.SetNPCMoveSpeedScale( 0.5 ) // reduce HP by 33% since they can be frustrating to fight against
         StatusEffect_AddEndless( npc, eStatusEffect.dodge_speed_slow, 0.75 )
     }
 
@@ -62,13 +84,33 @@ void function Elite_BubbleShield( entity npc )
     if (npc.IsTitan())
         npc.EnableNPCMoveFlag(NPCMF_WALK_ALWAYS)
 
+    npc.EndSignal("OnDeath")
+    npc.EndSignal("OnDestroy")
+
+    
     entity bubbleShield = TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
 
-    npc.EndSignal("OnDeath")
+
     OnThreadEnd(function() : (bubbleShield)
     {
-        bubbleShield.Destroy()
+        if (IsValid(bubbleShield))
+            bubbleShield.Destroy()
     })
+
+    while (1)
+    {
+        npc.WaitSignal("MeleeDamage")
+
+        bubbleShield.Destroy()
+        
+        Highlight_SetEnemyHighlight( npc, "elite_bubble_shield_off")
+
+        wait 30
+
+        Highlight_SetEnemyHighlight( npc, "elite_bubble_shield")
+
+        bubbleShield = TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
+    }
     WaitForever()
 
 }
@@ -114,9 +156,12 @@ entity function TestBubbleShield( int team, vector origin, vector angles, entity
 
 void function Elite_Invulnerable( entity npc )
 {
+    if (npc.IsInvulnerable())
+        return
     npc.s.elite <- "invulnerable"
 
     npc.EndSignal("OnDeath")
+    npc.EndSignal("OnDestroy")
 
     bool IsInvulnerable = false
     while (1)
@@ -184,12 +229,15 @@ void function Elite_Invulnerable( entity npc )
 
 void function Elite_Healing( entity npc )
 {
+    if (npc.IsInvulnerable())
+        return
     npc.s.elite <- "healing"
     Highlight_SetEnemyHighlight( npc, "elite_healing" )
     npc.kv.rendercolor = "0 255 0"
     //TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
 
     npc.EndSignal("OnDeath")
+    npc.EndSignal("OnDestroy")
 
     while (1)
     {
@@ -204,7 +252,7 @@ void function Elite_Healing( entity npc )
                 healingAmount = 400 //
             
             if (ent == npc || GetEliteType(npc) == "healing")
-                healingAmount = healingAmount / 3 // heavily reduced!
+                healingAmount = healingAmount / 5 // heavily reduced!
 
             ent.SetHealth( minint( ent.GetMaxHealth(), ent.GetHealth() + healingAmount ))
 

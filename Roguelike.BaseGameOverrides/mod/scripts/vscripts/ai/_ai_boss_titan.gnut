@@ -176,8 +176,8 @@ void function NPCTitanSpawned( entity titan )
 				// break
 
 			case TITAN_AUTO:
-				if ( !IsMultiplayer() && GetMapName() == "sp_hub_timeshift" || GetMapName() == "sp_timeshift_spoke02" )
-					MakeLowHealthTitan( titan )
+				//if ( !IsMultiplayer() && GetMapName() == "sp_hub_timeshift" || GetMapName() == "sp_timeshift_spoke02" )
+				//	MakeLowHealthTitan( titan )
 				break
 			default:
 				return
@@ -188,6 +188,7 @@ void function NPCTitanSpawned( entity titan )
 		if (!IsValid(titan))
 			return
 		titan.s.baseHealth <- titan.GetMaxHealth()
+		titan.SetHealth(titan.GetMaxHealth())
 		
 		UpdateMercTitanHealthForDifficulty( titan )
 	}()
@@ -715,12 +716,14 @@ void function SetHealthValuesForMidHealth( entity soul )
 
 	entity titan = soul.GetTitan()
 	int numSegments = ( titan.GetMaxHealth() / GetSegmentHealthForTitan( titan ) ) - 2
+	printt(numSegments)
 	Assert( numSegments > 0 )
 	SetSoulBatteryCount( soul, numSegments )
 	if ( IsAlive( titan ) )
 	{
 		soul.soul.skipDoomState = true
 		int segmentHealth = GetSegmentHealthForTitan( titan ) * numSegments
+		printt(segmentHealth)
 		titan.SetMaxHealth( segmentHealth )
 		titan.SetHealth( segmentHealth )
 		titan.kv.healthEvalMultiplier = 2

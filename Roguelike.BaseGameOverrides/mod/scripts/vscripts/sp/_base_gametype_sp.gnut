@@ -451,7 +451,7 @@ void function CodeCallback_WeaponDropped( entity weapon )
 	if ( !IsValid( weapon ) )
 		return
 
-	if ( !Flag( "WeaponDropsAllowed" ) )
+	if ( !Flag( "WeaponDropsAllowed" ) && weapon.GetWeaponClassName() != "sp_weapon_arc_tool" ) // oh no... softlock...
 	{
 		weapon.Destroy()
 		return

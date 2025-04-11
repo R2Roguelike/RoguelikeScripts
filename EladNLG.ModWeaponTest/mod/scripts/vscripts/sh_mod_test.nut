@@ -60,6 +60,11 @@ void function ApplyModWeaponVars( entity weapon )
         PlayerWeaponBuffs( weapon, owner )
     }
 
+    if (weapon.GetWeaponClassName() != "mp_titanweapon_sniper")
+        ModWeaponVars_SetBool( weapon, eWeaponVar.critical_hit, false )
+    if (weapon.GetWeaponClassName() == "mp_titanweapon_leadwall" && IsValid(owner) && StatusEffect_Get( owner, eStatusEffect.roguelike_shotgun_buff ) > 0.0)
+        ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_clip, true )
+
     #if SERVER
     if (IsValid(owner) && !owner.IsPlayer())
     {
@@ -70,25 +75,26 @@ void function ApplyModWeaponVars( entity weapon )
 
 void function PlayerWeaponBuffs( entity weapon, entity owner )
 {
-    /*if (ammo == weapon.GetWeaponSettingInt(eWeaponVar.ammo_per_shot) && !weapon.IsWeaponOffhand())
-    {
-        ModWeaponVars_SetFloat( weapon, eWeaponVar.reload_time, weapon.GetWeaponSettingFloat(eWeaponVar.reload_time) * 0.5)
-        ModWeaponVars_SetInt(weapon, eWeaponVar.damage_near_value, weapon.GetWeaponSettingInt(eWeaponVar.damage_near_value) * 2)
-        ModWeaponVars_SetInt(weapon, eWeaponVar.damage_far_value, weapon.GetWeaponSettingInt(eWeaponVar.damage_far_value) * 2)
-        ModWeaponVars_SetInt(weapon, eWeaponVar.damage_very_far_value, weapon.GetWeaponSettingInt(eWeaponVar.damage_very_far_value) * 2)
-        ModWeaponVars_SetInt(weapon, eWeaponVar.explosion_damage, weapon.GetWeaponSettingInt(eWeaponVar.explosion_damage) * 2)
-    if (weapon.GetWeaponClassName() == "mp_weapon_r97")
-    {
-        ModWeaponVars_ScaleVar( weapon, eWeaponVar.ammo_clip_size, 1.0 + 0.5 * StatusEffect_Get( owner, eStatusEffect.roguelike_r97_bonus ) * 255 )
-        ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_rate, 1.0 + 0.5 * StatusEffect_Get( owner, eStatusEffect.roguelike_r97_bonus ) * 255 )
-    }
-    }*/
+    ModWeaponVars_SetFloat( weapon, eWeaponVar.melee_attack_animtime, 0.8 )
+    // quick recovery
+    ModWeaponVars_SetFloat( weapon, eWeaponVar.melee_raise_recovery_animtime_normal, 0.25 )
+    ModWeaponVars_SetFloat( weapon, eWeaponVar.melee_raise_recovery_animtime_quick, 0.25 )
     string weaponClassName = weapon.GetWeaponClassName()
     if (weaponClassName == "mp_titanability_rearm" && Roguelike_HasMod( owner, "quick_rearm" ))
         ScaleCooldown( weapon, 0.333 )
-    if (["mp_titanweapon_vortex_shield", "mp_titanweapon_shoulder_rockets"].contains(weaponClassName) && Roguelike_HasMod( owner, "quick_rearm" ))
+    else if (Roguelike_HasMod( owner, "quick_rearm" ))
     {
         ScaleCooldown( weapon, 4 ) // +300%
+    }
+    if (weaponClassName == "mp_weapon_frag_grenade" && Roguelike_HasMod( owner, "impact_frag"))
+    {
+        ModWeaponVars_SetFloat( weapon, eWeaponVar.grenade_fuse_time, 0 )
+        ModWeaponVars_SetFloat( weapon, eWeaponVar.grenade_ignition_time, 0.15 )
+        ModWeaponVars_SetInt( weapon, eWeaponVar.grenade_arc_indicator_bounce_count, minint(weapon.GetWeaponSettingInt(eWeaponVar.grenade_arc_indicator_bounce_count), 1) )
+    }
+    if (weaponClassName == "mp_weapon_wingman_n")
+    {
+        ModWeaponVars_ScaleDamage( weapon, 1.2 )
     }
     if (weaponClassName == "mp_titanweapon_xo16_shorty" && Roguelike_HasMod( owner, "xo16_long_range"))
     {
@@ -115,6 +121,7 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
     }
     if (weaponClassName == "mp_titanweapon_shoulder_rockets" && Roguelike_HasMod( owner, "dumbfire_rockets" ))
     {
+        ModWeaponVars_ScaleDamage( weapon, 2.0 )
         ModWeaponVars_SetFloat( weapon, eWeaponVar.charge_time, 0.001 )
         ModWeaponVars_SetFloat( weapon, eWeaponVar.smart_ammo_search_angle, 0.0 )
 
@@ -138,8 +145,19 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
         if (owner.IsTitan())
         {
             int power = Roguelike_GetStat( owner, STAT_POWER )
-            float cdScalar = Roguelike_GetTitanCooldownReduction( power )
-            ScaleCooldown( weapon, cdScalar )
+            //float cdScalar = Roguelike_GetTitanCooldownReduction( power )
+            ScaleCooldown( weapon, 1.5 )
+            
+        
+            if (weapon.GetInventoryIndex() == 0 && Roguelike_HasMod( owner, "offensive_charge" ))
+            {
+                int ammoPerShot = weapon.GetAmmoPerShot()
+                ModWeaponVars_AddToVar( weapon, eWeaponVar.ammo_clip_size, ammoPerShot )
+                ModWeaponVars_AddToVar( weapon, eWeaponVar.ammo_default_total, ammoPerShot )
+            }
+
+            if (Roguelike_HasMod( owner, "cd_reduce" ))
+                ScaleCooldown( weapon, 0.8 )
         }
         else
         {
@@ -151,7 +169,7 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
         // Frost Walker
         if (owner.IsSprinting() && Roguelike_HasMod( owner, "frost_walker" ) && owner.IsTitan())
         {
-            ScaleCooldown( weapon, 0.5 )
+            ScaleCooldown( weapon, 0.65 )
         }
         
         if (weapon.GetInventoryIndex() == 0 && Roguelike_HasMod( owner, "big_boom" ))
@@ -182,35 +200,47 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
     }
     else
     {
-        if (!owner.IsTitan())
+        if (owner.IsTitan())
+        {
+            if (Roguelike_HasMod( owner, "bonus_mag"))
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.ammo_clip_size, 2 )
+        }
+        else
         {
             #if CLIENT
             string weaponPerksConVar = GetConVarString( "player_weapon_perks" )
             #elseif SERVER
-            string weaponPerksConVar = expect string( owner.GetUserInfoString( "player_weapon_perks" ) )
+            string weaponPerksConVar = GetConVarString( "player_weapon_perks" )
             #endif
             array<string> weaponPerks
             if (weaponPerksConVar.len() > 0 && weapon.GetInventoryIndex() < 2)
                 weaponPerks = split( split( weaponPerksConVar, " " )[weapon.GetInventoryIndex()], "," )
-
+            
+            float bonus = 0.0
             if (weaponPerks.contains("uncommon"))
-                ModWeaponVars_ScaleDamage( weapon, 1.15 )
+                bonus += 0.15
             else if (weaponPerks.contains("rare"))
-                ModWeaponVars_ScaleDamage( weapon, 1.3 )
+                bonus += 0.25
             else if (weaponPerks.contains("epic"))
-                ModWeaponVars_ScaleDamage( weapon, 1.4 )
+                bonus += 0.35
             else if (weaponPerks.contains("legendary"))
-                ModWeaponVars_ScaleDamage( weapon, 1.5 )
+                bonus += 0.5
             
             //printt(weaponPerks.len())
             if (weaponPerks.len() > 0 && StartsWith(weaponPerks[0], "level_"))
             {
                 int level = int( weaponPerks[0].slice( 6, weaponPerks[0].len() ))
-                ModWeaponVars_ScaleDamage( weapon, 1.0 + 0.15 * level )
+                bonus += 0.15 * level
             }
 
 
-            ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_stockpile, weapon.GetWeaponInfoFileKeyField("inventory_slot") != "special" )
+            if (weapon.GetWeaponInfoFileKeyField( "inventory_slot" ) == "special")
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.impulse_force, 1.0 + bonus )
+            else
+                ModWeaponVars_ScaleDamage( weapon, 1.0 + bonus )
+
+
+            ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_stockpile, true )
             if (Roguelike_HasMod( owner, "weapons_plus" ))
                 WeaponsPlus( weapon, owner )
             
@@ -302,8 +332,25 @@ void function NPCWeaponBuffs( entity weapon, entity owner )
     // mgl fucked fr fr
     if (weapon.GetWeaponClassName() == "mp_weapon_mgl")
         return
+
+        
+	array<string> banned = [
+		"npc_dropship",
+		"npc_soldier",
+		"npc_stalker",
+		"npc_spectre"
+	]
+    // non-titans have damage reduced by 90%
+    if (banned.contains(owner.GetClassName()))
+    {
+        ModWeaponVars_ScaleDamage( weapon, 0.1 )
+    }
     
     float cd = GraphCapped( GetConVarFloat("sp_difficulty"), 0, 3, 1, 0.05 )
+
+    // defensives can be frustrating and also fuck w/ ai :/
+    if (weapon.IsWeaponOffhand() && weapon.GetInventoryIndex() == 1)
+        cd += GraphCapped( GetConVarFloat("sp_difficulty"), 0, 3, 1, 0.5 )
     
     ModWeaponVars_ScaleVar( weapon, eWeaponVar.charge_cooldown_time, cd )
     ModWeaponVars_ScaleVar( weapon, eWeaponVar.regen_ammo_refill_rate, 1.0 / cd )

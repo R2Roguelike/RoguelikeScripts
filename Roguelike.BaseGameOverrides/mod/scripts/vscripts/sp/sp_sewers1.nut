@@ -579,6 +579,7 @@ entity function ChannelMortarRun_SpawnFriendlyTitan( entity spawner, string name
 
 void function ChannelMortarRun_DropShipsThink()
 {
+	return
 	FlagWait( "Intro_spawn_dropship" )
 
 	array<entity> spawners = GetEntArrayByScriptName( "Intro_dropship" )
@@ -1913,238 +1914,6 @@ void function SewerArena_DefendCombat( entity player )
 	array<entity> dropshipSpawners
 	int numReqDead
 
-
-	// ---------------------------------------------------------------
-	// PART 1 - Ticks only!
-	// ---------------------------------------------------------------
-
-	// Goblin 1-5 releasing Ticks.
-	PlayDialogue( "IMC_DROP_TICKS", ceilingSfxEmitter )
-
-	FlagSet( "SewerDefend_tickship_mid" )
-	FlagSet( "SewerDefend_tickship_left" )
-	FlagSet( "SewerDefend_tickship_right" )
-
-	wait 1.0
-	PlayDialogue( "SewerArena_imc_ticksReleased1", ceilingSfxEmitter )
-	thread SewerArena_LaunchTicks( "tickspawner_mid", 3, 1, 2 )
-	thread SewerArena_LaunchTicks( "tickspawner_left", 3, 1, 2 )
-	thread SewerArena_LaunchTicks( "tickspawner_right", 3, 1, 2 )
-
-	wait 1.0
-	Objective_Set( "#SEWERS_OBJ_SEWER_ARENA_DEFEND" )
-
-	wait 1.0
-	PlayDialogue( "PA_PUMP_SHUTDOWN_20", ceilingSfxEmitter )
-
-	// Give ticks some time to breathe
-	array<entity> ticks = GetNPCArrayByClass( "npc_frag_drone" )
-	WaitUntilPercentDead_WithTimeout( ticks, 0.25, 10.0 )
-
-	wait 1.0
-	PlayerConversation( "BT_SludgeCantShoot", player )
-
-	// ---------------------------------------------------------------
-	// PART 2 - Ticks then grunts  ( 3 grunts per dropship )
-	// ---------------------------------------------------------------
-
-	// ------------------------ CENTER ------------------------
-	FlagClear( "DropshipDeploy_W" )
-	dropshipSpawners = [ dropshipSpawner_W ]
-	file.numSpawnGroupsFinished = 0
-
-	thread SpawnFromDropship_AddToArray( dropshipSpawner_W, allSpawned )
-	wait 3.75  // takes this long to reach the deploy spot
-
-	PlayDialogue( "SewerArena_imc_ticksReleased1", ceilingSfxEmitter )
-	thread SewerArena_LaunchTicks( "tickspawner_mid", 3, 1, 3 )
-	wait 2.0  // wait before letting squad rappel
-
-	FlagSet( "DropshipDeploy_W" )
-
-	PlayDialogue( "SewerArena_imc_reinforce1", ceilingSfxEmitter )
-
-	while ( file.numSpawnGroupsFinished < dropshipSpawners.len() )
-		wait 1
-
-
-	// ------------------------ RIGHT ------------------------
-	FlagClear( "DropshipDeploy_NW" )
-	dropshipSpawners = [ dropshipSpawner_NW ]
-	file.numSpawnGroupsFinished = 0
-
-	thread SpawnFromDropship_AddToArray( dropshipSpawner_NW, allSpawned )
-	wait 3.75 // takes this long to reach the deploy spot
-
-	PlayDialogue( "SewerArena_imc_ticksReleased2", ceilingSfxEmitter )
-	thread SewerArena_LaunchTicks( "tickspawner_left", 3, 1, 3 )
-	wait 2.0  // wait before letting squad rappel
-
-	FlagSet( "DropshipDeploy_NW" )
-
-	PlayDialogue( "SewerArena_imc_reinforce2", ceilingSfxEmitter )
-
-	while ( file.numSpawnGroupsFinished < dropshipSpawners.len() )
-		wait 1.0
-
-
-	// Pump status update
-	wait 1.0
-	PlayDialogue( "PA_PUMP_SHUTDOWN_40", ceilingSfxEmitter )
-	CheckPoint_Silent()
-
-	// ------------------------ LEFT ------------------------
-	FlagClear( "DropshipDeploy_SW" )
-	dropshipSpawners = [ dropshipSpawner_SW ]
-	file.numSpawnGroupsFinished = 0
-
-	thread SpawnFromDropship_AddToArray( dropshipSpawner_SW, allSpawned )
-	wait 3.75 // takes this long to reach the deploy spot
-
-	PlayDialogue( "SewerArena_imc_ticksReleased3", ceilingSfxEmitter )
-	thread SewerArena_LaunchTicks( "tickspawner_right", 3, 1, 3 )
-	wait 2.0  // wait before letting squad rappel
-
-	FlagSet( "DropshipDeploy_SW" )
-
-	// Squad 2 rappelling now!
-	PlayDialogue( "SewerArena_imc_reinforce3", ceilingSfxEmitter )
-
-	while ( file.numSpawnGroupsFinished < dropshipSpawners.len() )
-		wait 1.0
-
-
-	// ---------------------------------------------------------------
-	// INTERMISSION
-	// ---------------------------------------------------------------
-
-	// Wait until % of all grunts dead, or timeout
-	WaitUntilPercentDead_WithTimeout( allSpawned, 0.25, 30.0 )
-
-	CheckPoint_Silent()
-
-
-	// ---------------------------------------------------------------
-	// PART 3 - More grunts!  ( 4 grunts per dropship )
-	// ---------------------------------------------------------------
-
-	// ------------------------ LEFT ------------------------
-	FlagClear( "DropshipDeploy_SE" )
-	dropshipSpawners = [ dropshipSpawner_SE ]
-	file.numSpawnGroupsFinished = 0
-
-	thread SpawnFromDropship_AddToArray( dropshipSpawner_SE, allSpawned )
-	wait 3.75 // takes this long to reach the deploy spot
-
-	PlayDialogue( "SewerArena_imc_ticksReleased3", ceilingSfxEmitter )
-	thread SewerArena_LaunchTicks( "tickspawner_right", 3, 1, 3 )
-	wait 2.0  // wait before letting squad rappel
-
-	FlagSet( "DropshipDeploy_SE" )
-
-	// Squad 2 rappelling now!
-	PlayDialogue( "SewerArena_imc_reinforce3", ceilingSfxEmitter )
-
-	while ( file.numSpawnGroupsFinished < dropshipSpawners.len() )
-		wait 1.0
-
-
-	// ------------------------ RIGHT ------------------------
-	FlagClear( "DropshipDeploy_NE" )
-	dropshipSpawners = [ dropshipSpawner_NE ]
-	file.numSpawnGroupsFinished = 0
-
-	thread SpawnFromDropship_AddToArray( dropshipSpawner_NE, allSpawned )
-	wait 3.75 // takes this long to reach the deploy spot
-
-	PlayDialogue( "SewerArena_imc_ticksReleased2", ceilingSfxEmitter )
-	thread SewerArena_LaunchTicks( "tickspawner_left", 3, 1, 3 )
-	wait 2.0  // wait before letting squad rappel
-
-	FlagSet( "DropshipDeploy_NE" )
-
-	PlayDialogue( "SewerArena_imc_reinforce2", ceilingSfxEmitter )
-
-	while ( file.numSpawnGroupsFinished < dropshipSpawners.len() )
-		wait 1.0
-
-
-	//wait until % of all grunts dead
-	WaitUntilPercentDead_WithTimeout( allSpawned, 0.5, 30.0 )
-
-	CheckPoint_Silent()
-
-	wait 4.0
-
-
-	// ---------------------------------------------------------------
-	// PART 4 - More Ticks!
-	// ---------------------------------------------------------------
-	PlayDialogue( "SewerArena_boss_tickWaveStart", ceilingSfxEmitter )
-
-	FlagSet( "SewerDefend_tickship_mid" )
-	FlagSet( "SewerDefend_tickship_left" )
-	FlagSet( "SewerDefend_tickship_right" )
-
-	wait 3.0
-
-	thread SewerArena_LaunchTicks( "tickspawner_mid", 4, 1, 2 )
-	thread SewerArena_LaunchTicks( "tickspawner_left", 4, 1, 2 )
-	thread SewerArena_LaunchTicks( "tickspawner_right", 4, 1, 2 )
-
-	//wait until % of all grunts dead
-	WaitUntilPercentDead_WithTimeout( allSpawned, 0.5, 15.0 )
-
-	PlayDialogue( "PA_PUMP_SHUTDOWN_50", ceilingSfxEmitter )
-	StopMusicTrack("music_reclamation_17_activatesluice" )
-	PlayMusic( "music_reclamation_17a_thingsgetbad" )
-	CheckPoint_Silent()
-
-	// ---------------------------------------------------------------
-	// PART 5 - EVERYONE!!!!  ( 18 grunts...maybe a bit much... )
-	// ---------------------------------------------------------------
-	FlagClear( "DropshipDeploy_W" )
-	FlagClear( "DropshipDeploy_NW" )
-	FlagClear( "DropshipDeploy_SW" )
-	FlagClear( "DropshipDeploy_NE" )
-	FlagClear( "DropshipDeploy_SE" )
-	dropshipSpawners = [ dropshipSpawner_W, dropshipSpawner_NW, dropshipSpawner_SW, dropshipSpawner_NE, dropshipSpawner_SE ]
-	file.numSpawnGroupsFinished = 0
-
-	// All dropships deploy immediately
-	FlagSet( "DropshipDeploy_W" )
-	FlagSet( "DropshipDeploy_NW" )
-	FlagSet( "DropshipDeploy_SW" )
-	FlagSet( "DropshipDeploy_NE" )
-	FlagSet( "DropshipDeploy_SE" )
-
-	thread SpawnFromDropship_AddToArray( dropshipSpawner_SW, allSpawned )
-	wait 2.5
-	thread SpawnFromDropship_AddToArray( dropshipSpawner_NW, allSpawned )
-	wait 5.0
-	thread SpawnFromDropship_AddToArray( dropshipSpawner_W, allSpawned )
-	wait 5.0
-	thread SpawnFromDropship_AddToArray( dropshipSpawner_NE, allSpawned )
-	wait 1.0
-	thread SpawnFromDropship_AddToArray( dropshipSpawner_SE, allSpawned )
-
-	while ( file.numSpawnGroupsFinished < dropshipSpawners.len() )
-		wait 1
-
-
-	// ---------------------------------------------------------------
-	// PART 6 - Grand finale - Pumps shut down, BT cleans up
-	// ---------------------------------------------------------------
-	PlayDialogue( "PA_PUMP_SHUTDOWN_80", ceilingSfxEmitter )
-	PlayMusic( "music_reclamation_18_sluicebuildup" )
-	CheckPoint_Silent()
-
-	// "sewers_scripted_curtainoffsequence_alarm" is exactly 29 seconds long and builds up over time and we want to make sure it does that.
-	wait 15
-	PlayDialogue( "PA_PUMP_SHUTDOWN_90", ceilingSfxEmitter )
-	CheckPoint_Silent()
-	wait 11.5
-
 	FlagSet( "SewerArena_pumps_start_shutdown" )
 	CheckPoint_Silent()
 
@@ -2156,13 +1925,6 @@ void function SewerArena_DefendCombat( entity player )
 
 	PlayDialogue( "PA_PUMP_SHUTDOWN_COMPLETE", ceilingSfxEmitter )
 
-	// Send all grunts attack BT area
-	SquadAssaultEntity( "northwest", moveTargetNW )
-	SquadAssaultEntity( "northeast", moveTargetNW )
-	SquadAssaultEntity( "west", moveTargetW )
-	SquadAssaultEntity( "southwest", moveTargetSW )
-	SquadAssaultEntity( "southeast", moveTargetSW )
-
 	// Sludge curtains removed, BT starts firing into area
 	thread SewerArena_SludgeWaterfalls_Shutdown()
 
@@ -2172,13 +1934,6 @@ void function SewerArena_DefendCombat( entity player )
 
 	wait 2.0
 
-	thread SewerArena_SludgeWaterfalls_ShutdownVO( player )
-
-	// Progression wait until player and BT mop up all the reinforcements
-	WaitUntilPercentDead_WithTimeout( allSpawned, 1, 120.0 )
-
-	wait 3.0
-
 	// ---------------------------------------------------------------
 	// PART 7 - All done. Let's move out.
 	// ---------------------------------------------------------------
@@ -2186,11 +1941,6 @@ void function SewerArena_DefendCombat( entity player )
 	Objective_Clear()
 
 	SewerArena_BTExit( player )
-
-	// Pilot, that was a difficult battle. You handled yourself well. I have noted it for the record.
-	PlayBTDialogue( "BT_HANDLED_YOURSELF_WELL" )
-
-	wait 1.0
 
 	// Pilot, I have identified an exit on this side. This way.
 	thread PlayBTDialogue( "BT_EXIT_THIS_WAY" )

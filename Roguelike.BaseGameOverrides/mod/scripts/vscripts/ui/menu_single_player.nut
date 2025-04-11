@@ -9,6 +9,7 @@ global function ServerCallback_GetObjectiveReminderOnLoad
 global function ServerCallback_ClearObjectiveReminderOnLoad
 global function ScriptCallback_Beacon_FreeTrialOverMessage
 global function Roguelike_StartNewRunMenu
+global function Roguelike_ContinueRun
 
 struct SPLevelStartStruct
 {
@@ -223,10 +224,15 @@ void function SPButton_Click( var button, int elemNum )
 	DifficultyMenuPopUp()
 }
 
+void function Roguelike_ContinueRun()
+{
+	LoadLastCheckpoint()
+}
+
 void function Roguelike_StartNewRunMenu()
 {
-	file.selectedLevel = "sp_crashsite"
-	file.selectedStartPoint = GetStartPointNameFromIndex( "sp_crashsite", 7 )
+	file.selectedLevel = "sp_sewers1"
+	file.selectedStartPoint = GetStartPointNameFromIndex( "sp_sewers1", 0 )
 	AdvanceMenu( GetMenu( "RunSetup" ) )
 }
 

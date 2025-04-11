@@ -30,23 +30,21 @@ void function InventorySlot_Display( var slot, var content )
     
     int segmentCount = Roguelike_GetItemMaxLevel( content )
     int length = Hud_GetWidth( energyBarPilot )
-    printt(length)
     int gap = segmentCount - length % segmentCount
-    printt(gap)
     if (gap < 1)
         gap = (segmentCount - length % segmentCount) + segmentCount
     int segmentWidth = (length + gap) / segmentCount - gap
-    printt(segmentWidth)
 
     Hud_SetBarSegmentInfo( energyBarPilot, gap, segmentWidth )
     Hud_SetBarSegmentInfo( energyBarTitan, gap, segmentWidth )
 
-    Hud_SetBarProgress( energyBarPilot, expect int(content.level) / float(segmentCount)  )
+    Hud_SetBarProgress( energyBarPilot, expect int(content.level) / float(Roguelike_GetItemMaxLevel( content ))  )
     Hud_SetBarProgress( energyBarTitan, 1 )
 
     switch (content.type)
     {
         case "armor_chip":
+            bool isTitan = expect bool(content.isTitan)
             switch (content.rarity)
             {
                 case RARITY_COMMON:
@@ -66,29 +64,26 @@ void function InventorySlot_Display( var slot, var content )
                     break
             }
             Hud_SetImage( icon, $"ui/armor_chip" )
-            Hud_SetColor( slotLabel, 25, 25, 25, 255 )
-            float pilotEnergy = float( content.pilotEnergy ) / 15.0
-            float titanEnergy = float( content.titanEnergy ) / 15.0
+            Hud_SetColor( icon, 25, 25, 25, 255 )
             
             switch (expect int( content.slot ))
             {
                 case 1:
-                    Hud_SetColor( icon, 0, 214, 255, 255 )
-                    Hud_SetText( slotLabel, "A" )
+                    Hud_SetColor( slotLabel, 0, 214, 255, 255 )
+                    Hud_SetText( slotLabel, isTitan ? "A" : "E" )
                     break
                 case 2:
-                    Hud_SetColor( icon, 165, 255, 0, 255 )
-                    Hud_SetText( slotLabel, "B" )
+                    Hud_SetColor( slotLabel, 165, 255, 0, 255 )
+                    Hud_SetText( slotLabel, isTitan ? "B" : "F" )
                     break
                 case 3:
                     // note, this  slightly breaks the square pallette in favor of accessibility
-                    Hud_SetColor( icon, 197, 0, 255, 255 )
-                    Hud_SetColor( slotLabel, 255, 255, 255, 255 )
-                    Hud_SetText( slotLabel, "C" )
+                    Hud_SetColor( slotLabel, 197, 0, 255, 255 )
+                    Hud_SetText( slotLabel, isTitan ? "C" : "G" )
                     break
                 case 4:
-                    Hud_SetColor( icon, 255, 117, 0, 255 )
-                    Hud_SetText( slotLabel, "D" )
+                    Hud_SetColor( slotLabel, 255, 117, 0, 255 )
+                    Hud_SetText( slotLabel, isTitan ? "D" : "H" )
                     break
             }
             break

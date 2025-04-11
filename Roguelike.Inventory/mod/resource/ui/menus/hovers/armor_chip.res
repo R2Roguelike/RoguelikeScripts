@@ -73,7 +73,7 @@ resource/ui/menus/hovers/armor_chip.res
 		SegmentGap			6
 		visible				1
 
-		fgcolor_override	"25 25 25 75"
+		fgcolor_override	"25 25 25 255`"
 		scaleImage			1
 
 		wide				380
@@ -99,7 +99,7 @@ resource/ui/menus/hovers/armor_chip.res
 		SegmentGap			6
 		visible				1
 
-		fgcolor_override	"25 25 25 255"
+		fgcolor_override	"15 15 15 255"
 		scaleImage			1
 
 		wide				380
@@ -136,7 +136,7 @@ resource/ui/menus/hovers/armor_chip.res
         pin_to_sibling_corner	TOP_RIGHT
 	}
 
-    Armor
+    Stat0
 	{
         ControlName			CNestedPanel
         Classname			GridButtonClass
@@ -154,96 +154,30 @@ resource/ui/menus/hovers/armor_chip.res
 		pin_corner_to_sibling	TOP
 		pin_to_sibling_corner	BOTTOM
 	}
-    Energy
-	{
-        ControlName			CNestedPanel
-        Classname			GridButtonClass
-        controlSettingsFile	"resource/ui/menus/hovers/stat_bar.res"
-        xpos            0
-        ypos			8
-        wide			384
-        tall			24
-        visible			1
-        scaleImage		1
+    SubStats
+    {
+        ControlName				Label
+        visible					1
+        enabled					1
+        auto_wide_tocontents	0
+        auto_tall_tocontents	1
+        labelText				"Balls^FF000000 +1"
+        fgcolor_override		"255 255 255 255"
+        textAlignment			west
+        //fgcolor_override 		"255 255 255 255"
+        //bgcolor_override 		"0 0 0 200"
+        font					JetBrainsMonoBold_20
 
-        zpos			1
+		wide				370
+        tall                28
+        wrap                0
 
-		pin_to_sibling			Armor
-		pin_corner_to_sibling	TOP
-		pin_to_sibling_corner	BOTTOM
-	}
-    Power
-	{
-        ControlName			CNestedPanel
-        Classname			GridButtonClass
-        controlSettingsFile	"resource/ui/menus/hovers/stat_bar.res"
-        xpos            0
-        ypos			8
-        wide			384
-        tall			24
-        visible			1
-        scaleImage		1
-
-        zpos			1
-
-		pin_to_sibling			Energy
-		pin_corner_to_sibling	TOP
-		pin_to_sibling_corner	BOTTOM
-	}
-    Temper
-	{
-        ControlName			CNestedPanel
-        Classname			GridButtonClass
-        controlSettingsFile	"resource/ui/menus/hovers/stat_bar.res"
-        xpos            0
-        ypos			8
-        wide			384
-        tall			24
-        visible			1
-        scaleImage		1
-
-        zpos			1
-
-		pin_to_sibling			Power
-		pin_corner_to_sibling	TOP
-		pin_to_sibling_corner	BOTTOM
-	}
-    Speed
-	{
-        ControlName			CNestedPanel
-        Classname			GridButtonClass
-        controlSettingsFile	"resource/ui/menus/hovers/stat_bar.res"
-        xpos            0
-        ypos			8
-        wide			384
-        tall			24
-        visible			1
-        scaleImage		1
-
-        zpos			1
-
-		pin_to_sibling			Temper
-		pin_corner_to_sibling	TOP
-		pin_to_sibling_corner	BOTTOM
-	}
-    Endurance
-	{
-        ControlName			CNestedPanel
-        Classname			GridButtonClass
-        controlSettingsFile	"resource/ui/menus/hovers/stat_bar.res"
-        xpos            0
-        ypos			8
-        wide			384
-        tall			24
-        visible			1
-        scaleImage		1
-
-        zpos			1
-
-		pin_to_sibling			Speed
-		pin_corner_to_sibling	TOP
-		pin_to_sibling_corner	BOTTOM
-	}
+		"xpos"			"-7"
+		"ypos"			"8"
+		pin_to_sibling			Stat0
+		pin_corner_to_sibling	TOP_LEFT
+		pin_to_sibling_corner	BOTTOM_LEFT
+    }
 
     Footer
     {
@@ -251,7 +185,7 @@ resource/ui/menus/hovers/armor_chip.res
 
         image			"vgui/hud/white"
 
-        drawColor	"25 25 25 255"
+        drawColor	"15 15 15 255"
         scaleImage			1
 
         wide				400

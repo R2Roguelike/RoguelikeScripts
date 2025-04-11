@@ -1,5 +1,6 @@
 untyped
 global function ModWeaponVars_ScaleVar
+global function ModWeaponVars_AddToVar
 global function ModWeaponVars_ScaleDamage
 global function AddCallback_ApplyModWeaponVars
 global function CodeCallback_ApplyModWeaponVars
@@ -13,6 +14,7 @@ global function CodeCallback_PredictWeaponMods
 #endif
 global function ScaleCooldown
 global function Roguelike_GetOffhandWeaponByName
+global function Roguelike_FindWeaponForDamageInfo
 
 // doing overrides last 
 global const int WEAPON_VAR_PRIORITY_OVERRIDE = 0
@@ -87,6 +89,22 @@ void function ModWeaponVars_ScaleDamage( entity weapon, float scalar )
     }
 }
 
+void function ModWeaponVars_AddToVar( entity weapon, int weaponVar, scalar )
+{
+    switch (ModWeaponVars_GetType(weaponVar))
+    {
+        case 1:
+            ModWeaponVars_SetInt( weapon, weaponVar, int(RoundToNearestInt(weapon.GetWeaponSettingInt(weaponVar) + scalar) ) )
+            break
+        case 2:
+            ModWeaponVars_SetFloat( weapon, weaponVar, weapon.GetWeaponSettingFloat(weaponVar) + scalar )
+            break
+        default:
+            throw "WeaponVar is not of type int or float!"
+            break
+    }
+}
+
 void function ModWeaponVars_ScaleVar( entity weapon, int weaponVar, float scalar )
 {
     switch (ModWeaponVars_GetType(weaponVar))
@@ -121,6 +139,7 @@ void function AddCallback_ApplyModWeaponVars( int priority, void functionref( en
         if (arr.priority == priority)
         {
             arr.callbacks.append(callback)
+            return
         }
     }
 
@@ -152,14 +171,28 @@ void function CodeCallback_ApplyModWeaponVars( entity weapon )
     // its not ready yet :(
     if (weapon.GetWeaponClassName() == "")
         return
-
+    
+    if (!("lastPrint" in weapon.s))
+        weapon.s.lastPrint <- 0.0
+    float lastPrint = expect float(weapon.s.lastPrint)
+    lastPrint = 999999.9 // comment for modweaponvars debugging
     foreach (CallbackArray arr in file.weaponVarCallbacks)
     {
+        printt()
+        if (Time() - lastPrint > 1.0)
+            printt("PRIORITY ", arr.priority)
         foreach (void functionref( entity ) callback in arr.callbacks)
         {
+            if (Time() - lastPrint > 1.0)
+                print( callback)
             callback( weapon )
         }
     }
+    if (Time() - lastPrint > 1.0)
+    {
+        lastPrint = Time()
+    }
+    weapon.s.lastPrint = lastPrint
 }
 
 #if CLIENT
@@ -294,11 +327,20 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
             // maintain offhand index
             titan.s.storedAbilities[i] = offhandWeapon
         }
+        printt("new offhands")
         titan.GiveOffhandWeapon( titanLoadout.melee, OFFHAND_MELEE )
         titan.GiveOffhandWeapon( titanLoadout.ordnance, OFFHAND_ORDNANCE )
         titan.GiveOffhandWeapon( titanLoadout.special, OFFHAND_SPECIAL )
         titan.GiveOffhandWeapon( titanLoadout.antirodeo, OFFHAND_TITAN_CENTER )
         titan.GiveOffhandWeapon( titanLoadout.coreAbility, OFFHAND_EQUIPMENT )
+        foreach (entity offhand in titan.GetOffhandWeapons())
+        {
+            ModWeaponVars_CalculateWeaponMods( offhand )
+            if (offhand.GetWeaponPrimaryClipCountMax() > 0)
+                offhand.SetWeaponPrimaryClipCountAbsolute(offhand.GetWeaponPrimaryClipCountMax())
+            if (offhand.IsChargeWeapon())
+                offhand.SetWeaponChargeFractionForced(0.0)
+        }
     }
     else
     {
@@ -322,8 +364,16 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
                 entity newOffhand = expect entity( titan.s.storedAbilities[i] )
                 if (!IsValid(newOffhand) || newOffhand.GetWeaponClassName() != GetOffhandWeaponBySlot( titanLoadout, i ))
                 {
+                    printt("new offhand", i)
                     titan.GiveOffhandWeapon( GetOffhandWeaponBySlot( titanLoadout, i ), i )
                     newOffhand = titan.GetOffhandWeapon(i)
+                    ModWeaponVars_CalculateWeaponMods( newOffhand )
+                    if (newOffhand.GetWeaponPrimaryClipCountMax() > 0)
+                    {
+                        newOffhand.SetWeaponPrimaryClipCountAbsolute(newOffhand.GetWeaponPrimaryClipCountMax())
+                    }
+                    if (newOffhand.IsChargeWeapon())
+                        newOffhand.SetWeaponChargeFractionForced(0.0)
                 }
                 if ("storedWeaponOwner" in newOffhand.s)
                     delete newOffhand.s.storedWeaponOwner
@@ -360,6 +410,23 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
             }
         }
     }
+    foreach (entity w in titan.GetOffhandWeapons())
+    {
+        if (w.GetWeaponClassName() == "mp_titanability_power_shot")
+        {
+            if (primary.HasMod("LongRangeAmmo"))
+                w.AddMod("power_shot_ranged_mode")
+            else
+                w.RemoveMod("power_shot_ranged_mode")
+        }
+        if (w.GetWeaponClassName() == "mp_titanability_ammo_swap")
+        {
+            if (primary.HasMod("LongRangeAmmo"))
+                w.AddMod("ammo_swap_ranged_mode")
+            else
+                w.RemoveMod("ammo_swap_ranged_mode")
+        }
+    }
 
     SoulTitanCore_SetNextAvailableTime( soul, coreValue )
 
@@ -389,7 +456,7 @@ string function GetOffhandWeaponBySlot( TitanLoadoutDef titanLoadout, int offhan
     return ""
 }
 
-void function RestoreCooldown( entity weapon, float frac )
+void function RestoreCooldown( entity weapon, float frac ) 
 {
     if (!IsValid(weapon) || weapon.GetWeaponClassName() == "")
         return
@@ -402,7 +469,8 @@ void function RestoreCooldown( entity weapon, float frac )
         case "ammo_timed":
             int ammo = weapon.GetWeaponPrimaryClipCount()
             int maxAmmo = weapon.GetWeaponPrimaryClipCountMax()
-            weapon.SetWeaponPrimaryClipCountNoRegenReset( minint( ammo + RoundToInt(frac * maxAmmo), maxAmmo ) )
+            int ammoPerShot = weapon.GetAmmoPerShot()
+            weapon.SetWeaponPrimaryClipCountNoRegenReset( minint( ammo + RoundToInt(frac * ammoPerShot), maxAmmo ) )
             break
         
         case "charged_shot":
@@ -426,9 +494,71 @@ void function RestoreCooldown( entity weapon, float frac )
                 break
             owner.SetSuitGrapplePower( owner.GetSuitGrapplePower() + RoundToInt(frac * 100) )
             break
+
+        default:
+            printt("cooldown_type", weapon.GetWeaponInfoFileKeyField("cooldown_type"), "not supported")
     }
 }
 #endif
+
+entity function Roguelike_FindWeaponForDamageInfo( var damageInfo )
+{
+    entity attacker = DamageInfo_GetAttacker( damageInfo )
+    if (!IsValid(attacker))
+        return
+
+    entity weapon = DamageInfo_GetWeapon( damageInfo )
+    if (IsValid(weapon))
+        return weapon
+
+    // melee uses the player as the inflictor and provides no weapon
+    int damageType = DamageInfo_GetCustomDamageType( damageInfo )
+    if ((damageType & DF_MELEE) > 0)
+        return attacker.GetOffhandWeapon(OFFHAND_MELEE)
+
+    entity inflictor = DamageInfo_GetInflictor( damageInfo )
+
+    if (!IsValid(inflictor))
+        return null
+    
+    if (inflictor.GetClassName() == "weaponx")
+        return inflictor
+    
+    if (!inflictor.IsProjectile())
+        return null
+    
+    string weaponName = inflictor.ProjectileGetWeaponClassName()
+
+    return Roguelike_FindWeapon( attacker, weaponName )
+}
+
+entity function Roguelike_FindWeapon( entity player, string weapon )
+{
+    array<entity> currentOffhandWeapons = player.GetOffhandWeapons()
+    currentOffhandWeapons.extend(player.GetMainWeapons())
+
+    foreach (entity w in currentOffhandWeapons)
+    {
+        if (w.GetWeaponClassName() == weapon)
+            return w
+    }
+
+    if (!player.IsPlayer())
+        return
+
+    if (!("storedAbilities" in player.s))
+        return null
+    
+    foreach (var w in player.s.storedAbilities)
+    {
+        if (w == null || !IsValid(w))
+            continue
+        if (w.GetWeaponClassName() == weapon)
+            return expect entity(w)
+    }
+
+    return null
+}
 
 entity function Roguelike_GetOffhandWeaponByName( entity player, string weapon )
 {
@@ -437,7 +567,6 @@ entity function Roguelike_GetOffhandWeaponByName( entity player, string weapon )
 
     foreach (entity w in currentOffhandWeapons)
     {
-        printt( w.GetWeaponClassName())
         if (w.GetWeaponClassName() == weapon)
             return w
     }

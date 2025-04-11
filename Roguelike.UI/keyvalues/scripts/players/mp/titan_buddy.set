@@ -5,5 +5,18 @@
 		ui_targetinfo				""
         ui_targetinfo               "" [$mp]
         ui_targetinfo               "" [$sp]
+        
+        dodgePowerDrain		49
+        powerRegenRate		12.25
+        dodgePowerDelay		0.2
+
+        ClassMods
+        {
+			pas_mobility_dash_capacity
+			{
+				dodgePowerDrain		33
+                powerRegenRate		8.25
+			}
+        }
     }
 }

@@ -111,7 +111,7 @@ void function CheckPoint_FromData( CheckPointData checkPointData )
 	array<entity> safeLocations = checkPointData.safeLocations
 	bool functionref( entity ) ornull additionalCheck = checkPointData.additionalCheck
 
-	if ( !Flag( "SaveGame_Enabled" ) || !GetConVarBool("sv_cheats") ) // no saves in roguelike
+	if ( !Flag( "SaveGame_Enabled" ) ) // no saves in roguelike
 	{
 		printt( "SAVEGAME: failed: Saves are disabled" )
 		return
@@ -737,6 +737,7 @@ bool function SafeForCheckPoint( entity player )
 
 void function BroadcastCheckpointMessage()
 {
+	printt("CHECKPOINT")
 	if ( file.nextSaveSilent )
 	{
 		file.nextSaveSilent = false

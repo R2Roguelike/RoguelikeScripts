@@ -1,3 +1,4 @@
 WeaponData
 {
+    "OnProjectileCollision" "OnProjectileCollision_weapon_grenade_emp"
 }
