@@ -333,7 +333,7 @@ void function __ShipFlyIdle( ShipStruct ship, vector followBounds, entity target
 				DevDrawFlyEdgeLogic( ship, baseAngles, followBounds, followOffset, baseOrigin, mover, flightData.goalOffset, flightData.newOffset )
 		#endif
 
-		WaitFrame()
+		wait 0.09
 	}
 }
 
@@ -389,7 +389,7 @@ void function __ShipFlyToPosInternal( ShipStruct ship, entity followTarget, Loca
 			}
 		#endif
 
-		WaitFrame()
+		wait 0.09
 	}
 }
 
@@ -511,7 +511,7 @@ void function __ShipFlyAlongEdge( ShipStruct ship, vector followBounds, vector f
 			if ( DEV_DRAWCHASELOGIC && GetBugReproNum() == ship.bug_reproNum )
 				DevDrawFlyEdgeLogic( ship, CONVOYDIR, followBounds, followOffset, baseOrigin, mover, flightData.goalOffset, flightData.newOffset )
 		#endif
-		WaitFrame()
+		wait 0.09
 	}
 }
 
@@ -1450,7 +1450,7 @@ void function __LerpValue( 	ShipStruct ship, float functionref( ShipStruct ) Get
 	{
 		float frac = ( i.tofloat() / cycles.tofloat() )
 		SetValue( ship, start + ( delta * frac ) )
-		WaitFrame()
+		wait 0.09
 	}
 
 	SetValue( ship, value )

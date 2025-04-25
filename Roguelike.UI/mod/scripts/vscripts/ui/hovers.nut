@@ -36,8 +36,8 @@ void function Hover_Init()
     file.menu = menu
 
     file.preHoverCallbacks[HOVER_SIMPLE] <- void function( var panel ) : (){
-        Hud_SetColor( Hud_GetChild(panel, "TitleStrip"), 64, 64, 64, 255 )
-        Hud_SetColor( Hud_GetChild(panel, "BG"), 48, 48, 48, 255 )
+        Hud_SetColor( Hud_GetChild(panel, "TitleStrip"), 40, 40, 40, 255 )
+        Hud_SetColor( Hud_GetChild(panel, "BG"), 25,25,25, 255 )
     }
 
     file.postHoverCallbacks[HOVER_SIMPLE] <- void function( var panel ) : (){

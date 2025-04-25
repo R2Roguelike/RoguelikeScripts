@@ -57,6 +57,7 @@ global const FD_INSANE = "fd_insane"
 global const PVE_SANDBOX = "pve_sandbox"
 global const TITAN_BRAWL = "ttdm"
 
+global const VERBOSE_HEALTH_PRINTOUTS = true
 global const VERBOSE_DAMAGE_PRINTOUTS = false
 global bool verboseDamagePrintouts = false
 
@@ -1061,7 +1062,7 @@ global const OFFHAND_COUNT			= 6
 global const OFFHAND_ORDNANCE		= OFFHAND_RIGHT
 global const OFFHAND_SPECIAL		= OFFHAND_LEFT
 
-global const SHIELD_REGEN_TICK_TIME 					= 0.1
+global const SHIELD_REGEN_TICK_TIME 					= 0.099
 global const HARVESTER_BEAM_TICK_TIME					= 1.0
 global const TITAN_DOOMED_REGEN_DELAY					= 0.5
 global const TITAN_DOOMED_REGEN_AMOUNT					= 0.0025

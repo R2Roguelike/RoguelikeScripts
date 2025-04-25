@@ -1,7 +1,6 @@
 classes
 {
-	import base_vehicle.txt
-
+	import npc_titan_buddy_s2s.txt
 	import npc_bullseye.txt
 	import npc_drone.txt
 	import npc_drone_beam.txt
@@ -62,7 +61,6 @@ classes
 	import npc_titan_arc.txt
 	import npc_titan_atlas.txt
 	import npc_titan_atlas_stickybomb.txt
-	import npc_titan_atlas_stickybomb_boss_fd.txt
 	import npc_titan_atlas_tracker.txt
 	import npc_titan_atlas_tracker_fd_sniper.txt
 	import npc_titan_atlas_tracker_boss_fd.txt
@@ -73,25 +71,18 @@ classes
 	import npc_titan_auto_atlas.txt
 	import npc_titan_auto_atlas_rocketeer.txt
 	import npc_titan_auto_atlas_stickybomb.txt
-	import npc_titan_auto_atlas_ion_prime.txt
 	import npc_titan_auto_atlas_tracker.txt
-	import npc_titan_auto_atlas_tone_prime.txt
 	import npc_titan_auto_atlas_vanguard.txt
 	import npc_titan_auto_ogre.txt
 	import npc_titan_auto_ogre_fighter.txt
 	import npc_titan_auto_ogre_meteor.txt
-	import npc_titan_auto_ogre_scorch_prime.txt
 	import npc_titan_auto_ogre_minigun.txt
-	import npc_titan_auto_ogre_legion_prime.txt
 	import npc_titan_auto_stryder.txt
 	import npc_titan_auto_stryder_arc.txt
 	import npc_titan_auto_stryder_leadwall.txt
-	import npc_titan_auto_stryder_ronin_prime.txt
 	import npc_titan_auto_stryder_sniper.txt
-	import npc_titan_auto_stryder_northstar_prime.txt
 	import npc_titan_buddy.txt
 	import npc_titan_buddy_skyway.txt
-	import npc_titan_buddy_s2s.txt
 	import npc_titan_mortar.txt
 	import npc_titan_nuke.txt
 	import npc_titan_ogre.txt
@@ -122,14 +113,9 @@ classes
 	import npc_turret_mega_old.txt
 	import npc_turret_mega_windup.txt
 	import npc_turret_mega_boss.txt
-	import npc_turret_mega_boss.txt
 	import npc_turret_sentry.txt
 	import npc_turret_sentry_plasma.txt
 	import npc_turret_sentry_plasma_skyway.txt
-	import npc_turret_sentry_burn_card_at.txt
-	import npc_turret_sentry_burn_card_ap.txt
-	import npc_turret_sentry_burn_card_at_fd.txt
-	import npc_turret_sentry_burn_card_ap_fd.txt
 	import npc_turret_sentry_tactical_ability.txt
 	import npc_turret_sentry_tday.txt
 	import npc_turret_sentry_windup.txt

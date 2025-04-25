@@ -11,6 +11,7 @@ global function IsSuicide
 global function CritWeaponInDamageInfo
 global function GetCriticalScaler
 global function HeavyArmorCriticalHitRequired
+global function Roguelike_GetCritDMG
 #endif
 
 #if CLIENT
@@ -53,15 +54,12 @@ float function Roguelike_GetCritRate( entity player, entity victim, var damageIn
 {
 	float base = Roguelike_BaseCritRate( Roguelike_GetStat( player, STAT_ENERGY ) )
 
-	if (StatusEffect_Get( victim, eStatusEffect.roguelike_puncture ) > 0.0)
+	if (RSE_Get( victim, RoguelikeEffect.legion_puncture ) > 0.0)
 		base += 0.25
 		
 	if ("weaponCrit" in player.s)
 	{
-		if (Time() - player.s.lastWeaponHitTime > 3.0)
-			player.s.weaponCrit = 0
-		
-		base += 0.005 * expect int(player.s.weaponCrit)
+		base += 0.005 * RSE_Get( player, RoguelikeEffect.overcrit )
 		if (verboseDamagePrintouts)
 			printt(format("+%.1f%% Crit Rate from Weapon Crit", 1 * expect int(player.s.weaponCrit)))
 	}
@@ -81,10 +79,22 @@ float function Roguelike_GetCritDMG( entity player, entity victim, var damageInf
 {
 	float base = Roguelike_BaseCritDMG( Roguelike_GetStat( player, STAT_POWER ) )
 
+	if (Roguelike_GetTitanLoadouts().contains("mp_titanweapon_sniper"))
+	{
+		float cur = RSE_Get( victim, RoguelikeEffect.northstar_fulminate )
+		if (DamageInfo_GetDamageSourceIdentifier( damageInfo ) == eDamageSourceId.mp_titanweapon_sniper)
+		{
+			base += cur * 0.35
+		}
+		else
+			RSE_Apply( victim, RoguelikeEffect.northstar_fulminate, min(cur + DamageInfo_GetDamage( damageInfo ) / 2500.0, 1.0) )
+	}
+
+
 	entity weapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
 	if ( IsValid( weapon ) && weapon.GetWeaponClassName() == "mp_titanweapon_predator_cannon" && weapon.HasMod("LongRangeAmmo") 
 		&& Roguelike_HasMod( player, "focus_crystal") )
-		base += 0.25
+		base += 0.3
 
 
 	return base
@@ -96,6 +106,7 @@ float function GetCriticalScaler( ent, damageInfo )
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
 	int hitBox = DamageInfo_GetHitBox( damageInfo )
 	local damageAmount = DamageInfo_GetDamage( damageInfo )
+	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 	bool randomCrits = !CritWeaponInDamageInfo( damageInfo )
 
 	if (!attacker.IsPlayer()) // enemies dont crit
@@ -111,7 +122,7 @@ float function GetCriticalScaler( ent, damageInfo )
 			critDMG += critRate - 1.0
 	}
 
-	if ( !randomCrits )
+	if ( !randomCrits && Roguelike_HasMod( attacker, "puncture_crit_dmg" ) )
 	{
 		critDMG += critRate // non-random crit weapons convert crit rate to crit dmg
 	}
@@ -123,7 +134,16 @@ float function GetCriticalScaler( ent, damageInfo )
 		printt("   Random Crits: ", randomCrits)
 	}
 
+
 	bool hitCritSpot = IsCriticalHit( attacker, ent, hitBox, damageAmount, DamageInfo_GetDamageType( damageInfo ) )
+
+	if (StatusEffect_Get( ent, eStatusEffect.tethered ) > 0.0 && Roguelike_HasMod( attacker, "tether_crit" ))
+		hitCritSpot = true
+
+	if (Roguelike_HasMod( attacker, "crit_backup" ) && !hitCritSpot)
+	{
+		randomCrits = true
+	}
 
 	if ( (RandomFloat(1.0) < critRate && randomCrits) || (hitCritSpot && !randomCrits) )
 	{	

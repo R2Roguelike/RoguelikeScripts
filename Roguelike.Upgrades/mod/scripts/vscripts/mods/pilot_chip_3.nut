@@ -5,6 +5,7 @@ void function PilotChip3_RegisterMods()
     {
         RoguelikeMod mod = NewMod("weapons_plus")
         mod.name = "Weapons+"
+        mod.abbreviation = "W+"
         mod.description = "Provides a different effect for each weapon type:\n\n" + 
         " SMGs: Reload time decreased.\n" +
         " LMGs: Magazine Size increased.\n" +
@@ -13,45 +14,51 @@ void function PilotChip3_RegisterMods()
         " Assault Rifles: Recoil decreased.\n" +
         " Snipers: Fire rate increased.\n" +
         " Grenadiers: Blast Radius increased."
-        mod.icon = $"vgui/hud/white"
         mod.cost = 3
     }
 
     {
         RoguelikeMod mod = NewMod("ranger")
         mod.name = "Ranger"
+        mod.abbreviation = "Rg"
         mod.description = "Hipfire spread decreased and range increased for all weapons."
-        mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }
     
     {
         RoguelikeMod mod = NewMod("loader")
         mod.name = "Loader"
+        mod.abbreviation = "Ld"
         mod.description = "Reload time slightly decreased for all weapons."
-        mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }
     
     {
         RoguelikeMod mod = NewMod("compensator")
         mod.name = "Compensator"
+        mod.abbreviation = "Cs"
         mod.description = "Recoil randomness significantly reduced. Overall recoil slightly reduced."
-        mod.icon = $"vgui/hud/white"
         mod.cost = 1
     }
     {
         RoguelikeMod mod = NewMod("headshot_booster")
         mod.name = "Headshot Booster"
+        mod.abbreviation = "HB"
         mod.description = "Hitting a headshot <cyan>heals you</> and grants that headshot <cyan>a +50% damage bonus</>."
-        mod.icon = $"vgui/hud/white"
         mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("random_headshot")
         mod.name = "Random Crits"
+        mod.abbreviation = "RC"
         mod.description = "All hits have a <cyan>20% chance</> to become a <burn>headshot</>."
-        mod.icon = $"vgui/hud/white"
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("force_dmg")
+        mod.name = "Act of Physics"
+        mod.abbreviation = "AoP"
+        mod.description = "Bonus Explosion Force increases damage <note>except self-damage</>."
         mod.cost = 2
     }
 }

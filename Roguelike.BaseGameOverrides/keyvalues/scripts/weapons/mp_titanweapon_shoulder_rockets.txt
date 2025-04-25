@@ -38,8 +38,8 @@ WeaponData
 	}
 
 	"charge_time" 									"-1"
-	"charge_cooldown_time"							"9999.0"
-	"charge_cooldown_delay"   						"9999.0"
+	"charge_cooldown_time"							"20.0"
+	"charge_cooldown_delay"   						"1.0"
 	"charge_end_forces_fire"  						"1"
 	"charge_remain_full_when_fired"					"1"
 

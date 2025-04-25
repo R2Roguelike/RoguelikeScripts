@@ -3,6 +3,7 @@ global struct RoguelikeMod
     string uniqueName = "unnamed_mod"
     string name = "UNNAMED MOD!!"
     string description = "THERE IS NO DESCRIPTION DEVS DIDNT MAKE ONE"
+    string abbreviation = "XXX"
     asset icon = $"vgui/hud/missing"
     int cost = 0
     bool isTitan = false
@@ -35,13 +36,6 @@ global struct StatusEffectData
     float fadeOutTime
 }
 
-// how much (in percent) health and damage enemies get for every power above the player
-// additive
-global const float POWER_SCALAR = 0.5
-global const float HEALTH_SCALAR = 0.75
-global const float HEALTH_SCALAR_TITAN = 1.5
-global const float DEF_SCALAR_TITAN = 20
-
 global const int MOD_SLOTS = 4;
 
 global const bool MOD_TYPE_TITAN = true
@@ -68,9 +62,11 @@ global const int RARITY_RARE        = 2;
 global const int RARITY_EPIC        = 3;
 global const int RARITY_LEGENDARY   = 4;
 
-global const int ENEMY_DEF_PER_LEVEL      = 75;
-global const int ENEMY_DEF_PER_LEVEL_EASY = 50;
-global const int ENEMY_HP_PER_LEVEL       = 500;
+global const int ENEMY_DEF_PER_LEVEL       = 50;
+global const int ENEMY_DEF_PER_LEVEL_EASY  = 50;
+global const int ENEMY_HP_PER_LEVEL        = 500;
+global const int ENEMY_HP_PER_LEVEL_HARD   = 750;
+global const int ENEMY_HP_PER_LEVEL_MASTER = 1000;
 
 global const int CHIP_MAIN_STAT_MULT = 5;
 
@@ -100,3 +96,48 @@ global const int SCORCH_RONIN = TITAN_BITS[PRIMARY_SCORCH] | TITAN_BITS[PRIMARY_
 global const int EXPEDITION_SCORCH = TITAN_BITS[PRIMARY_EXPEDITION] | TITAN_BITS[PRIMARY_SCORCH]
 global const int EXPEDITION_RONIN = TITAN_BITS[PRIMARY_EXPEDITION] | TITAN_BITS[PRIMARY_RONIN]
 global const int ALL_CHIP_SLOTS = 0xFFFF
+
+// Roguelike Status Effects
+// USE CASE: entities can only have 10 status effects at a time (oldest one gets overwritten when the 11th is applies)
+// and intensity precision is limited to fractions of 255
+// 
+
+global enum RoguelikeEffect
+{
+    invalid = -1,
+    burn,
+    burn_flame_core,
+    core_on_kill,
+    expedition_weaken,
+    ronin_overload,
+    ronin_daze,
+    rearm_reload,
+    ronin_block_buff,
+    legion_puncture,
+    ronin_quickswap,
+    northstar_fulminate,
+    pilot_fatigue,
+    sacrifice_roll,
+    segment_sacrifice_1,
+    segment_sacrifice_2,
+    damage_sacrifice_1,
+    damage_sacrifice_2,
+    overcrit,
+    railgun_trauma,
+    count,
+}
+
+global struct RSEInstance
+{
+    int effect
+    float stacks
+    float startTime
+    float endTime
+    float fadeOutTime
+    bool isEndless
+}
+
+global struct RStatusEffectData
+{
+    table<int, RSEInstance> data
+}

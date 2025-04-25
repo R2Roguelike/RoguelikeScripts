@@ -9,14 +9,35 @@ array<int> function GetKillsForMaxRank(string map)
         case "sp_tday":
             return [400,300]
         case "sp_timeshift_spoke02":
+            return [40,30]
         case "sp_hub_timeshift":
-            return [15,10]
+            return [40,20]
         case "sp_boomtown_end":
-            return [80, 60]
+            return [110, 60]
+        case "sp_beacon_spoke0":
+            return [50, 30]
+        case "sp_sewers1":
+            return [300, 200]
     }
 
-    //     [C,B,A,S]
-    return [100,60]
+    //     [S,A]
+    return [350,200]
+}
+
+bool function AllowGruntKills(string map)
+{
+    switch (map)
+    {
+        case "sp_training":
+            return true
+        case "sp_timeshift_spoke02":
+            return true
+        case "sp_beacon_spoke0":
+            return true
+    }
+
+    //     [S,A]
+    return true
 }
 
 array<int> function GetTimeForMaxRank(string map)
@@ -36,6 +57,8 @@ array<int> function GetTimeForMaxRank(string map)
         case "sp_boomtown_end":
             return [240, 360]
         case "sp_timeshift_spoke02":
+            return [210, 360]
+        case "sp_beacon_spoke0":
             return [180, 270]
         case "sp_hub_timeshift":
             return [210, 420]

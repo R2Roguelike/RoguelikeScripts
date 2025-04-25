@@ -19,6 +19,13 @@ entity function __p()
     return GetPlayerArray()[0]
 }
 
+void function __core()
+{
+    #if SERVER
+     PlayerEarnMeter_AddOwnedFrac( GetPlayerArray()[0], 5 )
+     #endif
+}
+
 entity function __offhand(int slot)
 {
     return __p().GetOffhandWeapon(slot)

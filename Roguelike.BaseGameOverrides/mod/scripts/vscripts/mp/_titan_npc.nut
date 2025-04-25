@@ -582,12 +582,14 @@ void function SpawnTitanBattery( entity batteryRef )
 
 void function SpawnTitanBatteryOnDeath( entity titan, var damageInfo )
 {
-	if ( !titan.ai.shouldDropBattery || titan.GetTeam() == TEAM_MILITIA )
-		return
+	//if ( !titan.ai.shouldDropBattery )
+	//	return
 	// if ( RandomFloatRange( 0, 100 ) < 50 )
 	// 	return
 	int attachID = titan.LookupAttachment( "CHESTFOCUS" )
 	vector origin = titan.GetAttachmentOrigin( attachID )
+	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
+	int damageType = DamageInfo_GetCustomDamageType( damageInfo )
 
 	int numBatt = 0
 
@@ -602,18 +604,29 @@ void function SpawnTitanBatteryOnDeath( entity titan, var damageInfo )
 			entity player = GetPlayerArray()[0]
 			entity playerTitan = GetTitanFromPlayer( player )
 
-			if (Roguelike_HasMod( player, "battery_spawn" ) && RandomFloat( 1.0 ) < 0.05)
+			if (titan.GetTeam() == TEAM_MILITIA)
+				numBatt += 1
+
+			if (Roguelike_HasMod( player, "battery_spawn" ) && RandomFloat( 1.0 ) < 0.25 && titan.GetTeam() != TEAM_MILITIA)
 			{
 				numBatt += 1
 			}
-			if ( RoguelikeScorch_IsPerfectDish( player, titan ))
+			if ( RoguelikeScorch_IsPerfectDish( player, titan, damageInfo ))
 			{
 				numBatt += 1
+			}
+			if (damageInfo != null)
+			{
+				int damageType = DamageInfo_GetCustomDamageType( damageInfo )
+				if ((damageType & DF_MELEE) > 0 && Roguelike_HasMod( player, "addiction" ))
+					numBatt += 1
+				if (DamageInfo_GetDamage( damageInfo ) > 3000 && Roguelike_HasMod( player, "big_finish" ))
+					numBatt += 1
 			}
 			if (Roguelike_HasMod( player, "executioner_meal" ) && player.IsTitan() && damageInfo != null)
 			{
-				array<int> swordDamageSourceIds = [ eDamageSourceId.mp_titancore_shift_core ]
-				if (swordDamageSourceIds.contains(DamageInfo_GetDamageSourceIdentifier( damageInfo )))
+				array<int> swordDamageSourceIds = [ eDamageSourceId.mp_titancore_shift_core, eDamageSourceId.melee_titan_sword ]
+				if (swordDamageSourceIds.contains(damageSourceId))
 					numBatt += 1
 			}
 		}

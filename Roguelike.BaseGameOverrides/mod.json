@@ -12,7 +12,7 @@
 		{
 			"Name": "roguelike_titan_loadout",
 			"Flags": "CHEAT | ARCHIVE_PLAYERPROFILE",
-			"DefaultValue": "mp_titanweapon_leadwall mp_titanweapon_meteor"
+			"DefaultValue": ""
 		}
 	]
 }

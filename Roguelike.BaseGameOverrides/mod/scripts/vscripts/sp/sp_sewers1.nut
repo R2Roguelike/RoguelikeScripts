@@ -195,10 +195,10 @@ void function StartPoint_ChannelMortarRun( entity player )
 
 	player.SetPlayerNetBool( "shouldShowWeaponFlyout", false )
 
-	ShowIntroScreen( player )
-	Remote_CallFunction_NonReplay( player, "ServerCallback_LevelIntroText" )
+	//ShowIntroScreen( player )
+	//Remote_CallFunction_NonReplay( player, "ServerCallback_LevelIntroText" )
 	PlayMusic( "music_reclamation_01_intro" )
-	FlagWait( "IntroScreenFading" )
+	//FlagWait( "IntroScreenFading" )
 
 	wait 2.0
 
@@ -2516,6 +2516,9 @@ void function KaneArena_KaneDoomMonitor( entity player )
 
 	string name = file.kaneTitan.ai.bossCharacterName == "" ? "Generic1" : file.kaneTitan.ai.bossCharacterName
 	Remote_CallFunction_NonReplay( player, "ServerCallback_BossTitanDeath", file.kaneTitan.GetEncodedEHandle(), GetBossTitanID( name ) )
+
+	// kane doesnt actually die, give player kills and money
+	AddKillsAndMoney( GetFirstPlayer(), 25, 25 )
 
 	CreateShake( file.kaneTitan.GetOrigin(), 16, 150, 2, 6000 )
 

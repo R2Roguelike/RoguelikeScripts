@@ -1,0 +1,12 @@
+"pilot_base"
+{
+	"crouch"
+	{
+		speed						120
+	}
+
+	"stand"
+	{
+		speed						243
+	}
+}

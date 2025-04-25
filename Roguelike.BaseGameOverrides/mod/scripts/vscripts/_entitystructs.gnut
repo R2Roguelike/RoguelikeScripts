@@ -145,6 +145,7 @@ global struct ServerEntityStruct
 	entity syncedMeleeAttacker
 	entity lastSyncedMeleeAttacker
 	bool markedForExecutionDeath
+	array<RSEInstance> rseData
 
 	bool proto_weakToPilotWeapons
 

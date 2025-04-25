@@ -1256,7 +1256,7 @@ void function GoblinRiderDeployZipTandom( array<entity> guys, ShipStruct ship, s
 	if ( IsAlive( guys[0] ) )
 	{
 		waitthread TandomGuyZiplinesToHull( guys[0], ship, Tables[0], mover, dropNode, deployTable )
-		wait RandomFloatRange( 0.0, 0.5 )
+		wait RandomFloatRange( 0.09, 0.5 )
 	}
 
 	if ( IsAlive( guys[1] ) )

@@ -1709,7 +1709,10 @@ void function Rodeo_ApplyBatteryToTitan( entity battery, entity titan )
 		healingAmount = GetSegmentHealthForTitan( titan )
 
 	if ( titan.IsPlayer() && Roguelike_HasMod( titan, "battery_heals" ))
-		healingAmount *= 2
+		healingAmount = 1350
+
+	if ( titan.IsPlayer() && Roguelike_HasMod( titan, "second_wind" ))
+		healingAmount = 0
 
 	int health = titan.GetHealth()
 	int maxHealth = titan.GetMaxHealth()

@@ -209,12 +209,9 @@ void function ApplyTrackerMark( entity owner, entity hitEnt )
 	
 	if (trackerRockets.GetWeaponClassName() != "mp_titanweapon_tracker_rockets" && owner.IsPlayer())
 	{
-		if (!("storedAbilities" in owner.s))
+        trackerRockets = Roguelike_GetAlternateOffhand( owner, OFFHAND_ORDNANCE )
+		if (!IsValid(trackerRockets))
 			return
-		if (owner.s.storedAbilities[OFFHAND_ORDNANCE] == null)
-			return
-			
-		trackerRockets = expect entity(owner.s.storedAbilities[OFFHAND_ORDNANCE])
 	}
 
 	int oldCount = trackerRockets.SmartAmmo_GetNumTrackersOnEntity( hitEnt )

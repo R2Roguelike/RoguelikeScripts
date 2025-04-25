@@ -20,6 +20,7 @@ WeaponData
 		accelerator
 		{
 			"fire_rate_max"			"22"
+			"ammo_clip_size"		"60"
 		}
 	}
 }

@@ -11,13 +11,15 @@ struct {
 void function Elites_Init()
 {
     RegisterSignal("MeleeDamage")
+    RegisterSignal("SacrificeTime")
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT )
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT_MOD )
 	PrecacheImpactEffectTable( ARC_CANNON_FX_TABLE )
     Elites_Add( Elite_BubbleShield )
     Elites_Add( Elite_Healing )
-    Elites_Add( Elite_Invulnerable )
     Elites_Add( Elite_Enraged )
+    Elites_Add( Elite_Invulnerable )
+    Elites_Add( Elite_Sacrifice )
 }
 
 string function GetEliteType( entity npc )
@@ -45,7 +47,7 @@ void function Elites_Generate( entity npc )
 
     delaythread(0.001) void function() : (npc)
     {
-        if (IsValid(npc)) file.eliteFuncs.getrandom()( npc )
+        if (IsValid(npc) && !npc.IsMarkedForDeletion()) file.eliteFuncs.getrandom()( npc )
     }()
 }
 
@@ -58,7 +60,7 @@ void function Elite_Enraged( entity npc )
     npc.s.elite <- "enraged"
     Highlight_SetEnemyHighlight( npc, "elite_enraged")
     npc.SetNPCMoveSpeedScale( 2.0 ) // lololol
-    npc.s.healthMult <- 2.0
+    npc.s.healthMult <- 1.0 // MY GOD ARE THEY ANNOYING
     npc.s.damageMult <- 2.0
     UpdateNPCForSpDifficulty( npc ) // update health
 }
@@ -120,7 +122,7 @@ entity function TestBubbleShield( int team, vector origin, vector angles, entity
 	entity bubbleShield = CreateEntity( "prop_dynamic" )
 	bubbleShield.SetValueForModelKey( $"models/fx/xo_shield.mdl" )
 	bubbleShield.kv.solid = SOLID_VPHYSICS
-    bubbleShield.kv.rendercolor = "255 255 0"
+    bubbleShield.kv.rendercolor = "255 255 0 255"
     bubbleShield.kv.contents = (int(bubbleShield.kv.contents) | CONTENTS_NOGRAPPLE)
 
     if (owner != null && owner.IsTitan())
@@ -136,7 +138,8 @@ entity function TestBubbleShield( int team, vector origin, vector angles, entity
 	bubbleShield.SetBlocksRadiusDamage( true )
 	DispatchSpawn( bubbleShield )
 	//bubbleShield.Hide()
-	bubbleShield.SetPassThroughThickness( 250 ) 
+    // no, mr railgun sir
+	bubbleShield.SetPassThroughThickness( 501 ) 
     //bubbleShield.SetTeam( owner.GetTeam() )
 	//bubbleShield.SetPassThroughDirection( 0 )
 
@@ -233,7 +236,7 @@ void function Elite_Healing( entity npc )
         return
     npc.s.elite <- "healing"
     Highlight_SetEnemyHighlight( npc, "elite_healing" )
-    npc.kv.rendercolor = "0 255 0"
+    npc.kv.rendercolor = "0 255 0 255"
     //TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
 
     npc.EndSignal("OnDeath")
@@ -247,12 +250,15 @@ void function Elite_Healing( entity npc )
 
         foreach (entity ent in arr)
         {
+            if (!IsValid(ent) || ent.IsMarkedForDeletion() || !IsAlive(ent))
+                continue
+
             int healingAmount = 50
             if (ent.IsTitan())
-                healingAmount = 400 //
+                healingAmount = 160 //
             
             if (ent == npc || GetEliteType(npc) == "healing")
-                healingAmount = healingAmount / 5 // heavily reduced!
+                healingAmount = healingAmount / 4 // heavily reduced!
 
             ent.SetHealth( minint( ent.GetMaxHealth(), ent.GetHealth() + healingAmount ))
 
@@ -281,7 +287,86 @@ void function Elite_Healing( entity npc )
 
         }
 
-
         wait 0.19
     }
+}
+
+void function Elite_Sacrifice( entity npc )
+{
+    if (npc.IsInvulnerable())
+        return
+    npc.s.elite <- "sacrifice"
+    Highlight_SetEnemyHighlight( npc, "elite_sacrifice" )
+    npc.kv.rendercolor = "255 128 0 255"
+    //TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
+
+    npc.EndSignal("OnDeath")
+    npc.EndSignal("OnDestroy")
+
+    OnThreadEnd(function() : (npc)
+    {
+        if ("attackedByPlayer" in npc.s)
+            thread SacrificeDeath( npc, expect entity(npc.s.attackedByPlayer) )
+    })
+
+    WaitForever()
+}
+
+void function SacrificeDeath( entity npc, entity player )
+{
+    player.Signal("SacrificeTime")
+    player.EndSignal("OnDeath")
+    player.EndSignal("OnDestroy")
+    player.EndSignal("SacrificeTime")
+
+    Remote_CallFunction_Replay( player, "ServerCallback_UpdateHealthSegmentCountRandom", 5 )
+    RSE_Apply( player, RoguelikeEffect.sacrifice_roll, 1.0, 4.85, 0.0 )
+
+    array<string> options = ["damage_sacrifice_1", "damage_sacrifice_2", "segment_sacrifice_2", "segment_sacrifice_1"]
+    string option = options.getrandom()
+
+    wait 4.89
+
+
+    entity titan = GetTitanFromPlayer( player )
+    
+    if (!IsAlive(player) || !IsValid(titan) || !IsAlive(titan))
+        return
+    
+    RSE_Apply( player, expect int(getconsttable().RoguelikeEffect[option]), 1.0, 20.0, 0.0 )
+    if (!titan.IsPlayer())
+        titan.ai.titanSettings.titanSetFileMods.append(option)
+    else
+    {
+        array<string> mods = player.GetPlayerSettingsMods()
+        mods.append(option)
+        float healthFrac = GetHealthFrac( player )
+        player.SetPlayerSettingsWithMods( player.GetPlayerSettings(), mods )
+        player.SetHealth( player.GetMaxHealth() * healthFrac )
+    }
+    
+    OnThreadEnd( function() : (player, option)
+    {
+        if (!IsValid(player) || !IsAlive(player))
+            return
+        entity titan = GetTitanFromPlayer( player )
+        if (!IsValid(titan) || !IsAlive(titan))
+            return
+        if (!titan.IsPlayer())
+            titan.ai.titanSettings.titanSetFileMods.fastremovebyvalue(option)
+        else
+        {
+            array<string> mods = player.GetPlayerSettingsMods()
+            mods.fastremovebyvalue(option)
+            float healthFrac = GetHealthFrac( player )
+            player.SetPlayerSettingsWithMods( player.GetPlayerSettings(), mods )
+            player.SetHealth( player.GetMaxHealth() * healthFrac )
+        }
+        RSE_Stop( player, expect int(getconsttable().RoguelikeEffect[option] ))
+
+        Remote_CallFunction_Replay( player, "ServerCallback_UpdateHealthSegmentCountRandom", -1 )
+        
+    })
+
+    wait 20.0
 }

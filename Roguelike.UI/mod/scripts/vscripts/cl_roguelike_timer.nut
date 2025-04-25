@@ -67,6 +67,14 @@ void function RoguelikeTimer_Think()
         wait 0.001
         if (clGlobal.isMenuOpen)
             file.lastItemAcquireTime = -9.9
+        if (IsControllerModeActive())
+        {
+            Hud_SetText(HudElement("ItemAcquired"), "Item Acquired - Press %scoreboard_focus% to open your inventory")
+        }
+        else
+        {
+            Hud_SetText(HudElement("ItemAcquired"), "Item Acquired - Press %titan_loadout_select% to open your inventory")
+        }
         HudElement("ItemAcquired").SetAlpha(GraphCapped(Time() - file.lastItemAcquireTime, 4.5, 5.0, 255.0, 0.0))
         if (IsValid(GetLocalClientPlayer()))
         {

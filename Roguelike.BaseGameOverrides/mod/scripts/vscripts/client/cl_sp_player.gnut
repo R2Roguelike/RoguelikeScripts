@@ -224,6 +224,8 @@ void function Player_AddClient( entity player )
 	RegisterConCommandTriggeredCallback( "titan_loadout_select", Pressed_TitanLoadoutSelect )
 	RegisterConCommandTriggeredCallback( "+showscores", Pressed_TitanLoadoutSelect ) 
 	RegisterConCommandTriggeredCallback( "scoreboard_focus", Pressed_SwapLoadouts )
+	RegisterConCommandTriggeredCallback( "+speed", Pressed_Sprint )
+	RegisterConCommandTriggeredCallback( "-speed", Released_Sprint )
 	//RegisterConCommandTriggeredCallback( "scoreboard_toggle_focus", Pressed_TitanLoadoutSelect )
 
 	Create_DamageIndicatorHUD()
@@ -239,6 +241,17 @@ void function Player_AddClient( entity player )
 
 		thread CinematicIntroScreen()
 	}
+}
+
+void function Pressed_Sprint( entity player )
+{
+	if (!player.IsTitan())
+		player.ClientCommand( "+dodge" )
+}
+void function Released_Sprint( entity player )
+{
+	if (!player.IsTitan())
+		player.ClientCommand( "-dodge" )
 }
 
 void function Player_AddPlayer( entity player )

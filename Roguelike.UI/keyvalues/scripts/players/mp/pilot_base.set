@@ -5,5 +5,30 @@
 		ui_targetinfo				""
         ui_targetinfo               "" [$mp]
         ui_targetinfo               "" [$sp]
+        superjumpLimit      2
+
+        sprint              0
+        dodge               1
+		dodgeDuration		0.1
+        dodgeAnimDuration	0.5
+        dodgeInterval		0.35
+        dodgeSpeed			500
+        dodgeStopSpeed		200
+        dodgeHeight			20
+        dodgeHeightMax		20
+        dodgePowerDrain		20
+        powerregenrate 		0
+        dodgePowerDelay		0.2
+        dodgeKeepSpeedFrac 	0.0
     }
+
+	"crouch"
+	{
+		speed						80
+	}
+
+	"stand"
+	{
+		speed						243
+	}
 }

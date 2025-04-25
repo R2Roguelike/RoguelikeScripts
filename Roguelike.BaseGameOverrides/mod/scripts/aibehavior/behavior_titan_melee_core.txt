@@ -3,10 +3,9 @@ Selector Common
 	SelectSchedule_MissileDodge
 	CNPC_Titan::SelectSchedule_TitanCore
 	CNPC_Titan::SelectSchedule_PhysEntKnock
-	
-	
+	SelectSchedule_DisplaceFromDangerousArea
+	//SelectSchedule_DangerousClusterStandoff
 	SelectSchedule_ChangeToDesiredStance
-	
 	SelectSchedule_LayeredBehavior
 Selector_End
 
@@ -28,11 +27,10 @@ Selector Combat
 	SelectSchedule_MeleeAttack
 	SelectSchedule_ForwardDodge
 	SelectSchedule_ChaseEnemy
+	SelectSchedule_AtEnemyLKP
 	SelectSchedule_EngagementDistMax
-	SelectSchedule_CircleStrafe
-	
+	SelectSchedule_StationaryLowAmmo
 	SelectSchedule_WeaponBlocked
 	SelectSchedule_CantSeeEnemy
 	SelectSchedule_CombatFace
 Selector_End
-

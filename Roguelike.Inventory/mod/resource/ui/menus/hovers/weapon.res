@@ -10,7 +10,7 @@ resource/ui/menus/hovers/armor_chip.res
         drawColor	"64 64 64 255"
         scaleImage			1
 
-        wide				400
+        wide				450
         tall			    64
 
         "xpos"			"0"
@@ -26,7 +26,7 @@ resource/ui/menus/hovers/armor_chip.res
         drawColor	"48 48 48 255"
         scaleImage			1
 
-        wide				400
+        wide				450
         tall			    200
 
         "xpos"			"0"
@@ -53,7 +53,7 @@ resource/ui/menus/hovers/armor_chip.res
         textAlignment			center
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMonoBold_36
+        font					GothicExpanded_36
 
         pin_to_sibling			TitleStrip
         pin_corner_to_sibling	TOP
@@ -76,7 +76,7 @@ resource/ui/menus/hovers/armor_chip.res
         textAlignment			center
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMono_17
+        font					JetBrainsMono_18
 
         pin_to_sibling			Title
         pin_corner_to_sibling	TOP
@@ -92,7 +92,7 @@ resource/ui/menus/hovers/armor_chip.res
         drawColor	"25 25 25 255"
         scaleImage			1
 
-        wide				400
+        wide				450
         tall			    32
 
         "xpos"			"0"
@@ -117,7 +117,7 @@ resource/ui/menus/hovers/armor_chip.res
 		fgcolor_override	"150 0 0 255"
 		scaleImage			1
 
-		wide				400
+		wide				450
 		tall				32
 
 		"xpos"			"0"
@@ -140,7 +140,7 @@ resource/ui/menus/hovers/armor_chip.res
         textAlignment			west
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMono_17
+        font					JetBrainsMono_18
 
 		wide				384
         wrap                1
@@ -165,7 +165,7 @@ resource/ui/menus/hovers/armor_chip.res
         textAlignment			east
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMono_17
+        font					JetBrainsMono_18
 
 		wide				384
         wrap                1

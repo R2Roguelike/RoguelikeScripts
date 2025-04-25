@@ -230,6 +230,17 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		}
 	}
 
+	if (attackerIsPlayer && attacker != ent && Roguelike_HasMod( attacker, "force_dmg" ) && !attacker.IsTitan())
+	{
+		entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
+		if (IsValid(sourceWeapon))
+		{
+			float damage = DamageInfo_GetDamage( damageInfo )
+			// 
+			DamageInfo_SetDamage( damageInfo, damage + max(sourceWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force ), 0) / 1000 )
+		}
+	}
+
 	//PROTO Defensive AI Chip. Ideally less invisible gameplay, but something that can combo with other chips.
 	if ( ent.IsTitan() && entIsNPC )
 	{
@@ -275,13 +286,47 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		}
 	}
 
+	if (attackerIsPlayer && attacker.IsTitan())
+	{
+
+		if (("hovering" in attacker.s && attacker.s.hovering > 0) && Roguelike_HasMod( attacker, "hover_toggle" ) )
+			DamageInfo_AddDamageBonus( damageInfo, 0.25 )
+		if (RSE_Get( attacker, RoguelikeEffect.damage_sacrifice_1 ) > 0.0)
+			DamageInfo_ScaleDamage( damageInfo, 0.8 )
+		if (RSE_Get( attacker, RoguelikeEffect.damage_sacrifice_2 ) > 0.0)
+			DamageInfo_ScaleDamage( damageInfo, 0.6 )
+		if (RSE_Get( attacker, RoguelikeEffect.segment_sacrifice_1 ) > 0.0)
+			DamageInfo_AddDamageBonus( damageInfo, 0.2 )
+		if (RSE_Get( attacker, RoguelikeEffect.segment_sacrifice_2 ) > 0.0)
+			DamageInfo_AddDamageBonus( damageInfo, 0.4 )
+	}
+	if (attackerIsPlayer && attacker != ent)
+	{
+		ent.s.attackedByPlayer <- attacker
+
+		if (!attacker.IsTitan())
+		{
+			if (RSE_Get( attacker, RoguelikeEffect.pilot_fatigue ) > 1.0)
+			{
+				DamageInfo_ScaleDamage( damageInfo, 1.0 / sqrt(RSE_Get( attacker, RoguelikeEffect.pilot_fatigue )) )
+			}
+
+			float cur = RSE_Get( attacker, RoguelikeEffect.pilot_fatigue )
+
+			cur += min(DamageInfo_GetDamage( damageInfo ), ent.GetHealth()) / 500.0
+
+			//RSE_Apply( attacker, RoguelikeEffect.pilot_fatigue, cur, 5.0 + min(2.5 * cur, 10.0), min(2.5 * cur, 10.0) )
+			//RSE_Apply( __p(), RoguelikeEffect.pilot_fatigue, 2.0, 5.0 + 5.0 * 2.0, 5.0 * 2.0 )
+		}
+	}
+
 	if ("damageMult" in attacker.s)
 		DamageInfo_ScaleDamage( damageInfo, expect float(attacker.s.damageMult) )
 
 	if (GetBurn( ent ) > 0 && !BURN_DAMAGE_SOURCES.contains(damageSourceId))
 		DamageInfo_ScaleDamage( damageInfo, 1.0 + GetBurn( ent ) * 0.01 )
 	
-    float blockIntensity = StatusEffect_Get( attacker, eStatusEffect.roguelike_block_buff )
+    float blockIntensity = RSE_Get( attacker, RoguelikeEffect.ronin_block_buff )
     if (blockIntensity > 0.0)
     {
 		DamageInfo_AddDamageBonus( damageInfo, 0.35 * blockIntensity )
@@ -289,16 +334,19 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 
 	if (attacker.IsPlayer() && "lastRearm" in attacker.s && Roguelike_IsWeaponDamage( damageInfo ))
 	{
-		if (Time() - attacker.s.lastRearm <= 10.0 && Roguelike_HasMod( attacker, "rearm_reload" ))
+		if (RSE_Get( attacker, RoguelikeEffect.rearm_reload ) > 0.0 && Roguelike_HasMod( attacker, "rearm_reload" ))
 			DamageInfo_AddDamageBonus( damageInfo, 0.25 )
 	}
 
 	// WEAK - 
-	if ( GetWeaken( ent ) > 0 && Roguelike_IsWeaponDamage( damageInfo ) )
+	if ( attackerIsPlayer && GetWeaken( ent ) > 0 && Roguelike_IsWeaponDamage( damageInfo ) )
 		DamageInfo_AddDamageBonus( damageInfo, 0.25 )
 
 	if ( GetWeaken( attacker ) > 0 )
-		DamageInfo_ScaleDamage( damageInfo, 0.25 )
+		DamageInfo_ScaleDamage( damageInfo, 0.75 )
+
+	if ( RSE_Get( attacker, RoguelikeEffect.railgun_trauma ) > 0.0 )
+		DamageInfo_ScaleDamage( damageInfo, 0.75 )
 
 	float damageMultiplier = 1.0 + StatusEffect_Get( ent, eStatusEffect.damage_received_multiplier )
 	if ( damageMultiplier != 1.0 )
@@ -316,27 +364,20 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 
 	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
 		return
-		
+
+
 	if (attackerIsPlayer)
 		Roguelike_PlayerDealtDamage( ent, attacker, damageInfo )
 
-	// ROGUELIKE - power calculations
-	int entPower = GetConVarInt("power_enemy_def")
+	if (attackerIsPlayer && damageSourceId == eDamageSourceId.mp_titancore_amp_core)
+	{
+		entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
+		if (IsValid(sourceWeapon) && Roguelike_HasMod( attacker, "never_ending_burst" ))
+			sourceWeapon.SetWeaponPrimaryClipCount(sourceWeapon.GetWeaponPrimaryClipCount() + 1) // half
+	}
 
-	if (ent.IsTitan() && IsMercTitan( ent ))
-		entPower += 200
-	
-	// non-player attacks / non-titans arent affected by DEF
-	if (!attackerIsPlayer || ent.GetArmorType() != ARMOR_TYPE_HEAVY)
-		entPower = 0
+	// ADDITIVE DMG
 
-	float scalar = 500.0 / (500.0 + entPower)
-
-	DamageInfo_ScaleDamage( damageInfo, scalar )
-	
-	if (verboseDamagePrintouts)
-		printt( "    after DEF:", DamageInfo_GetDamage( damageInfo ) )
-	
 	if (verboseDamagePrintouts)
 		printt( format("    Additive DMG: %.1f%%", additiveDMGBonus * 100.0 ) )
 
@@ -344,6 +385,31 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 
 	if (verboseDamagePrintouts)
 		printt( "    After Additive DMG:", DamageInfo_GetDamage( damageInfo ) )
+	
+
+
+	// ROGUELIKE - power calculations
+	float entPower = GetConVarFloat("power_enemy_def")
+
+	//if (ent.IsTitan() && IsMercTitan( ent ))
+	//	entPower += 200
+
+	if (attackerIsPlayer && IsValid(attacker.GetTitanSoul()) && IsTitanCoreFiring( attacker ))
+	{
+		//entPower *= 0.6 // Cores get DEF shred!
+	}
+	
+	// non-player attacks / non-titans arent affected by DEF
+	//if (!attackerIsPlayer || ent.GetArmorType() != ARMOR_TYPE_HEAVY)
+		entPower = 0
+
+	float scalar = 500.0 / (500.0 + entPower)
+
+	DamageInfo_ScaleDamage( damageInfo, scalar )
+
+	array<int> swordDamageSourceIds = [ eDamageSourceId.mp_titancore_shift_core, eDamageSourceId.melee_titan_sword ]
+	if (swordDamageSourceIds.contains(damageSourceId) && GetHealthFrac( ent ) < 0.25 && Roguelike_HasMod( attacker, "executioner" ) )
+		DamageInfo_SetDamage( damageInfo, 99999 )
 
 	if ((DamageInfo_GetCustomDamageType( damageInfo ) & DF_MELEE) != 0)
 	{
@@ -429,7 +495,15 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if (verboseDamagePrintouts)
 	if ( titanDamage.shieldDamage > 0 )
 		printt( "    	Shield Damage:", titanDamage.shieldDamage )
-	
+
+
+	if (attackerIsPlayer && Roguelike_HasMod( attacker, "lifesteal" ))
+	{
+		if (Distance(attacker.GetOrigin(), ent.GetOrigin()) < pow(787.4, 2))
+		{
+			HealPlayer( attacker, int(min(DamageInfo_GetDamage( damageInfo ), ent.GetHealth()) * 0.3) )
+		}
+	}
 	// Added via AddEntityCallback_OnPostDamaged
 	foreach ( callbackFunc in ent.e.entPostDamageCallbacks )
 	{

@@ -3,6 +3,7 @@ global function RoguelikeWeapon_Init
 global function RoguelikeWeapon_Generate
 global function RoguelikeWeapon_CreateWeapon
 global function RoguelikeWeapon_GetSlot
+global function RoguelikeWeapon_GenerateSmartPistol
 
 const array<string> allowedWeapons = [
 	//ar
@@ -38,9 +39,9 @@ const array<string> allowedWeapons = [
 
 array<string> allowedMovementTools = [
 	"mp_weapon_epg",
-	"mp_weapon_pulse_lmg",
+	//"mp_weapon_pulse_lmg",
 	"mp_weapon_softball",
-	"mp_weapon_smr",
+	//"mp_weapon_smr",
 	"mp_weapon_shotgun",
 	"mp_weapon_mastiff"
 ]
@@ -80,6 +81,17 @@ table function RoguelikeWeapon_Generate()
 	return RoguelikeWeapon_CreateWeapon( weapon, baseRarity, RoguelikeWeapon_GetSlot( weapon ) )
 }
 
+table function RoguelikeWeapon_GenerateSmartPistol()
+{
+    table weapon = RoguelikeWeapon_CreateWeapon( "mp_weapon_smart_pistol_og", RARITY_LEGENDARY, "primary" )
+
+	weapon.mods.append("og_pilot")
+	weapon.mods.append("pas_fast_reload")
+
+	return weapon
+}
+
+
 table function RoguelikeWeapon_CreateWeapon( string name, int rarity, string slot )
 {
     table runData = Roguelike_GetRunData()
@@ -92,6 +104,7 @@ table function RoguelikeWeapon_CreateWeapon( string name, int rarity, string slo
         priceOffset = 0,
         rarity = rarity,
 		perks = [],
+		mods = [],
         moneyInvested = 30 + 15 * (rarity) // give 10 * rarity dolla when dismantled ()
     }
 

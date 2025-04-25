@@ -232,6 +232,7 @@ void function TDay_EntitiesDidLoad()
 void function SetupSarahAfterSpawn()
 {
 	wait 1.0
+	
 	Assert( IsValid( file.sarahTitan ) )
 	file.sarahTitan.SetSkin(2)
 	file.sarahTitan.SetTitle( "#NPC_SARAH_NAME" )
@@ -310,7 +311,12 @@ void function StartPoint_TdayIntro( entity player )
 	CheckPoint_ForcedSilent()
 	printt( "sarah appears! " + Time() )
 	entity groundNode = GetEntByScriptName( "landing_node" )
-	thread PlayAnimTeleport( file.sarahTitan, "BT_TDay_drop_sarah_end_V2", groundNode )
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+		thread PlayAnimTeleport( file.sarahTitan, "BT_TDay_drop_sarah_end_V2", groundNode )
+	else
+	{
+		file.sarahTitan.Destroy()
+	}
 
 	wait offset
 
@@ -475,7 +481,7 @@ void function FriendlyTitanWallBombardmentAnim( entity titan, entity node, strin
 	// Start the path once the sequence is over
 	FlagWait( "FriendlyPaths_ChargeWall" )
 	titan.Anim_Stop()
-	thread AssaultMoveTarget( titan, path )
+	//thread AssaultMoveTarget( titan, path )
 }
 
 // -------------------------------------------------------------------------------------------------------------------------
@@ -561,6 +567,10 @@ void function StartPoint_Setup_UndergroundFuelStorage( entity player )
 	TeleportPlayerAndBT( "start_player_UndergroundFuelStorage", "start_bt_UndergroundFuelStorage" )
 
 	FlagWait( "EntitiesDidLoad" )
+
+	if (GetSpDifficulty() > DIFFICULTY_EASY)
+		return
+
 	file.sarahTitan.SetOrigin( < 1595, -4033, 277> )
 	AddTriggeredPlayerFollower( player, file.sarahTitan )
 }
@@ -623,6 +633,8 @@ void function StartPoint_Setup_Elevator( entity player )
 	TeleportPlayerAndBT( "start_player_elevator", "start_bt_elevator" )
 
 	FlagWait( "EntitiesDidLoad" )
+	if (GetSpDifficulty() > DIFFICULTY_EASY)
+		return
 	entity sarahStart = GetEntByScriptName( "Elevator_Sarah_Start" )
 	file.sarahTitan.SetOrigin( sarahStart.GetOrigin() )
 	file.sarahTitan.SetAngles( sarahStart.GetAngles() )
@@ -671,7 +683,8 @@ void function ElevatorUp( entity player )
 
 	TransitionNPCPathsForEntity( clip, topEnt.GetOrigin(), true )
 
-	//file.sarahTitan.SetOrigin( < -7415, 3496, 1920 > )
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+		file.sarahTitan.SetOrigin( < -7415, 3496, 1920 > )
 }
 
 void function ElevatorDialogue( entity player )
@@ -733,8 +746,11 @@ void function StartPoint_Setup_VTOL( entity player )
 
 	FlagWait( "EntitiesDidLoad" )
 	entity sarahStart = GetEntByScriptName( "VTOL_Sarah_Start" )
-	file.sarahTitan.SetOrigin( sarahStart.GetOrigin() )
-	file.sarahTitan.SetAngles( sarahStart.GetAngles() )
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+	{
+		file.sarahTitan.SetOrigin( sarahStart.GetOrigin() )
+		file.sarahTitan.SetAngles( sarahStart.GetAngles() )
+	}
 }
 
 void function StartPoint_Skipped_VTOL( entity player )
@@ -744,16 +760,19 @@ void function StartPoint_Skipped_VTOL( entity player )
 
 void function VTOLBattleThink( entity player )
 {
-	file.sarahTitan.kv.alwaysAlert = true
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+		file.sarahTitan.kv.alwaysAlert = true
 
 	// Reinable reinforcements and use the vtol friendly spawners instead of the intro spawners now
 	FlagSet( "VTOL" )
-	FlagSet( "ReinforcementsEnabled" )
+	if (GetConVarInt("sp_difficulty") < 1)
+		FlagSet( "ReinforcementsEnabled" )
 	SetIdealFriendlyTitanCount( 3 )
 
 	// Sarah does same path as other friendlies for this section
-	RemoveTriggeredPlayerFollower( player, file.sarahTitan )
-	thread AssaultMoveTarget( file.sarahTitan, GetEntByScriptName( "SarahVTOLPath" ) )
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+		RemoveTriggeredPlayerFollower( player, file.sarahTitan )
+	//thread AssaultMoveTarget( file.sarahTitan, GetEntByScriptName( "SarahVTOLPath" ) )
 
 	printt( "--------" )
 	printt( " WAVE 1 " )
@@ -884,7 +903,8 @@ void function VTOLBattleThink( entity player )
 	CheckPoint()
 
 	// Sarah follows player again (using trigger system)
-	AddTriggeredPlayerFollower( player, file.sarahTitan )
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+		AddTriggeredPlayerFollower( player, file.sarahTitan )
 
 	// advance to 4 when all enemies in vtol are dead and we want to go to the elevated pre-tunnel area
 	FlagSet( "FriendlyPaths_VTOL_Advance4" )
@@ -948,7 +968,8 @@ void function VTOLDialogue( entity player )
 void function StartPoint_FireontheRunway( entity player )
 {
 	SwapDraconisWithClientSideModel()
-	AddTriggeredPlayerFollower( player, file.sarahTitan )
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+		AddTriggeredPlayerFollower( player, file.sarahTitan )
 	thread DamagedTitansOnRunway( player )
 	thread RunwayFriendlyDialogue( player )
 	thread RunwaySarahDialogue( player )
@@ -970,8 +991,12 @@ void function StartPoint_Setup_FireontheRunway( entity player )
 	TeleportPlayerAndBT( "start_player_FireontheRunway", "start_bt_FireontheRunway" )
 
 	entity sarahStart = GetEntByScriptName( "Runway_Sarah_Start" )
+	
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+	{
 	file.sarahTitan.SetOrigin( sarahStart.GetOrigin() )
 	file.sarahTitan.SetAngles( sarahStart.GetAngles() )
+	}
 }
 
 void function StartPoint_Skipped_FireontheRunway( entity player )
@@ -1109,7 +1134,8 @@ void function RunwayFriendlies()
 {
 	FlagWait( "RunwayFriendliesActive" )
 
-	FlagSet( "ReinforcementsEnabled" )
+	if (GetConVarInt("sp_difficulty") < 1)
+		FlagSet( "ReinforcementsEnabled" )
 	SetIdealFriendlyTitanCount( 4 )
 }
 
@@ -1317,7 +1343,7 @@ void function IntroSequence( entity player )
 	{
 		doorMover.SetParent( shipNode, "", true )
 	}
-
+	
 	sarahPilot.SetOrigin( file.sarahTitan.GetOrigin() )
 
 	WaitFrame() // why?? -mackey (because game crashes if I remove this.
@@ -2117,7 +2143,8 @@ void function IntroBattleThink( entity player )
 {
 	EndSignal( player, "OnDeath" )
 
-	FlagSet( "ReinforcementsEnabled" )
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+		FlagSet( "ReinforcementsEnabled" )
 	SetIdealFriendlyTitanCount( 5 ) // from 6 -Mackey
 
 	// Friendlies advance to first battle line
@@ -2267,7 +2294,8 @@ void function IntroBattleThink( entity player )
 		thread AssaultMoveTarget( titan, friendlyMoveTarget )
 
 	// Sarah becomes a friendly follower so we can control where she goes with the player better
-	AddTriggeredPlayerFollower( player, file.sarahTitan )
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+		AddTriggeredPlayerFollower( player, file.sarahTitan )
 
 	// Open the door
 	FlagSet( "HallwayEntryDoorsOpen" )
@@ -3206,7 +3234,8 @@ void function DelayedEnemyKill( float delay, entity enemy )
 
 void function PlayerAndSarahInElevator( entity player )
 {
-	thread ElevatorNags( player )
+	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+		thread ElevatorNags( player )
 
 	// Wait for player, BT, and Sarah to be on the elevator platform
 	bool sarahInElevator = false
@@ -3215,6 +3244,8 @@ void function PlayerAndSarahInElevator( entity player )
 	while( true )
 	{
 		sarahInElevator = Flag( "SarahInElevator" )
+		if (GetSpDifficulty() > DIFFICULTY_EASY)
+			sarahInElevator = true
 		playerInElevator = Flag( "PlayerInElevator" )
 		btInElevator = player.IsTitan() ? playerInElevator : Flag( "BTInElevator" )
 
@@ -3426,5 +3457,8 @@ void function SpawnCallback_SuperSpectre( entity npc )
 void function SpawnCallback_NPCTitan( entity titan )
 {
 	if ( titan.GetTeam() == TEAM_IMC )
+	{
 		Signal( level, "EnemyTitanSpawned" )
+		titan.SetHealth(titan.GetMaxHealth() / 2)
+	}
 }

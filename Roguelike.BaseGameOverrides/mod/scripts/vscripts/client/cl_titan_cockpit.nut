@@ -32,6 +32,8 @@ global function PlayCockpitSparkFX
 
 global function FlashCockpitHealth
 global function SetCockpitHealthColorTemp
+global function UpdateHealthSegmentCountCustom
+global function ServerCallback_UpdateHealthSegmentCountRandom
 
 global function UpdateEjectHud_SetButtonPressTime
 global function UpdateEjectHud_SetButtonPressCount
@@ -1609,6 +1611,34 @@ void function UpdateHealthSegmentCount()
 	float health = player.GetPlayerModHealth()
 	float healthPerSegment = GetPlayerSettingsFieldForClassName_HealthPerSegment( playerSettings )
 	RuiSetInt( file.cockpitRui, "numHealthSegments", int( health / healthPerSegment ) )
+}
+
+void function UpdateHealthSegmentCountCustom( int amount )
+{
+	if ( file.cockpitRui == null )
+		return
+
+	RuiSetInt( file.cockpitRui, "numHealthSegments", amount )
+}
+
+void function ServerCallback_UpdateHealthSegmentCountRandom( float duration )
+{
+	thread UpdateHealthSegmentCountRandom( duration )
+}
+void function UpdateHealthSegmentCountRandom( float duration )
+{
+	
+	if ( file.cockpitRui == null )
+		return
+
+	float end = Time() + duration
+	while (Time() < end && file.cockpitRui != null)
+	{
+		RuiSetInt( file.cockpitRui, "numHealthSegments", RandomIntRange(3,8) )
+		wait 0.05
+	}
+
+	UpdateHealthSegmentCount()
 }
 #if MP
 void function NetworkedVarChangedCallback_UpdateVanguardRUICoreStatus( entity soul, int oldValue, int newValue, bool actuallyChanged )

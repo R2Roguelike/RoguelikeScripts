@@ -20,10 +20,5 @@
 	],
 
 	"ConVars": [
-		{
-			"Name": "player_mods",
-			"Flags": "USERINFO | CHEAT",
-			"DefaultValue": ""
-		}
 	]
 }

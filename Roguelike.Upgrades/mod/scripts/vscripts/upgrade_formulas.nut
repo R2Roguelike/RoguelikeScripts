@@ -17,13 +17,12 @@ float function Roguelike_GetPilotSpeedBonus( int speed )
 
 float function Roguelike_GetTitanDamageMultiplier( int armor )
 {
-    return 500.0 / (500.0 + 10.0 * armor)
+    return Graph(75.0 / (75.0 + armor), 1, 0, 1, 1 - 1.75 * 0.3)
 }
 
 float function Roguelike_GetTitanDamageResist( int armor )
 {
-    float resist = 1.2 - Roguelike_GetTitanDamageMultiplier( armor )
-    resist /= 1.2
+    float resist = 1.0 - Roguelike_GetTitanDamageMultiplier( armor )
     return resist
 }
 
@@ -37,7 +36,7 @@ float function Roguelike_GetDashCooldownMultiplier( int energy )
 float function Roguelike_BaseCritRate( int energy )
 {
     //return Graph( energy, 0, 150, 1.2, 0.1 )
-    return (5.0 + energy) / (50.0 + energy)
+    return (10.0 + energy) / (100.0 + energy)
 }
 
 float function Roguelike_BaseCritDMG( int energy )
@@ -59,7 +58,7 @@ float function Roguelike_GetGrenadeDamageBoost( int power )
 
 float function Roguelike_GetTitanCoreGain( int power )
 {
-    return 0.5 + 0.005 * power // -20% when low
+    return 0.5 + 0.0025 * power // -20% when low
 }
 
 // bitwise OR of two bits corresponding to titan loadouts
@@ -104,7 +103,29 @@ string function GetTitanOrPilotFromBool( bool isTitan )
 }
 
 // first element is name, 2nd element is description
+array function GetTitanColor(string primary)
+{
+    switch (primary)
+    {
+        case "mp_titanweapon_leadwall":
+            return [255, 225, 100, 255]
+        case "mp_titanweapon_meteor":
+            return [255, 175, 75, 255]
+        case "mp_titanweapon_xo16_shorty":
+            return [177, 94, 255, 255]
+        case "mp_titanweapon_predator_cannon":
+            return [255, 64, 64, 255]
+        case "mp_titanweapon_sniper":
+            return [64, 96, 255, 255]
+    }
+
+    return [40,40,40,255]
+}
+
+// first element is name, 2nd element is description
 array<string> function GetTitanLoadoutPassiveData()
 {
     return ["No Passive", "No passive is active for this loadout combination."]
 }
+
+

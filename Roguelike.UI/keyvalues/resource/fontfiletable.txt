@@ -5,6 +5,7 @@ FontFileTable
 	"JetBrainsMonoItalic"				"resource/fonts/jetbrainsmono/JetBrainsMono-Italic.ttf"
 	"JetBrainsMonoBold"				"resource/fonts/jetbrainsmono/JetBrainsMono-Bold.ttf"
 	"JetBrainsMonoBoldItalic"				"resource/fonts/jetbrainsmono/JetBrainsMono-BoldItalic.ttf"
+	"GothicExpandedOne"				"resource/fonts/gothicexpandedone/SpecialGothicExpandedOne-Regular.ttf"
 
 	"tahoma"					"resource/fonts/jetbrainsmono/JetBrainsMono-Regular.ttf"						[$PC]
 	"tahoma bold"				"resource/fonts/jetbrainsmono/JetBrainsMono-Bold.ttf" 					[$PC]

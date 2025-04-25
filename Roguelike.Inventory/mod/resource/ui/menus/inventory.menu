@@ -44,6 +44,7 @@ resource/ui/menus/inventory.menu
 		{
 			ControlName				CNestedPanel
 			InheritProperties       FooterButtons
+            zpos                    -1
 		}
 
         Screen
@@ -64,7 +65,7 @@ resource/ui/menus/inventory.menu
             image           "vgui/hud/white"
             wide			1500
             tall		    850
-            ypos            50
+            ypos            100
             visible			1
             scaleImage		1
             fillColor		"0 0 0 0"
@@ -78,7 +79,7 @@ resource/ui/menus/inventory.menu
         {
             ControlName				Label
             xpos					0
-            ypos				    -50
+            ypos				    -100
             wide					74
             tall					27
             visible					1
@@ -90,7 +91,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_56
+            font					GothicExpanded_56
 
             pin_to_sibling			Screen
             pin_corner_to_sibling	TOP
@@ -228,7 +229,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			AC1_PilotMods
             pin_corner_to_sibling	LEFT
@@ -250,7 +251,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			AC1_PilotMods
             pin_corner_to_sibling	BOTTOM_RIGHT
@@ -312,7 +313,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			AC1_TitanMods
             pin_corner_to_sibling	RIGHT
@@ -334,7 +335,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			AC1_TitanMods
             pin_corner_to_sibling	BOTTOM_LEFT
@@ -432,7 +433,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			AC2_PilotMods
             pin_corner_to_sibling	LEFT
@@ -494,7 +495,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			AC2_TitanMods
             pin_corner_to_sibling	RIGHT
@@ -592,7 +593,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			AC3_PilotMods
             pin_corner_to_sibling	LEFT
@@ -654,7 +655,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			AC3_TitanMods
             pin_corner_to_sibling	RIGHT
@@ -752,7 +753,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			AC4_PilotMods
             pin_corner_to_sibling	LEFT
@@ -814,7 +815,7 @@ resource/ui/menus/inventory.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			AC4_TitanMods
             pin_corner_to_sibling	RIGHT

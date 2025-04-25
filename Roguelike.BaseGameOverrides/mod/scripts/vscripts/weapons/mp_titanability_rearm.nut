@@ -20,9 +20,13 @@ var function OnWeaponPrimaryAttack_titanability_rearm( entity weapon, WeaponPrim
 	if (weaponOwner.IsPlayer())
 	{
 		if (Roguelike_HasMod( weaponOwner, "rearm_reload" ))
+		{
 			offhandWeapons.extend(weaponOwner.GetMainWeapons())
+			#if SERVER
+			RSE_Apply( weaponOwner, RoguelikeEffect.rearm_reload, 1.0, 20.0, 0.0 )
+			#endif
+		}
 	#if SERVER
-		weaponOwner.s.lastRearm <- Time()
 
 		if ("storedAbilities" in weaponOwner.s)
 			offhandWeapons.extend(weaponOwner.s.storedAbilities)

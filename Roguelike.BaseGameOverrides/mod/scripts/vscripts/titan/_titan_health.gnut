@@ -232,7 +232,7 @@ void function PlayerOrNPCTitanTookDamage( entity titan, var damageInfo, bool cri
 		return
 
 	// zero out small forces
-	if ( LengthSqr( DamageInfo_GetDamageForce( damageInfo ) ) < 300 * 300 )
+	if ( LengthSqr( DamageInfo_GetDamageForce( damageInfo ) ) < 1000 * 1000 )
 		DamageInfo_SetDamageForce( damageInfo, < 0, 0, 0 > )
 
 	titanDamage.shieldDamage = CheckSpecialCaseShieldDamage( soul, titan, damageInfo )
@@ -742,7 +742,6 @@ void function TitanShieldRegenThink_Internal( entity soul )
 
 	int lastShieldHealth = soul.GetShieldHealth()
 	bool shieldHealthSound = false
-	int maxShield = soul.GetShieldHealthMax()
 	float lastTime = Time()
 
 	while ( true )
@@ -751,6 +750,7 @@ void function TitanShieldRegenThink_Internal( entity soul )
 		if ( !IsValid( titan ) )
 			return
 
+		int maxShield = soul.GetShieldHealthMax()
 		int shieldHealth = soul.GetShieldHealth()
 		Assert( titan )
 
@@ -969,7 +969,14 @@ void function AddCreditToTitanCoreBuilder( entity titan, float credit )
 	if ( titan.IsPlayer() )
 	{
 		int power = Roguelike_GetStat( bossPlayer, STAT_POWER )
-		credit *= Roguelike_GetTitanCoreGain( power )
+		float multiplier = 1.0
+		multiplier *= Roguelike_GetTitanCoreGain( power )
+		multiplier *= 500.0 / (500.0 + GetConVarInt("power_enemy_def"))
+		if (VERBOSE_HEALTH_PRINTOUTS)
+			printt(multiplier)
+		
+		credit *= multiplier
+
 		if ( !IsValid( bossPlayer ) )
 			return
 

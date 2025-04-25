@@ -26,6 +26,7 @@ void function AIBossTitan_Init()
 	if ( IsMultiplayer() )
 		return
 
+	printt("AIBossTitan_Init")
 	FlagInit( "BossTitanViewFollow" )
 
 	AddSpawnCallback( "npc_titan", NPCTitanSpawned )
@@ -98,6 +99,7 @@ void function OnBossTitanDoomed( entity titan, var damageInfo )
 
 void function OnBossTitanCoreMitigation( entity titan, var damageInfo )
 {
+	return
 	int damageSourceID = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 	switch ( damageSourceID )
 	{
@@ -129,6 +131,23 @@ void function OnBossTitanCoreMitigation( entity titan, var damageInfo )
 void function NPCTitanSpawned( entity titan )
 {
 	Assert( !IsMultiplayer() )
+
+	printt("NPCTitanSpawned")
+	thread void function() : (titan) 
+	{
+		wait 0.001
+
+		if (!IsValid(titan))
+			return
+		
+		printt("set baseHealth")
+		float healthFrac = GetHealthFrac( titan )
+		if (!("baseHealth" in titan.s))
+			titan.s.baseHealth <- titan.GetMaxHealth()
+		//titan.SetHealth(titan.GetMaxHealth())
+		
+		UpdateMercTitanHealthForDifficulty( titan )
+	}()
 
 	if ( titan.GetTeam() == TEAM_IMC )
 	{
@@ -171,9 +190,9 @@ void function NPCTitanSpawned( entity titan )
 				}
 				break
 
-			// case TITAN_WEAK:
-				// MakeLowHealthTitan( titan )
-				// break
+			case TITAN_WEAK:
+				MakeLowHealthTitan( titan )
+				break
 
 			case TITAN_AUTO:
 				//if ( !IsMultiplayer() && GetMapName() == "sp_hub_timeshift" || GetMapName() == "sp_timeshift_spoke02" )
@@ -183,15 +202,6 @@ void function NPCTitanSpawned( entity titan )
 				return
 		}
 	}
-	delaythread(0.001) void function() : (titan) 
-	{
-		if (!IsValid(titan))
-			return
-		titan.s.baseHealth <- titan.GetMaxHealth()
-		titan.SetHealth(titan.GetMaxHealth())
-		
-		UpdateMercTitanHealthForDifficulty( titan )
-	}()
 }
 
 void function BossTitanNoIntro( entity titan )
@@ -715,15 +725,15 @@ void function SetHealthValuesForMidHealth( entity soul )
 	soul.SetShieldHealth( 0 )
 
 	entity titan = soul.GetTitan()
-	int numSegments = ( titan.GetMaxHealth() / GetSegmentHealthForTitan( titan ) ) - 2
-	printt(numSegments)
+	int numSegments = ( titan.GetMaxHealth() / 1500 ) - 2
+	printt("numSegments", numSegments)
 	Assert( numSegments > 0 )
 	SetSoulBatteryCount( soul, numSegments )
 	if ( IsAlive( titan ) )
 	{
 		soul.soul.skipDoomState = true
-		int segmentHealth = GetSegmentHealthForTitan( titan ) * numSegments
-		printt(segmentHealth)
+		int segmentHealth = 1500 * numSegments
+		printt("segmentHealth", segmentHealth)
 		titan.SetMaxHealth( segmentHealth )
 		titan.SetHealth( segmentHealth )
 		titan.kv.healthEvalMultiplier = 2
@@ -749,7 +759,7 @@ void function SetHealthValuesForLowHealth( entity soul )
 	if ( IsAlive( titan ) )
 	{
 		soul.soul.skipDoomState = true
-		int segmentHealth = GetSegmentHealthForTitan( titan ) * numSegments
+		int segmentHealth = 1500 * numSegments
 		titan.SetMaxHealth( segmentHealth )
 		titan.SetHealth( segmentHealth )
 		titan.kv.healthEvalMultiplier = 2

@@ -6,10 +6,10 @@ resource/ui/menus/hovers/simple.res
 
         image			"vgui/hud/white"
 
-        drawColor	"48 48 48 255"
+        drawColor	"36 36 36 255"
         scaleImage			1
 
-        wide				400
+        wide				450
         tall			    1000
 
         "xpos"			"0"
@@ -22,10 +22,10 @@ resource/ui/menus/hovers/simple.res
 
         image			"vgui/hud/white"
 
-        drawColor	"64 64 64 255"
+        drawColor	"48 48 48 255"
         scaleImage			1
 
-        wide				400
+        wide				450
         tall			    64
 
         "xpos"			"0"
@@ -48,7 +48,7 @@ resource/ui/menus/hovers/simple.res
         textAlignment			west
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMonoBold_36
+        font					GothicExpanded_36
         allcaps                 1
 
         pin_to_sibling			TitleStrip
@@ -68,9 +68,9 @@ resource/ui/menus/hovers/simple.res
         textAlignment			west
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMono_17
+        font					JetBrainsMono_18
 
-		wide				384
+		wide				442
         wrap                1
 
 		"xpos"			"-8"

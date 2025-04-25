@@ -35,24 +35,6 @@ resource/ui/menus/panels/vgui_button.res
 		border			GoldBorder
 	}
 
-	Image
-	{
-		ControlName			ImagePanel
-
-		image			"vgui/hud/empty"
-		xpos				-1
-		ypos				0
-
-		visible				1
-		wide                64
-		tall				64
-		textAlignment		center
-
-		pin_to_sibling				BG
-		pin_corner_to_sibling		CENTER
-		pin_to_sibling_corner		CENTER
-	}
-
 	Label
 	{
 		ControlName			Label
@@ -123,7 +105,7 @@ resource/ui/menus/panels/vgui_button.res
 		tall				64
 		labelText			""
 		allCaps				1
-		font				JetBrainsMono_17
+		font				JetBrainsMono_18
 		auto_wide_tocontents	1
 		auto_tall_tocontents    1
 		textAlignment		center
@@ -138,8 +120,12 @@ resource/ui/menus/panels/vgui_button.res
 	{
 		ControlName				RuiButton
 		xpos					0
-		wide                256
-		tall				128
+		wide                %100
+		tall				%100
+		visible					1
+		enabled					1
+		scaleImage				1
 		labelText				""
+		rui						""
 	}
 }

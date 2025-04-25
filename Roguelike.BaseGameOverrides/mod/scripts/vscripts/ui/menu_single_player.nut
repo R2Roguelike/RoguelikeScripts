@@ -483,6 +483,10 @@ void function LoadSPLevel()
 	SetConVarInt( "sp_difficulty", file.difficulty )
 	SetLevelNameForLoading( file.selectedLevel )
 	int idx = GetStartPointIndexFromName( file.selectedLevel, file.selectedStartPoint )
+	if (file.selectedLevel == "sp_skyway_v1" && idx == 0)
+	{
+		idx = 1
+	}
 	ExecuteLoadingClientCommands_SetStartPoint( file.selectedLevel, idx )
 	ClientCommand( "map " + file.selectedLevel )
 }

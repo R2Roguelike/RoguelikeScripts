@@ -27,10 +27,13 @@ void function Sequence( float duration, void functionref( float ) update )
 {
     float startTime = Time()
     float endTime = Time() + duration
+    bool setFinish = false
     while (true)
     {
+        if (GraphCapped( Time(), startTime, endTime, 0, 1 ) == 1.0)
+            setFinish = true
         update( GraphCapped( Time(), startTime, endTime, 0, 1 ) )
-        if (Time() >= endTime)
+        if (setFinish)
             break
         wait 0
     }

@@ -9,6 +9,7 @@
         dodgePowerDrain		49
         powerRegenRate		12.25
         dodgePowerDelay		0.2
+		aiEnemy_priority		100
 
         ClassMods
         {
@@ -16,6 +17,23 @@
 			{
 				dodgePowerDrain		33
                 powerRegenRate		8.25
+			}
+
+			segment_sacrifice_1
+			{
+		        health				7200 // not used by segmented health
+			}
+			segment_sacrifice_2
+			{
+		        health				5400 // not used by segmented health
+			}
+			damage_sacrifice_1
+			{
+		        health				10800 // not used by segmented health
+			}
+			damage_sacrifice_2
+			{
+		        health				12600 // not used by segmented health
 			}
         }
     }

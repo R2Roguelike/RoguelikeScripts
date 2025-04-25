@@ -77,7 +77,6 @@ function DeploySlowTrap( entity projectile )
 	vector origin = OriginToGround( projectile.GetOrigin() )
 	vector angles = projectile.proj.savedAngles
 	angles = < angles.x + 90, angles.y, angles.z > // rotate 90 to face up
-	printt(angles.y)
 	entity owner = projectile.GetOwner()
 	entity _parent = projectile.GetParent()
 	if ( !IsValid( owner ) )
@@ -130,7 +129,6 @@ function DeploySlowTrap( entity projectile )
 
 	//TODO - HACK : Update to use Vortex Sphere once the Vortex Sphere explosion code feature is done.
 	entity damageArea = CreatePropScript( DAMAGE_AREA_MODEL, origin, angles, 0 )
-	printt(damageArea.GetAngles().y)
 	damageArea.SetOwner( owner )
 	if ( owner.IsPlayer() )
 		damageArea.SetBossPlayer( owner )
@@ -284,7 +282,6 @@ function IgniteTrap( entity damageArea, var damageInfo, bool isExplosiveBarrel =
 	bool isWallCanister = owner.IsPlayer() && Roguelike_HasMod( owner, "offense_canister" )
 	if (isWallCanister)
 	{
-		printt(damageArea.GetAngles().y)
 		for ( int i = 0; i < 9; i++ )
 		{
 			vector trailAngles = < 15, damageArea.GetAngles().y - 90 + 20 * i, 0 >
@@ -512,7 +509,7 @@ bool function CreateSlowTrapSegment( entity projectile, int projectileCount, ent
 
 			entity thermiteParticle = CreateThermiteTrail( pos, angles, owner, inflictor, duration, $"P_wpn_meteor_wall", eDamageSourceId.mp_titanability_slow_trap )
 			EffectSetControlPointVector( thermiteParticle, 1, projectile.proj.savedOrigin )
-			thread FireTrap_DamageAreaOverTime( owner, inflictor, pos, duration )
+			//thread FireTrap_DamageAreaOverTime( owner, inflictor, pos, duration )
 		}
 		else
 		{
@@ -545,7 +542,7 @@ void function FireTrap_DamageAreaOverTime( entity owner, entity inflictor, vecto
 	while ( Time() < endTime )
 	{
 		FireTrap_RadiusDamage( pos, owner, inflictor )
-		wait 0.2
+		wait 0.049
 	}
 }
 
@@ -561,7 +558,7 @@ void function FireTrap_DamageAreaOverTimeOnMovingGeo( entity owner, entity infli
 	{
 		vector pos = GetWorldOriginFromRelativeDelta( relativeDelta, movingGeo )
 		FireTrap_RadiusDamage( pos, owner, inflictor )
-		wait 0.2
+		wait 0.049
 	}
 }
 

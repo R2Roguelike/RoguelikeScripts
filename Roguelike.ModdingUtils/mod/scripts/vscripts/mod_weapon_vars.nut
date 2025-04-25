@@ -15,6 +15,8 @@ global function CodeCallback_PredictWeaponMods
 global function ScaleCooldown
 global function Roguelike_GetOffhandWeaponByName
 global function Roguelike_FindWeaponForDamageInfo
+global function Roguelike_GetAlternateOffhand
+global function Roguelike_FindWeapon
 
 // doing overrides last 
 global const int WEAPON_VAR_PRIORITY_OVERRIDE = 0
@@ -243,10 +245,36 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
         {
             if (Roguelike_HasMod( player, "quickswap" ))
             {
-                StatusEffect_AddTimed( player, eStatusEffect.roguelike_ronin_quickswap, 1.0, 0.75, 0.0 )
+                RSE_Apply( player, RoguelikeEffect.ronin_quickswap, 1.0, 0.75, 0.0 )
             }
             Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetActiveWeapon() )
             player.s.lastActiveWeapon <- player.GetActiveWeapon().GetWeaponClassName()
+        }
+
+        entity lastPrimary = player.GetLatestPrimaryWeapon()
+        if (IsValid(lastPrimary) && player.IsTitan() && Roguelike_GetTitanLoadouts().contains(PRIMARY_NORTHSTAR))
+        {
+            entity railgun = Roguelike_FindWeapon( player, PRIMARY_NORTHSTAR )
+            
+            if (IsValid(railgun))
+            {
+                if (!("railgunEndChargeTime" in railgun.s) || lastPrimary.GetWeaponClassName() == PRIMARY_NORTHSTAR)
+                {
+                    railgun.s.railgunEndChargeTime <- Time() + 5.0 * (1.0 - railgun.GetWeaponChargeFraction())
+                    railgun.s.railgunStartChargeTime <- Time()
+                    railgun.s.railgunStartChargeFrac <- railgun.GetWeaponChargeFraction()
+                }
+                else
+                {
+                    float start = expect float(railgun.s.railgunStartChargeTime)
+                    float end = expect float(railgun.s.railgunEndChargeTime)
+                    float frac = expect float(railgun.s.railgunStartChargeFrac)
+                    
+                    //railgun.SetWeaponChargeFraction(Graph(Time(), start, end, frac, 1.0))
+                    railgun.SetWeaponChargeFractionForced(Graph(Time(), start, end, frac, 1.0))
+                }
+            }
+
         }
     }
     player.s.lastModsCalculatedTime <- Time()
@@ -289,12 +317,23 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
 	if ( soul == null )
 		return
 
-    TitanLoadoutDef ornull titanLoadout = GetTitanLoadoutForPrimary( primary.GetWeaponClassName() )
+    string primaryClassName = primary.GetWeaponClassName()
+    // flightcore is not a loadout
+    if (primary.GetWeaponClassName() == "mp_titanweapon_flightcore_rockets")
+        primaryClassName = "mp_titanweapon_sniper"
+
+    printt(primary.GetWeaponClassName())
+
+    TitanLoadoutDef ornull titanLoadout = GetTitanLoadoutForPrimary( primaryClassName )
     if ( titanLoadout == null )
         return
     expect TitanLoadoutDef( titanLoadout )
     
     Roguelike_ModifyTitanLoadout( titan, titanLoadout )
+
+    // we already have this loadout equipped...
+    if ("currentLoadout" in titan.s && titan.s.currentLoadout == primaryClassName)
+        return
 
     //table<int,float> cooldowns = GetWeaponCooldownsForTitanLoadoutSwitch( titan )
 
@@ -310,8 +349,11 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
         {
             if (i == OFFHAND_INVENTORY) // ignore equipment
                 continue
+            if (i == OFFHAND_EQUIPMENT && IsTitanCoreFiring( titan ))
+                continue
             if (!IsValid(titan.GetOffhandWeapon(i)))
                 continue
+
             entity offhandWeapon = titan.TakeOffhandWeapon_NoDelete( i )
             
             if (IsValid(offhandWeapon))
@@ -332,7 +374,8 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
         titan.GiveOffhandWeapon( titanLoadout.ordnance, OFFHAND_ORDNANCE )
         titan.GiveOffhandWeapon( titanLoadout.special, OFFHAND_SPECIAL )
         titan.GiveOffhandWeapon( titanLoadout.antirodeo, OFFHAND_TITAN_CENTER )
-        titan.GiveOffhandWeapon( titanLoadout.coreAbility, OFFHAND_EQUIPMENT )
+        if (!IsTitanCoreFiring( titan ))
+            titan.GiveOffhandWeapon( titanLoadout.coreAbility, OFFHAND_EQUIPMENT )
         foreach (entity offhand in titan.GetOffhandWeapons())
         {
             ModWeaponVars_CalculateWeaponMods( offhand )
@@ -347,6 +390,8 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
         for ( int i = 0; i < OFFHAND_COUNT; i++ )
         {
             if (i == OFFHAND_INVENTORY)
+                continue
+            if (i == OFFHAND_EQUIPMENT && IsTitanCoreFiring( titan ))
                 continue
             
             entity offhandWeapon = titan.TakeOffhandWeapon_NoDelete( i )
@@ -427,6 +472,8 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
                 w.RemoveMod("ammo_swap_ranged_mode")
         }
     }
+
+    titan.s.currentLoadout <- primary.GetWeaponClassName()
 
     SoulTitanCore_SetNextAvailableTime( soul, coreValue )
 
@@ -524,12 +571,34 @@ entity function Roguelike_FindWeaponForDamageInfo( var damageInfo )
     if (inflictor.GetClassName() == "weaponx")
         return inflictor
     
-    if (!inflictor.IsProjectile())
+    if (inflictor.IsProjectile())
+    {
+        string weaponName = inflictor.ProjectileGetWeaponClassName()
+        return Roguelike_FindWeapon( attacker, weaponName )
+    }
+    
+    string damageSourceIdName = DamageSourceIDToString( DamageInfo_GetDamageSourceIdentifier( damageInfo ) )
+    switch (damageSourceIdName)
+    {
+        case "mp_titanweapon_meteor_thermite":
+        case "mp_titanweapon_meteor_thermite_charged":
+            damageSourceIdName = "mp_titanweapon_meteor"
+            break
+    }
+    return Roguelike_FindWeapon( attacker, damageSourceIdName )
+}
+
+entity function Roguelike_GetAlternateOffhand( entity player, int index )
+{
+    if (!("storedAbilities" in player.s))
         return null
     
-    string weaponName = inflictor.ProjectileGetWeaponClassName()
+    if (!IsValid(player.s.storedAbilities[index]))
+    {
+        return null
+    }
 
-    return Roguelike_FindWeapon( attacker, weaponName )
+    return expect entity(player.s.storedAbilities[index])
 }
 
 entity function Roguelike_FindWeapon( entity player, string weapon )

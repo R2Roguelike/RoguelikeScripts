@@ -5,4 +5,5 @@ WeaponData
 	{
 		"explosion_damage"								"90"
 	}
+	"impulse_force"   								"17500"
 }

@@ -1,13 +1,11 @@
 Selector Common
 
 	SelectSchedule_MissileDodge
-	CNPC_Titan::SelectSchedule_TitanCore
 	CNPC_Titan::SelectSchedule_PhysEntKnock
-	
-	
+	SelectSchedule_DisplaceFromDangerousArea
+	//SelectSchedule_DangerousClusterStandoff
 	SelectSchedule_ChangeToDesiredStance
-	
-	CNPC_Titan::SelectSchedule_GotoDefensivePlacement
+	SelectSchedule_SyncedMeleeAttack
 	SelectSchedule_LayeredBehavior
 Selector_End
 
@@ -27,51 +25,31 @@ Selector_End
 Selector Combat
 
 	SelectSchedule_StrafeDodge
-	//SelectSchedule_ForwardDodge
+	SelectSchedule_ForwardDodge
+	SelectSchedule_CircleStrafe
 	SelectSchedule_MeleeAttack
-	//SelectSchedule_EvasiveLowAmmo
 	SelectSchedule_ChaseEnemy
-	//SelectSchedule_EngagementDistMax
-	//SelectSchedule_CircleStrafe
-	
-	SelectSchedule_RangeAttackEvasive
+	SelectSchedule_EvasiveLowAmmo
 	SelectSchedule_RangeAttack
+	SelectSchedule_RangeAttackEvasive
 	SelectSchedule_EngagementDistMin
-	SelectSchedule_WeaponBlocked
-	SelectSchedule_CantSeeEnemy
-	//SelectSchedule_MoveToWeaponRange
 	SelectSchedule_CombatFace
+	SelectSchedule_CantSeeEnemy
+	SelectSchedule_WeaponBlocked
 Selector_End
 
 Selector CombatAggressive
 
 	SelectSchedule_MeleeAttack
 	SelectSchedule_StrafeDodge
-	//SelectSchedule_ForwardDodge
-	SelectSchedule_ChaseEnemy
-	//SelectSchedule_CircleStrafe
-	
-	//SelectSchedule_RangeAttackEvasive
-	SelectSchedule_RangeAttack
-	SelectSchedule_WeaponBlocked
-	SelectSchedule_CantSeeEnemy
-	SelectSchedule_CombatFace
-Selector_End
-
-
-Selector CombatEvasive
-
-	//SelectSchedule_FearEnemy
-	SelectSchedule_MeleeAttack
-	SelectSchedule_BackwardDodge
-	SelectSchedule_StrafeDodge
-	SelectSchedule_TakeCoverFromEnemy health > 0.1
+	SelectSchedule_ForwardDodge
 	SelectSchedule_CircleStrafe
+	SelectSchedule_ChaseEnemy
 	SelectSchedule_EvasiveLowAmmo
-	SelectSchedule_RangeAttackEvasive
 	SelectSchedule_RangeAttack
+	SelectSchedule_RangeAttackEvasive
 	SelectSchedule_EngagementDistMin
-	SelectSchedule_WeaponBlocked
-	SelectSchedule_CantSeeEnemy
 	SelectSchedule_CombatFace
+	SelectSchedule_CantSeeEnemy
+	SelectSchedule_WeaponBlocked
 Selector_End

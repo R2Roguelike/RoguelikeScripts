@@ -1,6 +1,5 @@
 WeaponData
 {
-    "inventory_slot"                "special"
     SP_BASE
     {
     }

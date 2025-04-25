@@ -25,6 +25,7 @@ struct {
 void function AddInventoryMenu()
 {
     SetConVarInt("script_server_fps", 20)
+    SetConVarInt("sv_maxvelocity", 36000)
 	AddMenu( "InventoryMenu", $"resource/ui/menus/inventory.menu", InitInventoryMenu )
     delaythread(0.001) UpdateMenuState()
     delaythread(0.001) UpdateInventory()
@@ -74,7 +75,7 @@ void function InitInventoryMenu()
             Hud_SetColor( Hud_GetChild(panel, "TitleStrip"), 255, 122, 244, 255 )
             Hud_SetColor( Hud_GetChild(panel, "BG"), 204, 98, 195, 255 )
             Hud_SetText( Hud_GetChild(panel, "Title"), FormatDescription("Augment of Balance"))
-            Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription("Your mind is cleared, and you see through the fog.\n\n-30% DMG taken from enemies.") )
+            Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription("Your mind is cleared, and you see through the fog.\n\n-20% DMG taken from enemies.") )
             return
         }
         else
@@ -302,45 +303,42 @@ void function RefreshInventory()
     for (int i = 1; i < 5; i++)
     {
         int totalEnergyUsed = GetTotalEnergyUsed( i, false )
-        if (totalEnergyUsed > expect int(runData["ACPilot" + i].energy))
+        int energyAvailable = expect int(runData["ACPilot" + i].energy)
+        for (int j = 0; j < MOD_SLOTS && totalEnergyUsed > energyAvailable; j++)
         {
-            // remove mods until energy debt is gone
-            // may not remove debt completely if mods are not swappable
-            // but we dont care since that means the user cant equip 
-            // anything regardless
-            for (int j = 0; j < MOD_SLOTS; j++)
+            string modIndex = FormatModIndex(i, false, j)
+            RoguelikeMod mod = GetModForIndex(runData[modIndex])
+            
+            if (mod.isSwappable)
             {
-                string modIndex = FormatModIndex(i, false, j)
-                RoguelikeMod mod = GetModForIndex(runData[modIndex])
-                
-                if (mod.isSwappable)
-                {
-                    runData[modIndex] <- GetModByName("empty").index
-                }
+                printt("SETTING EMPTY")
+                runData[modIndex] <- GetModByName("empty").index
             }
-            totalEnergyUsed = 0
+
+            totalEnergyUsed = GetTotalEnergyUsed( i, false )
         }
+        totalEnergyUsed = GetTotalEnergyUsed( i, false )
+
         Hud_SetText(Hud_GetChild(file.menu, format("AC%i_PilotEnergy", i)), format("%i/%i", totalEnergyUsed, runData["ACPilot" + i].energy))
 
         totalEnergyUsed = GetTotalEnergyUsed( i, true )
-        if (totalEnergyUsed > expect int(runData["ACTitan" + i].energy))
-        {
-            // remove mods until energy debt is gone
-            // may not remove debt completely if mods are not swappable
-            // but we dont care since that means the user cant equip 
-            // anything regardless
-            for (int j = 0; j < MOD_SLOTS; j++)
-            {
-                string modIndex = FormatModIndex(i, true, j)
-                RoguelikeMod mod = GetModForIndex(runData[modIndex])
+        energyAvailable = expect int(runData["ACTitan" + i].energy)
 
-                if (mod.isSwappable)
-                {
-                    runData[modIndex] <- GetModByName("empty").index
-                }
+        for (int j = 0; j < MOD_SLOTS && totalEnergyUsed > energyAvailable; j++)
+        {
+            string modIndex = FormatModIndex(i, true, j)
+            RoguelikeMod mod = GetModForIndex(runData[modIndex])
+
+            if (mod.isSwappable)
+            {
+                printt("SETTING EMPTY")
+                runData[modIndex] <- GetModByName("empty").index
             }
-            totalEnergyUsed = 0
+
+            totalEnergyUsed = GetTotalEnergyUsed( i, true )
         }
+        totalEnergyUsed = GetTotalEnergyUsed( i, true )
+
         Hud_SetText(Hud_GetChild(file.menu, format("AC%i_TitanEnergy", i)), format("%i/%i", totalEnergyUsed, runData["ACTitan" + i].energy))
     }
 
@@ -364,7 +362,10 @@ void function RefreshInventory()
                     break
                 }
             }
-            Hud_SetVisible( Hud_GetChild( modSlot, "Notification"), notification)
+            if (notification)
+                Hud_SetColor( Hud_GetChild(modSlot, "BG"), 255,128,32, 135 )
+            else
+                Hud_SetColor( Hud_GetChild(modSlot, "BG"), 0,0,0, 135 )
 
             AddHover( modSlot, ModSlot_Hover, HOVER_SIMPLE )
         }
@@ -504,31 +505,55 @@ void function Weapon_Hover( var slot, var panel )
     string weaponDesc = GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "description" )
     weaponDesc += "\n\n"
 
-    string stat = "Damage"
+
+    string formatting = "+%i%% Damage\n\n"
+    string levelFormatting = "Level %i: +%i%% Damage"
+
+    table<int, int> values = {
+        [ RARITY_UNCOMMON ] = 15,
+        [ RARITY_RARE ] = 25,
+        [ RARITY_EPIC ] = 35,
+        [ RARITY_LEGENDARY ] = 45
+    }
+    int valuePerLevel = 15
+    table<int, string> rarityNames = {
+        [ RARITY_COMMON ] = "Common",
+        [ RARITY_UNCOMMON ] = "Uncommon",
+        [ RARITY_RARE ] = "Rare",
+        [ RARITY_EPIC ] = "Epic",
+        [ RARITY_LEGENDARY ] = "Legendary"
+    }
+
     if (slot == "special")
     {
-        stat = "Explosion Force"
+        formatting = "+%i%% Explosion Force\n\n"
+        levelFormatting = "Level %i: +%i%% Explosion Force"
+        values = {
+            [ RARITY_UNCOMMON ] = 25,
+            [ RARITY_RARE ] = 40,
+            [ RARITY_EPIC ] = 55,
+            [ RARITY_LEGENDARY ] = 70
+        }
+        valuePerLevel = 25
     }
+
     int rarity = expect int(data.rarity)
-    switch (rarity)
-    {
-        case RARITY_UNCOMMON:
-            weaponDesc += FormatDescription(format("Uncommon: +%i%% %s\n\n", 15, stat))
-            break
-        case RARITY_RARE:
-            weaponDesc += FormatDescription(format("Rare: +%i%% %s\n\n", 25, stat))
-            break
-        case RARITY_EPIC:
-            weaponDesc += FormatDescription(format("Epic: +%i%% %s\n\n", 35, stat))
-            break
-        case RARITY_LEGENDARY:
-            weaponDesc += FormatDescription(format("Legendary: +%i%% %s\n\n", 45, stat))
-            break
-    }
+
+    if (rarity in values)
+        weaponDesc += FormatDescription(format(rarityNames[rarity] + ": " + formatting, values[rarity]))
 
     if (level > 0)
     {
-        weaponDesc += FormatDescription(format("Level %i: +%i%% %s\n\n", level, 15 * level, stat))
+        weaponDesc += FormatDescription(format(levelFormatting + "\n\n", level, valuePerLevel * level))
+    }
+
+    if (file.startDismantleTime != -1.0)
+    {
+        Hud_SetBarProgress( Hud_GetChild( panel, "FooterBar" ), GraphCapped(Time(), file.startDismantleTime, file.endDismantleTime, 0, 1) )
+    }
+    else
+    {
+        Hud_SetBarProgress( Hud_GetChild( panel, "FooterBar" ), 0.0 )
     }
     
     Hud_SetText( Hud_GetChild(panel, "Description"), weaponDesc )
@@ -597,6 +622,9 @@ void function SwapSequence( var slot )
         var swapEffect = Hud_GetChild(slot, "SwapEffect")
         var swapEffect2 = Hud_GetChild(slot, "SwapEffect2")
         
+        Hud_SetVisible(swapEffect, true)
+        Hud_SetVisible(swapEffect2, true)
+
         int scaled48 = ContentScaledYAsInt(40)
         if (t <= 0.5)
         {
@@ -615,6 +643,12 @@ void function SwapSequence( var slot )
             Hud_SetHeight( swapEffect, width )
             Hud_SetHeight( swapEffect2, width )
         }
+
+        if (t == 1.0)
+        {
+            Hud_SetVisible(swapEffect, false)
+            Hud_SetVisible(swapEffect2, false)
+        }
     })
 }
 
@@ -624,6 +658,9 @@ void function SwapSequenceAlt( var slot )
     {
         var swapEffect = Hud_GetChild(slot, "SwapEffect")
         var swapEffect2 = Hud_GetChild(slot, "SwapEffect2")
+
+        Hud_SetVisible(swapEffect, true)
+        Hud_SetVisible(swapEffect2, true)
         
         int scaled48 = ContentScaledYAsInt(40)
         if (t <= 0.5)
@@ -643,6 +680,11 @@ void function SwapSequenceAlt( var slot )
             Hud_SetHeight( swapEffect, width )
             Hud_SetHeight( swapEffect2, width )
         }
+        if (t == 1.0)
+        {
+            Hud_SetVisible(swapEffect, false)
+            Hud_SetVisible(swapEffect2, false)
+        }
     })
 }
 
@@ -655,7 +697,7 @@ string function GetTitanDescription(string weapon)
                 "\n<daze>Rearm</> <cyan>resets all cooldowns<note> (except itself) <cyan>for both loadouts</>.\n \n" +
                 "Expedition's status effect is <weak>Weak</>.\n" +
                 "<weak>Weak</> is applied with <cyan>Expedition's missiles</>.\n" +
-                "<weak>Weak</> reduces outgoing damage by 75%, and increases <cyan>incoming weapon<note>*<cyan> damage</> by 50%.\n" +
+                "<weak>Weak</> reduces outgoing damage by 25%, and increases <cyan>incoming weapon<note>*<cyan> damage</> by 50%.\n" +
                 "<note>* Weapon = Primaries and Melee"
 
         case "mp_titanweapon_sticky_40mm":
@@ -664,7 +706,7 @@ string function GetTitanDescription(string weapon)
         case "mp_titanweapon_meteor": // scorch
             return "<note>Set the world ablaze.</>\n\nScorch's status effect is <burn>Burn</>." + 
                 "\n<burn>Burn</> is inflicted by using <cyan>anything in Scorch's kit</>,\n" +
-                "and increases <cyan>all non-fire damage</>.\n\n"
+                "and increases <cyan>all non-fire damage by up to 50%</>.\n\n"
 
         case "mp_titanweapon_rocketeer_rocketstream":
             return "Brute"
@@ -768,6 +810,7 @@ string function FormatDescription(string desc)
     result = StringReplace( result, "<overload>",  "^0080FF00", true )
     result = StringReplace( result, "<warn>",  "^FFA00000", true )
     result = StringReplace( result, "<note>",  "^88888800", true )
+    result = StringReplace( result, "<fulm>",  "^4060FF00", true )
     result = StringReplace( result, "<burn>",  "^FFAF4B00", true )
     result = StringReplace( result, "<green>", "^60FF6000", true )
     result = StringReplace( result, "<red>",   "^FF404000", true )

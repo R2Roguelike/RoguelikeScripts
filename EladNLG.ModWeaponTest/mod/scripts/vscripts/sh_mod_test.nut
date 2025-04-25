@@ -22,6 +22,27 @@ void function ApplyModWeaponVars( entity weapon )
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.regen_ammo_refill_start_delay, 0 )
     }
 
+    if (IsValid(owner) && owner.IsPlayer())
+    {
+        PlayerWeaponBuffs( weapon, owner )
+    }
+
+    if (weapon.GetWeaponClassName() != "mp_titanweapon_sniper")
+        ModWeaponVars_SetBool( weapon, eWeaponVar.critical_hit, false )
+    else
+    {
+    }
+    if (weapon.GetWeaponClassName() == "mp_titanweapon_leadwall" && IsValid(owner) && RSE_Get( owner, RoguelikeEffect.ronin_overload ) > 0.0)
+        ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_clip, true )
+
+
+    #if SERVER
+    if (IsValid(owner) && !owner.IsPlayer())
+    {
+        NPCWeaponBuffs( weapon, owner )
+    }
+    #endif
+
     // titan loadout stuff
     if (IsValid(owner) && owner.IsPlayer() && owner.IsTitan() && !weapon.IsWeaponOffhand())
     {
@@ -39,9 +60,8 @@ void function ApplyModWeaponVars( entity weapon )
             int ammo = weapon.GetWeaponPrimaryClipCount()
             int maxAmmo = weapon.GetWeaponPrimaryClipCountMax()
 
-            if (Time() - weapon.s.lastEquippedTime > min(5.0 / maxAmmo, 2.0) && ammo < maxAmmo)
+            if (Time() - weapon.s.lastEquippedTime > max(min(5.0 / maxAmmo, 3.0), 0.05) - 0.01 && ammo < maxAmmo)
             {
-                printt(weapon.GetWeaponClassName(), weapon.s.lastEquippedTime, Time())
                 weapon.s.lastEquippedTime = Time()
                 weapon.SetWeaponPrimaryClipCount(minint(maxAmmo, ammo + 1))
             }
@@ -52,36 +72,20 @@ void function ApplyModWeaponVars( entity weapon )
             ModWeaponVars_SetBool( weapon, eWeaponVar.instant_swap_to, true )
         }
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.deploy_time, 0.333 )
+        ModWeaponVars_ScaleVar( weapon, eWeaponVar.raise_time, 0.333 )
     }
-
-    
-    if (IsValid(owner) && owner.IsPlayer())
-    {
-        PlayerWeaponBuffs( weapon, owner )
-    }
-
-    if (weapon.GetWeaponClassName() != "mp_titanweapon_sniper")
-        ModWeaponVars_SetBool( weapon, eWeaponVar.critical_hit, false )
-    if (weapon.GetWeaponClassName() == "mp_titanweapon_leadwall" && IsValid(owner) && StatusEffect_Get( owner, eStatusEffect.roguelike_shotgun_buff ) > 0.0)
-        ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_clip, true )
-
-    #if SERVER
-    if (IsValid(owner) && !owner.IsPlayer())
-    {
-        NPCWeaponBuffs( weapon, owner )
-    }
-    #endif
 }
 
 void function PlayerWeaponBuffs( entity weapon, entity owner )
 {
     ModWeaponVars_SetFloat( weapon, eWeaponVar.melee_attack_animtime, 0.8 )
+    ModWeaponVars_SetFloat( weapon, eWeaponVar.melee_lunge_time, 0.1 )
     // quick recovery
-    ModWeaponVars_SetFloat( weapon, eWeaponVar.melee_raise_recovery_animtime_normal, 0.25 )
-    ModWeaponVars_SetFloat( weapon, eWeaponVar.melee_raise_recovery_animtime_quick, 0.25 )
+    ModWeaponVars_SetFloat( weapon, eWeaponVar.melee_raise_recovery_animtime_normal, 0.1 )
+    ModWeaponVars_SetFloat( weapon, eWeaponVar.melee_raise_recovery_animtime_quick, 0.1 )
     string weaponClassName = weapon.GetWeaponClassName()
     if (weaponClassName == "mp_titanability_rearm" && Roguelike_HasMod( owner, "quick_rearm" ))
-        ScaleCooldown( weapon, 0.333 )
+        ScaleCooldown( weapon, 0.5 )
     else if (Roguelike_HasMod( owner, "quick_rearm" ))
     {
         ScaleCooldown( weapon, 4 ) // +300%
@@ -99,7 +103,7 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
     if (weaponClassName == "mp_titanweapon_xo16_shorty" && Roguelike_HasMod( owner, "xo16_long_range"))
     {
         ModWeaponVars_SetBool( weapon, eWeaponVar.looping_sounds, false )
-        ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_rate, 0.833333 )
+        ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_rate, 0.9 )
         ModWeaponVars_SetString( weapon, eWeaponVar.fire_sound_3, "Weapon_xo16_fire_first_1P" )
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_distance, 2 )
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_distance, 2 )
@@ -114,14 +118,14 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.spread_max_kick_stand_ads, 0.4 )
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.spread_max_kick_crouch_ads, 0.4 )
         foreach (int weaponVar in ADS_SPREAD_VARS)
-            ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_very_far_distance, 0.4 )
+            ModWeaponVars_ScaleVar( weapon, weaponVar, 0.4 )
         foreach (int weaponVar in HIP_SPREAD_VARS)
-            ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_very_far_distance, 0.6 )
+            ModWeaponVars_ScaleVar( weapon, weaponVar, 0.6 )
 
     }
     if (weaponClassName == "mp_titanweapon_shoulder_rockets" && Roguelike_HasMod( owner, "dumbfire_rockets" ))
     {
-        ModWeaponVars_ScaleDamage( weapon, 2.0 )
+        ModWeaponVars_ScaleDamage( weapon, 2.5 )
         ModWeaponVars_SetFloat( weapon, eWeaponVar.charge_time, 0.001 )
         ModWeaponVars_SetFloat( weapon, eWeaponVar.smart_ammo_search_angle, 0.0 )
 
@@ -216,28 +220,49 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
             if (weaponPerksConVar.len() > 0 && weapon.GetInventoryIndex() < 2)
                 weaponPerks = split( split( weaponPerksConVar, " " )[weapon.GetInventoryIndex()], "," )
             
+            int stat = -1
+            table<int, float> values = {
+                [ RARITY_UNCOMMON ] = 0.15,
+                [ RARITY_RARE ] = 0.25,
+                [ RARITY_EPIC ] = 0.35,
+                [ RARITY_LEGENDARY ] = 0.45
+            }
+            float valuePerLevel = 0.15
+
+            if (weapon.GetWeaponInfoFileKeyField( "inventory_slot" ) == "special")
+            {
+                stat = eWeaponVar.impulse_force
+                values = {
+                    [ RARITY_UNCOMMON ] = 0.25,
+                    [ RARITY_RARE ] = 0.4,
+                    [ RARITY_EPIC ] = 0.55,
+                    [ RARITY_LEGENDARY ] = 0.7
+                }
+                valuePerLevel = 0.25
+            }
+
             float bonus = 0.0
             if (weaponPerks.contains("uncommon"))
-                bonus += 0.15
+                bonus += values[RARITY_UNCOMMON]
             else if (weaponPerks.contains("rare"))
-                bonus += 0.25
+                bonus += values[RARITY_RARE]
             else if (weaponPerks.contains("epic"))
-                bonus += 0.35
+                bonus += values[RARITY_EPIC]
             else if (weaponPerks.contains("legendary"))
-                bonus += 0.5
+                bonus += values[RARITY_LEGENDARY]
             
             //printt(weaponPerks.len())
             if (weaponPerks.len() > 0 && StartsWith(weaponPerks[0], "level_"))
             {
                 int level = int( weaponPerks[0].slice( 6, weaponPerks[0].len() ))
-                bonus += 0.15 * level
+                bonus += valuePerLevel * level
             }
 
 
-            if (weapon.GetWeaponInfoFileKeyField( "inventory_slot" ) == "special")
-                ModWeaponVars_ScaleVar( weapon, eWeaponVar.impulse_force, 1.0 + bonus )
-            else
+            if (stat == -1)
                 ModWeaponVars_ScaleDamage( weapon, 1.0 + bonus )
+            else
+                ModWeaponVars_ScaleVar( weapon, stat, 1.0 + bonus )
 
 
             ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_stockpile, true )
@@ -275,6 +300,26 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
             }
         }
     }
+    if (weaponClassName == "mp_titancore_flight_core" && Roguelike_HasMod( owner, "first_class_flight" ))
+        ModWeaponVars_ScaleVar( weapon, eWeaponVar.core_duration, 1.25 )
+    if (weaponClassName == "mp_titanability_hover" && Roguelike_HasMod( owner, "hover_toggle" ))
+    {
+        ScaleCooldown( weapon, 0.5 )
+        ModWeaponVars_SetFloat( weapon, eWeaponVar.fire_duration, 0.25 )
+    }
+    if (["mp_titanability_slow_trap", "mp_titanweapon_flame_wall"].contains(weaponClassName) && Roguelike_HasMod( owner, "warmth" ))
+        ScaleCooldown( weapon, 99999.9 )
+    if (weaponClassName == "mp_titanweapon_predator_cannon" && Roguelike_HasMod( owner, "mag_cap" ))
+    {
+        int overcap = weapon.GetWeaponSettingInt(eWeaponVar.ammo_clip_size) - 150
+        if (overcap > 0)
+        {
+            ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_clip_size, 150 )
+            ModWeaponVars_SetInt( weapon, eWeaponVar.custom_int_3, overcap )
+        }
+    }
+    if (weaponClassName == "mp_titanweapon_flightcore_rockets" && Roguelike_HasMod( owner, "cluster_core" ))
+        ModWeaponVars_ScaleDamage( weapon, 0.3 )
 }
 
 void function WeaponsPlus( entity weapon, entity owner )
@@ -332,6 +377,8 @@ void function NPCWeaponBuffs( entity weapon, entity owner )
     // mgl fucked fr fr
     if (weapon.GetWeaponClassName() == "mp_weapon_mgl")
         return
+    if (weapon.GetWeaponClassName() == "mp_titanweapon_tracker_rockets")
+        return
 
         
 	array<string> banned = [
@@ -354,6 +401,8 @@ void function NPCWeaponBuffs( entity weapon, entity owner )
     
     ModWeaponVars_ScaleVar( weapon, eWeaponVar.charge_cooldown_time, cd )
     ModWeaponVars_ScaleVar( weapon, eWeaponVar.regen_ammo_refill_rate, 1.0 / cd )
+    ModWeaponVars_SetInt( weapon, eWeaponVar.npc_min_burst, 1 )
+    ModWeaponVars_SetInt( weapon, eWeaponVar.npc_max_burst, 1 )
     if (owner.IsTitan() && weapon.IsWeaponOffhand())
     {
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.npc_rest_time_between_bursts_min, cd )
@@ -399,11 +448,14 @@ void function RestoreWeaponLoadouts( entity player )
             array<string> playerTitanWeapons = Roguelike_GetTitanLoadouts()
 
             if ("storedAbilities" in player.s)
+            {
                 delete player.s.storedAbilities
+                delete player.s.currentLoadout
+            }
             player.GiveWeapon(playerTitanWeapons[0])
             player.SetActiveWeaponByName(playerTitanWeapons[0])
             player.GiveWeapon(playerTitanWeapons[1])
-            Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetActiveWeapon() )
+            Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetMainWeapons()[0] )
             print("GIVING WEAPON 2")
         }
     }()

@@ -240,13 +240,13 @@ Scheme
 			}
 		}
 
-		JetBrainsMono_17
+		JetBrainsMono_18
 		{
 			isproportional only
 			1
 			{
 				name			JetBrainsMono
-				tall			17
+				tall			18
 				antialias 		1
 			}
 		}
@@ -269,6 +269,47 @@ Scheme
 			{
 				name			JetBrainsMono
 				tall			72
+				antialias 		1
+			}
+		}
+		
+		GothicExpanded_72
+		{
+			isproportional only
+			1
+			{
+				name			GothicExpandedOne
+				tall			56
+				antialias 		1
+			}
+		}
+		GothicExpanded_56
+		{
+			isproportional only
+			1
+			{
+				name			GothicExpandedOne
+				tall			56
+				antialias 		1
+			}
+		}
+		GothicExpanded_36
+		{
+			isproportional only
+			1
+			{
+				name			GothicExpandedOne
+				tall			36
+				antialias 		1
+			}
+		}
+		GothicExpanded_27
+		{
+			isproportional only
+			1
+			{
+				name			GothicExpandedOne
+				tall			27
 				antialias 		1
 			}
 		}

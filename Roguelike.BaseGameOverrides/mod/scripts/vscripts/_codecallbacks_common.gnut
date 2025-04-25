@@ -271,7 +271,8 @@ void function RunClassDamageCallbacks( entity ent, var damageInfo )
 		callbackFunc( ent, damageInfo )
 		if ( DamageInfo_GetDamage( damageInfo ) == 0 )
 		{
-			printt(string(callbackFunc), "cancelled all damage")
+			if (verboseDamagePrintouts)
+				printt(string(callbackFunc), "cancelled all damage")
 			return
 		}
 	}

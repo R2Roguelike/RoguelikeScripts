@@ -54,7 +54,7 @@ resource/ui/menus/panels/stat.res
         textAlignment			center
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMono_17
+        font					JetBrainsMono_18
 
 		wide				 80
         tall                17

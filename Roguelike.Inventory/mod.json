@@ -52,6 +52,11 @@
 			"DefaultValue": ""
 		},
 		{
+			"Name": "player_weapon_mods",
+			"Flags": "USERINFO | CHEAT",
+			"DefaultValue": ""
+		},
+		{
 			"Name": "power_enemy_hp",
 			"Flags": "CHEAT",
 			"DefaultValue": "0"

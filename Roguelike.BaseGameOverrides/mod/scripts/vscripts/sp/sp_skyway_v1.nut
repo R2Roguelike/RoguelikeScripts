@@ -643,65 +643,22 @@ void function PlayerTortureRoomSequence( entity scriptRef, entity player, string
 
 	delaythread( 2.5 ) ViewConeRestrained( player )
 
-	if ( !Flag( "TorturePlayerResponded" ) )
-  	{
-  		FirstPersonSequenceStruct sequenceTortureRoom
-		sequenceTortureRoom.blendTime = 0.0
-		sequenceTortureRoom.attachment = "ref"
-		sequenceTortureRoom.firstPersonAnim = "pov_torture_intro_player_beforeQuestion"
-		sequenceTortureRoom.thirdPersonAnim = "pt_torture_intro_player_beforeQuestion"
-		sequenceTortureRoom.viewConeFunction = ViewConeZero
-		waitthread FirstPersonSequence( sequenceTortureRoom, player, moverIntro )
-
-  		FirstPersonSequenceStruct sequenceTortureRoomIdle
-		sequenceTortureRoomIdle.blendTime = 0.0
-		sequenceTortureRoomIdle.attachment = "ref"
-		sequenceTortureRoomIdle.firstPersonAnim = "pov_torture_intro_player_beforeQuestion_idle"
-		sequenceTortureRoomIdle.thirdPersonAnim = "pt_torture_intro_player_beforeQuestion_idle"
-		sequenceTortureRoomIdle.viewConeFunction = ViewConeRestrained
-		thread FirstPersonSequence( sequenceTortureRoomIdle, player, moverIntro )
-  		FlagWait( "TorturePlayerResponded" )
-  	}
-
-	FirstPersonSequenceStruct sequenceTortureRoomDrag
-	sequenceTortureRoomDrag.blendTime = 0.0
-	sequenceTortureRoomDrag.attachment = "ref"
-	sequenceTortureRoomDrag.firstPersonAnim = firstPersonAnim
-	sequenceTortureRoomDrag.thirdPersonAnim = thirdPersonAnim
-	sequenceTortureRoomDrag.viewConeFunction = ViewConeRestrained
-	waitthread FirstPersonSequence( sequenceTortureRoomDrag, player, moverIntro )
-
-	FirstPersonSequenceStruct sequenceTortureRoomKill
-	sequenceTortureRoomKill.blendTime = 0.0
-	sequenceTortureRoomKill.attachment = "ref"
-	sequenceTortureRoomKill.firstPersonAnim = "pov_torture_kill_player"
-	sequenceTortureRoomKill.thirdPersonAnim = "pt_torture_kill_player"
-	sequenceTortureRoomKill.viewConeFunction = ViewConeZero
-
-	waitthread FirstPersonSequence( sequenceTortureRoomKill, player, moverIntro )
-
-	FirstPersonSequenceStruct sequenceTortureRoomKillIdle
-	sequenceTortureRoomKillIdle.blendTime = 0.0
-	sequenceTortureRoomKillIdle.attachment = "ref"
-	sequenceTortureRoomKillIdle.firstPersonAnim = "pov_torture_kill_player_endidle"
-	sequenceTortureRoomKillIdle.thirdPersonAnim = "pt_torture_kill_player_endidle"
-	sequenceTortureRoomKillIdle.viewConeFunction = ViewConeZero
-
-	vector org = player.EyePosition()
-	thread FirstPersonSequence( sequenceTortureRoomKillIdle, player, moverIntro )
-
 	FlagWait( "TorturePlayerGetup" )
 
-	wait 5.0
-
+	player.SetOrigin(< -11641, -6814, 3581 >)
+	player.SetVelocity(< 0, 0, 0 >)
 	FirstPersonSequenceStruct sequenceTortureRoomGetup
+	sequenceTortureRoomGetup.teleport = true
 	sequenceTortureRoomGetup.blendTime = 0.0
+	sequenceTortureRoomGetup.firstPersonBlendOutTime = 0.0
 	sequenceTortureRoomGetup.attachment = "ref"
 	sequenceTortureRoomGetup.firstPersonAnim = "pov_torture_kill_player_get_up"
 	sequenceTortureRoomGetup.thirdPersonAnim = ""
 	sequenceTortureRoomGetup.viewConeFunction = ViewConeZero
 
 	waitthread FirstPersonSequence( sequenceTortureRoomGetup, player, moverIntro )
+	player.SetOrigin(< -11641, -6814, 3581 >)
+	player.SetVelocity(< 0, 0, 0 >)
 
 	Objective_Set( "#SKYWAY_OBJECTIVE_SURVIVE" )
 
@@ -821,7 +778,6 @@ void function BTTortureRoom( entity scriptRef, entity player, string animation =
   		FlagWait( "TorturePlayerResponded" )
   	}
 
-	waitthread PlayAnimTeleport( bt, animation, scriptRef )
 	FlagSet( "slone_kill_bt" )
 
 	bt.NotSolid()
@@ -835,7 +791,6 @@ void function BTTortureRoom( entity scriptRef, entity player, string animation =
 	// AddAnimEvent( bt, "dof_bt_r_hand", FocusOnBTRightHand )
 	// AddAnimEvent( bt, "bt_show_core_in_cockpit", ShowCoreInCockpit )
 	// AddAnimEvent( bt, "bt_destroy_core_in_cockpit", DestroyCoreInCockpit )
-	waitthread PlayAnimTeleport( bt, "BT_torture_kill", scriptRef )
 	thread PlayAnimTeleport( bt, "BT_torture_kill_idle", scriptRef )
 
 	//Create eyecase for player to pick up
@@ -1023,10 +978,6 @@ void function PlayerTortureRoomGiveEyeCase( entity bt, entity player, entity scr
 	trigger.SetOrigin( org )
 	DispatchSpawn( trigger )
 	// DebugDrawSphere( org, radius, 255, 0, 0, true, 15.0 )
-
-	delaythread( 20 ) FlagSet( "TortureBTAwake" )
-
-	waitthread WaitForBTTortureTrigger( trigger, player )
 
 	FlagSet( "TortureBTAwake" )
 
@@ -1235,7 +1186,7 @@ void function SloneTortureRoom( entity scriptRef, entity player )
 
 	// wait 0.2
 
-	thread SloneTortureRoomB( scriptRef, player, slone, slonePilot )
+	thread SloneTortureRoomB()
 
 	slonePilot.EndSignal( "OnDeath" )
 
@@ -1248,20 +1199,10 @@ void function SloneTortureRoom( entity scriptRef, entity player )
 	waitthread PlayAnimTeleport( slonePilot, "pt_torture_intro_slone", scriptRef )
 }
 
-void function SloneTortureRoomB( entity scriptRef, entity player, entity slone, entity slonePilot )
+void function SloneTortureRoomB()
 {
 	array<entity> doorsOpen = GetEntArrayByScriptName( "core_doors_open" )
 	array<entity> doorsClosed = GetEntArrayByScriptName( "core_doors_closed" )
-
-	FlagWait( "slone_kill_bt" )
-
-	slonePilot.Destroy()
-
-	thread CoreEnergyKillThread( scriptRef )
-	waitthread PlayAnimTeleport( slone, "mt_torture_kill_slone", scriptRef )
-
-	FlagSet( "slone_exit_tr" )
-	slone.Destroy()
 
 	foreach ( door in doorsClosed )
 	{
@@ -1375,45 +1316,30 @@ void function BlowUpTortureRoom( entity player )
 {
 	Assert( IsNewThread(), "Must be threaded off." )
 
-	WaitSignal( player, "start_fire" )
 	FlagSet( "TR_StartBurn" )
 
 	array<entity> fire_triggers = GetEntArrayByScriptName( "fire_trigger" )
 	foreach ( trig in fire_triggers )
 		thread FireTriggerThink( trig )
 
-	Remote_CallFunction_NonReplay( player, "ServerCallback_StartPilotCockpitRebootSeq" )
-	Remote_CallFunction_NonReplay( player, "ServerCallback_BlurCamera", 1.0, 3.0, 0 )
-	ScreenFadeToBlackForever( player, 2.5 )
-	wait 5.0
+	ScreenFadeToBlackForever( player, 0.0 )
+
 	FlagSet( "TR_Burn_Stage_Black" )
 	level.nv.fireStage = 1
 
-	thread FireSounds()
-
 	TortureFogOn()
-	ScreenFadeFromBlack( player, 8.0, 1.0 )
-	wait 1.5
-	Remote_CallFunction_NonReplay( player, "ServerCallback_BlurCamera", 0.0, 1.5, 0 )
-	wait 6.0
 
 	FlagSet( "TR_Burn_Stage_1" )
-	Remote_CallFunction_NonReplay( player, "ServerCallback_BlurCamera", 0.5, 3.0, 0 )
-	wait 3.5
-	Remote_CallFunction_NonReplay( player, "ServerCallback_BlurCamera", 0.0, 3.0, 0 )
-	wait 7.0
 
-	Remote_CallFunction_NonReplay( player, "ServerCallback_BlurCamera", 1.0, 4.0, 0 )
-	wait 3.0
-	ScreenFadeToBlackForever( player, 3.0 )
-	wait 8.5
+	ScreenFadeToBlackForever( player, 0.0 )
+
 	player.SetPlayerSettingsWithMods( "civilian_solo_pilot", [] )
-	FlagWait( "slone_exit_tr" )
+
 	SetGlobalNetBool( "skywayBurningRoom", true )
 	Signal( level, "StopDOFTracking" )
 	Remote_CallFunction_NonReplay( player, "ServerCallback_SetDOF", 150, 350, 1.5 )
 	Remote_CallFunction_NonReplay( player, "ServerCallback_SetBurnColorCorrectionWeight", 0.75, 10 )
-	wait 0.5
+	
 	array<entity> barrels = GetEntArrayByScriptName( "tr_barrel" )
 	foreach ( b in barrels )
 	{
@@ -1789,14 +1715,7 @@ void function Init_BTEyeCase( entity player, entity scriptRef )
 
 void function GivePlayerEyeCache( entity player )
 {
-	array<string> mods = [ "og_pilot", "pas_fast_reload" ]
-	TakeAllWeapons( player )
-	player.GiveWeapon( "mp_weapon_smart_pistol_og", mods )
-	player.GiveOffhandWeapon( "melee_pilot_emptyhanded", OFFHAND_MELEE )
-
-	entity smartPistol = player.GetMainWeapons()[0]
-	smartPistol.SetWeaponSkin( 2 )
-
+	Remote_CallFunction_NonReplay( player, "ServerCallback_GiveSmartPistol")
 	FlagSet( "TRDoorHackable" )
 }
 
@@ -1878,6 +1797,8 @@ entity function CreateCoreEnergy( vector origin )
 
 void function SP_TortureRoomThread( entity player )
 {
+	Remote_CallFunction_NonReplay( player, "ServerCallback_StartPilotCockpitRebootSeq" )
+
 	FlagClear( "DeathHintsEnabled" )
 	Embark_Disallow( player )
 	entity sequenceRef = GetEntByScriptName( "tr_sequence_ref" )
@@ -1885,8 +1806,6 @@ void function SP_TortureRoomThread( entity player )
 	thread BlowUpTortureRoom( player )
 	thread Init_BTEyeCase( player, sequenceRef )
 
-	FlagWait( "slone_exit_tr" )
-	FlagClear( "open_torture_room_blast_door" )
 	FlagWait( "LevelStartDone" )
 	Embark_Allow( player )
 	thread ClearBurningRoomBlur( player )
@@ -1900,20 +1819,17 @@ void function TortureRoomSkipped( entity player )
 
 void function TortureRoomSetup( entity player )
 {
+	FlagClear( "open_torture_room_blast_door" )
 	level.nv.coreSoundActive = 0
 
 	TakeAllWeapons( player )
 	FlagSet( "TorturePlayerResponded" )
 
 	entity sequenceRef = GetEntByScriptName( "tr_sequence_ref" )
-	thread SloneTortureRoom( sequenceRef, player )
 
 	thread PlayerTortureRoom( sequenceRef, player, "pov_torture_intro_player_2ndhalfonly", "pt_torture_intro_player_2ndhalfonly" )
-	thread BliskTortureRoom( sequenceRef, player, "pt_torture_intro_Blisk_2ndhalfonly" )
-	thread HarnessTortureRoom( sequenceRef, "harness_torture_intro_2ndhalfonly" )
-	thread GuardATortureRoom( sequenceRef, "pt_torture_intro_guardA_2ndhalfonly" )
-	thread GuardBTortureRoom( sequenceRef, "pt_torture_intro_guardB_2ndhalfonly" )
 	thread BTTortureRoom( sequenceRef, player, "BT_torture_intro_2ndhalfonly" )
+	thread SloneTortureRoomB()
 
 	FlagClear( "WeaponDropsAllowed" )
 }

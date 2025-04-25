@@ -33,7 +33,7 @@
 		},
 		{
 			"Path": "sh_ranking.nut",
-			"RunOn": "CLIENT || UI"
+			"RunOn": "CLIENT || UI || SERVER"
 		},
 		{
 			"Path": "ui/menu_level_end.nut",

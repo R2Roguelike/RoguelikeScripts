@@ -17,8 +17,8 @@ const array<string> VALID_LOADOUTS =  ["mp_titanweapon_xo16_shorty",
 
 const array<string> LOCKED_LOADOUTS =  ["mp_titanweapon_rocketeer_rocketstream",
                                          "mp_titanweapon_particle_accelerator",
-                                          "mp_titanweapon_sticky_40mm",
-                                          "mp_titanweapon_sniper"]
+                                         //"mp_titanweapon_sniper"
+                                          "mp_titanweapon_sticky_40mm"]
 const array<string> DIFFICULTY_NAMES = [ "Normal", "Hard", "Master", "Masochist" ]
 
 void function RunSetup_Init()
@@ -35,7 +35,7 @@ void function InitRoguelikeRunSetupMenu()
 {
     file.menu = GetMenu("RunSetup")
 
-    array<string> selectedLoadouts = Roguelike_GetTitanLoadouts()
+    file.selectedLoadouts = Roguelike_GetTitanLoadouts()
     
     UpdateLoadoutConVar()
 
@@ -47,15 +47,7 @@ void function InitRoguelikeRunSetupMenu()
     button = Hud_GetChild( file.menu, "StartButton" )
     VGUIButton_Init( button )
     VGUIButton_SetText( button, "START" )
-    VGUIButton_SetState( button, eVGUIButtonState.Selected )
-    VGUIButton_OnClick( button, void function( var panel ) : ()
-    {
-        if (VGUIButton_GetState( panel ) == eVGUIButtonState.Locked)
-            return
-        Roguelike_StartNewRun()
-		ExecuteLoadingClientCommands_SetStartPoint( "sp_crashsite", 0 )
-		ClientCommand( "map sp_sewers1" )
-    } )
+    VGUIButton_OnClick( button, OnStartClicked )
 
     array<string> titles = [ "Chassis", "Utility", "Core/Weapon", "Abilities" ]
     for (int i = 0; i < 4; i++)
@@ -79,6 +71,31 @@ void function InitRoguelikeRunSetupMenu()
     }
     
     UpdateUpgradeBars()
+}
+
+void function OnStartClicked( var panel )
+{
+    if (VGUIButton_GetState( panel ) == eVGUIButtonState.Locked)
+        return
+
+    Roguelike_StartNewRun()
+    ExecuteLoadingClientCommands_SetStartPoint( "sp_sewers1", 0 )
+    ClientCommand("map sp_sewers1")
+
+    delaythread(0.1) void function() : ()
+    {
+        if (uiGlobal.isLoading)
+            return
+            
+        DialogData dialogData
+        dialogData.header = "FAILED TO LOAD MAP"
+        dialogData.message = "The game did not load the map. This normally happens if you're not logged into EA. Please log into the EA App and try again. (Your game may crash when this happens - just restart the game)"
+        dialogData.forceChoice = true
+
+        AddDialogButton( dialogData, "#DISMISS" )
+
+        OpenDialog( dialogData )
+    }()
 }
 
 void functionref( var ) function DamageLoadoutButtonEventHandler( string weapon )

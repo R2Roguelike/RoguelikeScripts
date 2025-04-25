@@ -1,0 +1,17 @@
+{
+	"Name": "Roguelike.Legion",
+	"Description": "Handles all legion stuff.",
+	"LoadPriority": 0,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+	
+	"Scripts": [
+		{
+			"Path": "mods/northstar_mods.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		}
+	],
+
+	"ConVars": [
+	]
+}

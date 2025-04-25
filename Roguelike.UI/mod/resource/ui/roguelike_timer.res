@@ -23,7 +23,7 @@ resource/ui/roguelike_timer.res
 		labelText			"12:51"
 		allCaps				1
 		font				JetBrainsMonoBold_36
-		auto_wide_to_contents	0
+		auto_wide_tocontents	1
         auto_tall_tocontents    1
 		textAlignment		center
 		fgcolor_override 	"255 255 255 255"
@@ -32,7 +32,6 @@ resource/ui/roguelike_timer.res
 		pin_corner_to_sibling		TOP
 		pin_to_sibling_corner		TOP
     }
-
 
     KillsBG
     {
@@ -46,7 +45,7 @@ resource/ui/roguelike_timer.res
 		wide				128
 		tall				6
 
-		"xpos"			"3"
+		"xpos"			"4"
 		"ypos"			"-7"
 
         pin_to_sibling "Time"
@@ -113,7 +112,7 @@ resource/ui/roguelike_timer.res
 		tall				24
 		labelText			"Kills"
 		allCaps				1
-		font				JetBrainsMono_17
+		font				JetBrainsMono_18
 		auto_wide_to_contents	0
         auto_tall_tocontents    1
 		textAlignment		east
@@ -136,7 +135,7 @@ resource/ui/roguelike_timer.res
 		wide				128
 		tall				6
 
-		"xpos"			"2"
+		"xpos"			"4"
 		"ypos"			"-7"
 
         pin_to_sibling "Time"
@@ -158,15 +157,15 @@ resource/ui/roguelike_timer.res
 		fgcolor_override	"79 121 255 255"
 		scaleImage			1
 
-		wide				124 
+		wide				124
 		tall				2
 
-		"xpos"			"-2"
-		"ypos"			"-2"
+		"xpos"			"0"
+		"ypos"			"0"
 
     	pin_to_sibling "TimeBG"
-		pin_corner_to_sibling	TOP_RIGHT
-		pin_to_sibling_corner	TOP_RIGHT
+		pin_corner_to_sibling	CENTER
+		pin_to_sibling_corner	CENTER
     }
 
     TimeRank
@@ -203,7 +202,7 @@ resource/ui/roguelike_timer.res
 		tall				24
 		labelText			"Time"
 		allCaps				1
-		font				JetBrainsMono_17
+		font				JetBrainsMono_18
 		auto_wide_to_contents	0
         auto_tall_tocontents    1
 		textAlignment		west

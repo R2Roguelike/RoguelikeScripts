@@ -13,10 +13,10 @@ global function OnWeaponNpcPrimaryAttack_Meteor
 global function CreatePhysicsThermiteTrail
 global function Scorch_SelfDamageReduction
 global function GetMeteorRadiusDamage
-global const PLAYER_METEOR_DAMAGE_TICK = 100.0
+global const PLAYER_METEOR_DAMAGE_TICK = 50.0
 global const PLAYER_METEOR_DAMAGE_TICK_PILOT = 20.0
 
-global const NPC_METEOR_DAMAGE_TICK = 100.0
+global const NPC_METEOR_DAMAGE_TICK = 50.0
 global const NPC_METEOR_DAMAGE_TICK_PILOT = 20.0
 
 global struct MeteorRadiusDamage
@@ -138,7 +138,7 @@ void function Scorch_SelfDamageReduction( entity target, var damageInfo )
 	}
 	else
 	{
-		DamageInfo_ScaleDamage( damageInfo, 0.20 )
+		DamageInfo_ScaleDamage( damageInfo, 0.50 )
 	}
 }
 
@@ -479,7 +479,6 @@ function PlayerOrNPCFire_Meteor( WeaponPrimaryAttackParams attackParams, playerF
 			count++
 		for (int i = 0; i < count; i++)
 		{
-			printt(i)
 			//TODO:: Calculate better attackParams.dir if auto-titan using mortarShots
 			entity bolt = weapon.FireWeaponBolt( attackParams.pos, attackParams.dir + <RandomFloatRange(-0.05, 0.05), RandomFloatRange(-0.05, 0.05), 0> * i, speed, METEOR_DAMAGE_FLAGS, METEOR_DAMAGE_FLAGS, playerFired , 0 )
 			if ( bolt != null )

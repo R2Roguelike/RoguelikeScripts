@@ -12,7 +12,7 @@ resource/ui/menus/hovers/stat_bar.res
         textAlignment			east
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMono_17
+        font					JetBrainsMono_18
 
 		wide				72
         tall                24
@@ -39,7 +39,7 @@ resource/ui/menus/hovers/stat_bar.res
 		ChangeStyle			0
 		scaleImage			1
 
-		wide				256
+		wide				302
 		tall				24
 
 		"xpos"			"8"

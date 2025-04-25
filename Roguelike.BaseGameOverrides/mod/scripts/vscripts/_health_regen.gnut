@@ -25,6 +25,7 @@ void function HealthRegen_Init()
 
 void function PilotHealthRegenThinkSP( entity player )
 {
+	vector lastOrigin = player.GetOrigin()
 	player.EndSignal( "OnDestroy" )
 
 	while ( IsValid( player ) )
@@ -36,6 +37,17 @@ void function PilotHealthRegenThinkSP( entity player )
 
 		if ( !IsPilot( player ) )
 			continue
+
+		vector origin = player.GetOrigin()
+
+		
+		if (GetMapName() == "sp_boomtown_start" && origin.x < -1530 && origin.x > -1700 && origin.y < -6700 && origin.y > -7010)
+		{
+			printt((origin - lastOrigin).y)
+			if ((origin - lastOrigin).y < -1000 * 0.05)
+				player.SetOrigin(player.GetOrigin() + <00,-200,0>)
+		}
+		lastOrigin = origin
 
 		if ( shGlobal.proto_pilotHealthRegenDisabled )
 			continue

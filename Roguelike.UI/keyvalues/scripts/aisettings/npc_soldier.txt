@@ -4,5 +4,15 @@ npc_soldier
     ui_targetinfo "" [$mp]
     ui_targetinfo "" [$sp]
 
-    Health          90 [$sp]
+	evasiveCombatShieldPct					0.0
+	
+	evasiveCombatHealthSegmentPct			1.0
+	aggressiveCombatHealthSegmentPct		0.0
+	
+	evasiveCombatHealthChangeRateDiff		-10000
+	aggresiveCombatHealthChangeRateDiff		500
+
+	waitBetweenWeaponBurst			0
+	resetBurstOnStopShootOverlay	1
+	circleStrafeDist			900
 }

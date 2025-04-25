@@ -26,6 +26,8 @@ void function OnClientConnected( entity player )
     RefreshInventory( player )
 
     AddPlayerMovementEventCallback( player, ePlayerMovementEvents.JUMP, OnPlayerJump )
+    AddPlayerMovementEventCallback( player, ePlayerMovementEvents.DOUBLE_JUMP, OnPlayerDoubleJump )
+    AddPlayerMovementEventCallback( player, ePlayerMovementEvents.DODGE, OnPlayerDodge )
 
     
     delaythread(0.1) void function() : (player) { wait 0.001; SetServerVar( "startTime", Time() ); RefreshInventory( player ) }()
@@ -37,8 +39,39 @@ void function Roguelike_RefreshInventory( entity player )
     RefreshInventory( player )
 }
 
+vector function GetDirectionFromInput( vector playerAngles, float xAxis, float yAxis )
+{
+	playerAngles.x = 0
+	playerAngles.z = 0
+	vector forward = AnglesToForward( playerAngles )
+	vector right = AnglesToRight( playerAngles )
+
+	vector directionVec = Vector(0,0,0)
+	directionVec += right * xAxis
+	directionVec += forward * yAxis
+
+	vector directionAngles = VectorToAngles( directionVec )
+	vector directionForward = AnglesToForward( directionAngles )
+
+	return directionForward
+}
+
 void function OnPlayerJump( entity player )
 {
+}
+void function OnPlayerDodge( entity player )
+{
+    if (player.IsTitan())
+        return
+
+    printt("shit")
+    EmitSoundOnEntity( player, "tone_dash_1p" )
+    player.TouchGround() // restore double jump and stuff
+}
+void function OnPlayerDoubleJump( entity player )
+{
+    if (!Roguelike_HasMod( player, "triplejump" ))
+        player.ConsumeDoubleJump() // prevent triple jump
 }
 
 void function RefreshInventory( entity player )
@@ -50,13 +83,23 @@ void function RefreshInventory( entity player )
     string mods = GetConVarString("player_mods")
     string weapons = GetConVarString("player_weapons")
     string weaponPerks = GetConVarString("player_weapon_perks")
+    string weaponMods = GetConVarString("player_weapon_mods")
     string stats = GetConVarString("player_stats")
 
     array<string> modsList = split( mods, " " )
     array<string> statsList = split( stats, " " )
     // weapon mod1,mod2,mod3 weapon2 mod1,mod2,mod3
     array<string> weaponsList = split( weapons, " " )
-    array<string> weaponPerksList = split( weaponPerks, " " )
+
+    array< array<string> > weaponModsList = [ ]
+    weaponModsList.append([])
+    weaponModsList.append([])
+
+    foreach (int i, string s in split( weaponMods, " " ))
+    {
+        array<string> man = split(s, ",")
+        weaponModsList[i] = man
+    }
 
     player.s.mods <- []
     player.s.stats <- []
@@ -80,11 +123,12 @@ void function RefreshInventory( entity player )
         if (shouldSwapWeapons)
         {
             foreach (entity mainWeapon in mainWeapons)
-                player.TakeWeaponNow( mainWeapon.GetWeaponClassName() )
+                if (mainWeapon.GetWeaponClassName() != "sp_weapon_arc_tool")
+                    player.TakeWeaponNow( mainWeapon.GetWeaponClassName() )
             
             for (int i = 0; i < weaponsList.len(); i++)
             {
-                entity weapon = player.GiveWeapon(weaponsList[i])
+                entity weapon = player.GiveWeapon(weaponsList[i], weaponModsList[i])
             }
         }
 

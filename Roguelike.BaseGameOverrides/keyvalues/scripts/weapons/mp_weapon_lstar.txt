@@ -1,0 +1,7 @@
+WeaponData
+{
+    SP_BASE
+    {
+		"lifetime_shots_default"						"<KEEP_DEFAULT>"
+    }
+}

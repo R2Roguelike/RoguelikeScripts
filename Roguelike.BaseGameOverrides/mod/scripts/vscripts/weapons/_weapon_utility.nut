@@ -1709,7 +1709,7 @@ function ClusterRocketBursts( vector origin, int damage, int damageHeavyArmor, f
 		WaitFrame()
 	}
 
-	wait CLUSTER_ROCKET_DURATION
+	wait popcornInfo.duration
 }
 
 function ClusterRocketBurst( entity clusterExplosionEnt, vector origin, damage, damageHeavyArmor, innerRadius, outerRadius, entity owner, PopcornInfo popcornInfo, customFxTable = null )
@@ -1735,7 +1735,7 @@ function ClusterRocketBurst( entity clusterExplosionEnt, vector origin, damage, 
 	float popDelay
 	float colTrace
 
-	float burstDelay = duration / ( numBursts / groupSize )
+	float burstDelay = duration / ( float(numBursts) / groupSize )
 
 	vector clusterBurstOrigin = origin + (popcornInfo.normal * 8.0)
 	entity clusterBurstEnt = CreateClusterBurst( clusterBurstOrigin )
@@ -1774,6 +1774,7 @@ function ClusterRocketBurst( entity clusterExplosionEnt, vector origin, damage, 
 		clusterBurstEnt.SetOrigin( clusterBurstOrigin )
 
 		vector velocity = GetVelocityForDestOverTime( clusterBurstEnt.GetOrigin(), popOri, burstDelay - popDelay )
+		printt(velocity)
 		clusterBurstEnt.SetVelocity( velocity )
 
 		clusterBurstOrigin = popOri
@@ -2894,7 +2895,6 @@ void function WeaponAttackWave( entity ent, int projectileCount, entity inflicto
 			chargedPrefix = "charge_"
 
 		maxCount = expect int( ent.ProjectileGetWeaponInfoFileKeyField( chargedPrefix + "wave_max_count" ) )
-		print(maxCount)
 		step = expect float( ent.ProjectileGetWeaponInfoFileKeyField( chargedPrefix + "wave_step_dist" ) )
 		owner = ent.GetOwner()
 		damageNearValueTitanArmor = projectile.GetProjectileWeaponSettingInt( eWeaponVar.damage_near_value_titanarmor )

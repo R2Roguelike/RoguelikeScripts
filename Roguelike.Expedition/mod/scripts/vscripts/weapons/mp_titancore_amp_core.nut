@@ -113,10 +113,8 @@ var function OnWeaponPrimaryAttack_AmpCore( entity weapon, WeaponPrimaryAttackPa
 
 #endif
 
-	printt(weapon.GetWeaponPrimaryClipCount())
 	// OnWeaponPrimaryAttack_titanweapon_predator_cannon( weapon, attackParams )
 	weapon.FireWeaponBullet( attackParams.pos, attackParams.dir, 1, damageTypes.largeCaliber | DF_STOPS_TITAN_REGEN )
-	printt(weapon.GetWeaponBurstFireCount())
 
 	if ( attackParams.burstIndex == weapon.GetWeaponBurstFireCount() - 1 )
 	{

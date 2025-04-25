@@ -116,7 +116,11 @@ bool function Slot_Init( var slot, int elemNum )
         ModSlot_DisplayMod( slot, file.modChoices[elemNum] )
         if (runData.newMods.contains(file.modChoices[elemNum].uniqueName))
         {
-            Hud_SetVisible( Hud_GetChild(slot, "Notification"), true )
+            Hud_SetColor( Hud_GetChild(slot, "BG"), 255,128,32, 135 )
+        }
+        else
+        {
+            Hud_SetColor( Hud_GetChild(slot, "BG"), 0,0,0, 135 )
         }
         if (file.modChoices[elemNum].cost > file.maxUsableEnergy || file.usedMods.contains(file.modChoices[elemNum]))
             Hud_SetVisible(Hud_GetChild(slot, "Overlay"), true)
@@ -136,7 +140,7 @@ void function ModSlot_Hover( var slot, var panel )
     if (runData.newMods.contains(mod.uniqueName))
     {
         runData.newMods.removebyvalue(mod.uniqueName)
-        Hud_SetVisible( Hud_GetChild(slot, "Notification"), false )
+        Hud_SetColor( Hud_GetChild(slot, "BG"), 0,0,0, 135 )
     }
 
     Hud_SetText( Hud_GetChild(panel, "Title"), mod.name)

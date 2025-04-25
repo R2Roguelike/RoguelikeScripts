@@ -11,6 +11,7 @@ global function Roguelike_TakeMoney
 global function Roguelike_ApplyRunDataToConVars
 global function RunEnded
 global function __SetPower
+global function Roguelike_GiveSmartPistolSkyway
 
 struct {
     table saveData 
@@ -34,10 +35,10 @@ void function Inventory_Init()
             dialogData.header = "SAVE LOAD FAILED"
 	        dialogData.image = $"ui/menu/common/dialog_error"
             dialogData.forceChoice = true
-            dialogData.message = "Loading save data failed. Would you like to try again or choose another save file?"
+            dialogData.message = "Loading save data failed. Would you like to try again or give up?"
 
             AddDialogButton( dialogData, "Retry" )
-            AddDialogButton( dialogData, "Delete" )
+            AddDialogButton( dialogData, "Give Up" )
 
             AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
 
@@ -84,13 +85,13 @@ void function Roguelike_StartNewRun()
     file.isRunActive = true
 
     runData.lockedMods <- GetAllLockedMods()
-    Roguelike_UnlockMods( 20 ) // have the player start with some amount of mods
+    Roguelike_UnlockMods( 15 ) // have the player start with some amount of mods
 
     // these arrays are to prevent the player from getting
     // 3+ of the same armor chip slot in a row, and to 
     // gurantee the player gets a preferred chip slot
     // eventually.
-    runData.chipSlotOrder <- [1,2,3,4]
+    runData.chipSlotOrder <- [1,2,3,4,5,6,7,8]
     runData.chipSlotOrder.randomize()
     runData.chipSlotIndex <- 0
 
@@ -128,7 +129,7 @@ void function Roguelike_StartNewRun()
     runData.ACTitan4 <- ArmorChip_ForceSlot( 4, true )
 
     runData.WeaponPrimary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_vinson", RARITY_COMMON, "primary" )
-    runData.WeaponSecondary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_epg", RARITY_COMMON, "secondary" )
+    runData.WeaponSecondary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_epg", RARITY_COMMON, "special" )
 
     Roguelike_ForceRefreshInventory()
 
@@ -160,20 +161,24 @@ void function Roguelike_ApplyRunDataToConVars()
     {
         for (int j = 0; j < MOD_SLOTS; j++)
         {
-            modIndexList.append(string(runData["AC" + i + "_PilotMod" + j]))
-            modIndexList.append(string(runData["AC" + i + "_TitanMod" + j]))
+            if (runData["AC" + i + "_PilotMod" + j] != 0)
+                modIndexList.append(string(runData["AC" + i + "_PilotMod" + j]))
+            if (runData["AC" + i + "_TitanMod" + j] != 0)
+                modIndexList.append(string(runData["AC" + i + "_TitanMod" + j]))
         }
     }
     SetConVarString( "player_mods", JoinStringArray( modIndexList, " " ) )
     
     array<string> weapons = []
     array<string> weaponPerks = []
+    array<string> weaponMods = []
     for (int i = 0; i < 2; i++)
     {
         string slotName = i == 1 ? "WeaponSecondary" : "WeaponPrimary"
         string otherSlotName = i == 0 ? "WeaponSecondary" : "WeaponPrimary"
         table slot = expect table(runData[slotName])
-        array<string> perks = []
+        array perks = expect array(slot.perks)
+        array mods = expect array(slot.mods)
         int level = expect int(slot.level)
         int rarity = expect int(slot.rarity)
         perks.append("level_" + level)
@@ -193,11 +198,13 @@ void function Roguelike_ApplyRunDataToConVars()
                 break
         }
 
-        weaponPerks.append(JoinStringArray(perks, ","))
+        weaponPerks.append(JoinDynamicArray(perks, ","))
+        weaponMods.append(JoinDynamicArray(mods, ","))
 
         weapons.append(expect string(slot.weapon))
     }
     SetConVarString( "player_weapon_perks", JoinStringArray( weaponPerks, " " ) )
+    SetConVarString( "player_weapon_mods", JoinStringArray( weaponMods, " " ) )
     SetConVarString( "player_weapons", JoinStringArray( weapons, " " ) )
 }
 
@@ -210,7 +217,7 @@ void function Roguelike_Reset()
 void function Roguelike_GenerateLoot()
 {
     print("GENERATING LOOT")
-    int r = RandomInt(2)
+    int r = RandomInt(3)
 
     table item = {}
     switch (r)
@@ -219,6 +226,7 @@ void function Roguelike_GenerateLoot()
             item = RoguelikeWeapon_Generate()
             break
         case 1:
+        case 2:
             item = ArmorChip_Generate()
             break
     }
@@ -232,15 +240,39 @@ void function Roguelike_GenerateLoot()
         RunClientScript( "Roguelike_ItemGained" )
 }
 
+void function Roguelike_GiveSmartPistolSkyway()
+{
+    printt("skyway smart pistol")
+    table item = RoguelikeWeapon_GenerateSmartPistol()
+
+    table oldWeapon = expect table(file.runData["WeaponPrimary"])
+
+    file.runData["WeaponPrimary"] = item
+    file.runData.inventory.append(oldWeapon)
+    
+    Roguelike_ForceRefreshInventory()
+}
+
 void function __SetPower( int levelsCompleted )
 {
     table runData = Roguelike_GetRunData()
+    int enemyDEFGained = ENEMY_DEF_PER_LEVEL
+    int enemyHPGained = ENEMY_HP_PER_LEVEL
 
-    runData.enemyBonusHP <- ENEMY_HP_PER_LEVEL * levelsCompleted
-    int defPerLevel = ENEMY_DEF_PER_LEVEL
-    if (GetConVarInt("sp_difficulty") <= 1)
-        defPerLevel = ENEMY_DEF_PER_LEVEL_EASY
-    runData.enemyDEF <- defPerLevel * levelsCompleted
+    switch (GetConVarInt("sp_difficulty"))
+    {
+        case 0:
+            enemyDEFGained = ENEMY_DEF_PER_LEVEL_EASY
+            break
+        case 2:
+            enemyHPGained = ENEMY_HP_PER_LEVEL_HARD
+            break
+        case 3:
+            enemyHPGained = ENEMY_HP_PER_LEVEL_MASTER
+            break
+    }
+    runData.enemyBonusHP <- enemyHPGained * levelsCompleted
+    runData.enemyDEF <- enemyDEFGained * levelsCompleted
     runData.levelsCompleted = levelsCompleted
 
     Roguelike_ApplyRunDataToConVars()

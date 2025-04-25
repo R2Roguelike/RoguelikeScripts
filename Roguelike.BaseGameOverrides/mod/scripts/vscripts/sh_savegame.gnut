@@ -14,7 +14,7 @@ bool function HasValidSaveGame()
 	printt( "SAVEGAME try is valid " + saveName )
 	if ( !SaveGame_IsValid( saveName ) )
 	{
-		printt( "SAVEGAME !isvalid" )
+		printt( "SAVEGAME !IsValid" )
 		return false
 	}
 

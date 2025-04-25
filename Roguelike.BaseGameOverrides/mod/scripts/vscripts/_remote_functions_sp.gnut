@@ -120,6 +120,7 @@ function RemoteFunctions_Init()
 	Remote_RegisterFunction( "ServerCallback_AISkitDebugMessage" )	//chad - temp to do debug lines on my client only during real MP matches
 	Remote_RegisterFunction( "ServerCallback_UpdateClientChallengeProgress" )
 	Remote_RegisterFunction( "ServerCallback_EventNotification" )
+	Remote_RegisterFunction( "ServerCallback_UpdateHealthSegmentCountRandom" )
 
 	Remote_RegisterFunction( "SCB_RefreshBurnCardSelector" )
 	Remote_RegisterFunction( "ServerCallback_EjectConfirmed" )
@@ -742,6 +743,7 @@ function RemoteFunctions_Init()
 			Remote_RegisterFunction( "ServerCallback_Torture_BT_Transmission" )
 			Remote_RegisterFunction( "ServerCallback_DoRumble" )
 			Remote_RegisterFunction( "ServerCallback_InjectorFireScreenFX" )
+			Remote_RegisterFunction( "ServerCallback_GiveSmartPistol" )
 
 			RegisterServerVar( "fireStage", 0 )
 			RegisterServerVar( "coreSoundActive", 0 )
@@ -775,6 +777,7 @@ function RemoteFunctions_Init()
 	Remote_RegisterFunction( "ScriptCallback_Beacon_FreeTrialOverMessage" )
 	
 	Remote_RegisterFunction( "Roguelike_GenerateLoot" )
+	Remote_RegisterFunction( "ServerCallback_RSE_Apply" )
 	Remote_RegisterFunction( "ServerCallback_Roguelike_AddMoney" )
 
 	RegisterNetworkedVariable( "rewardState", SNDC_PLAYER_GLOBAL, SNVT_INT, 0 )

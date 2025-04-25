@@ -14,6 +14,6 @@ void function PrimaryDamage( entity ent, var damageInfo )
 	int scriptDamageType = DamageInfo_GetCustomDamageType( damageInfo )
 	if ( scriptDamageType & DF_EXPLOSION && !IsHumanSized( ent ) ) // DF_KNOCK_BACK filters for powershot???
 	{
-		StatusEffect_AddTimed( ent, eStatusEffect.roguelike_puncture, 1.0, 10.0, 10.0 )
+		RSE_Apply( ent, RoguelikeEffect.legion_puncture, 1.0, 10.0, 10.0 )
 	}
 }

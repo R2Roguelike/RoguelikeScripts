@@ -13,10 +13,8 @@ void function TitanOrReaperKilled(entity npc, var damageInfo)
     if (!IsValid(attacker) || !attacker.IsPlayer())
         return
 
-    printt("create ticks")
     if (Roguelike_HasMod( attacker, "tick_spawner" ) && attacker.IsTitan())
     {
-        printt("create ticks")
         // create tick
         int count = 1
 

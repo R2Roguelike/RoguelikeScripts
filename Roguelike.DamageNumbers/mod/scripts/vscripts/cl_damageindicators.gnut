@@ -54,13 +54,109 @@ void function Cl_DamageIndicator_Init()
 		RuiSetFloat( rui, "msgFontSize", 150.0)
 		RuiSetFloat( rui, "msgAlpha", 1.0 )
 		RuiSetFloat( rui, "thicken", 0.1 )
+		float fade = 0.0
+		int lastChargeLevel = 0
 		while (1)
 		{
-			if (IsValid(GetLocalViewPlayer()) && Roguelike_HasTitanLoadout(PRIMARY_RONIN) && GetLocalViewPlayer().IsTitan())
-				RuiSetString( rui, "msgText", string(RoundToInt(StatusEffect_Get( GetLocalViewPlayer(), eStatusEffect.roguelike_shotgun_buff) * 255.0 ) ))
-			else
-				RuiSetString( rui, "msgText", "")
+			float t = Time()
 			wait 0
+			float dt = Time() - t
+
+			entity player = GetLocalViewPlayer()
+
+			if (!IsValid(player))
+				continue
+
+			if (Roguelike_HasTitanLoadout(PRIMARY_RONIN) && player.IsTitan())
+			{
+				fade = 0.0
+				RuiSetFloat2( rui, "msgPos", <0.55 * 5 - 0.5, 0.55 * 5 - 0.5, 0> )
+				RuiSetFloat3( rui, "msgColor", <0.0, 0.5, 1.0> )
+				RuiSetString( rui, "msgText", string( RoundToInt(RSE_Get( player, RoguelikeEffect.ronin_overload)) ))
+				RuiSetFloat( rui, "msgAlpha", 1.0 )
+			}
+			else if (!player.IsTitan())
+			{
+				float fatigue = RSE_Get( player, RoguelikeEffect.pilot_fatigue)
+				if (fatigue > 1.0)
+				{
+					fade = min(fade + dt * 4, 1.0)
+				}
+				else
+				{
+					fade = max(fade - dt * 4, 0.0)
+				}
+				RuiSetFloat2( rui, "msgPos", <(0.54 + 0.01 * pow(fade, 0.5)) * 5 - 0.5, 0.55 * 5 - 0.5, 0> )
+				RuiSetString( rui, "msgText", format("`1Fatigued\n`0-%i%% DMG", RoundToInt(100 - 100.0 / max(sqrt(fatigue), 1.0))))
+				RuiSetFloat3( rui, "msgColor", <0.5, 0.5, 0.5> )
+				RuiSetFloat( rui, "msgAlpha", pow(fade, 2) )
+			}
+			else
+			{
+				RuiSetFloat( rui, "msgAlpha", 0.0 )
+			}
+
+			entity railgun = Roguelike_FindWeapon( player, PRIMARY_NORTHSTAR )
+			if (IsValid(railgun) && player.GetActiveWeapon() != railgun)
+			{
+				int level = railgun.GetWeaponChargeLevel()
+				if (level > lastChargeLevel)
+				{
+                    if (level >= railgun.GetWeaponChargeLevelMax())
+                        railgun.EmitWeaponSound( "Weapon_Titan_Sniper_LevelTick_Final" )
+                    else
+                        railgun.EmitWeaponSound( "Weapon_Titan_Sniper_LevelTick_" + level )
+				}
+				lastChargeLevel = railgun.GetWeaponChargeLevel()
+			}
+		}
+	}()
+
+	delaythread(0.0) void function() : ()
+	{
+		array<var> ruis = []
+		var rui = RuiCreate( $"ui/cockpit_console_text_top_left.rpak", clGlobal.topoCockpitHud, RUI_DRAW_COCKPIT, 0)
+		RuiSetInt( rui, "maxLines", 1 );
+		RuiSetInt( rui, "lineNum", 0 );
+		RuiSetFloat2( rui, "msgPos", <0.05, 0.52, 0> )
+		RuiSetString( rui, "msgText",  "0:10 `1effect\n`00:05 `1my god" )
+		RuiSetFloat3( rui, "msgColor", <1.0, 1.0, 1.0> )
+		RuiSetFloat( rui, "msgFontSize", 32.0)
+		RuiSetFloat( rui, "msgAlpha", 0.9 )
+		RuiSetFloat( rui, "thicken", 0.2 )
+		while (1)
+		{
+			wait 0
+
+			if (!IsValid(GetLocalViewPlayer()))
+				continue
+			
+			string text = ""
+
+			foreach (RSEInstance instance in GetLocalViewPlayer().e.rseData)
+			{
+				if (instance.endTime <= Time())
+					continue
+				float timeLeft = instance.endTime - Time()
+				if (instance.effect in effectDisplayNames)
+				{
+					if (instance.effect in effectDisplayPercentage)
+					{
+						float intensity = RSE_GetIntensity( instance )
+						text += format("`0%03i%% `1%s\n", int(intensity * 100.0), effectDisplayNames[instance.effect])
+					}
+					else if (instance.effect in effectDisplayStacks)
+					{
+						float intensity = RSE_GetIntensity( instance )
+						text += format("`0%i:%02i `1%s x`0%i\n", int(timeLeft / 60), int(timeLeft % 60), effectDisplayNames[instance.effect], int(intensity))
+					}
+					else
+					{
+						text += format("`0%i:%02i `1%s\n", int(timeLeft / 60), int(timeLeft % 60), effectDisplayNames[instance.effect])
+					}
+				}
+			}
+			RuiSetString( rui, "msgText", text )
 		}
 	}()
 }
@@ -157,8 +253,10 @@ void function PlayerDidDamageText( float damage, vector damagePosition, entity v
 	int entDEF = GetConVarInt("power_enemy_def")
 
 	float scalar = 1.0
-	if (victim.IsTitan())
-		scalar = 500.0 / (500 + entDEF)
+	//if (victim.IsTitan() || IsSuperSpectre(victim))
+	//	scalar = 500.0 / (500 + entDEF)
+
+	damage /= scalar
 	
 	//damagePosition = victim.GetOrigin() + <0,0,victim.GetBoundingMaxs().z>
 	if (victim.IsTitan())

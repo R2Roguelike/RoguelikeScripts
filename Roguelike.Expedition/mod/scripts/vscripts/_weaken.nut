@@ -19,12 +19,19 @@ void function RocketDamage( entity ent, var damageInfo )
     if (!attacker.IsPlayer())
         return
 
+    if (attacker)
+
     if (IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.proj.isChargedShot) // atg missile
     {
         return // do NOT add weaken. thanks
     }
     if (attacker != ent)
-        AddWeaken( ent, attacker, 30 )
+    {
+        if (Roguelike_HasMod( attacker, "dumbfire_rockets" ))
+            AddWeaken( ent, attacker, 2.0 / 9.0 )
+        else
+            AddWeaken( ent, attacker, 1.0 / 9.0 )
+    }
 }
 
 
@@ -35,7 +42,7 @@ void function PrimaryDamage( entity ent, var damageInfo )
     if (!attacker.IsPlayer())
         return
 
-    int weaken = GetWeaken( ent )
+    float weaken = GetWeaken( ent )
     if (weaken > 0)
     {
         //RemoveWeaken( ent, attacker, 5 )
@@ -55,30 +62,28 @@ void function CoreDamage( entity ent, var damageInfo )
     coreWeapon.SetWeaponPrimaryClipCount(minint(coreWeapon.GetWeaponPrimaryClipCountMax(), coreWeapon.GetWeaponPrimaryClipCount() + 1))
 }
 
-void function AddWeaken( entity ent, entity attacker, int amount )
+void function AddWeaken( entity ent, entity attacker, float amount )
 {
     if (amount <= 0)
         return
 
-    int cur = GetWeaken( ent )
-    StatusEffect_StopAll( ent, eStatusEffect.roguelike_weaken )
+    float cur = GetWeaken( ent )
     cur = cur + amount
-    StatusEffect_AddTimed( ent, eStatusEffect.roguelike_weaken, cur / 255.0, 16.0 * cur / 255.0, 16.0 * cur / 255.0 )
+    RSE_Apply( ent, RoguelikeEffect.expedition_weaken, cur, 16.0 * cur, 16.0 * cur )
 }
 
-void function RemoveWeaken( entity ent, entity attacker, int amount )
+void function RemoveWeaken( entity ent, entity attacker, float amount )
 {
     if (amount <= 0)
         return
 
-    int cur = GetWeaken( ent )
-    StatusEffect_StopAll( ent, eStatusEffect.roguelike_weaken )
+    float cur = GetWeaken( ent )
     cur = cur - amount
     if (cur > 0)
-        StatusEffect_AddTimed( ent, eStatusEffect.roguelike_weaken, cur / 255.0, 16.0 * cur / 255.0, 16.0 * cur / 255.0 )
+        RSE_Consume( ent, RoguelikeEffect.expedition_weaken, amount, false )
 }
 
-int function GetWeaken( entity ent )
+float function GetWeaken( entity ent )
 {
-    return RoundToInt( StatusEffect_Get( ent, eStatusEffect.roguelike_weaken ) * 255.0 )
+    return RSE_Get( ent, RoguelikeEffect.expedition_weaken )
 }

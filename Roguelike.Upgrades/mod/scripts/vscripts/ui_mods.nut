@@ -37,6 +37,9 @@ void function Mods_Init()
 
     // RONIN
     Ronin_RegisterMods()
+
+    // NORTHSTAR
+    Northstar_RegisterMods()
     
     // SCORCH
     Scorch_RegisterMods()
@@ -78,6 +81,35 @@ array<RoguelikeMod> function GetModsForChipSlot( int chipSlot, bool isTitan, boo
     }
 
     return mods
+}
+
+bool function CheckMods()
+{
+    bool result = true
+    array<string> abbreviationsPilot = []
+    array<string> abbreviationsTitan = []
+    foreach (RoguelikeMod mod in file.mods)
+    {
+        array<string> target = abbreviationsPilot
+        if (mod.isTitan)
+            target = abbreviationsTitan
+        if (mod.abbreviation == "XXX")
+        {
+            result = false
+            printt("mod", mod.name, "has no abberviation")
+        }
+        else if (target.contains(mod.abbreviation))
+        {
+            result = false
+            printt(mod.name, "uses abbreviation", mod.abbreviation, "which is already used by another mod")
+        }
+        else
+        {
+            target.append(mod.abbreviation)
+        }
+    }
+
+    return result
 }
 
 bool function Roguelike_IsModCompatibleWithSlot( RoguelikeMod mod, int chipSlot, bool isTitan )

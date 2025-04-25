@@ -133,6 +133,7 @@ resource/ui/menus/panels/inventory_slot.res
 
 		drawColor	"255 255 255 255"
 		scaleImage			1
+		visible				0
 
 		wide				 80
 		tall				0
@@ -148,6 +149,7 @@ resource/ui/menus/panels/inventory_slot.res
 
 		drawColor	"255 255 255 255"
 		scaleImage			1
+		visible				0
 
 		wide				 80
 		tall				0

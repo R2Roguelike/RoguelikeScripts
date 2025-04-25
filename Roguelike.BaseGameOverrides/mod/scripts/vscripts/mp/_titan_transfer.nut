@@ -203,6 +203,9 @@ void function GiveWeaponsFromStoredArray( entity player, array<StoredWeapon> sto
 		{
 			case eStoredWeaponType.main:
 				weapon = player.GiveWeapon( storedWeapon.name, storedWeapon.mods )
+				
+				// fixes shit
+				ModWeaponVars_CalculateWeaponMods( weapon )
 				weapon.SetWeaponSkin( storedWeapon.skinIndex )
 				weapon.SetWeaponCamo( storedWeapon.camoIndex )
 				#if MP
@@ -480,6 +483,8 @@ function TitanBecomesPilot( entity player, entity titan )
 		callbackFunc( player, titan )
 	}
 
+	player.Server_SetDodgePower(20.0)
+
 	// Ensure rodeo doesn't happen straight away, if a nearby Titan runs by
 	Rodeo_SetCooldown( player )
 
@@ -653,6 +658,8 @@ function PilotBecomesTitan( entity player, entity titan, bool fullCopy = true )
 	Roguelike_RefreshInventory( player )
 	player.SetActiveWeaponByName(setActiveWeapon)
 	Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetMainWeapons()[Roguelike_GetTitanLoadouts().find(setActiveWeapon)] )
+
+	player.Server_SetDodgePower(100.0)
 
 	soul.e.embarkCount++
 	soul.Signal( "PlayerEmbarkedTitan", { player = player } )

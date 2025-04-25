@@ -523,11 +523,7 @@ function HandleLocationBasedDamage( entity ent, var damageInfo )
 	}
 	else if ( IsSuperSpectre( ent ) )
 	{
-		if ( CritWeaponInDamageInfo( damageInfo ) && IsCriticalHit( attacker, ent, DamageInfo_GetHitBox( damageInfo ), DamageInfo_GetDamage( damageInfo ), DamageInfo_GetDamageType( damageInfo ) ) )
-		{
-			damageMult_location = GetCriticalScaler( ent, damageInfo )
-			DamageInfo_AddCustomDamageType( damageInfo, DF_CRITICAL )
-		}
+		damageMult_location = GetCriticalScaler( ent, damageInfo )
 	}
 	else if ( IsStalker( ent ) )
 	{
@@ -1312,6 +1308,7 @@ void function OnNPCKilled_SP( entity npc, var damageInfo )
 
 	if ( npc.IsTitan() )
 	{
+		npc.SetPassThroughThickness( 0 )
 		// if a player is getting in, kill him too
 		entity player = GetEmbarkPlayer( npc )
 		if ( IsAlive( player ) )

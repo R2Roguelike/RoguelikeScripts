@@ -377,7 +377,7 @@ string function StringReplace( string baseString, string searchString, string re
 }
 
 // Returns float
-function RoundToNearestInt( value )
+float function RoundToNearestInt( value )
 {
 	return floor( value + 0.5 )
 }
@@ -1198,6 +1198,12 @@ void function ResetCollectiblesProgress_All()
 	}
 }
 
+// +initialGain per value up to initialGainCap, +extraGain per value after
+float function SplitGainGraph( value, float initialGain, float initialGainCap, float extraGain )
+{
+	return min( value * initialGain, initialGain * initialGainCap ) + max( extraGain * (value - initialGainCap), 0 )
+}
+
 void function RemoveDupesFromSorted_String( array<string> data )
 {
 	for ( int i = 0; i < data.len() - 1; i++ )
@@ -1640,6 +1646,21 @@ string function JoinStringArray( array<string> strings, string separator )
 			output = stringoStarr
 		else
 			output = output + separator + stringoStarr
+	}
+
+	return output;
+}
+
+string function JoinDynamicArray( array things, string separator )
+{
+	string output;
+
+	foreach( int i, var stringoStarr in things )
+	{
+		if (i == 0)
+			output = string( stringoStarr )
+		else
+			output = output + separator + string( stringoStarr )
 	}
 
 	return output;

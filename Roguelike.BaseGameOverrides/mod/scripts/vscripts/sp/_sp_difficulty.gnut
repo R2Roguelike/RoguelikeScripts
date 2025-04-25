@@ -12,6 +12,7 @@ global function SelectDifficulty
 global function GetLowestDifficultyThisMap
 global function UpdateMercTitanHealthForDifficulty
 global function Roguelike_QuickDeathInsteadOfKill
+global function AddKillsAndMoney
 
 const float FRIENDLY_TVT_DAMAGE_SCALE = 0.2 // scale damage dealt by militia npc titans against IMC
 const float BT_TVT_DAMAGE_SCALE = 0.5 // scale damage dealt by BT npc against IMC titans
@@ -27,7 +28,7 @@ const float DIFFICULTY_NORMAL_DAMAGE_SCALAR = 1.0 // damage against player is mu
 const float DIFFICULTY_HARD_DAMAGE_SCALAR = 1.0 // damage against player is multiplied by this number on Hard.
 // NO INCREASE HERE, TITANS HAVE 0 CD HERE LOL
 const float DIFFICULTY_MASTER_DAMAGE_SCALAR = 1.0 // damage against player is multiplied by this number on Master.
-const float PLAYER_TITAN_DAMAGE_SCALAR = 0.75 // damage against player titan multiplied by this
+const float PLAYER_TITAN_DAMAGE_SCALAR = 1.0 // damage against player titan multiplied by this
 
 struct
 {
@@ -82,21 +83,33 @@ void function SPDifficulty_Init()
 
 void function NPCKilled( entity ent, entity attacker, var damageInfo )
 {
+	if (attacker.IsPlayer() && !attacker.IsTitan())
+	{
+		float maxDashPower = 20.0
+		if (Roguelike_HasMod( attacker, "double_dash" ))
+			maxDashPower = 40.0
+		
+		attacker.Server_SetDodgePower( min( attacker.GetDodgePower() + 20.0, maxDashPower ) )
+	}
+	if ("attackedByPlayer" in ent.s)
+	{
+		if (ent.IsTitan())
+		{
+			AddKillsAndMoney( GetFirstPlayer(), 25, 25 )
+		}
+		else if (IsSuperSpectre( ent ))
+		{
+			AddKillsAndMoney( GetFirstPlayer(), 10, 15 )
+		}
+		else
+		{
+			if (ent.GetClassName() == "npc_marvin" || AllowGruntKills(GetMapName()))
+				AddKillsAndMoney( GetFirstPlayer(), 2, 5 )
+		}
+	}
+
 	if (!attacker.IsPlayer())
 		return
-
-    if (ent.IsTitan())
-    {
-        AddKillsAndMoney( GetFirstPlayer(), 10, 25 )
-    }
-    else if (IsSuperSpectre( ent ))
-    {
-        AddKillsAndMoney( GetFirstPlayer(), 5, 15 )
-    }
-	else
-	{
-        AddKillsAndMoney( GetFirstPlayer(), 1, 5 )
-	}
 
 	printt(DamageInfo_GetDamageSourceIdentifier( damageInfo ), eDamageSourceId.mp_titancore_flame_wave)
 
@@ -105,11 +118,11 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 	{
 		flameCoreDamage = flameCoreDamage || ("eruption" in DamageInfo_GetInflictor(damageInfo).s)
 	}
-	if (StatusEffect_Get( ent, eStatusEffect.roguelike_core_on_kill ) > 0 && attacker.IsTitan() && ent.IsTitan())
+	if (RSE_Get( ent, RoguelikeEffect.core_on_kill ) > 0 && attacker.IsTitan() && ent.IsTitan())
 	{
 		printt("AGAIN!")
 		// reset core
-		SoulTitanCore_SetNextAvailableTime( attacker.GetTitanSoul(), StatusEffect_Get( ent, eStatusEffect.roguelike_core_on_kill ) )
+		SoulTitanCore_SetNextAvailableTime( attacker.GetTitanSoul(), RSE_Get( ent, RoguelikeEffect.core_on_kill ) )
 	}
 
 	
@@ -123,13 +136,17 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 	if (Roguelike_HasMod( attacker, "grenade_cd" ) && !attacker.IsTitan())
 	{
 		entity ordnance = attacker.GetOffhandWeapon(0)
-		ordnance.SetWeaponPrimaryClipCount( minint(ordnance.GetWeaponPrimaryClipCount() + 15, ordnance.GetWeaponPrimaryClipCountMax()) )
+		if (IsValid(ordnance))
+			ordnance.SetWeaponPrimaryClipCount( minint(ordnance.GetWeaponPrimaryClipCount() + 15, ordnance.GetWeaponPrimaryClipCountMax()) )
 	}
 	if (Roguelike_HasMod( attacker, "tactical_cd" ) && !attacker.IsTitan())
 	{
 		entity tactical = attacker.GetOffhandWeapon(1)
+		if (IsValid(tactical))
+		{
 		float regenRate = tactical.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_rate)
 		tactical.SetWeaponPrimaryClipCount( minint(tactical.GetWeaponPrimaryClipCount() + int(1.5 * regenRate), tactical.GetWeaponPrimaryClipCountMax()) )
+		}
 	}
 }
 
@@ -201,6 +218,9 @@ void function SpPlayer_OnDamaged( entity player, var damageInfo )
 	if ( attacker == player )
 		return
 
+	const array<string> badTriggers = ["trigger_hurt", "trigger_quickdeath", "worldspawn"]
+	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo ) 
+
 	if (Roguelike_HasMod( player, "dash_iframes" ) && Time() - GetLastDodgeTime() < 0.5 )
 	{
 		DamageInfo_SetDamage( damageInfo, 0 )
@@ -213,8 +233,6 @@ void function SpPlayer_OnDamaged( entity player, var damageInfo )
 		return
 	}
 
-	const array<string> badTriggers = ["trigger_hurt", "trigger_quickdeath", "worldspawn"]
-	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo ) 
 	if ((damageSourceId == eDamageSourceId.fall || badTriggers.contains(attacker.GetClassName())) && DamageInfo_GetForceKill( damageInfo ) && GetMapName() != "sp_s2s") // if you fall off in the ark, kinda your fault tbh =-=
 	{
 		printt("fell off")
@@ -222,6 +240,7 @@ void function SpPlayer_OnDamaged( entity player, var damageInfo )
 		DamageInfo_SetForceKill( damageInfo, false )
 		DamageInfo_SetDamage( damageInfo, 0 )
 		thread Roguelike_QuickDeathInsteadOfKill( player )
+		return
 	}
 
 	if ( player.IsTitan() )
@@ -229,6 +248,9 @@ void function SpPlayer_OnDamaged( entity player, var damageInfo )
 		int armor = Roguelike_GetStat( player, STAT_ARMOR )
 		DamageInfo_ScaleDamage( damageInfo, Roguelike_GetTitanDamageMultiplier( armor ) )
 		
+		if (attacker.IsTitan() && IsMercTitan(attacker))
+			DamageInfo_ScaleDamage( damageInfo, 2 )
+
 		ScaleDamageToPlayerByDifficulty( damageInfo )
 
 		DamageInfo_ScaleDamage( damageInfo, PLAYER_TITAN_DAMAGE_SCALAR )
@@ -344,7 +366,7 @@ void function ScaleDamageToPlayerByDifficulty( var damageInfo )
 	}
 
 	if (GetConVarBool("roguelike_stat_balance"))
-		DamageInfo_ScaleDamage( damageInfo, 0.7 )
+		DamageInfo_ScaleDamage( damageInfo, 0.8 )
 
 	DamageInfo_ScaleDamage( damageInfo, scalar )
 }
@@ -410,7 +432,7 @@ void function SetTitanProficiency( entity npcTitan )
 	{
 		// should be difficulty based numbers
 		int difficulty = GetSpDifficulty()
-		npcTitan.kv.accuracyMultiplier = 2
+		npcTitan.kv.accuracyMultiplier = 2 + GetConVarInt("sp_difficulty")
 
 		if ( !IsBossTitan( npcTitan ) )
 			npcTitan.kv.WeaponProficiency = eWeaponProficiency.PERFECT
@@ -453,12 +475,18 @@ void function UpdateNPCForSpDifficulty( entity npc )
 void function UpdateMercTitanHealthForDifficulty( entity npc )
 {
 	// do not scale ally health
-	if (npc.GetTeam() != TEAM_IMC)
+	if (npc.GetTeam() == TEAM_MILITIA)
 		return
-	
+
 	float healthMult = ("healthMult" in npc.s ? expect float(npc.s.healthMult) : 1.0)
-	float multiplier = (IsMercTitan( npc ) && !GetDoomedState( npc )) ? 2.0 : 1.0
+	float multiplier = (IsMercTitan( npc ) && !GetDoomedState( npc )) ? 3.0 : 1.0
+
+	float entPower = GetConVarFloat("power_enemy_def")
+	multiplier *= (500 + entPower) / (500)
+	
 	multiplier *= healthMult
+	if (VERBOSE_HEALTH_PRINTOUTS)
+		printt(multiplier)
 	float flatBonus = GetConVarFloat("power_enemy_hp")
 	switch (GetSpDifficulty())
 	{
@@ -564,7 +592,8 @@ void function RescaleHealthWithMultiplier( entity npc, float multiplier, float f
 	
 	if (npc.IsTitan())
 	{
-		printt("base health", float(npc.s.baseHealth), flatBonus, multiplier)
+		if (VERBOSE_HEALTH_PRINTOUTS && npc.IsTitan())
+			printt("base health", float(npc.s.baseHealth), flatBonus, multiplier)
 		health = float(npc.s.baseHealth)
 	}
 	else

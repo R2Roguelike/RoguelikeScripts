@@ -3,5 +3,6 @@ WeaponData
     "inventory_slot"                "special"
     SP_BASE
     {
+        "impulse_force"                 "20000"
     }
 }

@@ -40,7 +40,7 @@ void function Healthbars_Think()
         if (IsValid(player.GetActiveWeapon()) && player.GetActiveWeapon().GetWeaponOwner() == player)
             attackDir = player.GetActiveWeapon().GetAttackDirection()
 
-        array<VisibleEntityInCone> results = FindVisibleEntitiesInCone( player.CameraPosition(), attackDir, 3937, 7, [ ], TRACE_MASK_BLOCKLOS, VIS_CONE_ENTS_IGNORE_VORTEX, player )
+        array<VisibleEntityInCone> results = FindVisibleEntitiesInCone( player.CameraPosition(), attackDir, 5000, player.GetFOV() / 10.0, [ ], TRACE_MASK_BLOCKLOS, VIS_CONE_ENTS_IGNORE_VORTEX, player )
 
         foreach (VisibleEntityInCone coneEnt in results)
         {
@@ -66,21 +66,21 @@ void function Healthbars_Think()
             }
         }
         
-        bool isUsingRonin = IsValid(player.GetLatestPrimaryWeapon()) ? player.GetLatestPrimaryWeapon().GetWeaponClassName() == "mp_titanweapon_leadwall" : false
-        if (isUsingRonin)
+        bool isUsingRonin = Roguelike_GetTitanLoadouts().contains("mp_titanweapon_leadwall")
+        if (player.IsTitan() && isUsingRonin)
         {
-            bool hasMod = Roguelike_HasMod( player, "reflective_sword" )
+            bool hasMod = false
             Hud_SetVisible( HudElement("CrosshairBar"), hasMod )
-            Hud_SetBarProgress( HudElement("CrosshairBar"), GraphCapped(StatusEffect_Get(player, eStatusEffect.roguelike_block_buff), 0, 1, 0.370, 0.625))
-            Hud_SetColor( HudElement("CrosshairBar"), 255, 255, 255, 255 )
         }
         else if (!player.IsTitan())
         {
-            bool hasMod = Roguelike_HasMod( player, "speed_shield" )
-            Hud_SetVisible( HudElement("CrosshairBar"), hasMod )
-            float speed = Length2D(player.GetVelocity())
-            Hud_SetBarProgress( HudElement("CrosshairBar"), GraphCapped(speed, 0, 546, 0.370, 0.625))
-            if (speed > 546)
+            Hud_SetVisible( HudElement("CrosshairBar"), true )
+            float speed = player.GetDodgePower()
+            float maxDashPower = 20.0
+            if (Roguelike_HasMod( player, "double_dash" ))
+                maxDashPower = 40.0
+            Hud_SetBarProgress( HudElement("CrosshairBar"), GraphCapped(speed, 0, maxDashPower, 0.370, 0.625))
+            if (speed >= 19.99)
                 Hud_SetColor( HudElement("CrosshairBar"), 0, 255, 255, 255 )
             else
                 Hud_SetColor( HudElement("CrosshairBar"), 144, 144, 144, 255 )
@@ -298,11 +298,13 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
             }
         }
         float segments = ent.GetMaxHealth() / healthPerSegment
-        int width = int(segments) * 25
+        int width = int(segments) * 21
         if (ent.GetMaxHealth() % healthPerSegment == 0)
             width -= 1
-        else width += int((segments % 1.0) * 24)
+        else width += int((segments % 1.0) * 20)
 
+        Hud_SetBarSegmentInfo( bar, 1, 20 )
+        Hud_SetBarSegmentInfo( changeBar, 1, 20 )
         Hud_SetWidth( bar, width )
         Hud_SetWidth( changeBar, width )
         Hud_SetWidth( shieldBar, width )
@@ -351,29 +353,35 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
                 switch (titanLoadouts[i])
                 {
                     case "mp_titanweapon_leadwall":
-                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_daze ) * 255.0 / 3.0 )
+                        Hud_SetBarProgress( statusEffectBar, RSE_Get( ent, RoguelikeEffect.ronin_daze ) / 3.0 )
                         Hud_SetText( statusEffectText, "Daze")
                         Hud_SetColor( statusEffectBar, 255, 225, 100, 255 )
                         Hud_SetColor( statusEffectText, 255, 225, 100, 255 )
                         break
                     case "mp_titanweapon_meteor":
-                        float burn = StatusEffect_Get( ent, eStatusEffect.roguelike_burn ) * 255.0
-                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_burn ) * 255.0 / 50.0 )
+                        float burn = max(RSE_Get( ent, RoguelikeEffect.burn ), RSE_Get( ent, RoguelikeEffect.burn_flame_core ))
+                        Hud_SetBarProgress( statusEffectBar, burn / 50.0 )
                         Hud_SetText( statusEffectText, RoundToInt(burn + 100) + "% DMG")
                         Hud_SetColor( statusEffectBar, 255, 175, 75, 255 )
                         Hud_SetColor( statusEffectText, 255, 175, 75, 255 )
                         break
                     case "mp_titanweapon_xo16_shorty":
-                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_weaken ) )
+                        Hud_SetBarProgress( statusEffectBar, RSE_Get( ent, RoguelikeEffect.expedition_weaken ) )
                         Hud_SetText( statusEffectText, "Weaken")
                         Hud_SetColor( statusEffectBar, 177, 94, 255, 255 )
                         Hud_SetColor( statusEffectText, 177, 94, 255, 255 )
                         break
                     case "mp_titanweapon_predator_cannon":
-                        Hud_SetBarProgress( statusEffectBar, StatusEffect_Get( ent, eStatusEffect.roguelike_puncture ) )
+                        Hud_SetBarProgress( statusEffectBar, RSE_Get( ent, RoguelikeEffect.legion_puncture ) )
                         Hud_SetText( statusEffectText, "Puncture")
                         Hud_SetColor( statusEffectBar, 255, 64, 64, 255 )
                         Hud_SetColor( statusEffectText, 255, 64, 64, 255 )
+                        break
+                    case "mp_titanweapon_sniper":
+                        Hud_SetBarProgress( statusEffectBar, RSE_Get( ent, RoguelikeEffect.northstar_fulminate ) )
+                        Hud_SetText( statusEffectText, "Fulminate")
+                        Hud_SetColor( statusEffectBar, 64, 96, 255, 255 )
+                        Hud_SetColor( statusEffectText, 64, 96, 255, 255 )
                         break
                 }
             }

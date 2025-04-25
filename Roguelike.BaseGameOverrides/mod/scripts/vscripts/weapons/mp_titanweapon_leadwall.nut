@@ -58,7 +58,7 @@ function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, bool pl
 
 	if (owner.IsPlayer() )
 	{
-		if (StatusEffect_Get( owner, eStatusEffect.roguelike_shotgun_buff ) > 0)
+		if (RSE_Get( owner, RoguelikeEffect.ronin_overload ) > 0)
 		{
 			#if SERVER
 			SetShotgunBuff( owner, GetShotgunBuff( owner ) - 1 )
@@ -67,9 +67,12 @@ function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, bool pl
 			weapon.EmitWeaponSound( "Weapon_ArcLauncher_Fire_1P" )
 			weapon.PlayWeaponEffect( $"wpn_muzzleflash_arc_cannon_fp", $"wpn_muzzleflash_arc_cannon", "muzzle_flash" )
 		}
-		if (StatusEffect_Get( owner, eStatusEffect.roguelike_ronin_quickswap ) > 0)
+		if (RSE_Get( owner, RoguelikeEffect.ronin_quickswap ) > 0)
 		{
 			quickswap = true
+			#if SERVER
+			RSE_Stop( owner, RoguelikeEffect.ronin_quickswap )
+			#endif
 		}
 	}
 

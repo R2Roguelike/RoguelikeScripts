@@ -26,7 +26,6 @@ table function ArmorChip_Generate()
 
     table chip = {
         type = "armor_chip",
-        mainStat = RandomInt( 6 ),
         subStats = [],
         boosts = [],
         slot = expect int(chipSlotOrder[slotIndex]),
@@ -36,7 +35,17 @@ table function ArmorChip_Generate()
         moneyInvested = 30 + 15 * (baseRarity) // give 20 dolla when dismantled ()
     }
 
-    chip.isTitan <- expect int(chip.mainStat) < 3
+    chip.isTitan <- expect int(chip.slot) <= 4
+
+    if (chip.isTitan)
+    {
+        chip.mainStat <- RandomIntRange(0,3)
+    }
+    else
+    {
+        chip.slot -= 4
+        chip.mainStat <- RandomIntRange(3,6)
+    }
 
     chip.rarity <- baseRarity
 
@@ -61,7 +70,7 @@ table function ArmorChip_Generate()
     chip.energy = maxint(expect int(chip.energy) + minint(baseRarity, RARITY_EPIC), 0)
     chip.priceOffset += baseRarity * 25
 
-    runData.chipSlotIndex = (++slotIndex) % 4
+    runData.chipSlotIndex = (++slotIndex) % 8
 
     return chip
 }

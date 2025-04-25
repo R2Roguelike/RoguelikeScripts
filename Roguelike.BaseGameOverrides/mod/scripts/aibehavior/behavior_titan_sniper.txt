@@ -4,10 +4,10 @@ Selector Common
 	SelectSchedule_MissileDodge
 	CNPC_Titan::SelectSchedule_TitanFlightCore
 	CNPC_Titan::SelectSchedule_PhysEntKnock
-	
-	
+	SelectSchedule_DisplaceFromDangerousArea
+	//SelectSchedule_DangerousClusterStandoff
 	SelectSchedule_ChangeToDesiredStance
-	
+	SelectSchedule_SyncedMeleeAttack
 	CNPC_Titan::SelectSchedule_GotoDefensivePlacement
 	SelectSchedule_LayeredBehavior
 Selector_End
@@ -28,15 +28,13 @@ Selector_End
 Selector Combat
 
 	SelectSchedule_StrafeDodge
+	SelectSchedule_BackwardDodge
+	SelectSchedule_ForwardDodge
 	SelectSchedule_ShootJump
 	SelectSchedule_MeleeAttack
-	SelectSchedule_BackwardDodge
-//	SelectSchedule_EngagementDistMax
+	//SelectSchedule_CircleStrafe
 	SelectSchedule_EngagementDistMin
-//	SelectSchedule_ChaseEnemy
-//	SelectSchedule_ForwardDodge
-	SelectSchedule_EvasiveLowAmmo health < 0.5
-	
+	SelectSchedule_EvasiveLowAmmo
 	SelectSchedule_RangeAttackEvasive
 	SelectSchedule_RangeAttack2
 	SelectSchedule_RangeAttack
@@ -50,11 +48,11 @@ Selector CombatAggressive
 
 	SelectSchedule_MeleeAttack
 	SelectSchedule_StrafeDodge
-	SelectSchedule_ShootJump
+	SelectSchedule_BackwardDodge
 	SelectSchedule_ForwardDodge
+	SelectSchedule_ShootJump
 	SelectSchedule_ChaseEnemy
-	
-	SelectSchedule_RangeAttackEvasive
+	SelectSchedule_EvasiveLowAmmo
 	SelectSchedule_RangeAttack2
 	SelectSchedule_RangeAttack
 	SelectSchedule_WeaponBlocked
@@ -66,16 +64,16 @@ Selector_End
 Selector CombatEvasive
 
 	SelectSchedule_MeleeAttack
-	SelectSchedule_BackwardDodge
 	SelectSchedule_StrafeDodge
+	SelectSchedule_BackwardDodge
+	SelectSchedule_ForwardDodge
 	SelectSchedule_ShootJump
-	SelectSchedule_TakeCoverFromEnemy health > 0.1
+	//SelectSchedule_TakeCoverFromEnemy health > 0.1
 	SelectSchedule_EngagementDistMin
-	SelectSchedule_CircleStrafe
 	SelectSchedule_EvasiveLowAmmo
 	SelectSchedule_RangeAttackEvasive
-	SelectSchedule_RangeAttack2
 	SelectSchedule_RangeAttack
+	SelectSchedule_EnemyTooClose
 	SelectSchedule_WeaponBlocked
 	SelectSchedule_CantSeeEnemy
 	SelectSchedule_CombatFace

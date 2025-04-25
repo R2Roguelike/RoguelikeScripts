@@ -17,7 +17,7 @@ resource/ui/layouts/Destiny2/Healthbar_Champion.res
 		scaleImage			1
 
 		wide				278
-		tall				12
+		tall				8
 
 		"xpos"			"0"
 		"ypos"			"23"
@@ -35,12 +35,12 @@ resource/ui/layouts/Destiny2/Healthbar_Champion.res
 		Margin				0
 		ProgressDirection			0
 		SegmentFill			1
-		SegmentSize			24
+		SegmentSize			20
 		SegmentGap			1
 		scaleImage			1
 
 		wide				278
-		tall				12
+		tall				8
 
 		"xpos"			"0"
 		"ypos"			"0"
@@ -62,12 +62,12 @@ resource/ui/layouts/Destiny2/Healthbar_Champion.res
 		Margin				0
 		ProgressDirection			0
 		SegmentFill			1
-		SegmentSize			24
+		SegmentSize			20
 		SegmentGap			1
 		scaleImage			1
 
 		wide				278
-		tall				12
+		tall				8
 
 		"xpos"			"0"
 		"ypos"			"0"

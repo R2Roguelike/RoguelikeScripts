@@ -83,7 +83,7 @@ resource/ui/menus/level_end.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_56
+            font					GothicExpanded_36
 
             pin_to_sibling			Results
             pin_corner_to_sibling	BOTTOM

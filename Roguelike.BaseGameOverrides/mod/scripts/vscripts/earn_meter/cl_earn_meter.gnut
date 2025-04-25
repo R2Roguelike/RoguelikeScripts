@@ -509,7 +509,7 @@ void function Cl_SP_UpdateCoreIcon( int loadoutIndex )
 	if ( !player.IsTitan() )
 		return
 
-	if ( IsTitanCoreFiring( player ) ) // we want the player to know which titan core is firing
+	if ( IsValid( player.GetTitanSoul() ) && IsTitanCoreFiring( player ) ) // we want the player to know which titan core is firing
 		return
 
 	if ( loadoutIndex == -1 )

@@ -207,15 +207,14 @@ float function HandleBlockingAndCalcDamageScaleForHit( entity blockingEnt, var d
 	{
 		if ("blockStartTime" in blockingEnt.s && blockingEnt.IsPlayer() && Roguelike_HasMod( blockingEnt, "reflective_sword" ))
 		{
-			if (StatusEffect_Get( blockingEnt, eStatusEffect.roguelike_block_buff ) < 1.0)
+			if (RSE_Get( blockingEnt, RoguelikeEffect.ronin_block_buff ) < 1.0)
 			{
 				int originalDamage = int( DamageInfo_GetDamage( damageInfo ) + 0.5 )
 				
-				int power = Roguelike_GetStat( blockingEnt, STAT_POWER )
-				float intensity = StatusEffect_Get( blockingEnt, eStatusEffect.roguelike_block_buff )
-				StatusEffect_StopAll( blockingEnt, eStatusEffect.roguelike_block_buff )
-				intensity += originalDamage / 3.0 / 255.0
-				StatusEffect_AddTimed( blockingEnt, eStatusEffect.roguelike_block_buff, intensity, 5.0 + intensity * 2.0, intensity * 2.0 )
+				float intensity = RSE_Get( blockingEnt, RoguelikeEffect.ronin_block_buff )
+				intensity += originalDamage / 1000.0
+				intensity = min(1.0, intensity)
+				RSE_Apply( blockingEnt, RoguelikeEffect.ronin_block_buff, intensity, 5.0 + intensity * 8.0, intensity * 8.0 )
 				return 0.0
 			}
 			else

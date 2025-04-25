@@ -455,6 +455,7 @@ void function CodeCallback_MapInit()
 	SPWeaponSwarmRockets_S2S_Init()
 	SPWeaponViperBossRockets_S2S_Init()
 
+	BAN_ENABLED = false
 	SetGlobalForcedDialogueOnly( true )
 
 	AddCallback_EntitiesDidLoad( S2S_EntitiesDidLoad )
@@ -3919,7 +3920,7 @@ void function FreeFall_Skip( entity player )
 	Assert( IsValid( bt ) )
 	bt.TakeActiveWeapon()
 
-	GivePlayerDefaultWeapons( player )
+	//GivePlayerDefaultWeapons( player )
 
 	level.nv.ShipStreaming = SHIPSTREAMING_BARKER
 	level.nv.ShipTitles = SHIPTITLES_EVERYTHING
@@ -3957,7 +3958,7 @@ void function FreeFall_Main( entity player )
 	float blendTime = 0.5
 	player.SetParent( node, "REF", false, blendTime )
 	player.DisableWeapon()
-	TakeAllWeapons( player )
+	//TakeAllWeapons( player )
 	player.ForceStand()
 	Melee_Disable( player )
 
@@ -3991,7 +3992,7 @@ void function FreeFall_Main( entity player )
 	wait 0.7
 	player.ClearAnimNearZ()
 
-	GivePlayerDefaultWeapons( player )
+	//GivePlayerDefaultWeapons( player )
 	player.DeployWeapon()
 
 	wait 2.5
@@ -8952,16 +8953,16 @@ void function MaltaHangar_Main( entity player )
 
 	FlagWaitAny( "DoTheWidowJump", "PlayerInOrOnSarahWidow" )
 
-	//thread Hangar_GearupGuyHandle()
-	//thread Hangar_IntroVO()
+	thread Hangar_GearupGuyHandle()
+	thread Hangar_IntroVO()
 	thread MaltaHangar_LiftDown()
 	thread MaltaBreach_BridgeGuys()
 
 	AddSpawnCallback_ScriptName( "hangar_backup1", MaltaHangar_BackupGuys1_Think )
 	SpawnOnShipFromScriptName( "hangar_backup1", file.malta )
 
-	//FlagWait( "Hangar_IntroReact" )
-	//thread Hangar_ReactVO()
+	FlagWait( "Hangar_IntroReact" )
+	thread Hangar_ReactVO()
 	delaythread( 1.5 ) MaltaHangar_FightMusic()
 
 	//reset stuff back to normal
@@ -12363,6 +12364,7 @@ void function MaltaDeck_Main( entity player )
 
 	//give viper the tether trap
 	viper.GiveOffhandWeapon( "mp_titanability_tether_trap", OFFHAND_SPECIAL )
+	UpdateNPCForSpDifficulty( viper )
 
 	//vector bounds 	= < 50,0,20 >
 	//vector offset 	= < 0,0,700 >
@@ -13694,8 +13696,12 @@ ShipStruct function MaltaDeck_SpawnBossTitan()
 {
 	entity spawner 	= GetEntByScriptName( "deckBossTitan" )
 	entity viper 	= SpawnFromSpawner( spawner )
+	viper.s.baseHealth <- 7500
+	viper.s.mods <- ["cluster_core"] // viper gets cluster rockets for core
 	viper.SetModel( TITAN_VIPER_SCRIPTED_MODEL )
 	viper.SetSkin( 1 )
+
+	UpdateMercTitanHealthForDifficulty( viper )
 
 	file.viper = viper
 
@@ -14119,8 +14125,8 @@ void function BT_Tackle_Main( entity player )
 	viper.DisableHibernation()
 	viper.SetNoTarget( true )
 	viper.EnableNPCFlag( NPC_IGNORE_ALL )
-	viper.SetMaxHealth( 90000 )
-	viper.SetHealth( 90000 )
+	viper.SetMaxHealth( 15000 )
+	viper.SetHealth( 15000 )
 	viper.Anim_AdvanceCycleEveryFrame( true )
 
 	bt.SetNoTarget( true )
@@ -16548,7 +16554,8 @@ void function Ending_Main( entity player )
 	FlagSet( "KillCoreShake" )
 	delaythread( 0.1 ) EndingShake()
 
-	ReturnMainWeapons( player, file.loadout )
+	// this is roguelike >:(
+	//ReturnMainWeapons( player, file.loadout )
 
 	player.ClearParent()
 	player.UnforceStand()

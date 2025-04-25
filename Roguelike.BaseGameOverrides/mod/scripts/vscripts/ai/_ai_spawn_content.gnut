@@ -1,6 +1,7 @@
 untyped
 
 global const PROTOTYPE_DEFAULT_TITAN_RODEO_SLOTS = 3  // Todo: remove and set this in titan_base.set
+global bool BAN_ENABLED = false
 
 global function CommonNPCOnSpawned
 global function ShouldSpawn
@@ -417,7 +418,7 @@ function CommonNPCOnSpawned( entity npc )
 		"npc_stalker",
 		"npc_spectre"
 	]
-	if (npc.GetTeam() == TEAM_IMC && banned.contains(npc.GetClassName()))
+	if (npc.GetTeam() == TEAM_IMC && banned.contains(npc.GetClassName()) && BAN_ENABLED)
 	{
 		delaythread(0.001) void function() : (npc, banned) 
 		{ 
@@ -428,7 +429,23 @@ function CommonNPCOnSpawned( entity npc )
 		}()
 	}
 	else if (eliteAllowed)
+	{
+		if (npc.IsTitan())
+		{
+			npc.EnableNPCFlag( NPC_NO_PAIN | NPC_NO_GESTURE_PAIN | NPC_NEW_ENEMY_FROM_SOUND | NPC_DIRECTIONAL_MELEE | NPC_IGNORE_FRIENDLY_SOUND ) //NPC_AIM_DIRECT_AT_ENEMY
+			npc.EnableNPCMoveFlag( NPCMF_PREFER_SPRINT | NPCMF_DISABLE_MOVE_TRANSITIONS )
+			npc.DisableNPCFlag( NPC_PAIN_IN_SCRIPTED_ANIM | NPC_ALLOW_FLEE | NPC_USE_SHOOTING_COVER )
+			npc.DisableNPCMoveFlag( NPCMF_WALK_NONCOMBAT )
+			npc.SetCapabilityFlag( bits_CAP_NO_HIT_SQUADMATES, false )
+			npc.SetDefaultSchedule( "SCHED_COMBAT_WALK" )
+			npc.kv.AccuracyMultiplier = 1.0 + 0.25 * GetConVarInt("sp_difficulty")
+			npc.kv.WeaponProficiency = eWeaponProficiency.PERFECT
+			npc.AssaultSetFightRadius( 2000 )
+			npc.SetEngagementDistVsWeak( 0, 800 )
+			npc.SetEngagementDistVsStrong( 0, 800 )
+		}
 		Elites_Generate( npc )
+	}
 	
 
 	FixupTitle( npc )
@@ -593,10 +610,6 @@ function CommonNPCTitanOnSpawned( entity npc )
 	npc.SetMaxHealth( maxHealth )
 	npc.SetHealth( maxHealth )
 	npc.SetValidHealthBarTarget( true )
-
-	#if HAS_BOSS_AI
-	UpdateMercTitanHealthForDifficulty( npc )
-	#endif
 
 	switch ( GetTitanHotdropSetting( npc ) )
 	{
