@@ -1053,7 +1053,7 @@ global const OFFHAND_INVENTORY		= 4
 global const OFFHAND_MELEE			= 5
 global const OFFHAND_TITAN_CENTER	= 2
 
-global const TITANMENU_NO_CUSTOMIZATION = 0x00001	
+global const TITANMENU_NO_CUSTOMIZATION = 0x00001
 global const TITANMENU_FORCE_NON_PRIME = 0x00002
 global const TITANMENU_FORCE_PRIME = 0x00004
 
@@ -1069,7 +1069,7 @@ global const TITAN_DOOMED_REGEN_AMOUNT					= 0.0025
 
 #if SP
 global const TITAN_SHIELD_REGEN_DELAY					= 3.0
-global const TITAN_SHIELD_REGEN_TIME					= 2.0
+global const TITAN_SHIELD_REGEN_TIME					= 3.0
 #else
 global const TITAN_SHIELD_REGEN_DELAY					= 6.0
 global const TITAN_SHIELD_REGEN_TIME					= 6.0

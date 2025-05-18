@@ -541,7 +541,7 @@ WeaponData
 			"fire_sound_1_player_1p"						""		/////
 			"fire_sound_1_player_3p"						""		// Playing these in script instead.
 			"fire_sound_1_npc"								""		/////
-			"charge_time" 									"0.75"
+			"charge_time" 									"0.5"
 			"charge_cooldown_time"							"0.0"
 			"charge_cooldown_delay"   						"0.0"
 			"charge_end_forces_fire"  						"1"
@@ -604,7 +604,7 @@ WeaponData
 			"explosion_shake_frequency"						"55"
 			"explosion_shake_duration"						"0.25"
 			"anim_alt_idleAttack"							"1"
-			"charge_time" 									"0.75"
+			"charge_time" 									"0.5"
 			"charge_cooldown_time"							"0.0"
 			"charge_cooldown_delay"   						"0.0"
 			"charge_end_forces_fire"  						"1"

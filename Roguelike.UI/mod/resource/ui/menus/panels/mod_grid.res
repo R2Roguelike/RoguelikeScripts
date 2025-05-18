@@ -64,7 +64,7 @@ resource/ui/menus/panels/mod_grid.res
 
 		zpos			1
 	}
-	
+
 	GridButton0x0
 	{
 		ControlName			CNestedPanel

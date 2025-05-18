@@ -1168,7 +1168,7 @@ void function OnGridButtonClick( var button )
 
 int function Grid_GetRowFromElementNumber( int elemNum, GridMenuData data )
 {
-	Assert( data.pageFillDirection == eGridPageFillDirection.DOWN || 
+	Assert( data.pageFillDirection == eGridPageFillDirection.DOWN ||
 			data.pageFillDirection == eGridPageFillDirection.RIGHT )
 
 	int row
@@ -1190,7 +1190,7 @@ int function Grid_GetRowFromElementNumber( int elemNum, GridMenuData data )
 
 int function Grid_GetColumnFromElementNumber( int elemNum, GridMenuData data )
 {
-	Assert( data.pageFillDirection == eGridPageFillDirection.DOWN || 
+	Assert( data.pageFillDirection == eGridPageFillDirection.DOWN ||
 			data.pageFillDirection == eGridPageFillDirection.RIGHT )
 
 	int col

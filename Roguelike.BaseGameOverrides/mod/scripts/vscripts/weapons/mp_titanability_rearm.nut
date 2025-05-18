@@ -15,7 +15,7 @@ var function OnWeaponPrimaryAttack_titanability_rearm( entity weapon, WeaponPrim
 		PlayerUsedOffhand( weaponOwner, weapon )
 
 	entity ordnance = weaponOwner.GetOffhandWeapon( OFFHAND_RIGHT )
-	
+
 	array offhandWeapons = weaponOwner.GetOffhandWeapons()
 	if (weaponOwner.IsPlayer())
 	{
@@ -24,6 +24,14 @@ var function OnWeaponPrimaryAttack_titanability_rearm( entity weapon, WeaponPrim
 			offhandWeapons.extend(weaponOwner.GetMainWeapons())
 			#if SERVER
 			RSE_Apply( weaponOwner, RoguelikeEffect.rearm_reload, 1.0, 20.0, 0.0 )
+			#endif
+		}
+		if (Roguelike_HasMod( weaponOwner, "rearm_reshield" ))
+		{
+			#if SERVER
+			RSE_Apply( weaponOwner, RoguelikeEffect.rearm_reshield, 0.3, 15.0, 0.0 )
+			if (IsValid(weaponOwner.GetTitanSoul()))
+				weaponOwner.GetTitanSoul().SetShieldHealth(weaponOwner.GetTitanSoul().GetShieldHealthMax())
 			#endif
 		}
 	#if SERVER
@@ -36,10 +44,10 @@ var function OnWeaponPrimaryAttack_titanability_rearm( entity weapon, WeaponPrim
 	{
 		if (offhand == weapon)
 			continue
-		
+
 		if (!IsValid(offhand))
 			continue
-		
+
 		if (offhand.GetInventoryIndex() == OFFHAND_INVENTORY)
 			continue // dont reset equipment!
 
@@ -81,7 +89,7 @@ bool function OnWeaponAttemptOffhandSwitch_titanability_rearm( entity weapon )
 
 		if ( offhand.GetWeaponPrimaryClipCountMax() > 0 && offhand.GetWeaponPrimaryClipCount() < offhand.GetWeaponPrimaryClipCountMax() )
 			allowSwitch = true
-			
+
 		if ( offhand.IsChargeWeapon() && offhand.GetWeaponChargeFraction() > 0.0 )
 			allowSwitch = true
 	}

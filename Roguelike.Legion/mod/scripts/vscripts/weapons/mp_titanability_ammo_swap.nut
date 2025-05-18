@@ -107,7 +107,7 @@ void function AddAmmoStatusEffect( entity player )
 var function OnWeaponPrimaryAttack_ammo_swap( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	entity weaponOwner = weapon.GetWeaponOwner()
-	
+
 	entity primaryWeapon = weaponOwner.GetActiveWeapon()
 	if ( !IsValid( primaryWeapon ) )
 		return 0

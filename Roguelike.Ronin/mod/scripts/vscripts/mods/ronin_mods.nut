@@ -48,7 +48,7 @@ void function Ronin_RegisterMods()
         RoguelikeMod mod = NewMod("conduction")
         mod.name = "Conduction"
         mod.abbreviation = "Cd"
-        mod.description = "Arc Wave hits restore Dash Energy."
+        mod.description = "Arc Wave hits restore Dash Energy. Dashing restores Arc Wave cooldown."
         mod.cost = 1
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -108,6 +108,14 @@ void function Ronin_RegisterMods()
         mod.cost = 1
         mod.chip = TITAN_CHIP_ABILITIES
     }
+    {
+        RoguelikeMod mod = NewMod("love_diviiiiiiiiiiiiiiiiiiiiiiiiiiiides")
+        mod.name = "Oath of the Sword"
+        mod.abbreviation = "OtS"
+        mod.description = "60% damage resistance while in Sword Core."
+        mod.cost = 1
+        mod.chip = TITAN_CHIP_ABILITIES
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)
@@ -117,6 +125,6 @@ RoguelikeMod function NewMod(string uniqueName)
     mod.useLoadoutChipSlot = false
     mod.loadouts = [PRIMARY_RONIN]
     mod.isTitan = true
-    
+
     return mod
 }

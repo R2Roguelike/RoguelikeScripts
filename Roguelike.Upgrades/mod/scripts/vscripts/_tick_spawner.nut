@@ -20,7 +20,7 @@ void function TitanOrReaperKilled(entity npc, var damageInfo)
 
         if (npc.IsTitan())
             count = 3
-        
+
         for (int i = 0; i < count; i++)
         {
             vector origin = npc.GetOrigin() + <RandomFloatRange(-16, 16), RandomFloatRange(-16, 16), 64>

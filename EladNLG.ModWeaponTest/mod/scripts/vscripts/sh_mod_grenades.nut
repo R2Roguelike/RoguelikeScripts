@@ -24,13 +24,13 @@ void function GrenadeDamage( entity ent, var damageInfo )
     entity attacker = DamageInfo_GetAttacker( damageInfo )
     if (!attacker.IsPlayer())
         return
-    
+
     if (attacker == ent)
     {
         print("self damage")
         return
     }
-    
+
     DamageInfo_ScaleDamage( damageInfo, 1.75 )
     DamageInfo_ScaleDamage( damageInfo, Roguelike_GetGrenadeDamageBoost( Roguelike_GetStat( attacker, STAT_TEMPER ) ) )
 }

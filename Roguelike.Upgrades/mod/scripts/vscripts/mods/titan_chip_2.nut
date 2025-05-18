@@ -41,8 +41,16 @@ void function TitanChip2_RegisterMods()
         RoguelikeMod mod = NewMod("puncture_crit_dmg")
         mod.name = "Crit Exchange"
         mod.abbreviation = "CE"
-        mod.description = "Excess Crit Rate is <cyan>converted into Crit DMG</> at a 1:1 ratio."
-        mod.cost = 3
+        mod.description = "Excess Crit Rate is <cyan>converted into Crit DMG</> at a 1:1 ratio. <note>Northstar's Railgun: ALL crit rate is considered \"Excess\"."
+        mod.cost = 1
+        mod.chip = TITAN_CHIP_UTILITY
+    }
+    {
+        RoguelikeMod mod = NewMod("anti_shield")
+        mod.name = "Shield Breaching Rounds"
+        mod.abbreviation = "SBR"
+        mod.description = "+400% DMG against non-combatants (e.g. Particle Walls, Laser Pylons, etc.). Weapon rounds drain Vortex Shields."
+        mod.cost = 1
         mod.chip = TITAN_CHIP_UTILITY
     }
 }
@@ -53,6 +61,6 @@ RoguelikeMod function NewMod(string uniqueName)
 
     mod.chip = 2
     mod.isTitan = true
-    
+
     return mod
 }

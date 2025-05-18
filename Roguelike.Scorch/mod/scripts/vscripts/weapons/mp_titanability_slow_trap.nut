@@ -60,7 +60,16 @@ var function OnWeaponPrimaryAttack_titanweapon_slow_trap( entity weapon, WeaponP
 	if ( weaponOwner.IsPlayer() )
 		PlayerUsedOffhand( weaponOwner, weapon )
 
-	ThrowDeployable( weapon, attackParams, 1500, OnSlowTrapPlanted, <0,0,0> )
+	vector right = AnglesToRight( VectorToAngles( attackParams.dir ) )
+	if (Roguelike_HasMod( weaponOwner, "gassin" ))
+	{
+		attackParams.dir += right * 0.15
+		ThrowDeployable( weapon, attackParams, 1500, OnSlowTrapPlanted, <0,0,0> )
+		attackParams.dir -= right * 0.3
+		ThrowDeployable( weapon, attackParams, 1500, OnSlowTrapPlanted, <0,0,0> )
+	}
+	else
+		ThrowDeployable( weapon, attackParams, 1500, OnSlowTrapPlanted, <0,0,0> )
 	return weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )
 }
 
@@ -257,8 +266,9 @@ function IgniteTrap( entity damageArea, var damageInfo, bool isExplosiveBarrel =
 	float duration = FLAME_WALL_THERMITE_DURATION
 	if ( GAMETYPE == GAMEMODE_SP )
 		duration *= SP_FLAME_WALL_DURATION_SCALE
-	if (Roguelike_HasMod( owner, "fire_duration" ))
-		duration *= 2
+
+	duration *= Roguelike_GetFireDurationMultiplier( owner )
+
 	entity inflictor = CreateOncePerTickDamageInflictorHelper( duration + 1.0 )
 	inflictor.SetOrigin( origin )
 
@@ -272,11 +282,11 @@ function IgniteTrap( entity damageArea, var damageInfo, bool isExplosiveBarrel =
 	if ( movingGeo )
 	{
 		inflictor.SetParent( movingGeo, "", true, 0 )
-		AI_CreateDangerousArea( inflictor, weapon, dangerousAreaRadius, TEAM_INVALID, true, true )
+		//AI_CreateDangerousArea( inflictor, weapon, dangerousAreaRadius, owner.GetTeam(), true, true )
 	}
 	else
 	{
-		AI_CreateDangerousArea_Static( inflictor, weapon, dangerousAreaRadius, TEAM_INVALID, true, true, originNoHeightAdjust )
+		//AI_CreateDangerousArea_Static( inflictor, weapon, dangerousAreaRadius, owner.GetTeam(), true, true, originNoHeightAdjust )
 	}
 
 	bool isWallCanister = owner.IsPlayer() && Roguelike_HasMod( owner, "offense_canister" )
@@ -496,9 +506,8 @@ bool function CreateSlowTrapSegment( entity projectile, int projectileCount, ent
 
 		if ( GAMETYPE == GAMEMODE_SP )
 			duration *= SP_FLAME_WALL_DURATION_SCALE
-			
-		if (Roguelike_HasMod( owner, "fire_duration" ))
-			duration *= 2
+
+		duration *= Roguelike_GetFireDurationMultiplier( owner )
 
 		if ( !movingGeo )
 		{

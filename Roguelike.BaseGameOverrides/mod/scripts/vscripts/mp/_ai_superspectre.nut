@@ -101,8 +101,9 @@ void function SuperSpectreDeath( entity npc, var damageInfo )
 {
 	vector origin = npc.GetWorldSpaceCenter()
 	EmitSoundAtPosition( npc.GetTeam(), origin, "ai_reaper_explo_3p" )
-	npc.Gib( DamageInfo_GetDamageForce( damageInfo ) )
-	
+	PlayFX( $"P_sup_spectre_death_nuke", origin, npc.GetAngles() )
+	//npc.Gib( DamageInfo_GetDamageForce( damageInfo ) )
+
 	SpawnTitanBatteryOnDeath( npc, damageInfo )
 }
 

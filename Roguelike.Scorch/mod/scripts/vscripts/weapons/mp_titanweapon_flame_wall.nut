@@ -72,12 +72,12 @@ var function OnWeaponPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAttack
 
 	#if SERVER
 	float duration = weapon.HasMod( "pas_scorch_firewall" ) ? PAS_SCORCH_FIREWALL_DURATION : FLAME_WALL_THERMITE_DURATION
-	if (Roguelike_HasMod( weaponOwner, "fire_duration" ))
-		duration *= 2
+	duration *= Roguelike_GetFireDurationMultiplier( weaponOwner )
 	entity inflictor = CreateOncePerTickDamageInflictorHelper( duration )
 	#endif
 
 	const float FUSE_TIME = 99.0
+	int ammoPerShot = weapon.GetAmmoPerShot()
 	entity projectile = weapon.FireWeaponGrenade( attackParams.pos, attackParams.dir, < 0,0,0 >, FUSE_TIME, damageTypes.projectileImpact, damageTypes.explosive, shouldPredict, true, true )
 	if ( projectile )
 	{
@@ -91,6 +91,7 @@ var function OnWeaponPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAttack
 	#if SERVER
 	if (weaponOwner.IsPlayer() && Roguelike_HasMod( weaponOwner, "dash_wall" ) && Time() - GetLastDodgeTime() < 0.8)
 	{
+		ammoPerShot = ammoPerShot * 3 / 4
 		inflictor.s.dashWall <- true
 		for (int i = 0; i < 2; i++)
 		{
@@ -112,7 +113,7 @@ var function OnWeaponPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAttack
 	#if CLIENT
 		ClientScreenShake( 8.0, 10.0, 1.0, Vector( 0.0, 0.0, 0.0 ) )
 	#endif
-	return weapon.GetWeaponInfoFileKeyField( "ammo_min_to_fire" )
+	return ammoPerShot
 }
 
 #if SERVER
@@ -173,8 +174,7 @@ bool function CreateThermiteWallSegment( entity projectile, int projectileCount,
 			damageSource = eDamageSourceId.mp_titanweapon_flame_wall
 			duration = mods.contains( "pas_scorch_firewall" ) ? PAS_SCORCH_FIREWALL_DURATION : FLAME_WALL_THERMITE_DURATION
 		}
-		if (Roguelike_HasMod( owner, "fire_duration" ))
-			duration *= 2
+		duration *= Roguelike_GetFireDurationMultiplier( owner )
 
 		if ( IsSingleplayer() )
 		{
@@ -190,7 +190,7 @@ bool function CreateThermiteWallSegment( entity projectile, int projectileCount,
 		{
 			thermiteParticle = CreateThermiteTrail( pos, angles, owner, inflictor, duration, FLAME_WALL_FX, damageSource )
 			EffectSetControlPointVector( thermiteParticle, 1, projectile.proj.savedOrigin )
-			AI_CreateDangerousArea_Static( thermiteParticle, projectile, METEOR_THERMITE_DAMAGE_RADIUS_DEF, TEAM_INVALID, true, true, pos )
+			//AI_CreateDangerousArea_Static( thermiteParticle, projectile, METEOR_THERMITE_DAMAGE_RADIUS_DEF, owner.GetTeam(), true, true, pos )
 		}
 		else
 		{
@@ -212,7 +212,7 @@ bool function CreateThermiteWallSegment( entity projectile, int projectileCount,
 			{
 				thread EffectUpdateControlPointVectorOnMovingGeo( thermiteParticle, 1, GetRelativeDelta( pos, movingGeo ), movingGeo )
 			}
-			AI_CreateDangerousArea( thermiteParticle, projectile, METEOR_THERMITE_DAMAGE_RADIUS_DEF, TEAM_INVALID, true, true )
+			//AI_CreateDangerousArea( thermiteParticle, projectile, METEOR_THERMITE_DAMAGE_RADIUS_DEF, owner.GetTeam(), true, true )
 		}
 
 		//EmitSoundOnEntity( thermiteParticle, FLAME_WALL_GROUND_SFX )

@@ -5543,7 +5543,7 @@ void function AndersonHologramSequenceThread( entity player, entity node, string
 	andersonWeapon.Show()
 	Assert( animAnderson != "" )
 	StartParticleEffectOnEntity( anderson, GetParticleSystemIndex( FX_HOLOGRAM_FLASH_EFFECT ), FX_PATTACH_POINT_FOLLOW, attachIndex )
-	
+
 	vector andersonEndPos = anderson.GetAttachmentOrigin( attachIndex )
 
 	//hologram 3 we need to manually deal with Anderson disappearing at the end...all others he can just blink out

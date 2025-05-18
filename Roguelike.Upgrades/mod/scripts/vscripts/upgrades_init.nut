@@ -20,6 +20,18 @@ global struct RoguelikeMod
     int index = 0
 }
 
+global struct RoguelikeRunModifier
+{
+    string uniqueName = "unnamed_modifier"
+    string name = "UNNAMED MODIFIER!!"
+    string description = "THERE IS NO DESCRIPTION DEVS DIDNT MAKE ONE"
+    array<string> options = []
+    asset icon = $"vgui/hud/missing"
+    int baseCost = 0
+    int costPerLevel = 0
+    int index = 0
+}
+
 global struct UniqueTitanPassiveData
 {
     string name
@@ -62,8 +74,10 @@ global const int RARITY_RARE        = 2;
 global const int RARITY_EPIC        = 3;
 global const int RARITY_LEGENDARY   = 4;
 
-global const int ENEMY_DEF_PER_LEVEL       = 50;
 global const int ENEMY_DEF_PER_LEVEL_EASY  = 50;
+global const int ENEMY_DEF_PER_LEVEL       = 50;
+global const int ENEMY_DEF_PER_LEVEL_HARD  = 75;
+global const int ENEMY_DEF_PER_LEVEL_MASTER= 75;
 global const int ENEMY_HP_PER_LEVEL        = 500;
 global const int ENEMY_HP_PER_LEVEL_HARD   = 750;
 global const int ENEMY_HP_PER_LEVEL_MASTER = 1000;
@@ -96,11 +110,16 @@ global const int SCORCH_RONIN = TITAN_BITS[PRIMARY_SCORCH] | TITAN_BITS[PRIMARY_
 global const int EXPEDITION_SCORCH = TITAN_BITS[PRIMARY_EXPEDITION] | TITAN_BITS[PRIMARY_SCORCH]
 global const int EXPEDITION_RONIN = TITAN_BITS[PRIMARY_EXPEDITION] | TITAN_BITS[PRIMARY_RONIN]
 global const int ALL_CHIP_SLOTS = 0xFFFF
+global const int DAMAGEFLAG_DISCHARGE = 32
+global const int DAMAGEFLAG_DISORDER = 64
+global const int DAMAGEFLAG_PYLON = 128
+
+global const int STAT_CAP = 3000
 
 // Roguelike Status Effects
 // USE CASE: entities can only have 10 status effects at a time (oldest one gets overwritten when the 11th is applies)
 // and intensity precision is limited to fractions of 255
-// 
+//
 
 global enum RoguelikeEffect
 {
@@ -124,8 +143,20 @@ global enum RoguelikeEffect
     damage_sacrifice_2,
     overcrit,
     railgun_trauma,
+    ion_charge,
+    scorch_warmth,
+    parry,
+    counter,
+    offense_canister,
+    rearm_reshield,
+    gun_shield_shield,
     count,
 }
+
+global const string NORMAL_DIFFICULTY_DESC = "For those who are either fresh off the campaign or after not playing for a long time. ^F4D5A600Not very hard, but great if you want to learn the fundementals."
+global const string HARD_DIFFICULTY_DESC = "The intended experience.\n^F4D5A600Recommended if you've played Titanfall 2 recently."
+global const string MASTER_DIFFICULTY_DESC = "Enemy health increased, enemy cooldowns halved.\n^F4D5A600Recommended for those who found Hard too easy."
+global const string MASOCHIST_DIFFICULTY_DESC = "Batteries no longer spawn naturally.\n^F4D5A600Recommended if you're really looking for pain."
 
 global struct RSEInstance
 {

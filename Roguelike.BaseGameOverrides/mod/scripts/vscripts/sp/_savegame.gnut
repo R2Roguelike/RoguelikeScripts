@@ -273,7 +273,7 @@ bool function CodeCallback_IsSaveGameSafeToCommit()
 			return false
 	}
 
-	return GetConVarBool("sv_cheats")
+	return true
 }
 
 
@@ -403,6 +403,7 @@ void function CodeCallback_OnSavedSaveGame( bool saved )
 	// tell clients about the save
 	foreach ( player in GetPlayerArray() )
 	{
+		ServerToClientStringCommand( player, "run_backup 0" )
 		Remote_CallFunction_UI( player, "ServerCallback_ClearObjectiveReminderOnLoad" ) // dont need objective reminder again on load
 	}
 
@@ -737,7 +738,6 @@ bool function SafeForCheckPoint( entity player )
 
 void function BroadcastCheckpointMessage()
 {
-	printt("CHECKPOINT")
 	if ( file.nextSaveSilent )
 	{
 		file.nextSaveSilent = false
@@ -803,7 +803,7 @@ bool function LoadedFromSave()
 {
 	ServerToClientStringCommand(GetFirstPlayer(), "run_end")
 	return true
-	
+
 	printt( "SAVEGAME: Trying to load saveName" )
 	if ( !HasValidSaveGame() )
 	{

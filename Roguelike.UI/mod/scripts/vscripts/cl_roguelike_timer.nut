@@ -51,6 +51,7 @@ void function RoguelikeTimer_Think()
     var killsBar = Hud_GetChild(timer, "KillsBar")
     var killsRank = Hud_GetChild(timer, "KillsRank")
     var killsLabel = Hud_GetChild(timer, "KillsLabel")
+    var heatLabel = Hud_GetChild(timer, "Heat")
     var bigTimer = Hud_GetChild(timer, "Time")
     var timeBar = Hud_GetChild(timer, "TimeBar")
     var timeRank = Hud_GetChild(timer, "TimeRank")
@@ -84,11 +85,14 @@ void function RoguelikeTimer_Think()
         }
         float time = Time() - expect float(GetServerVar("startTime"))
         int kills = expect int(GetServerVar("roguelikeKills"))
+        
+        if (GetConVarInt("roguelike_run_heat") > 0)
+            Hud_SetText(heatLabel, GetConVarInt("roguelike_run_heat") + " ^FFFFFF00HEAT")
         for (int i = 2; i >= 0; i--)
         {
             if (i != 0 && kills >= killsRequired[i-1])
                 continue
-            
+
             if (i == 0)
                 Hud_SetBarProgress(killsBar, 1.0)
             else
@@ -103,7 +107,7 @@ void function RoguelikeTimer_Think()
         {
             if (i != 2 && time > timeRequired[i] * GetTimeRankMultiplier())
                 continue
-            
+
             if (i == 2)
                 Hud_SetBarProgress(timeBar, 0.0)
             else

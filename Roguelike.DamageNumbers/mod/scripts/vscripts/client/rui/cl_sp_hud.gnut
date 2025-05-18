@@ -152,7 +152,6 @@ void function MessageThink( MessageData messageData )
 
 void function DamageFlyout( float damage, vector damagePosition, entity victim, bool isCrit, bool isIneffective )
 {
-	PlayerDidDamageText(damage, damagePosition, victim, isCrit, isIneffective)
 	if ( !file.damageFlyoutEnabled )
 		return
 

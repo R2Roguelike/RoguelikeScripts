@@ -232,7 +232,7 @@ void function TDay_EntitiesDidLoad()
 void function SetupSarahAfterSpawn()
 {
 	wait 1.0
-	
+
 	Assert( IsValid( file.sarahTitan ) )
 	file.sarahTitan.SetSkin(2)
 	file.sarahTitan.SetTitle( "#NPC_SARAH_NAME" )
@@ -991,7 +991,7 @@ void function StartPoint_Setup_FireontheRunway( entity player )
 	TeleportPlayerAndBT( "start_player_FireontheRunway", "start_bt_FireontheRunway" )
 
 	entity sarahStart = GetEntByScriptName( "Runway_Sarah_Start" )
-	
+
 	if (GetSpDifficulty() <= DIFFICULTY_EASY)
 	{
 	file.sarahTitan.SetOrigin( sarahStart.GetOrigin() )
@@ -1343,7 +1343,7 @@ void function IntroSequence( entity player )
 	{
 		doorMover.SetParent( shipNode, "", true )
 	}
-	
+
 	sarahPilot.SetOrigin( file.sarahTitan.GetOrigin() )
 
 	WaitFrame() // why?? -mackey (because game crashes if I remove this.

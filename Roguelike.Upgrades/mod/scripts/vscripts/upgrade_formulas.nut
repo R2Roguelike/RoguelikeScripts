@@ -7,7 +7,7 @@ float function Roguelike_GetPilotHealthBonus( int endurance )
 
 float function Roguelike_GetPilotSelfDamageMult( int endurance )
 {
-    return pow(0.8, endurance / 50.0)
+    return 100.0 / (100.0 + endurance)
 }
 
 float function Roguelike_GetPilotSpeedBonus( int speed )
@@ -36,7 +36,7 @@ float function Roguelike_GetDashCooldownMultiplier( int energy )
 float function Roguelike_BaseCritRate( int energy )
 {
     //return Graph( energy, 0, 150, 1.2, 0.1 )
-    return (10.0 + energy) / (100.0 + energy)
+    return (5.0 + energy / 2.0) / (100.0)
 }
 
 float function Roguelike_BaseCritDMG( int energy )
@@ -103,6 +103,19 @@ string function GetTitanOrPilotFromBool( bool isTitan )
 }
 
 // first element is name, 2nd element is description
+array function GetTitanTextColor(string primary)
+{
+    switch (primary)
+    {
+        case "mp_titanweapon_leadwall":
+        case "mp_titanweapon_particle_accelerator":
+            return [0, 0, 0, 255]
+    }
+
+    return [255, 255, 255, 255]
+}
+
+// first element is name, 2nd element is description
 array function GetTitanColor(string primary)
 {
     switch (primary)
@@ -117,6 +130,8 @@ array function GetTitanColor(string primary)
             return [255, 64, 64, 255]
         case "mp_titanweapon_sniper":
             return [64, 96, 255, 255]
+        case "mp_titanweapon_particle_accelerator":
+            return [64, 255, 255, 255]
     }
 
     return [40,40,40,255]

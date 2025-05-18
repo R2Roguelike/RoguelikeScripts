@@ -1,6 +1,6 @@
 resource/ui/healthbars.res
 {
-    
+
     /// NORMAL ///
 
     "Healthbar0"
@@ -93,7 +93,7 @@ resource/ui/healthbars.res
     }
 
     /// ELITE ///
-    
+
     "HealthbarElite0"
     {
         "ControlName"		"CNestedPanel"

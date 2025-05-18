@@ -206,7 +206,7 @@ void function ApplyTrackerMark( entity owner, entity hitEnt )
 	entity trackerRockets = owner.GetOffhandWeapon( OFFHAND_ORDNANCE )
 	if ( !IsValid( trackerRockets ) )
 		return
-	
+
 	if (trackerRockets.GetWeaponClassName() != "mp_titanweapon_tracker_rockets" && owner.IsPlayer())
 	{
         trackerRockets = Roguelike_GetAlternateOffhand( owner, OFFHAND_ORDNANCE )

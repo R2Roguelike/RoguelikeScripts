@@ -114,7 +114,6 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 
 	float fadeTime = 0.75
 	int statusEffectID = StatusEffect_AddTimed( soul, eStatusEffect.dodge_speed_slow, 0.35, flightTime + fadeTime, fadeTime )
-	printt(statusEffectID)
 
 	OnThreadEnd(
 		function() : ( activeFX, player, soundInfo, statusEffectID, isCore )
@@ -166,7 +165,10 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 	int collisionGroup = TRACE_COLLISION_GROUP_PLAYER
 
 	TraceResults results = TraceHull( player.GetOrigin(), player.GetOrigin() + <0,0,50>, mins, maxs, [], solidMask, collisionGroup )
-	player.SetOrigin( player.GetOrigin() + <0,0,results.fraction*49> )
+	printt(results.fraction)
+	vector origin = player.GetOrigin()
+	player.SetOrigin( origin + <0,0,500> )
+	player.SetOrigin( origin + <0,0,results.fraction*50> )
 	//player.ForceCheckGroundEntity()
 
 	vector startOrigin = player.GetOrigin()
@@ -181,16 +183,14 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 		if ( timePassed < LERP_IN_FLOAT )
 		 	height = GraphCapped( timePassed, 0, LERP_IN_FLOAT, RISE_VEL * 0.5, RISE_VEL )
 		 else
-		 	height = GraphCapped( timePassed, LERP_IN_FLOAT, LERP_IN_FLOAT + 0.75, RISE_VEL, 10 )
+		 	height = GraphCapped( timePassed, LERP_IN_FLOAT, LERP_IN_FLOAT + 0.75, RISE_VEL, 15 )
 
 		height *= movestunEffect
 
 		vector vel = player.GetVelocity()
 		vel.z = height
 
-		printt(vel)
 		float horizLimit = max( horizVel + 50, Length( <vel.x, vel.y, 0> ) - 200 * 0.05 )
-		printt(horizLimit)
 
 		vel = LimitVelocityHorizontal( vel, horizLimit )
 

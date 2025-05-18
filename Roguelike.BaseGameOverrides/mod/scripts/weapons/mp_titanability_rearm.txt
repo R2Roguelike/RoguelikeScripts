@@ -56,7 +56,9 @@ WeaponData
 	"sound_trigger_pull"							"Weapon_ChargeRifle_TriggerOn"
 	"sound_trigger_release" 						"Weapon_ChargeRifle_TriggerOff"
 
-	"charge_time" 									"0.5"
+	"charge_time" 									"0.3"
+	"deploy_time"									"0.3"
+	"holster_time"									"0.5"
 	"charge_cooldown_time"							"0.0"
 	"charge_cooldown_delay"   						"0.0"
 	"charge_end_forces_fire"  						"1"

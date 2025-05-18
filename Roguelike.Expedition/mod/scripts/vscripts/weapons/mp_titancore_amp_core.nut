@@ -116,7 +116,7 @@ var function OnWeaponPrimaryAttack_AmpCore( entity weapon, WeaponPrimaryAttackPa
 	// OnWeaponPrimaryAttack_titanweapon_predator_cannon( weapon, attackParams )
 	weapon.FireWeaponBullet( attackParams.pos, attackParams.dir, 1, damageTypes.largeCaliber | DF_STOPS_TITAN_REGEN )
 
-	if ( attackParams.burstIndex == weapon.GetWeaponBurstFireCount() - 1 )
+	if ( attackParams.burstIndex == weapon.GetWeaponBurstFireCount() - 1 || weapon.GetWeaponPrimaryClipCount() == 1 )
 	{
 		weapon.StopWeaponEffect( FX_AMPED_XO16, FX_AMPED_XO16_3P )
 		#if SERVER

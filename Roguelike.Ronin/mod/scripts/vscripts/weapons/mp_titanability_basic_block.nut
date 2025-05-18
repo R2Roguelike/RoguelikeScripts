@@ -210,7 +210,7 @@ float function HandleBlockingAndCalcDamageScaleForHit( entity blockingEnt, var d
 			if (RSE_Get( blockingEnt, RoguelikeEffect.ronin_block_buff ) < 1.0)
 			{
 				int originalDamage = int( DamageInfo_GetDamage( damageInfo ) + 0.5 )
-				
+
 				float intensity = RSE_Get( blockingEnt, RoguelikeEffect.ronin_block_buff )
 				intensity += originalDamage / 1000.0
 				intensity = min(1.0, intensity)

@@ -1339,7 +1339,7 @@ void function BlowUpTortureRoom( entity player )
 	Signal( level, "StopDOFTracking" )
 	Remote_CallFunction_NonReplay( player, "ServerCallback_SetDOF", 150, 350, 1.5 )
 	Remote_CallFunction_NonReplay( player, "ServerCallback_SetBurnColorCorrectionWeight", 0.75, 10 )
-	
+
 	array<entity> barrels = GetEntArrayByScriptName( "tr_barrel" )
 	foreach ( b in barrels )
 	{
@@ -6915,7 +6915,7 @@ void function SP_ExplodingPlanetThread( entity player )
 
 	// mover.NonPhysicsMoveTo( targetOrigin, 35.0, 0.0, 10.0 )
 	// mover.NonPhysicsRotateTo( targetAngles + <0,60,0>, 35.0, 0.0, 10.0 )
-	
+
 	delaythread( 4.75 ) Remote_CallFunction_Replay( player, "ServerCallback_DoRumble", 0 )
 	delaythread( 5.5 ) Remote_CallFunction_Replay( player, "ServerCallback_DoRumble", 2 )
 	wait 20.5

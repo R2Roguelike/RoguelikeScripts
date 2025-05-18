@@ -203,7 +203,7 @@ void function GiveWeaponsFromStoredArray( entity player, array<StoredWeapon> sto
 		{
 			case eStoredWeaponType.main:
 				weapon = player.GiveWeapon( storedWeapon.name, storedWeapon.mods )
-				
+
 				// fixes shit
 				ModWeaponVars_CalculateWeaponMods( weapon )
 				weapon.SetWeaponSkin( storedWeapon.skinIndex )
@@ -538,7 +538,6 @@ function PilotBecomesTitan( entity player, entity titan, bool fullCopy = true )
 	string setActiveWeapon = titan.GetLatestPrimaryWeapon().GetWeaponClassName()
 	if (!Roguelike_GetTitanLoadouts().contains(setActiveWeapon))
 		setActiveWeapon = Roguelike_GetTitanLoadouts()[0]
-	printt(setActiveWeapon)
 
 	if ( fullCopy )
 	{
@@ -654,7 +653,7 @@ function PilotBecomesTitan( entity player, entity titan, bool fullCopy = true )
 	player.SetOrigin( titan.GetOrigin() )
 	player.SetAngles( titan.GetAngles() )
 	player.SetVelocity( Vector( 0,0,0 ) )
-	
+
 	Roguelike_RefreshInventory( player )
 	player.SetActiveWeaponByName(setActiveWeapon)
 	Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetMainWeapons()[Roguelike_GetTitanLoadouts().find(setActiveWeapon)] )

@@ -49,7 +49,7 @@ resource/ui/layouts/Destiny2/Healthbar_Champion.res
 		pin_corner_to_sibling	TOP_LEFT
 		pin_to_sibling_corner	TOP_LEFT
 	}
-	
+
     Bar
 	{
 		ControlName			CHudProgressBar

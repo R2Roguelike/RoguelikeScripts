@@ -5,6 +5,7 @@ global function RSE_GetIntensity
 global function RSE_Apply
 global function RSE_Consume
 global function RSE_Stop
+global function RSE_GetEffectFrac
 global function RoguelikeStatusEffects_Init
 array<entity> entitiesToSync
 #endif
@@ -18,8 +19,12 @@ global table<int, string> effectDisplayNames = {
     [ RoguelikeEffect.damage_sacrifice_2 ] = "-40% damage",
     [ RoguelikeEffect.segment_sacrifice_1 ] = "+20% damage",
     [ RoguelikeEffect.segment_sacrifice_2 ] = "+40% damage",
+    [ RoguelikeEffect.scorch_warmth ] = "Warm",
     [ RoguelikeEffect.ronin_block_buff ] = "Block Power",
-    [ RoguelikeEffect.overcrit ] = "Overcrit"
+    [ RoguelikeEffect.overcrit ] = "Overcrit",
+    [ RoguelikeEffect.parry ] = "Parry CD",
+    [ RoguelikeEffect.counter ] = "Counter CD",
+    [ RoguelikeEffect.offense_canister ] = "Burning!",
 }
 
 global table<int, bool> effectDisplayPercentage = {
@@ -71,6 +76,16 @@ float function RSE_GetIntensity( RSEInstance instance )
     return GraphCapped( Time(), instance.endTime - instance.fadeOutTime, instance.endTime, instance.stacks, 0.0 )
 }
 
+float function RSE_GetEffectFrac( entity ent, int effect )
+{
+    RSEInstance ornull instance = RSE_FindEffect( ent, effect )
+    if (instance == null)
+        return 0.0
+
+    expect RSEInstance(instance)
+    return GraphCapped( Time(), instance.startTime, instance.endTime, 1.0, 0.0 )
+}
+
 float function RSE_GetDuration( RSEInstance instance )
 {
     return instance.endTime - instance.startTime
@@ -113,7 +128,7 @@ void function RSE_Apply( entity ent, int effect, float stacks, float duration = 
         ent.WaitSignal("OnDestroy")
         entitiesToSync.fastremovebyvalue(ent)
     }()
-    
+
     ent.e.rseData.append(instance)
 
     foreach (entity player in GetPlayerArray())
@@ -123,14 +138,14 @@ void function RSE_Apply( entity ent, int effect, float stacks, float duration = 
 // RSE_Consume
 // ent - the entity to consume status effect
 // amount - the amount of stacks to consume. if -1, consume all stacks.
-// 
+//
 float function RSE_Consume( entity ent, int effect, float amount, bool refresh = false )
 {
     RSEInstance ornull oldEffect = RSE_FindEffect( ent, effect )
 
     if (oldEffect == null)
         return 0.0
-    
+
     RSEInstance instance = expect RSEInstance(oldEffect)
 
     // normalize it from relative to actual amount to relative to starting amount
@@ -173,7 +188,6 @@ void function ServerCallback_RSE_Apply( int handle, int effect, float amount, fl
     instance.fadeOutTime = fadeOutTime
     instance.effect = effect
 
-    printt(effect)
     entity ent = GetEntityFromEncodedEHandle( handle )
 
     // hopefully safe to ignore???????
@@ -181,7 +195,7 @@ void function ServerCallback_RSE_Apply( int handle, int effect, float amount, fl
     {
         return
     }
-    
+
     RSEInstance ornull oldEffect = RSE_FindEffect( ent, effect )
 
     if (oldEffect != null)

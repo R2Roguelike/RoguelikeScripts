@@ -14,7 +14,7 @@ Resource/UI/HudScripted_mp.res
 	RoguelikeTimer
     {
 		ControlName			CNestedPanel
- 
+
 		wide				768
 		tall				256
 
@@ -32,7 +32,7 @@ Resource/UI/HudScripted_mp.res
 	Healthbars
 	{
 		ControlName			CNestedPanel
- 
+
 		wide				%100
 		tall				%100
 
@@ -54,7 +54,7 @@ Resource/UI/HudScripted_mp.res
 		visible					1
 		fg_image				"ui/arc"
 		bg_image				"ui/arc"
-		
+
 		fgcolor_override 		"255 255 255 255"
 		bgcolor_override 		"0 0 0 128"
 		paintborder				0
@@ -79,7 +79,7 @@ Resource/UI/HudScripted_mp.res
 		labelText			"Item Acquired - Press %[scoreboard_focus|titan_loadout_select]% to open your inventory"
 		allCaps				0
 		font				JetBrainsMono_18
-		auto_wide_to_contents	0
+		auto_wide_tocontents	0
         auto_tall_tocontents    1
 		textAlignment		center
 		fgcolor_override 	"255 255 255 255"

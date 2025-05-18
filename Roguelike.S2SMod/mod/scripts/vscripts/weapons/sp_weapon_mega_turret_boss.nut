@@ -85,7 +85,7 @@ var function OnWeaponNpcPrimaryAttack_mega_turret_boss( entity weapon, WeaponPri
 	float projSpeedMultiplier = 0.5
 	switch (GetConVarInt("sp_difficulty"))
 	{
-		
+
 	}
 	weapon.FireWeaponMissile( origin, dir, 1, damageTypes.explosive, damageTypes.explosive, false, false )
 }

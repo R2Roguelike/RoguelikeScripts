@@ -14,7 +14,7 @@ void function Northstar_RegisterMods()
         RoguelikeMod mod = NewMod("big_finish")
         mod.name = "Big Finish"
         mod.abbreviation = "BF"
-        mod.description = "If you finish an enemy with a hit that deals over <cyan>3,000 damage</> - <green>spawn a battery</>."
+        mod.description = "If you finish an enemy with a hit that deals over <cyan>3,000 damage</> - <green>spawn an additional battery</>."
         mod.cost = 2
         mod.chip = TITAN_CHIP_CHASSIS
     }
@@ -63,7 +63,7 @@ void function Northstar_RegisterMods()
         RoguelikeMod mod = NewMod("crit_charge")
         mod.name = "CritCharge"
         mod.abbreviation = "CC"
-        mod.description = "When Fully Charged Shots Crit: Your railgun instantly recharges."
+        mod.description = "When Fully Charged Shots Crit: Your railgun instantly recharges. <red>+100% Charge Time. This drawback persists for 10s after disequipping the mod.</>"
         mod.cost = 2
         mod.chip = TITAN_CHIP_WEAPON
     }
@@ -92,6 +92,6 @@ RoguelikeMod function NewMod(string uniqueName)
     mod.useLoadoutChipSlot = false
     mod.loadouts = [PRIMARY_NORTHSTAR]
     mod.isTitan = true
-    
+
     return mod
 }

@@ -65,7 +65,7 @@ Resource/UI/menus/panels/boost_store_selection_grid.res
 
 		zpos			1
 	}
-	
+
 	GridButton0x0
 	{
 		ControlName			CNestedPanel

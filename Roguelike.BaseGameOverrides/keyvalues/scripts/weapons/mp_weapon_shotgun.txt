@@ -1,10 +1,11 @@
 WeaponData
-{   
+{
     "inventory_slot"                "special"
     SP_BASE
     {
         "explosionradius"              "200"
         "explosion_damage"              "10"
         "impulse_force"                 "1500"
+		"damage_headshot_scale"							"1.5"
     }
 }

@@ -39,7 +39,7 @@ resource/ui/menus/inventory.menu
 			xpos	90
 	 		ypos	848
 		}
-        
+
 		FooterButtons
 		{
 			ControlName				CNestedPanel
@@ -120,7 +120,7 @@ resource/ui/menus/inventory.menu
             pin_corner_to_sibling	LEFT
             pin_to_sibling_corner	RIGHT
         }
-        
+
 		GridPanel
 		{
 			ControlName				CNestedPanel
@@ -139,7 +139,7 @@ resource/ui/menus/inventory.menu
 
         /////////
         // AC1 //
-        ///////// 
+        /////////
 
         ACPilot1
         {
@@ -344,7 +344,7 @@ resource/ui/menus/inventory.menu
 
         /////////
         // AC2 //
-        ///////// 
+        /////////
 
         ACPilot2
         {
@@ -501,10 +501,10 @@ resource/ui/menus/inventory.menu
             pin_corner_to_sibling	RIGHT
             pin_to_sibling_corner	LEFT
         }
-        
+
         /////////
         // AC3 //
-        ///////// 
+        /////////
 
         ACPilot3
         {
@@ -661,10 +661,10 @@ resource/ui/menus/inventory.menu
             pin_corner_to_sibling	RIGHT
             pin_to_sibling_corner	LEFT
         }
-        
+
         /////////
         // AC4 //
-        ///////// 
+        /////////
 
         ACPilot4
         {
@@ -859,7 +859,7 @@ resource/ui/menus/inventory.menu
             pin_corner_to_sibling	TOP
             pin_to_sibling_corner	BOTTOM
         }
-        
+
         WeaponPrimary
         {
             ControlName			CNestedPanel
@@ -893,12 +893,12 @@ resource/ui/menus/inventory.menu
             zpos			1
         }
 
-        // .d88888b  d888888P  .d888888  d888888P .d88888b 
+        // .d88888b  d888888P  .d888888  d888888P .d88888b
         // 88.    "'    88    d8'    88     88    88.    "'
         // `Y88888b.    88    88aaaaa88a    88    `Y88888b.
         //       `8b    88    88     88     88          `8b
         // d8'   .8P    88    88     88     88    d8'   .8P
-        //  Y88888P     dP    88     88     dP     Y88888P 
+        //  Y88888P     dP    88     88     dP     Y88888P
 
 
         ArmorStat
@@ -949,7 +949,7 @@ resource/ui/menus/inventory.menu
 
             zpos			1
         }
-        
+
         EnduranceStat
         {
             ControlName			CNestedPanel

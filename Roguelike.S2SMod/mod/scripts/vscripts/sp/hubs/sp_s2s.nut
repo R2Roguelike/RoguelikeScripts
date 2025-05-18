@@ -9099,7 +9099,7 @@ void function MaltaHangar_CustomShipFlightPath( ShipStruct ship, vector position
 		ShipIdleAtTargetEnt_Teleport( ship, maltaRef, bounds, pos, offset )
 	else
 		thread ShipIdleAtTargetEnt( ship, maltaRef, bounds, pos, offset )
-	
+
 }
 
 
@@ -12398,7 +12398,9 @@ void function MaltaDeck_Main( entity player )
 
 //	FlagWaitClear( "BossTitanViewFollow" )
 
-	viper.WaitSignal( "DoCore" )
+	table results = viper.WaitSignal( "DoCore" )
+	DumpCallstack()
+	printt(getstackinfos(3))
 	bool firstTime = true
 	viper.SetEnemy( file.player )
 	thread ViperCoreThink( viper, firstTime )
@@ -12416,6 +12418,7 @@ void function MaltaDeck_Main( entity player )
 
 	FlagWait( "DeckViperStage2" )
 	DeckCheckpoint()
+	thread RoninScorchFlyingFight( viper, player )
 
 	FlagWait( "ViperFakeDead" )
 
@@ -12447,6 +12450,200 @@ void function MaltaDeck_Main( entity player )
 		thread FlagSetOn_AllDead( "MaltaDeckClear", enemies )
 	else
 		FlagSet( "MaltaDeckClear" )
+}
+
+vector function LimitVelocityHorizontal( vector vel, float speed )
+{
+	vector horzVel = <vel.x, vel.y, 0>
+	if ( Length( horzVel ) <= speed )
+		return vel
+
+	horzVel = Normalize( horzVel )
+	horzVel *= speed
+	vel.x = horzVel.x
+	vel.y = horzVel.y
+	return vel
+}
+
+void function FlyingFightHover( entity player, entity viper, HoverSounds soundInfo, float flightTime = 3.0, float horizVel = 200.0 )
+{
+	if (!("hovering" in player.s))
+		player.s.hovering <- 0
+
+	player.s.hovering++
+	player.EndSignal( "StopHover" )
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "TitanEjectionStarted" )
+
+	if ( player.IsPlayer() )
+	{
+		player.Server_TurnDodgeDisabledOn()
+	    player.kv.airSpeed = horizVel
+	    player.kv.airAcceleration = 540
+	    player.kv.gravity = 0.0
+	}
+
+	CreateShake( player.GetOrigin(), 16, 150, 1.00, 400 )
+	PlayFX( FLIGHT_CORE_IMPACT_FX, player.GetOrigin() )
+
+	float startTime = Time()
+
+	array<entity> activeFX
+
+	player.SetGroundFrictionScale( 0 )
+
+	if ( player.LookupAttachment( "FX_L_BOT_THRUST" ) != 0 ) // BT doesn't have this attachment
+	{
+		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_large" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "FX_L_BOT_THRUST" ) ) )
+		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_large" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "FX_R_BOT_THRUST" ) ) )
+		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_small" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "FX_L_TOP_THRUST" ) ) )
+		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_small" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "FX_R_TOP_THRUST" ) ) )
+	}
+
+	EmitSoundOnEntityOnlyToPlayer( player, player,  soundInfo.liftoff_1p )
+	EmitSoundOnEntityExceptToPlayer( player, player, soundInfo.liftoff_3p )
+	EmitSoundOnEntityOnlyToPlayer( player, player,  soundInfo.hover_1p )
+	EmitSoundOnEntityExceptToPlayer( player, player, soundInfo.hover_3p )
+
+	float RISE_VEL = 600
+	float movestunEffect = 1.0 - StatusEffect_Get( player, eStatusEffect.dodge_speed_slow )
+
+	entity soul = player.GetTitanSoul()
+	if ( soul == null )
+		soul = player
+
+	float fadeTime = 0.75
+	int statusEffectID = StatusEffect_AddTimed( soul, eStatusEffect.dodge_speed_slow, 0.35, flightTime + fadeTime, fadeTime )
+
+	OnThreadEnd(
+		function() : ( activeFX, player, soundInfo, statusEffectID )
+		{
+			if ( IsValid( player ) )
+			{
+				player.Signal("StopHover")
+				EmitSoundOnEntityOnlyToPlayer( player, player, soundInfo.descent_1p )
+				EmitSoundOnEntityExceptToPlayer( player, player, soundInfo.descent_3p )
+				if (IsValid(player.GetTitanSoul()))
+					StatusEffect_Stop( player.GetTitanSoul(), statusEffectID )
+				StopSoundOnEntity( player, soundInfo.hover_1p )
+				StopSoundOnEntity( player, soundInfo.hover_3p )
+
+				player.s.hovering--
+				player.SetGroundFrictionScale( 1 )
+				if ( player.IsPlayer() )
+				{
+					player.Server_TurnDodgeDisabledOff()
+					player.kv.airSpeed = player.GetPlayerSettingsField( "airSpeed" )
+					player.kv.airAcceleration = player.GetPlayerSettingsField( "airAcceleration" )
+					player.kv.gravity = player.GetPlayerSettingsField( "gravityScale" )
+					if ( player.IsOnGround() )
+					{
+						EmitSoundOnEntityOnlyToPlayer( player, player, soundInfo.landing_1p )
+						EmitSoundOnEntityExceptToPlayer( player, player, soundInfo.landing_3p )
+					}
+				}
+				else
+				{
+					if ( player.IsOnGround() )
+						EmitSoundOnEntity( player, soundInfo.landing_3p )
+				}
+			}
+
+			foreach ( fx in activeFX )
+			{
+				if ( IsValid( fx ) )
+					fx.Destroy()
+			}
+		}
+	)
+
+
+	vector mins = GetBoundsMin( HULL_TITAN )
+	vector maxs = GetBoundsMax( HULL_TITAN )
+
+	int solidMask = TRACE_MASK_PLAYERSOLID
+	int collisionGroup = TRACE_COLLISION_GROUP_PLAYER
+
+	TraceResults results = TraceHull( player.GetOrigin(), player.GetOrigin() + <0,0,50>, mins, maxs, [], solidMask, collisionGroup )
+	printt(results.fraction)
+	vector origin = player.GetOrigin()
+	player.SetOrigin( origin + <0,0,500> )
+	player.SetOrigin( origin + <0,0,results.fraction*50> )
+	//player.ForceCheckGroundEntity()
+
+	vector startOrigin = player.GetOrigin()
+
+	for ( ; (!player.IsOnGround() || Time() - startTime < 0.5); )
+	{
+		float timePassed = Time() - startTime
+		if ( timePassed > flightTime )
+			break
+
+		float targetZ = viper.GetOrigin().z
+		targetZ = targetZ - player.GetOrigin().z
+
+		float height
+		if ( timePassed < 0.75 )
+		 	height = GraphCapped( timePassed, 0, 0.75, RISE_VEL * 0.5, RISE_VEL )
+		 else
+		 	height = GraphCapped( timePassed, 0.75, 0.75 + 0.75, RISE_VEL, targetZ )
+
+		vector vel = player.GetVelocity()
+		height *= movestunEffect
+		vel.z = height
+
+
+		float horizLimit = max( horizVel + 50, Length( <vel.x, vel.y, 0> ) - 200 * 0.05 )
+
+		vel = LimitVelocityHorizontal( vel, horizLimit )
+
+		player.SetVelocity( vel )
+		WaitFrame()
+	}
+
+	vector endOrigin = player.GetOrigin()
+
+	// printt( endOrigin - startOrigin )
+}
+
+void function RoninScorchFlyingFight( entity viper, entity player )
+{
+	FlagEnd( "ViperFakeDead")
+	player.EndSignal("OnDeath")
+
+	array<string> loadouts = Roguelike_GetTitanLoadouts()
+
+	if (!loadouts.contains(PRIMARY_RONIN) || !loadouts.contains(PRIMARY_SCORCH))
+		return
+
+	OnThreadEnd( void function() : (player)
+	{
+		player.Signal("StopHover")
+		Remote_CallFunction_NonReplay( player, "ServerCallback_FlyingFightEnd" )
+	})
+
+	Remote_CallFunction_NonReplay( player, "ServerCallback_FlyingFightStart" )
+	wait 10.0
+	while (IsAlive(viper))
+	{
+		HoverSounds soundInfo
+		soundInfo.liftoff_1p = "titan_flight_liftoff_1p"
+		soundInfo.liftoff_3p = "titan_flight_liftoff_3p"
+		soundInfo.hover_1p = ""
+		soundInfo.hover_3p = ""
+		soundInfo.descent_1p = "titan_flight_descent_1p"
+		soundInfo.descent_3p = "titan_flight_descent_3p"
+		soundInfo.landing_1p = "core_ability_land_1p"
+		soundInfo.landing_3p = "core_ability_land_3p"
+
+		Remote_CallFunction_NonReplay( player, "ServerCallback_FlyingFightFlight", Time() + 30.0 )
+
+		waitthread FlyingFightHover( player, viper, soundInfo, 30.0, 400.0 )
+
+		Remote_CallFunction_NonReplay( player, "ServerCallback_FlyingFightRefueling", Time() + 12.0 )
+
+		wait 12.0
+	}
 }
 
 void function DeckCheckpoint()
@@ -13560,8 +13757,8 @@ void function ViperStage2Strafe( ShipStruct viperShip )
 		else
 			behavior = eBehavior.ENEMY_CHASE
 
-		SetFlyOffset( viperShip, behavior, < x, RandomFloatRange( -300, 300 ), 450 > )
-		SetFlyBounds( viperShip, behavior, < RandomFloatRange( 300, 600 ), RandomFloatRange( 200, 1000 ), 100 > )
+		SetFlyOffset( viperShip, behavior, < x, RandomFloatRange( -700, -500 ), 450 > )
+		SetFlyBounds( viperShip, behavior, < RandomFloatRange( 300, 600 ), RandomFloatRange( -200, 200 ), 100 > )
 		SetSeekAhead( viperShip, behavior, 1250 )
 
 		SetBehavior( viperShip, behavior )

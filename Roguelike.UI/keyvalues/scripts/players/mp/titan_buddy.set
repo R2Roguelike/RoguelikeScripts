@@ -5,11 +5,21 @@
 		ui_targetinfo				""
         ui_targetinfo               "" [$mp]
         ui_targetinfo               "" [$sp]
-        
+
         dodgePowerDrain		49
         powerRegenRate		12.25
         dodgePowerDelay		0.2
 		aiEnemy_priority		100
+
+		healthPerSegment	2500
+		// 2500*5 / 1,875*6 / 1340*7
+		health				12500 // not used by segmented health
+		healthShield		1000
+		healthDoomed		2500
+
+		sharedEnergyTotal 20000
+		sharedEnergyRegenDelay 0.2
+		sharedEnergyRegenRate 500.0
 
         ClassMods
         {
@@ -21,19 +31,19 @@
 
 			segment_sacrifice_1
 			{
-		        health				7200 // not used by segmented health
+		        health				10000 // not used by segmented health
 			}
 			segment_sacrifice_2
 			{
-		        health				5400 // not used by segmented health
+		        health				7500 // not used by segmented health
 			}
 			damage_sacrifice_1
 			{
-		        health				10800 // not used by segmented health
+		        health				15000 // not used by segmented health
 			}
 			damage_sacrifice_2
 			{
-		        health				12600 // not used by segmented health
+		        health				17500 // not used by segmented health
 			}
         }
     }

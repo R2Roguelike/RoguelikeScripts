@@ -15,7 +15,7 @@ resource/ui/menus/panels/vgui_button.res
 		"xpos"			"0"
 		"ypos"			"0"
     }
-	
+
 	GoldBorder
 	{
 		ControlName			ImagePanel
@@ -47,7 +47,7 @@ resource/ui/menus/panels/vgui_button.res
 		labelText			">> CONTINUE >>"
 		allCaps				1
 		font				JetBrainsMono_36
-		auto_wide_to_contents	0
+		auto_wide_tocontents	0
 		auto_tall_tocontents    1
 		textAlignment		center
 		fgcolor_override 	"255 255 255 255"
@@ -56,7 +56,7 @@ resource/ui/menus/panels/vgui_button.res
 		pin_corner_to_sibling		CENTER
 		pin_to_sibling_corner		CENTER
 	}
-	
+
 	Overlay
 	{
 		ControlName			ImagePanel

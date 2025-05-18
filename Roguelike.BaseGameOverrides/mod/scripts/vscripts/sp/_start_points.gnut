@@ -168,7 +168,7 @@ void function StartPoints_EntitiesDidLoad()
 	{
 		StartPoint startPoint = file.startPointsArray[ i ]
 		SetCurrentStartPoint( startPoint.startPointEnum )
-		
+
 		waitthread startPoint.main( player )
 	}
 }
@@ -206,7 +206,7 @@ void function PickStartPoint( string mapName, string startPointEnum, LevelTransi
 	array<entity> players = GetPlayerArray()
 	if ( HumanPlayers( players ) != 1 )
 		return
-	
+
 	// work around for bug where these client commands don't always take effect in time
 	ExecuteLoadingClientCommands_SetStartPoint( mapName, GetStartPointIndexFromName( mapName, startPointEnum ) )
 

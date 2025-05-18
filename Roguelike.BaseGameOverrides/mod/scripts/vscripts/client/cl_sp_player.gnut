@@ -222,7 +222,7 @@ void function Player_AddClient( entity player )
 
 	// ROGUELIKE - disable vanilla loadout swap
 	RegisterConCommandTriggeredCallback( "titan_loadout_select", Pressed_TitanLoadoutSelect )
-	RegisterConCommandTriggeredCallback( "+showscores", Pressed_TitanLoadoutSelect ) 
+	RegisterConCommandTriggeredCallback( "+showscores", Pressed_TitanLoadoutSelect )
 	RegisterConCommandTriggeredCallback( "scoreboard_focus", Pressed_SwapLoadouts )
 	RegisterConCommandTriggeredCallback( "+speed", Pressed_Sprint )
 	RegisterConCommandTriggeredCallback( "-speed", Released_Sprint )
@@ -689,6 +689,7 @@ void function ClientCodeCallback_PlayerDidDamage( PlayerDidDamageParams params )
 
 		BloodSprayDecals( attacker, victim, damagePosition, damageAmount, isHeadShot, isKillShot, isMelee, isExplosion, isBullet, isShotgun )
 
+		PlayerDidDamageText( damageAmount, damagePosition, victim, isHeadShot || isCritShot, hitIneffective, damageFlags, weapon )
 		DamageFlyout( damageAmount, damagePosition, victim, isHeadShot || isCritShot, hitIneffective )
 	}
 
@@ -928,7 +929,7 @@ void function BloodSprayDecals_Think( entity player, entity victim, vector damag
 	foreach ( testVec in testVecs )
 	{
 		vector secondaryTraceEnd = traceStart + (testVec * secondaryTraceDist)
-		var secondaryTrace = DeferredTraceLineHighDetail( traceStart, secondaryTraceEnd, victim, TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
+		var secondaryTrace = DeferredTraceLineHighDetail( traceStart, secondaryTraceEnd, victim, TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NPC )
 		secondaryTraces.append( secondaryTrace )
 	}
 

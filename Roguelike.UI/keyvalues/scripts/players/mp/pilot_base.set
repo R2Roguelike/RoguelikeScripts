@@ -20,15 +20,60 @@
         powerregenrate 		0
         dodgePowerDelay		0.2
         dodgeKeepSpeedFrac 	0.0
+        ClassMods
+        {
+			75_speed
+			{
+				speed				*0.75
+			}
+			50_speed
+			{
+				speed				*0.5
+			}
+			25_speed
+			{
+				speed				*0.25
+			}
+        }
     }
 
 	"crouch"
 	{
 		speed						80
+		PoseMods
+		{
+			75_speed
+			{
+				speed				*0.75
+			}
+			50_speed
+			{
+				speed				*0.5
+			}
+			25_speed
+			{
+				speed				*0.25
+			}
+		}
 	}
 
 	"stand"
 	{
 		speed						243
+		PoseMods
+		{
+			75_speed
+			{
+				speed				*0.75
+			}
+			50_speed
+			{
+				speed				*0.5
+			}
+			25_speed
+			{
+				speed				*0.25
+			}
+		}
 	}
 }

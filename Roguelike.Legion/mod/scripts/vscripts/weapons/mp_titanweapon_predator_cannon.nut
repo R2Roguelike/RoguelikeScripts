@@ -22,7 +22,7 @@ void function MpTitanWeaponpredatorcannon_Init()
 {
 	PrecacheParticleSystem( SPIN_EFFECT_1P )
 	PrecacheParticleSystem( SPIN_EFFECT_3P )
-	
+
     AddCallback_ApplyModWeaponVars( WEAPON_VAR_PRIORITY_OVERRIDE, PredatorCannon_ApplyModWeaponVars )
     AddCallback_ApplyModWeaponVars( WEAPON_VAR_PRIORITY_OVERRIDE, PowerShot_ApplyModWeaponVars )
 
@@ -41,8 +41,8 @@ void function PowerShot_ApplyModWeaponVars( entity weapon )
 	if (!IsValid(owner) || !owner.IsPlayer())
 		return
 
-	array<string> bonusChargeMods = ["swap_load", "stat_belt", "mag_dump", "ready_up", 
-									"power_back", "charge_power"]
+	array<string> bonusChargeMods = ["swap_load", "stat_belt", "mag_dump", "ready_up",
+									"charge_power"]
 
 	int extraCharges = 0
 	foreach (string mod in bonusChargeMods)
@@ -63,18 +63,19 @@ void function PredatorCannon_ApplyModWeaponVars( entity weapon )
 {
 	if (weapon.GetWeaponClassName() != "mp_titanweapon_predator_cannon")
 		return
-		
+
 	ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_clip_size, 100 )
 	entity owner = weapon.GetWeaponOwner()
 	if (!IsValid(owner) || !owner.IsPlayer())
 		return
-	
+
 	bool CloseRangePowerShot = weapon.HasMod("CloseRangePowerShot")
 	bool LongRangePowerShot = weapon.HasMod("LongRangePowerShot")
 	bool PowerShot = CloseRangePowerShot || LongRangePowerShot
 	bool LongRangeAmmo = weapon.HasMod("LongRangeAmmo")
 
-	array<string> magSizeMods = ["focus_crystal", "shotgun_mode", "marksman_mode", "consumption", "mag_cap", "puncture_crit_dmg"]
+	array<string> magSizeMods = ["focus_crystal", "shotgun_mode", "marksman_mode", "consumption", "mag_cap", "puncture_crit_dmg", "gun_shield_shield",
+								"long_range_ammo"]
 	int bonusMag = 0
 	foreach (string mod in magSizeMods)
 	{
@@ -100,6 +101,8 @@ void function PredatorCannon_ApplyModWeaponVars( entity weapon )
 
 	if (LongRangeAmmo)
 		ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_per_shot, 2 )
+	if (LongRangeAmmo && Roguelike_HasMod( owner, "long_range_ammo" ))
+		ModWeaponVars_ScaleVar( weapon, eWeaponVar.ammo_per_shot, 0.5 )
 
 	ModWeaponVars_SetFloat( weapon, eWeaponVar.zoom_time_in, 1.1 )
 	if (Roguelike_HasMod( owner, "ready_up" ))
@@ -280,17 +283,17 @@ var function OnWeaponPrimaryAttack_titanweapon_predator_cannon( entity weapon, W
 			PowerShotCleanup( owner, weapon, ["CloseRangePowerShot","fd_CloseRangePowerShot","pas_CloseRangePowerShot"] , [] )
 
 			#if SERVER
-			if (owner.IsPlayer() && Roguelike_HasMod( owner, "power_back" ) && weapon.e.windPushEnabled)
+			if (owner.IsPlayer() && Roguelike_HasMod( owner, "charge_power" ) && weapon.e.windPushEnabled)
 			{
 				owner.SetVelocity( owner.GetVelocity() - AnglesToForward(FlattenAngles(owner.EyeAngles())) * 800 )
 				entity powerShot = Roguelike_GetOffhandWeaponByName( owner, "mp_titanability_power_shot" )
-				printt(powerShot)
+
 				if (IsValid(powerShot))
 					RestoreCooldown( powerShot, 0.5 )
 			}
 			#endif
 
-			return magDump ? weapon.GetWeaponPrimaryClipCount() * 3 / 10 : 1
+			return magDump ? weapon.GetWeaponPrimaryClipCount() * 3 / 10 : weapon.GetAmmoPerShot()
 		}
 		else
 		{
@@ -316,7 +319,7 @@ var function OnWeaponPrimaryAttack_titanweapon_predator_cannon( entity weapon, W
 
 		PowerShotCleanup( owner, weapon, ["LongRangePowerShot","fd_LongRangePowerShot","pas_LongRangePowerShot"], [ "LongRangeAmmo" ] )
 
-		return magDump ? weapon.GetWeaponPrimaryClipCount() / 2 : 1
+		return magDump ? weapon.GetWeaponPrimaryClipCount() / 2 : weapon.GetAmmoPerShot()
 	}
 	else
 	{
@@ -380,6 +383,8 @@ var function OnWeaponNpcPrimaryAttack_titanweapon_predator_cannon( entity weapon
 
 int function FireWeaponPlayerAndNPC( entity weapon, WeaponPrimaryAttackParams attackParams, bool playerFired )
 {
+	bool additionalShot = Roguelike_HasMod( weapon.GetWeaponOwner(), "long_range_ammo" ) && !weapon.HasMod("LongRangeAmmo") && RandomFloat(1.0) < 0.25
+	int multiplier = additionalShot ? 2 : 1
 	int damageType = DF_BULLET | DF_STOPS_TITAN_REGEN | DF_GIB
 	if ( weapon.HasMod( "Smart_Core" ) )
 	{
@@ -390,10 +395,10 @@ int function FireWeaponPlayerAndNPC( entity weapon, WeaponPrimaryAttackParams at
 		if (!weapon.HasMod("LongRangeAmmo") && weapon.GetAmmoPerShot() >= 6) // shotgun_mode
 		{
 			int damageType = DF_BULLET | DF_STOPS_TITAN_REGEN
-			weapon.FireWeaponBullet( attackParams.pos, attackParams.dir, 4, damageType )
+			weapon.FireWeaponBullet( attackParams.pos, attackParams.dir, 4 * multiplier, damageType )
 		}
 		else
-			weapon.FireWeaponBullet( attackParams.pos, attackParams.dir, 1, damageType )
+			weapon.FireWeaponBullet( attackParams.pos, attackParams.dir, 1 * multiplier, damageType )
 		return weapon.GetAmmoPerShot()
 	}
 	unreachable
@@ -466,6 +471,16 @@ void function Roguelike_PredatorCannon_DamagedTarget( entity ent, var damageInfo
 		overcap = inflictor.GetProjectileWeaponSettingInt( eWeaponVar.custom_int_3 )
 	}
 	isPowerShot = mods.contains("LongRangePowerShot") || mods.contains("CloseRangePowerShot")
+	if (mods.contains("LongRangePowerShot") && Roguelike_HasMod( attacker, "charge_power"))
+	{
+		entity offensive = attacker.GetOffhandWeapon( OFFHAND_ORDNANCE )
+		entity otherOffensive = Roguelike_GetAlternateOffhand( attacker, OFFHAND_ORDNANCE )
+		if (IsValid(offensive))
+			RestoreCooldown( offensive, 0.1 )
+		if (IsValid(otherOffensive))
+			RestoreCooldown( offensive, 0.1 )
+		// yes, we can apply status effects to inflictors
+	}
 	if (mods.contains("CloseRangePowerShot") && IsValid(weapon))
 	{
 		weapon.e.windPushEnabled = false
@@ -488,7 +503,7 @@ bool function IsDamageSourcePowerShot( var damageInfo )
 
 	entity weapon = DamageInfo_GetWeapon( damageInfo )
 	entity inflictor = DamageInfo_GetInflictor( damageInfo )
-	
+
 	bool isPowerShot
 	array<string> mods
 	int bullets = 0

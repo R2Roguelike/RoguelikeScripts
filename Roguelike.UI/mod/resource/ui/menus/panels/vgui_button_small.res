@@ -16,7 +16,7 @@ resource/ui/menus/panels/vgui_button.res
 	{
 		font				JetBrainsMono_24
 	}
-	
+
 	Overlay
 	{
 	}

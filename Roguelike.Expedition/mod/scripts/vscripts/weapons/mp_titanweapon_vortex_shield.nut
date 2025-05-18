@@ -268,6 +268,7 @@ var function OnWeaponPrimaryAttack_titanweapon_vortex_shield( entity weapon, Wea
 	{
 		entity primary = owner.GetLatestPrimaryWeapon()
 		entity offensive = owner.GetOffhandWeapon(0)
+		entity otherOffensive = Roguelike_GetAlternateOffhand( owner, OFFHAND_ORDNANCE )
 		entity vortexSphere = weapon.GetWeaponUtilityEntity()
 
 		if (IsValid(vortexSphere))
@@ -275,7 +276,7 @@ var function OnWeaponPrimaryAttack_titanweapon_vortex_shield( entity weapon, Wea
 			int ammo = primary.GetWeaponPrimaryClipCount()
 			int maxAmmo = primary.GetWeaponPrimaryClipCountMax()
 			float offensiveCharge = offensive.GetWeaponChargeFraction()
-			
+
 			ammo += vortexSphere.GetBulletAbsorbedCount() * 99
 			ammo += vortexSphere.GetProjectileAbsorbedCount() * 99
 			primary.SetWeaponPrimaryClipCount( minint( ammo, maxAmmo ) )
@@ -286,7 +287,10 @@ var function OnWeaponPrimaryAttack_titanweapon_vortex_shield( entity weapon, Wea
 				if ( impactData.refireBehavior == VORTEX_REFIRE_ROCKET )
 					rockets++
 			}
-			offensive.SetWeaponChargeFraction( max(0, offensiveCharge - rockets / 6.0))
+			if (IsValid(offensive))
+				RestoreCooldown( offensive, rockets / 10.0 )
+			if (IsValid( otherOffensive ))
+				RestoreCooldown( otherOffensive, rockets / 10.0 )
 			#endif
 		}
 	}

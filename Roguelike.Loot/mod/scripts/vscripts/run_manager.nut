@@ -12,39 +12,81 @@ global function Roguelike_ApplyRunDataToConVars
 global function RunEnded
 global function __SetPower
 global function Roguelike_GiveSmartPistolSkyway
+global function Roguelike_GetSaveData
+global function Roguelike_WriteSaveToDisk
+global function Roguelike_IsSaveLoaded
+
+const array<string> SAVE_CONVARS = [
+    "meta_helmets_0",
+    "meta_helmets_1",
+    "meta_helmets_2",
+    "meta_helmets_3",
+    "meta_helmets_4",
+    "meta_helmets_5",
+    "meta_helmets_6",
+    "meta_helmets_7",
+    "meta_helmets_8",
+    "meta_helmets_9",
+    "meta_helmets_10",
+    "meta_helmets_11",
+    "meta_helmets_12",
+    "meta_helmets_13",
+    "meta_helmets_14",
+    "roguelike_titan_loadout"
+]
 
 struct {
-    table saveData 
+    table saveData
     table runData
+    bool isSaveLoaded = false
     bool isRunActive = false
 } file
 
 void function Inventory_Init()
 {
-    wait 0.1
+    thread LoadSaveData()
+
+}
+
+void function LoadSaveData()
+{
+    while (!IsFullyConnected() && uiGlobal.menuStack.len() <= 0)
+        wait 0.001
     if (NSDoesFileExist("save.json"))
-        NSLoadJSONFile( "save.json", void function( table t ) : ()
-        {
-            file.saveData = t
-        },
-        void function() : ()
-        {
-            while (uiGlobal.menuStack.len() == 0)
-                wait 0
-            DialogData dialogData
-            dialogData.header = "SAVE LOAD FAILED"
-	        dialogData.image = $"ui/menu/common/dialog_error"
-            dialogData.forceChoice = true
-            dialogData.message = "Loading save data failed. Would you like to try again or give up?"
+        NSLoadJSONFile(
+            "save.json",
+            void function( table t ) : ()
+            {
+                file.saveData = t
 
-            AddDialogButton( dialogData, "Retry" )
-            AddDialogButton( dialogData, "Give Up" )
+                foreach (string convar in SAVE_CONVARS)
+                {
+                    if (convar in file.saveData)
+                        SetConVarString(convar, expect string(file.saveData[convar]))
+                }
+                printt("Save loaded successfully")
+                file.isSaveLoaded = true
+            },
+            void function() : ()
+            {
+                while (uiGlobal.menuStack.len() == 0)
+                    wait 0.001
+                DialogData dialogData
+                dialogData.header = "SAVE LOAD FAILED"
+                dialogData.image = $"ui/menu/common/dialog_error"
+                dialogData.forceChoice = true
+                dialogData.message = "Loading save data failed. Would you like to try again or give up?"
 
-            AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
+                AddDialogButton( dialogData, "Retry", LoadSaveData )
+                AddDialogButton( dialogData, "Quit", QuitGame )
 
-            delaythread( 0.1 ) OpenDialog( dialogData )
-        }
-    )
+                AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
+
+                delaythread( 0.1 ) OpenDialog( dialogData )
+            }
+        )
+    else
+        file.isSaveLoaded = true
     
     if (NSDoesFileExist("run_backup.json"))
         NSLoadJSONFile( "run_backup.json", void function( table t ) : ()
@@ -84,11 +126,9 @@ void function Roguelike_StartNewRun()
     file.runData = runData
     file.isRunActive = true
 
-    runData.lockedMods <- GetAllLockedMods()
-    Roguelike_UnlockMods( 15 ) // have the player start with some amount of mods
 
     // these arrays are to prevent the player from getting
-    // 3+ of the same armor chip slot in a row, and to 
+    // 3+ of the same armor chip slot in a row, and to
     // gurantee the player gets a preferred chip slot
     // eventually.
     runData.chipSlotOrder <- [1,2,3,4,5,6,7,8]
@@ -103,11 +143,21 @@ void function Roguelike_StartNewRun()
     runData.levelsCompleted <- 0
 
     runData.money <- 0
-
     runData.map <- "sp_crashsite"
     runData.startPointIndex <- 7
-    printt(GetConVarString("roguelike_titan_loadout"))
+    if (Roguelike_GetTitanLoadouts().len() < 2)
+        SetConVarString( "roguelike_titan_loadout", "mp_titanweapon_leadwall mp_titanweapon_meteor")
     runData.loadouts <- GetConVarString("roguelike_titan_loadout")
+    runData.runModifiers <- GetConVarString("roguelike_run_modifiers")
+    runData.memoryHP <- "-1"
+    runData.memorySettings <- ""
+    SetConVarInt("memory_titan_hp", -1)
+    SetConVarString("memory_titan_settings", "")
+    runData.runHeat <- GetConVarInt("roguelike_run_heat")
+
+    runData.lockedPilotMods <- GetAllLockedPilotMods()
+    runData.lockedTitanMods <- GetAllLockedTitanMods()
+    Roguelike_UnlockMods( 10 ) // have the player start with some amount of mods
 
     for (int i = 1; i <= 4; i++)
     {
@@ -134,6 +184,8 @@ void function Roguelike_StartNewRun()
     Roguelike_ForceRefreshInventory()
 
     NSSaveJSONFile( "run_backup.json", runData )
+    if (file.isSaveLoaded)
+        Roguelike_WriteSaveToDisk()
 }
 
 void function Roguelike_ApplyRunDataToConVars()
@@ -144,8 +196,12 @@ void function Roguelike_ApplyRunDataToConVars()
     SetConVarInt("power_enemy_hp", expect int(runData.enemyBonusHP))
     SetConVarInt("power_enemy_def", expect int(runData.enemyDEF))
     SetConVarString("roguelike_titan_loadout", expect string(runData.loadouts))
+    SetConVarString("roguelike_run_modifiers", expect string(runData.runModifiers))
+    SetConVarString("memory_titan_hp", expect string(runData.memoryHP))
+    SetConVarString("memory_titan_settings", expect string(runData.memorySettings))
+    SetConVarInt("roguelike_run_heat", expect int(runData.runHeat))
     SetConVarBool("roguelike_stat_balance", expect bool(runData.balanced))
-    
+
     // server doesnt care about mod order since it only uses this
     // userinfo convar to check which mods to apply
     // technically this makes mods and stats client authoritative
@@ -168,7 +224,7 @@ void function Roguelike_ApplyRunDataToConVars()
         }
     }
     SetConVarString( "player_mods", JoinStringArray( modIndexList, " " ) )
-    
+
     array<string> weapons = []
     array<string> weaponPerks = []
     array<string> weaponMods = []
@@ -177,7 +233,8 @@ void function Roguelike_ApplyRunDataToConVars()
         string slotName = i == 1 ? "WeaponSecondary" : "WeaponPrimary"
         string otherSlotName = i == 0 ? "WeaponSecondary" : "WeaponPrimary"
         table slot = expect table(runData[slotName])
-        array perks = expect array(slot.perks)
+        array perks = []
+        perks.extend(expect array(slot.perks))
         array mods = expect array(slot.mods)
         int level = expect int(slot.level)
         int rarity = expect int(slot.rarity)
@@ -249,7 +306,7 @@ void function Roguelike_GiveSmartPistolSkyway()
 
     file.runData["WeaponPrimary"] = item
     file.runData.inventory.append(oldWeapon)
-    
+
     Roguelike_ForceRefreshInventory()
 }
 
@@ -266,9 +323,11 @@ void function __SetPower( int levelsCompleted )
             break
         case 2:
             enemyHPGained = ENEMY_HP_PER_LEVEL_HARD
+            enemyDEFGained = ENEMY_DEF_PER_LEVEL_HARD
             break
         case 3:
             enemyHPGained = ENEMY_HP_PER_LEVEL_MASTER
+            enemyDEFGained = ENEMY_DEF_PER_LEVEL_MASTER
             break
     }
     runData.enemyBonusHP <- enemyHPGained * levelsCompleted
@@ -319,4 +378,26 @@ table function Roguelike_GetRunData()
 bool function Roguelike_IsRunActive()
 {
     return file.isRunActive
-} 
+}
+
+table function Roguelike_GetSaveData()
+{
+    return file.saveData
+}
+
+void function Roguelike_WriteSaveToDisk()
+{
+    if (!file.isSaveLoaded)
+        throw "Cannot save whilst save data not loaded!"
+    foreach (string convar in SAVE_CONVARS)
+    {
+        file.saveData[convar] <- GetConVarString(convar)
+    }
+    printt("SAVING FILE")
+    NSSaveJSONFile( "save.json", file.saveData )
+}
+
+bool function Roguelike_IsSaveLoaded()
+{
+    return file.isSaveLoaded
+}

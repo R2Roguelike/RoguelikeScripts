@@ -37,7 +37,7 @@
     placing_at_turret
 
     pass_through_amps_weapon
-    
+
     damage_reduction
 
     simple_timer

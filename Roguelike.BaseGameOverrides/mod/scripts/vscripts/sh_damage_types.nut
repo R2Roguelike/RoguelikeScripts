@@ -241,6 +241,8 @@ global enum eDamageSourceId
 	sticky_explosive
 	titan_grapple
 	shock_bullets
+	ion_discharge
+	ion_disorder
 
 	// streaks
 	satellite_strike

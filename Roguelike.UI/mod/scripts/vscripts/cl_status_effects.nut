@@ -27,6 +27,6 @@ void function StatusEffects_Update()
 {
     while (true)
     {
-        wait 0
+        wait 0.001
     }
 }

@@ -42,7 +42,7 @@ function CommonNPCOnSpawned( entity npc )
 {
 	npc.ai.spawnTime = Time()
 	npc.ai.spawnOrigin = npc.GetOrigin()
-	
+
 	if ( npc.HasKey( "script_goal_radius" ) )
 	{
 		var radius = npc.kv.script_goal_radius
@@ -147,7 +147,7 @@ function CommonNPCOnSpawned( entity npc )
 		if ( npc.HasKey( "disable_vdu" ) )
 			npc.ai.bossTitanVDUEnabled = int( npc.kv.disable_vdu ) == 0
 	}
-	
+
 	SPMP_UpdateNPCProficiency( npc )
 
 	if ( npc.IsTitan() )
@@ -420,8 +420,8 @@ function CommonNPCOnSpawned( entity npc )
 	]
 	if (npc.GetTeam() == TEAM_IMC && banned.contains(npc.GetClassName()) && BAN_ENABLED)
 	{
-		delaythread(0.001) void function() : (npc, banned) 
-		{ 
+		delaythread(0.001) void function() : (npc, banned)
+		{
 			if (IsAlive(npc) && banned.contains(npc.GetClassName()) && !("ignoreBan" in npc.s)) {
 				printt(npc, "is gone")
 				npc.Kill_Deprecated_UseDestroyInstead(0.05)
@@ -446,7 +446,7 @@ function CommonNPCOnSpawned( entity npc )
 		}
 		Elites_Generate( npc )
 	}
-	
+
 
 	FixupTitle( npc )
 	#if DEV

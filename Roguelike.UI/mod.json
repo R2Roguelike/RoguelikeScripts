@@ -4,7 +4,7 @@
 	"LoadPriority": 0,
 	"RequiredOnClient": false,
 	"Version": "1.0.0",
-	
+
 	"Scripts": [
 		{
 			"Path": "ui/vgui_button.nut",
@@ -69,6 +69,23 @@
 		},
 		{
 			"Path": "ui/roguelike_ui_utility.nut",
+			"RunOn": "UI"
+		},
+		{
+			"Path": "mods/run_modifiers.nut",
+			"RunOn": "CLIENT || UI || SERVER",
+			"UICallback":{
+				"Before": "RunModifiers_Init"
+			},
+			"ServerCallback":{
+				"Before": "RunModifiers_Init"
+			},
+			"ClientCallback":{
+				"Before": "RunModifiers_Init"
+			}
+		},
+		{
+			"Path": "ui/run_modifier_panel.nut",
 			"RunOn": "UI"
 		}
 	],

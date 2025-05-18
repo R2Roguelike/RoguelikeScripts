@@ -13,7 +13,7 @@ global function OnWeaponNpcPrimaryAttack_Meteor
 global function CreatePhysicsThermiteTrail
 global function Scorch_SelfDamageReduction
 global function GetMeteorRadiusDamage
-global const PLAYER_METEOR_DAMAGE_TICK = 50.0
+global const PLAYER_METEOR_DAMAGE_TICK = 30.0
 global const PLAYER_METEOR_DAMAGE_TICK_PILOT = 20.0
 
 global const NPC_METEOR_DAMAGE_TICK = 50.0
@@ -138,7 +138,7 @@ void function Scorch_SelfDamageReduction( entity target, var damageInfo )
 	}
 	else
 	{
-		DamageInfo_ScaleDamage( damageInfo, 0.50 )
+		DamageInfo_ScaleDamage( damageInfo, 0.333 )
 	}
 }
 
@@ -180,7 +180,7 @@ function Proto_MeteorCreatesThermite( entity projectile, entity hitEnt = null )
 	Assert( IsValid( owner ) )
 
 	//EmitSoundAtPosition( owner.GetTeam(), origin, "Explo_MeteorGun_Impact_3P" )
-	
+
 	array<string> mods = projectile.ProjectileGetMods()
 	if (mods.contains("flamethrower") && RandomFloat(1.0) <= 0.5)
 		return
@@ -229,7 +229,7 @@ function Proto_MeteorCreatesThermite( entity projectile, entity hitEnt = null )
 		vector up = AnglesToUp( trailAngles )
 		vector v = velocity + forward * fireSpeed + up * fireSpeed
 		entity prop = CreatePhysicsThermiteTrail( origin, owner, inflictor, projectile, v, RandomFloatRange( thermiteLifetimeMin, thermiteLifetimeMax ), METEOR_FX_TRAIL, eDamageSourceId.mp_titanweapon_meteor_thermite )
-		
+
 		trailAngles = VectorToAngles( v )
 		prop.SetAngles( trailAngles )
 	}
@@ -389,7 +389,7 @@ entity function CreatePhysicsThermiteTrail( vector origin, entity owner, entity 
 	}
 
 	prop_physics.SetOwner( owner )
-	AI_CreateDangerousArea( prop_physics, projectile, METEOR_THERMITE_DAMAGE_RADIUS_DEF, TEAM_INVALID, true, false )
+	AI_CreateDangerousArea( prop_physics, projectile, METEOR_THERMITE_DAMAGE_RADIUS_DEF, owner.GetTeam(), true, false )
 
 	thread PROTO_PhysicsThermiteCausesDamage( prop_physics, inflictor, damageSourceId )
 
@@ -473,7 +473,7 @@ function PlayerOrNPCFire_Meteor( WeaponPrimaryAttackParams attackParams, playerF
 	if ( shouldCreateProjectile )
 	{
 		float speed	= 1.0 // 2200.0
-		
+
 		int count = 1
 		if (playerFired && Roguelike_HasMod( weapon.GetWeaponOwner(), "buy1get1free" ))
 			count++

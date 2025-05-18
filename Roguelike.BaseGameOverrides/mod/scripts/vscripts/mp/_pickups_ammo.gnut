@@ -67,6 +67,8 @@ void function EntitiesDidLoad_Pickups()
 		//AddDeathCallback( "npc_spectre", OnNPCKilled_DropAmmo )
 	}
 
+	
+
 	RegisterSignal( "PickedUpAmmo" )
 }
 
@@ -85,7 +87,7 @@ void function CreateEditorPickup_Grenades( entity ent )
 void function OnNPCKilled_DropGrenade( entity npc, var damageInfo )
 {
 	return
-	
+
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
 
 	if ( !IsValid( attacker ) )

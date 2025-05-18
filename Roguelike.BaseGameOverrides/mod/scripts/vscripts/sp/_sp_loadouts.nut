@@ -759,9 +759,9 @@ TitanLevelLoadoutDefaults function GetTitanLevelLoadoutDefaultsForMapname( strin
 
 	// All loadouts:
 	result.unlockedWeaponNames		= [
-	"mp_titanweapon_xo16_shorty", "mp_titanweapon_sticky_40mm", 
-	"mp_titanweapon_meteor", "mp_titanweapon_leadwall", 
-	"mp_titanweapon_rocketeer_rocketstream", "mp_titanweapon_particle_accelerator", 
+	"mp_titanweapon_xo16_shorty", "mp_titanweapon_sticky_40mm",
+	"mp_titanweapon_meteor", "mp_titanweapon_leadwall",
+	"mp_titanweapon_rocketeer_rocketstream", "mp_titanweapon_particle_accelerator",
 	"mp_titanweapon_sniper", "mp_titanweapon_predator_cannon" ]
 
 	array<string> playerTitanWeapons = Roguelike_GetTitanLoadouts()
@@ -791,7 +791,7 @@ TitanLevelLoadoutDefaults function GetTitanLevelLoadoutDefaultsForMapname( strin
 
 		case "sp_tday":
 			break
-		
+
 		case "sp_skyway_v1":
 			result.setFile 					= "titan_buddy_spare"
 			result.titanExecution           = "execution_bt_kickshoot"
@@ -1302,7 +1302,7 @@ table<int,float> function GetWeaponCooldownsForTitanLoadoutSwitch( entity player
 
 	return cooldowns
 }
-	
+
 void function SetWeaponCooldownsForTitanLoadoutSwitch( entity player, table<int,float> cooldowns )
 {
 	Assert( player.IsTitan() )

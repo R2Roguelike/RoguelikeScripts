@@ -843,7 +843,7 @@ void function GoblinCockpitDamageThink( ShipStruct ship )
 		entity player = expect entity( result.activator )
 		if ( !player.IsPlayer() )
 			continue
-	
+
 		vector pos = player.EyePosition()
 		vector dir = player.GetViewVector()
 		float dist = Distance( pos, ship.cockpit.GetOrigin() ) - 16

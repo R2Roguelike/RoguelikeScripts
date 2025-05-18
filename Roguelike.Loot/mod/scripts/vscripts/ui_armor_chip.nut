@@ -75,14 +75,24 @@ table function ArmorChip_Generate()
     return chip
 }
 
+int function ArmorChip_GetMainStatValue( table data )
+{
+    return ArmorChip_GetStats( data )[expect int(data.mainStat)]
+}
+
+int function ArmorChip_GetSubStatValue( table data )
+{
+    return ArmorChip_GetStats( data )[expect int(data.subStats[0])]
+}
+
 array<int> function ArmorChip_GetStats( table data )
 {
     array<int> stats = [0,0,0,0,0,0]
 
     int chipStatIndex = expect int(data.mainStat)
     stats[chipStatIndex] += CHIP_MAIN_STAT_MULT * expect int(data.energy)
-    
-    
+
+
     foreach (int index, int val in data.subStats)
     {
         int count = 1
@@ -105,7 +115,7 @@ void function AddStatsArrays(array<int> a, array<int> b)
 {
     if (a.len() != b.len())
         throw "arrays not of equal len"
-    
+
     for (int i = 0; i < a.len(); i++)
     {
         a[i] += b[i]

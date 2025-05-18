@@ -422,7 +422,6 @@ void function ServerCallback_LerpFOV_Internal( float finalValue, float time )
 	float startTime = Time()
 	while ( Time() - startTime < time )
 	{
-		printt( file.fov )
 		file.fov += rate
 		GetLocalViewPlayer().ClientCommand( "set fov " + file.fov )
 		wait tick

@@ -441,10 +441,10 @@ void function DifficultyMenuPopUp()
 	DialogData dialogData
 	dialogData.header = "#SP_DIFFICULTY_MISSION_SELECT_TITLE"
 
-	AddDialogButton( dialogData, "Normal", StartLevelEasy, "For those who are either fresh off the campaign or after not playing for a long time." )
-	AddDialogButton( dialogData, "Hard", StartLevelNormal, "The intended experience.\n^F4D5A600Recommended if you've played Titanfall 2 recently." )
-	AddDialogButton( dialogData, "Master", StartLevelHard, "Enemy health increased, enemy cooldowns halved.\n^F4D5A600Recommended for those who found Hard too easy." )
-	AddDialogButton( dialogData, "Masochist", StartLevelMaster, "Enemy health is even worse. Wait, cooldowns? What cooldowns?\n^F4D5A600Recommended if you've beat Roguelike." )
+	AddDialogButton( dialogData, "Normal", StartLevelEasy, NORMAL_DIFFICULTY_DESC )
+	AddDialogButton( dialogData, "Hard", StartLevelNormal, HARD_DIFFICULTY_DESC )
+	AddDialogButton( dialogData, "Master", StartLevelHard, MASTER_DIFFICULTY_DESC )
+	AddDialogButton( dialogData, "Masochist", StartLevelMaster, MASOCHIST_DIFFICULTY_DESC )
 
 	AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
 	AddDialogFooter( dialogData, "#B_BUTTON_BACK" )

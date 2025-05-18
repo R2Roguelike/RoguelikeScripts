@@ -76,5 +76,5 @@ void function PrecacheJack()
 		if (!WeaponIsPrecached(weaponName))
 			PrecacheWeapon(weaponName);
 	}
-	
+
 }

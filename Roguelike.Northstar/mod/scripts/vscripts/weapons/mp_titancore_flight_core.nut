@@ -82,7 +82,7 @@ void function PROTO_FlightCore( entity titan, float flightTime )
 	if ( titan.IsPlayer() )
 		titan.ForceStand()
 
-		
+
 	if (HasWeapon( titan, "mp_titanweapon_sniper" ))
 	{
 		otherLoadoutWeapon = "mp_titanweapon_sniper"
@@ -132,7 +132,7 @@ void function PROTO_FlightCore( entity titan, float flightTime )
 			HolsterAndDisableWeapons( titan )
 			DisableWeapons( titan, weaponArray )
 		}
-		
+
 		titan.GiveWeapon( "mp_titanweapon_flightcore_rockets" )
 		titan.SetActiveWeaponByName( "mp_titanweapon_flightcore_rockets" )
 

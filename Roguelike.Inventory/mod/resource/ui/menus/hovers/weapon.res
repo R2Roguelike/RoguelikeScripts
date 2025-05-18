@@ -59,7 +59,7 @@ resource/ui/menus/hovers/armor_chip.res
         pin_corner_to_sibling	TOP
         pin_to_sibling_corner	TOP
     }
-    
+
     SubTitle
     {
         ControlName				Label

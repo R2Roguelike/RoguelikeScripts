@@ -34,7 +34,7 @@ resource/ui/menus/run_setup.menu
             ControlName			ImagePanel
             InheritProperties	MenuVignette
         }
-        
+
         ButtonRowAnchor
         {
             ControlName	Label
@@ -49,7 +49,7 @@ resource/ui/menus/run_setup.menu
             ControlName				CNestedPanel
             InheritProperties       FooterButtons
         }
-        
+
         Title
         {
             ControlName				Label
@@ -66,7 +66,7 @@ resource/ui/menus/run_setup.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					GothicExpanded_36
+            font					GothicExpanded_56
 
             pin_to_sibling			Screen
             pin_corner_to_sibling	TOP
@@ -151,7 +151,7 @@ resource/ui/menus/run_setup.menu
             tall			    280
 
             "xpos"			"-8"
-            "ypos"			"12"
+            "ypos"			"4"
 
             pin_to_sibling			Screen
             pin_corner_to_sibling	BOTTOM_RIGHT
@@ -173,8 +173,7 @@ resource/ui/menus/run_setup.menu
             fgcolor_override		"225 225 225 255"
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			DamageLoadoutDescBG
             pin_corner_to_sibling	TOP_LEFT
@@ -308,7 +307,7 @@ menace to society."
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
+            font					GothicExpanded_36
 
             pin_to_sibling			SupportLoadoutDescBG
             pin_corner_to_sibling	TOP_LEFT
@@ -356,8 +355,9 @@ menace to society."
             textAlignment			south-west
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_20
+            font					GothicExpanded_36
             wrap                1
+            allcaps             1
 
             pin_to_sibling			LoadoutButton0
             pin_to_sibling_corner	TOP_LEFT
@@ -366,29 +366,29 @@ menace to society."
 
         UpgradeBar0
         {
-            
+
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/upgrade_count.res"
-            xpos            -400
-            ypos			4
-            wide		     256
+            xpos            -4
+            ypos			16
+            wide		     250
             tall			36
             visible			1
             scaleImage		1
-            pin_to_sibling			Screen
-            pin_to_sibling_corner	LEFT
-            pin_corner_to_sibling	LEFT
+            pin_to_sibling			SupportLoadoutDescBG
+            pin_to_sibling_corner	BOTTOM_RIGHT
+            pin_corner_to_sibling	TOP_RIGHT
 
             zpos			1
         }
         UpgradeBar1
         {
-            
+
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/upgrade_count.res"
             xpos            0
             ypos			8
-            wide		     256
+            wide		     250
             tall			36
             visible			1
             scaleImage		1
@@ -401,12 +401,12 @@ menace to society."
 
         UpgradeBar2
         {
-            
+
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/upgrade_count.res"
             xpos            8
             ypos			0
-            wide		     256
+            wide		     250
             tall			36
             visible			1
             scaleImage		1
@@ -418,12 +418,12 @@ menace to society."
         }
         UpgradeBar3
         {
-            
+
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/upgrade_count.res"
             xpos            0
             ypos			8
-            wide		     256
+            wide		     250
             tall			36
             visible			1
             scaleImage		1
@@ -433,6 +433,228 @@ menace to society."
 
             zpos			1
         }
+
+        ModifiersBG
+        {
+            ControlName			ImagePanel
+
+            image			"vgui/hud/white"
+
+            drawColor	"0 0 0 135"
+            scaleImage			1
+
+            wide				424
+            tall			    568
+
+            "xpos"			"-8"
+            "ypos"			"0"
+
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	LEFT
+            pin_to_sibling_corner	LEFT
+        }
+
+        ModifiersTitle
+        {
+            ControlName				Label
+            xpos					0
+            ypos				    4
+            wide					496
+            tall					400
+            visible					1
+            enabled					1
+            //auto_wide_tocontents	1
+            auto_tall_tocontents	1
+            labelText				"MODIFIERS"
+            fgcolor_override		"225 225 225 255"
+            textAlignment			south-west
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					GothicExpanded_36
+            wrap                1
+            allcaps             1
+
+            pin_to_sibling			ModifiersBG
+            pin_to_sibling_corner	TOP_LEFT
+            pin_corner_to_sibling	BOTTOM_LEFT
+        }
+
+        ModifiersTitle
+        {
+            ControlName				Label
+            xpos					0
+            ypos				    4
+            wide					496
+            tall					424
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            auto_tall_tocontents	1
+            labelText				"MODIFIERS"
+            fgcolor_override		"225 225 225 255"
+            textAlignment			south-east
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					GothicExpanded_36
+            wrap                1
+            allcaps             1
+
+            pin_to_sibling			ModifiersBG
+            pin_to_sibling_corner	TOP_RIGHT
+            pin_corner_to_sibling	BOTTOM_RIGHT
+        }
+
+        Modifiers0
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/run_modifier.res"
+            xpos            -12
+            ypos			-8
+            wide		     400
+            tall			48
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ModifiersBG
+            pin_to_sibling_corner	TOP_LEFT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
+        Modifiers1
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/run_modifier.res"
+            xpos            0
+            ypos			0
+            wide		     400
+            tall			48
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Modifiers0
+            pin_to_sibling_corner	BOTTOM_LEFT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
+        Modifiers2
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/run_modifier.res"
+            xpos            0
+            ypos			0
+            wide		     400
+            tall			48
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Modifiers1
+            pin_to_sibling_corner	BOTTOM_LEFT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
+        Modifiers3
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/run_modifier.res"
+            xpos            0
+            ypos			0
+            wide		     400
+            tall			48
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Modifiers2
+            pin_to_sibling_corner	BOTTOM_LEFT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
+        Modifiers4
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/run_modifier.res"
+            xpos            0
+            ypos			0
+            wide		     400
+            tall			48
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Modifiers3
+            pin_to_sibling_corner	BOTTOM_LEFT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
+        Modifiers5
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/run_modifier.res"
+            xpos            0
+            ypos			0
+            wide		     400
+            tall			48
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Modifiers4
+            pin_to_sibling_corner	BOTTOM_LEFT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
+        Modifiers6
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/run_modifier.res"
+            xpos            0
+            ypos			0
+            wide		     400
+            tall			48
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Modifiers5
+            pin_to_sibling_corner	BOTTOM_LEFT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
+        Modifiers7
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/run_modifier.res"
+            xpos            0
+            ypos			0
+            wide		     400
+            tall			48
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Modifiers6
+            pin_to_sibling_corner	BOTTOM_LEFT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
+        HeatValue
+        {
+            ControlName				Label
+            xpos					0
+            ypos				    4
+            wide					500
+            tall					100
+            visible					1
+            enabled					1
+            auto_wide_tocontents	0
+            //auto_tall_tocontents	1
+            textAlignment			north
+            labelText				"25"
+            fgcolor_override		"255 255 255 255"
+            font					JetBrainsMonoBold_36
+            wrap                0
+            allcaps             0
+
+            pin_to_sibling			ModifiersBG
+            pin_to_sibling_corner	BOTTOM
+            pin_corner_to_sibling	BOTTOM
+        }
+
 
         DifficultyButton
         {
@@ -453,13 +675,13 @@ menace to society."
         {
             ControlName				CNestedPanel
             xpos					0
-            ypos                    -296
+            ypos                    -64
             wide					384
             tall					64
             visible					1
             tabPosition				1
             zpos					200
-            controlSettingsFile		"Resource/UI/menus/panels/vgui_button.res"
+            controlSettingsFile		"Resource/UI/menus/panels/vgui_button_big.res"
             pin_to_sibling			Screen
             pin_corner_to_sibling	BOTTOM
             pin_to_sibling_corner	BOTTOM

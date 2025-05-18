@@ -55,21 +55,21 @@ void function OnHit_TitanWeaponSniper_Internal( entity victim, var damageInfo )
 	if ( !inflictor.IsProjectile() )
 		return
 	int extraDamage = int( CalculateTitanSniperExtraDamage( inflictor, victim ) )
-	
+
 	float damage = DamageInfo_GetDamage( damageInfo )
 
 	float f_extraDamage = float( extraDamage )
 
 	bool isCritical = (DamageInfo_GetCustomDamageType( damageInfo ) & DF_CRITICAL) > 0
 
+	int extraBullets = 0
+	if (extraDamage > 0)
+		extraBullets = expect int(inflictor.s.bulletsToFire)
+
 	if ( isCritical )
 	{
 		if (IsValid( attacker ) && attacker.IsPlayer())
 		{
-			f_extraDamage *= 1.0 + Roguelike_GetCritDMG( attacker, victim, damageInfo )
-			int extraBullets = 0
-			if (extraDamage > 0)
-				extraBullets = expect int(inflictor.s.bulletsToFire)
 			if (Roguelike_HasMod( attacker, "crit_charge" ) && extraBullets >= 5)
 			{
 				entity railgun = Roguelike_FindWeapon( attacker, "mp_titanweapon_sniper" )
@@ -84,10 +84,13 @@ void function OnHit_TitanWeaponSniper_Internal( entity victim, var damageInfo )
 				RSE_Apply( victim, RoguelikeEffect.railgun_trauma, 1.0, 5.0, 0.0 )
 			}
 		}
-		else
-			f_extraDamage *= 1.75
-		
-		RSE_Stop( victim, RoguelikeEffect.northstar_fulminate )
+
+
+		if ((DamageInfo_GetCustomDamageType( damageInfo ) & DF_CRITICAL) > 0)
+		{
+			DamageInfo_AddCritDMG( damageInfo, 0.35 * RSE_Get( victim, RoguelikeEffect.northstar_fulminate ))
+			RSE_Stop( victim, RoguelikeEffect.northstar_fulminate )
+		}
 	}
 
 

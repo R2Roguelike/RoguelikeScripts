@@ -95,6 +95,10 @@ global function HACK_DelayedSetFocus_BecauseWhy
 	global function OpenXboxHelp
 #endif // DURANGO_PROG
 
+#if PC_PROG
+	global function QuitGame
+#endif
+
 global function OpenReviewTermsDialog
 global function ClassicMusic_OnChange
 global function IsClassicMusicAvailable
@@ -118,7 +122,6 @@ void function UICodeCallback_ActivateMenus()
 	if ( uiGlobal.menuStack.len() == 0 )
 	{
 		AdvanceMenu( GetMenu( "MainMenu" ) )
-		thread Inventory_Init()
 	}
 
 	if ( uiGlobal.activeMenu == GetMenu( "MainMenu" ) )
@@ -215,7 +218,7 @@ bool function LoadingScreenHasDetente( string levelname )
 {
 	if ( levelname == "" )
 		return false
-	
+
 	string startpoint = GetStartPointNameFromIndex( levelname, GetConVarInt("sp_startpoint") )
 	return StartPointHasDetente( levelname, startpoint )
 }
@@ -224,9 +227,9 @@ bool function LoadingScreenHasDetente( string levelname )
 bool function UICodeCallback_UpdateLoadingLevelName( string levelname )
 {
 	printt( "UICodeCallback_UpdateLoadingLevelName: " + levelname )
-	
+
 	uiGlobal.loadingLevel = levelname
-	
+
 #if CONSOLE_PROG
 	if ( !Console_IsSignedIn() )
 		return false

@@ -4,7 +4,7 @@ void function __open( string m )
 {
     if (uiGlobal.activeMenu == GetMenu("MainMenu"))
         return
-    
+
     var menu
     try
     {
@@ -35,6 +35,6 @@ void function Sequence( float duration, void functionref( float ) update )
         update( GraphCapped( Time(), startTime, endTime, 0, 1 ) )
         if (setFinish)
             break
-        wait 0
+        wait 0.001
     }
 }

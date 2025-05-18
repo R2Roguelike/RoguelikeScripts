@@ -1,0 +1,37 @@
+global function OnWeaponPrimaryAttack_cloak
+
+
+var function OnWeaponPrimaryAttack_cloak( entity weapon, WeaponPrimaryAttackParams attackParams )
+{
+	entity ownerPlayer = weapon.GetWeaponOwner()
+
+	Assert( IsValid( ownerPlayer) && ownerPlayer.IsPlayer() )
+
+	if ( IsValid( ownerPlayer ) && ownerPlayer.IsPlayer() )
+	{
+		if ( ownerPlayer.GetCinematicEventFlags() & CE_FLAG_CLASSIC_MP_SPAWNING )
+			return false
+
+		if ( ownerPlayer.GetCinematicEventFlags() & CE_FLAG_INTRO )
+			return false
+	}
+
+	PlayerUsedOffhand( ownerPlayer, weapon )
+
+	#if SERVER
+		float duration = weapon.GetWeaponSettingFloat( eWeaponVar.fire_duration )
+		if (Roguelike_HasMod( ownerPlayer, "cloak_infinite" ))
+		{
+			EnableCloakForever( ownerPlayer )
+			ownerPlayer.uncloakOnDamage = true
+		}
+		else
+			EnableCloak( ownerPlayer, duration )
+		#if BATTLECHATTER_ENABLED
+			TryPlayWeaponBattleChatterLine( ownerPlayer, weapon )
+		#endif
+		//ownerPlayer.Signal( "PlayerUsedAbility" )
+	#endif
+
+	return weapon.GetWeaponSettingInt( eWeaponVar.ammo_min_to_fire )
+}

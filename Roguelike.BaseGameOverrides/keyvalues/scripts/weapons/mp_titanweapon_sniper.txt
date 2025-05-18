@@ -69,7 +69,7 @@ WeaponData
 	"ammo_default_total"							"1000"
 
 	"damage_additional_bullets"						"250"		// each additional bullet after the first does this much
-	"damage_additional_bullets_titanarmor"			"300"		// each additional bullet after the first does this much
+	"damage_additional_bullets_titanarmor"			"250"		// each additional bullet after the first does this much
 	"bolt_hitsize"									"0.0"
 	"bolt_hitsize_grow1_time"						"0.035"
 	"bolt_hitsize_grow1_size"						"2.0"
@@ -173,7 +173,7 @@ WeaponData
 	"ads_fov_zoomfrac_start"						"0.0"
 	"ads_fov_zoomfrac_end"							"1.0"
 
-	"charge_time" 									"2.25"
+	"charge_time" 									"5.0"
 	"charge_levels"									"5"
 	"charge_cooldown_time"							"0.5"
 	"charge_cooldown_delay"   						"999.9"

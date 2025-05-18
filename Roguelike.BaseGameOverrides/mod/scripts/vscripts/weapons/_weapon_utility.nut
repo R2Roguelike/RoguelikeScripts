@@ -1774,7 +1774,6 @@ function ClusterRocketBurst( entity clusterExplosionEnt, vector origin, damage, 
 		clusterBurstEnt.SetOrigin( clusterBurstOrigin )
 
 		vector velocity = GetVelocityForDestOverTime( clusterBurstEnt.GetOrigin(), popOri, burstDelay - popDelay )
-		printt(velocity)
 		clusterBurstEnt.SetVelocity( velocity )
 
 		clusterBurstOrigin = popOri

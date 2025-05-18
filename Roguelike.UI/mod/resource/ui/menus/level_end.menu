@@ -83,7 +83,7 @@ resource/ui/menus/level_end.menu
             textAlignment			center
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
-            font					GothicExpanded_36
+            font					GothicExpanded_56
 
             pin_to_sibling			Results
             pin_corner_to_sibling	BOTTOM
@@ -125,7 +125,7 @@ resource/ui/menus/level_end.menu
             fgcolor_override	"79 121 255 255"
             scaleImage			1
 
-            wide				894  
+            wide				894
             tall				14
 
             "xpos"			"-3"
@@ -148,7 +148,7 @@ resource/ui/menus/level_end.menu
             labelText			"Time"
             allCaps				1
             font				JetBrainsMono_32
-            auto_wide_to_contents	0
+            auto_wide_tocontents	0
             auto_tall_tocontents    1
             textAlignment		west
             fgcolor_override 	"255 255 255 255"
@@ -170,7 +170,7 @@ resource/ui/menus/level_end.menu
             labelText			"8 Mods Unlocked"
             allCaps				1
             font				JetBrainsMono_32
-            auto_wide_to_contents	0
+            auto_wide_tocontents	0
             auto_tall_tocontents    1
             textAlignment		east
             fgcolor_override 	"255 255 255 255"
@@ -179,7 +179,7 @@ resource/ui/menus/level_end.menu
             pin_corner_to_sibling		BOTTOM_RIGHT
             pin_to_sibling_corner		TOP_RIGHT
         }
-        
+
         TimeRank
         {
             ControlName			Label
@@ -193,13 +193,13 @@ resource/ui/menus/level_end.menu
             labelText			"S"
             allCaps				1
             font				JetBrainsMonoBold_100
-            auto_wide_to_contents	0
+            auto_wide_tocontents	0
             auto_tall_tocontents    1
             textAlignment		north-west
             fgcolor_override 	"255 0 0 255"
 
             pin_to_sibling				TimeBar
-            pin_corner_to_sibling		BOTTOM_LEFT    
+            pin_corner_to_sibling		BOTTOM_LEFT
             pin_to_sibling_corner		BOTTOM_RIGHT
         }
 
@@ -238,7 +238,7 @@ resource/ui/menus/level_end.menu
             fgcolor_override	"79 121 255 255"
             scaleImage			1
 
-            wide				894 
+            wide				894
             tall				14
 
             "xpos"			"-3"
@@ -248,7 +248,7 @@ resource/ui/menus/level_end.menu
             pin_corner_to_sibling	TOP_RIGHT
             pin_to_sibling_corner	TOP_RIGHT
         }
-        
+
         KillsLabel
         {
             ControlName			Label
@@ -262,14 +262,14 @@ resource/ui/menus/level_end.menu
             labelText			"KILLS"
             allCaps				1
             font				JetBrainsMono_32
-            auto_wide_to_contents	0
+            auto_wide_tocontents	0
             auto_tall_tocontents    1
             textAlignment		west
             fgcolor_override 	"255 255 255 255"
 
             pin_to_sibling				KillsBG
             pin_corner_to_sibling		TOP_LEFT
-            pin_to_sibling_corner		BOTTOM_LEFT 
+            pin_to_sibling_corner		BOTTOM_LEFT
         }
 
         KillsRank
@@ -285,13 +285,13 @@ resource/ui/menus/level_end.menu
             labelText			"S"
             allCaps				1
             font				JetBrainsMonoBold_100
-            auto_wide_to_contents	0
+            auto_wide_tocontents	0
             auto_tall_tocontents    1
             textAlignment		north-west
             fgcolor_override 	"255 0 0 255"
 
             pin_to_sibling				KillsBar
-            pin_corner_to_sibling		TOP_LEFT    
+            pin_corner_to_sibling		TOP_LEFT
             pin_to_sibling_corner		TOP_RIGHT
         }
         KillsReward
@@ -307,7 +307,7 @@ resource/ui/menus/level_end.menu
             labelText			"+2 Enemy Power"
             allCaps				1
             font				JetBrainsMono_32
-            auto_wide_to_contents	0
+            auto_wide_tocontents	0
             auto_tall_tocontents    1
             textAlignment		east
             fgcolor_override 	"255 255 255 255"
@@ -330,7 +330,7 @@ resource/ui/menus/level_end.menu
             labelText			"150"
             allCaps				1
             font				JetBrainsMonoBold_100
-            auto_wide_to_contents	0
+            auto_wide_tocontents	0
             auto_tall_tocontents    1
             textAlignment		center
             fgcolor_override 	"255 240 125 255"
@@ -352,7 +352,7 @@ resource/ui/menus/level_end.menu
             labelText			"Enemy HP"
             allCaps				1
             font				JetBrainsMono_43
-            auto_wide_to_contents	0
+            auto_wide_tocontents	0
             auto_tall_tocontents    1
             textAlignment		center
             fgcolor_override 	"255 255 255 255"
@@ -374,7 +374,7 @@ resource/ui/menus/level_end.menu
             labelText			"100"
             allCaps				1
             font				JetBrainsMonoBold_100
-            auto_wide_to_contents	0
+            auto_wide_tocontents	0
             auto_tall_tocontents    1
             textAlignment		center
             fgcolor_override 	"255 240 125 255"
@@ -396,7 +396,7 @@ resource/ui/menus/level_end.menu
             labelText			"Enemy DEF"
             allCaps				1
             font				JetBrainsMono_43
-            auto_wide_to_contents	0
+            auto_wide_tocontents	0
             auto_tall_tocontents    1
             textAlignment		center
             fgcolor_override 	"255 255 255 255"

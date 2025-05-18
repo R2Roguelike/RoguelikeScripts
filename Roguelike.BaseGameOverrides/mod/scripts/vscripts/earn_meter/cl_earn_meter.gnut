@@ -126,7 +126,7 @@ void function CoreFracUpdate( entity player, float oldValue, float newValue, boo
 	// net var lives on soul, which is global to all players
 	if ( player != GetLocalViewPlayer() )
 		return
-	
+
 	if ( !actuallyChanged )
 		return
 

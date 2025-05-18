@@ -11,8 +11,8 @@ WeaponData
 
 	SP_BASE
 	{
-		"damage_near_value_titanarmor"					"100"
-		"damage_far_value_titanarmor" 					"80"
+		"damage_near_value_titanarmor"					"90"
+		"damage_far_value_titanarmor" 					"75"
 	}
 
 	Mods

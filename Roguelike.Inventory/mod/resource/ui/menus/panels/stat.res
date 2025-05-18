@@ -18,7 +18,7 @@ resource/ui/menus/panels/stat.res
 
     Value
     {
-        
+
         ControlName				Label
         visible					1
         enabled					1
@@ -43,7 +43,7 @@ resource/ui/menus/panels/stat.res
     }
     Diff
     {
-        
+
         ControlName				Label
         visible					1
         enabled					1

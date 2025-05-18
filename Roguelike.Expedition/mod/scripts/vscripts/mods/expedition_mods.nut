@@ -14,9 +14,9 @@ void function Expedition_RegisterMods()
         RoguelikeMod mod = NewMod("addiction")
         mod.name = "addiction"
         mod.abbreviation = "Add"
-        mod.description = "Enemy Titans finished off with Melee <green>drop a battery</>."
-        mod.cost = 3
-        mod.chip = TITAN_CHIP_WEAPON
+        mod.description = "<cyan>+100% Melee DMG</>. Enemy Titans finished off with Melee <green>spawn an additional battery</>."
+        mod.cost = 2
+        mod.chip = TITAN_CHIP_CHASSIS
     }
     {
         RoguelikeMod mod = NewMod("quick_rearm")
@@ -44,6 +44,15 @@ void function Expedition_RegisterMods()
         mod.chip = TITAN_CHIP_ABILITIES
     }
     {
+        RoguelikeMod mod = NewMod("vortex_anti_drain")
+        mod.name = "Power Vortex"
+        mod.abbreviation = "PV"
+        mod.description = "Vortex Shield <cyan>will catch Cores unhindered</>, <red>it's duration is reduced by 25%</>."
+        mod.cost = 2
+        mod.loadouts = [ PRIMARY_EXPEDITION, PRIMARY_ION ]
+        mod.chip = TITAN_CHIP_ABILITIES
+    }
+    {
         RoguelikeMod mod = NewMod("dumbfire_rockets")
         mod.name = "Dumbfire Rockets"
         mod.abbreviation = "DR"
@@ -55,7 +64,7 @@ void function Expedition_RegisterMods()
         RoguelikeMod mod = NewMod("xo16_long_range")
         mod.name = "Long Range Mode"
         mod.abbreviation = "LRM"
-        mod.description = "The XO-16's accuracy and range are <cyan>greatly increased</>, but it's fire rate is <red>decreased by 10%</>."
+        mod.description = "The XO-16's accuracy and range are <cyan>greatly increased</>."
         mod.cost = 2
         mod.chip = TITAN_CHIP_WEAPON
     }
@@ -75,6 +84,14 @@ void function Expedition_RegisterMods()
         mod.cost = 3
         mod.chip = TITAN_CHIP_UTILITY
     }
+    {
+        RoguelikeMod mod = NewMod("rearm_reshield")
+        mod.name = "rearm and reshield"
+        mod.abbreviation = "AtG"
+        mod.description = "Rearm restores shields to full and grants 30% DMG Resist for 15s."
+        mod.cost = 2
+        mod.chip = TITAN_CHIP_ABILITIES
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)
@@ -85,6 +102,6 @@ RoguelikeMod function NewMod(string uniqueName)
     mod.loadouts = [PRIMARY_EXPEDITION]
     mod.chip = 1
     mod.isTitan = true
-    
+
     return mod
 }

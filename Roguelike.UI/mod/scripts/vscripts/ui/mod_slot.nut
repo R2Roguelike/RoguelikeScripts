@@ -20,14 +20,14 @@ void function ModSlot_DisplayMod( var slot, RoguelikeMod ornull mod )
         Hud_SetVisible( Hud_GetChild(slot, "Cost"), false )
         Hud_SetVisible( Hud_GetChild(slot, "FloppyDisk"), false )
         Hud_SetVisible( Hud_GetChild(slot, "Button"), false )
-        
+
         return
     }
 
     Hud_SetVisible( slot, true )
     Hud_SetVisible( Hud_GetChild(slot, "Button"), true )
     expect RoguelikeMod( mod )
-    
+
 
     if (mod.uniqueName == "empty")
     {
@@ -44,13 +44,16 @@ void function ModSlot_DisplayMod( var slot, RoguelikeMod ornull mod )
 
     if (mod.loadouts.len() == 1)
         loadout = mod.loadouts[0]
-    
+
     var costLabel = Hud_GetChild(slot, "Cost")
 
     Hud_SetVisible( Hud_GetChild(slot, "FloppyDisk"), true )
     floppyDisk.SetColor(GetTitanColor(loadout))
     Hud_SetVisible( costLabel, true )
     Hud_SetVisible( icon, false )
+
+    costLabel.SetColor( GetTitanTextColor(loadout) )
+    Hud_GetChild(slot, "Abbreviation").SetColor( GetTitanTextColor(loadout) )
 
     Hud_SetText( costLabel, string( mod.cost ) )
     Hud_SetVisible( Hud_GetChild(slot, "Abbreviation"), true )

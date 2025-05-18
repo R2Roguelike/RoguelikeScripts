@@ -10,7 +10,7 @@ void function PrimaryDamage( entity ent, var damageInfo )
     entity attacker = DamageInfo_GetAttacker( damageInfo )
     if (!attacker.IsPlayer())
         return
-    
+
 	int scriptDamageType = DamageInfo_GetCustomDamageType( damageInfo )
 	if ( scriptDamageType & DF_EXPLOSION && !IsHumanSized( ent ) ) // DF_KNOCK_BACK filters for powershot???
 	{

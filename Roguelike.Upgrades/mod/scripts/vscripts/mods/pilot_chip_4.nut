@@ -37,6 +37,27 @@ void function PilotChip4_RegisterMods()
         mod.description = "Frag Grenades detonate on impact."
         mod.cost = 2
     }
+    {
+        RoguelikeMod mod = NewMod("cloak_infinite")
+        mod.name = "Inexistence"
+        mod.abbreviation = "Ie"
+        mod.description = "Cloak has no limit... <red>until you take damage</>."
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("cloak_speed")
+        mod.name = "SpeedCloak"
+        mod.abbreviation = "SC"
+        mod.description = "<cyan>+40%</> speed while in cloak."
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("pain_to_gain")
+        mod.name = "Pain to Gain"
+        mod.abbreviation = "PtG"
+        mod.description = "Damage from any source <cyan>restores grenade cooldown</>."
+        mod.cost = 2
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)
@@ -45,6 +66,6 @@ RoguelikeMod function NewMod(string uniqueName)
 
     mod.chip = 4
     mod.isTitan = false
-    
+
     return mod
 }

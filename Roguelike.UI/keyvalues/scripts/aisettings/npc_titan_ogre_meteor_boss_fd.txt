@@ -5,10 +5,10 @@ npc_titan_ogre_meteor_boss_fd
     ui_targetinfo "" [$sp]
 
 	evasiveCombatShieldPct					0.0
-	
+
 	evasiveCombatHealthSegmentPct			1.0
 	aggressiveCombatHealthSegmentPct		0.0
-	
+
 	evasiveCombatHealthChangeRateDiff		-10000
 	aggresiveCombatHealthChangeRateDiff		500
 

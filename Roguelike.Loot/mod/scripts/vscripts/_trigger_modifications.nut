@@ -24,7 +24,7 @@ void function TriggerModifications_Init()
                 player.p.quickDeathOrigin = < -3731, -7870, 1000 >
                 player.p.quickDeathAngles = < 0, 45, 0 >
             } )
-            trigger.SetLeaveCallback( void function(entity trigger, entity player) : () 
+            trigger.SetLeaveCallback( void function(entity trigger, entity player) : ()
             {
                 printt("no custom quickdeath")
                 player.p.quickDeathOrigin = null
@@ -40,6 +40,9 @@ void function Roguelike_ModifyTrigger( entity trigger )
     {
         case "sp_crashsite":
             ModifyQuickDeathTriggers_sp_crashsite( trigger )
+            break
+        case "sp_sewers1":
+            ModifyQuickDeathTriggers_sp_sewers1( trigger )
             break
     }
 }
@@ -62,4 +65,16 @@ void function ModifyQuickDeathTriggers_sp_crashsite( entity trigger )
 			trigger.s.maxZ <- 100 // see TriggerQuickDeathOnTrigger in _trigger_functions_sp.gnut
 			break
 		}
+}
+
+void function ModifyQuickDeathTriggers_sp_sewers1( entity trigger )
+{
+    if (trigger.GetClassName() != "trigger_out_of_bounds")
+        return
+
+    if (Distance(trigger.GetOrigin(), <12229, -11269, 359>) < 8000.0)
+    {
+        printt("found one bois")
+        trigger.Destroy()
+    }
 }

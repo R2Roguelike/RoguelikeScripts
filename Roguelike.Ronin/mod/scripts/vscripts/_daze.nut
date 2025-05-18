@@ -29,12 +29,15 @@ void function PlayerDidLoad( entity player )
 
 void function OnPlayerDodge( entity player )
 {
-    file.lastDodgeTime = Time()
-    
-    if (Roguelike_HasMod( player, "dash_iframes" ))
+    if (Roguelike_HasMod( player, "conduction" ))
     {
-        Remote_CallFunction_Replay( player, "ServerCallback_FlashCockpitInvulnerable" )
+        entity offensive = player.GetOffhandWeapon(0)
+        if (IsValid(offensive))
+            RestoreCooldown( offensive, 0.1 )
     }
+    file.lastDodgeTime = Time()
+
+    Remote_CallFunction_Replay( player, "ServerCallback_FlashCockpitInvulnerable" )
 }
 
 float function GetLastDodgeTime()
@@ -51,7 +54,7 @@ void function ShotgunDamage( entity ent, var damageInfo )
     {
         float damage = DamageInfo_GetDamage( damageInfo )
         float daze = RSE_Get( ent, RoguelikeEffect.ronin_daze )
-        
+
         if (Roguelike_HasMod( attacker, "quickswap" ) && ("quickswap" in inflictor.s))
         {
             DamageInfo_AddDamageBonus( damageInfo, 0.5 ) // i think this is good?
@@ -62,7 +65,7 @@ void function ShotgunDamage( entity ent, var damageInfo )
         {
             DamageInfo_ScaleDamage( damageInfo, 2.666667 )
         }
-        
+
         //AddDaze( ent, attacker, dazeToAdd )
     }
 }
@@ -94,10 +97,10 @@ void function SwordDamage( entity ent, var damageInfo )
     float bonusDamage = 0.0
 
     bool crit = (DamageInfo_GetCustomDamageType( damageInfo ) & DF_CRITICAL) > 0
-    
+
     int daze = RoundToInt(RSE_Stop( ent, RoguelikeEffect.ronin_daze ))
     SetShotgunBuff( attacker, GetShotgunBuff( attacker ) + daze + 1)
-    
+
     if (Roguelike_HasMod( attacker, "offensive_daze_hits" ) && daze > 0)
     {
         entity arcWave = attacker.GetOffhandWeapon( OFFHAND_ORDNANCE )
@@ -120,15 +123,15 @@ void function SwordCoreDamage( entity ent, var damageInfo )
     {
         float damageBonus = 0.0
 
-        int daze = GetDaze( ent )
-        
+        int daze = GetShotgunBuff( ent )
+
         if (daze > 0 && Roguelike_HasMod( attacker, "overdaze" ))
         {
             DamageInfo_AddDamageBonus( damageInfo, 0.5 )
             daze--
         }
 
-        RSE_Apply( ent, RoguelikeEffect.ronin_daze, float(daze) )
+        SetShotgunBuff( attacker, daze )
 
         DamageInfo_AddDamageBonus( damageInfo, damageBonus )
     }

@@ -22,28 +22,28 @@ void function PilotChip2_RegisterMods()
         mod.name = "shiny boots"
         mod.abbreviation = "SB"
         mod.description = "Ground friction reduced by ^40FFFF0030%^FFFFFFFF."
-        mod.cost = 1
+        mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("wall_friction")
         mod.name = "Anti-friction jumpkit"
         mod.abbreviation = "AFJ"
         mod.description = "Wall friction reduced by ^40FFFF0030%^FFFFFFFF."
-        mod.cost = 1
+        mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("bhopper")
         mod.name = "2much4zblock"
         mod.abbreviation = "ZBl"
         mod.description = "+300% air acceleration."
-        mod.cost = 1
+        mod.cost = 3
     }
     {
         RoguelikeMod mod = NewMod("triplejump")
         mod.name = "triple jump"
         mod.abbreviation = "TJ"
         mod.description = "You can double jump twice."
-        mod.cost = 1
+        mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("double_dash")
@@ -60,6 +60,6 @@ RoguelikeMod function NewMod(string uniqueName)
 
     mod.chip = 2
     mod.isTitan = false
-    
+
     return mod
 }

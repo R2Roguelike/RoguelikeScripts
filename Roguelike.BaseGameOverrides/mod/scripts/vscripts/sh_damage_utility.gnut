@@ -12,6 +12,7 @@ global function CritWeaponInDamageInfo
 global function GetCriticalScaler
 global function HeavyArmorCriticalHitRequired
 global function Roguelike_GetCritDMG
+global function Roguelike_GetCritRate
 #endif
 
 #if CLIENT
@@ -54,19 +55,16 @@ float function Roguelike_GetCritRate( entity player, entity victim, var damageIn
 {
 	float base = Roguelike_BaseCritRate( Roguelike_GetStat( player, STAT_ENERGY ) )
 
-	if (RSE_Get( victim, RoguelikeEffect.legion_puncture ) > 0.0)
+	if (victim != null && RSE_Get( victim, RoguelikeEffect.legion_puncture ) > 0.0)
 		base += 0.25
-		
-	if ("weaponCrit" in player.s)
-	{
-		base += 0.005 * RSE_Get( player, RoguelikeEffect.overcrit )
-		if (verboseDamagePrintouts)
-			printt(format("+%.1f%% Crit Rate from Weapon Crit", 1 * expect int(player.s.weaponCrit)))
-	}
+
+	base += 0.005 * RSE_Get( player, RoguelikeEffect.overcrit )
 
 	bool guranteedCrit = false
 
-	if (Roguelike_HasMod( player, "ronin_dash_melee" ) && Time() - GetLastDodgeTime() < 1.0)
+	float timeSinceDodge = Time() - GetLastDodgeTime()
+	bool isSwordDamage = damageInfo != null && [eDamageSourceId.melee_titan_sword, eDamageSourceId.mp_titancore_shift_core].contains(DamageInfo_GetDamageSourceIdentifier(damageInfo))
+	if (damageInfo != null && isSwordDamage && Roguelike_HasMod( player, "ronin_dash_melee" ) && timeSinceDodge < 1.0)
 		guranteedCrit = true
 
 	if (guranteedCrit)
@@ -79,22 +77,26 @@ float function Roguelike_GetCritDMG( entity player, entity victim, var damageInf
 {
 	float base = Roguelike_BaseCritDMG( Roguelike_GetStat( player, STAT_POWER ) )
 
-	if (Roguelike_GetTitanLoadouts().contains("mp_titanweapon_sniper"))
+	if (damageInfo != null && Roguelike_GetTitanLoadouts().contains("mp_titanweapon_sniper"))
 	{
 		float cur = RSE_Get( victim, RoguelikeEffect.northstar_fulminate )
-		if (DamageInfo_GetDamageSourceIdentifier( damageInfo ) == eDamageSourceId.mp_titanweapon_sniper)
-		{
-			base += cur * 0.35
-		}
-		else
+		if (DamageInfo_GetDamageSourceIdentifier( damageInfo ) != eDamageSourceId.mp_titanweapon_sniper
+		 && DamageInfo_GetDamageSourceIdentifier( damageInfo ) != eDamageSourceId.ion_disorder)
 			RSE_Apply( victim, RoguelikeEffect.northstar_fulminate, min(cur + DamageInfo_GetDamage( damageInfo ) / 2500.0, 1.0) )
 	}
 
 
-	entity weapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
-	if ( IsValid( weapon ) && weapon.GetWeaponClassName() == "mp_titanweapon_predator_cannon" && weapon.HasMod("LongRangeAmmo") 
+	entity weapon = player.GetActiveWeapon()
+	if (damageInfo != null)
+		weapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
+
+	if ( IsValid( weapon ) && weapon.GetWeaponClassName() == "mp_titanweapon_predator_cannon" && weapon.HasMod("LongRangeAmmo")
 		&& Roguelike_HasMod( player, "focus_crystal") )
 		base += 0.3
+
+	if (IsValid(weapon) && weapon.GetWeaponClassName() != "mp_titanweapon_predator_cannon" &&
+		Roguelike_HasMod( player, "support_puncture" ) && RSE_Get( victim, RoguelikeEffect.legion_puncture ) > 0.0)
+		base += 0.25
 
 
 	return base
@@ -145,13 +147,14 @@ float function GetCriticalScaler( ent, damageInfo )
 		randomCrits = true
 	}
 
+	DamageInfo_AddCritDMG( damageInfo, critDMG )
 	if ( (RandomFloat(1.0) < critRate && randomCrits) || (hitCritSpot && !randomCrits) )
-	{	
+	{
 		if (verboseDamagePrintouts)
 			print(format("   Critical Hit! +%.1f%% DMG", critDMG * 100.0 ))
 
 		DamageInfo_AddCustomDamageType( damageInfo, DF_CRITICAL )
-		return 1.0 + critDMG
+		return 1.0
 	}
 
 	DamageInfo_RemoveCustomDamageType( damageInfo, DF_CRITICAL )
@@ -184,9 +187,9 @@ bool function IsValidHeadShot( var damageInfo = null, entity victim = null, enti
 
 	if ( !IsValid( attacker ) || !attacker.IsPlayer() )
 		return false
-	
+
 	bool hasRandomHeadshots = !attacker.IsTitan() && Roguelike_HasMod( attacker, "random_headshot" )
-	if ( (!hasRandomHeadshots || RandomFloat( 1.0 ) > 0.15) && hitGroup != HITGROUP_HEAD )
+	if ( (!hasRandomHeadshots || RandomFloat( 1.0 ) > 0.2) && hitGroup != HITGROUP_HEAD )
 		return false
 
 

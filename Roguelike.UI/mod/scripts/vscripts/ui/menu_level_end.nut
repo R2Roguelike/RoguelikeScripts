@@ -23,7 +23,7 @@ void function InitLevelEndMenu()
     file.menu = GetMenu( "LevelEndMenu" )
     AddMenuEventHandler( file.menu, eUIEvent.MENU_OPEN, OnLevelEndMenuOpen )
     AddMenuEventHandler( file.menu, eUIEvent.MENU_NAVIGATE_BACK, OnNavBack )
-    
+
     VGUIButton_Init( Hud_GetChild( file.menu, "ContinueButton" ))
     VGUIButton_OnClick( Hud_GetChild( file.menu, "ContinueButton" ), Continue )
 }
@@ -80,13 +80,11 @@ void function MenuAnimation()
     Roguelike_AddMoney( powerGained )
 
     runData.map <- file.nextMap
-    printt(runData.map)
     runData.startPointIndex <- file.startPointIndex
-    printt(runData.startPointIndex)
 
     // enemy power always increases by 10.
-    int prevEnemyBonusHP = expect int(runData.enemyBonusHP) 
-    int prevEnemyDEF = expect int(runData.enemyDEF) 
+    int prevEnemyBonusHP = expect int(runData.enemyBonusHP)
+    int prevEnemyDEF = expect int(runData.enemyDEF)
     int enemyHPGained = ENEMY_HP_PER_LEVEL
     int enemyDEFGained = ENEMY_DEF_PER_LEVEL
 
@@ -97,16 +95,18 @@ void function MenuAnimation()
             break
         case 2:
             enemyHPGained = ENEMY_HP_PER_LEVEL_HARD
+            enemyDEFGained = ENEMY_DEF_PER_LEVEL_HARD
             break
         case 3:
             enemyHPGained = ENEMY_HP_PER_LEVEL_MASTER
+            enemyDEFGained = ENEMY_DEF_PER_LEVEL_MASTER
             break
     }
     runData.enemyBonusHP += enemyHPGained
     runData.enemyDEF += enemyDEFGained
     runData.levelsCompleted <- levelsCompleted
 
-    int modsUnlocked = [6,5,3][timeRank]
+    int modsUnlocked = [8,6,4][timeRank]
     Roguelike_UnlockMods( modsUnlocked )
 
     NSSaveJSONFile( "run_backup.json", runData )
@@ -120,11 +120,11 @@ void function MenuAnimation()
     Hud_SetBarProgress(Hud_GetChild(file.menu, "TimeBar"), 0.0)
     Hud_SetText(Hud_GetChild(file.menu, "TimeRank"), "")
     Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), "")
-    
+
     Roguelike_ApplyRunDataToConVars()
-    
+
     wait 0.1
-    
+
 	EmitUISound( "UI_PostGame_TitanSlideStop" )
 
     float killsFill = float(file.kills) / killRanks[0]
@@ -135,7 +135,7 @@ void function MenuAnimation()
     Hud_GetChild(file.menu, "KillsRank").SetColor(GetColorForRank(killsRank))
     Hud_SetText(Hud_GetChild(file.menu, "KillsReward"), format("+%i$", powerGained))
 
-    wait 0.2 
+    wait 0.2
 
     EmitUISound( "UI_PostGame_CoinPlace" )
     Hud_SetText(Hud_GetChild(file.menu, "EnemyDEF"), string( prevEnemyDEF + enemyDEFGained ))
@@ -143,7 +143,7 @@ void function MenuAnimation()
     wait 0.2
 
     Hud_SetText(Hud_GetChild(file.menu, "EnemyPower"), "+" + string( prevEnemyBonusHP + enemyHPGained ))
-    
+
     wait 0.2
 
     EmitUISound( "UI_PostGame_TitanSlideStop" )
@@ -155,7 +155,7 @@ void function MenuAnimation()
     Hud_SetText(Hud_GetChild(file.menu, "TimeRank"), GetRankName(timeRank))
     Hud_GetChild(file.menu, "TimeRank").SetColor(GetColorForRank(timeRank))
     Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), format("%i Mods Unlocked", modsUnlocked))
-    
+
     wait 0.2
 }
 
@@ -165,18 +165,29 @@ void function Roguelike_BackupRun( int startPoint )
     runData.map <- GetActiveLevel()
     runData.startPointIndex <- startPoint
     NSSaveJSONFile( "run_backup.json", runData )
+
+    Roguelike_WriteSaveToDisk()
 }
 
 void function Roguelike_UnlockMods( int count )
 {
+    int pilotMods = count / 2
+    int titanMods = count - pilotMods
+    Roguelike_UnlockModsForSection( titanMods, true )
+    Roguelike_UnlockModsForSection( pilotMods, false )
+}   
+
+void function Roguelike_UnlockModsForSection( int count, bool isTitan )
+{
     table runData = Roguelike_GetRunData()
-    count = minint( count, expect int(runData.lockedMods.len()) )
+    array lockedMods = expect array(isTitan ? runData.lockedTitanMods : runData.lockedPilotMods)
+    count = minint( count, lockedMods.len() )
     for (int i = 1; i <= count; i++)
     {
-        string mod = expect string(runData.lockedMods.getrandom())
+        string mod = expect string(lockedMods.getrandom())
         RoguelikeMod modStruct = GetModByName(mod)
         printt(modStruct.name)
-        runData.lockedMods.fastremovebyvalue(mod)
+        lockedMods.fastremovebyvalue(mod)
         runData.unlockedMods.append(mod)
         runData.newMods.append(mod)
     }
@@ -184,35 +195,41 @@ void function Roguelike_UnlockMods( int count )
 
 void function ClientCallback_LevelEnded( string nextMap, int startPointIndex, int kills, float time )
 {
-    // replace abyss 2 with abyss 3
-    if (nextMap == "sp_boomtown")
+    // stupidly long starts at BT and goes thru all levels, no skipping
+    // long route adds BT and B3
+    int route = Roguelike_GetRunModifier("the_long_way")
+    if (route != 2)
     {
-        nextMap = "sp_boomtown_end"
-        startPointIndex = 0
-    }
-    // replace enc 1 with enc 2
-    if (nextMap == "sp_hub_timeshift" && startPointIndex == 0)
-    {
-        nextMap = "sp_timeshift_spoke02"
-        startPointIndex = 0
-    }
-    // replace enc ch.3 with beacon 2
-    if (nextMap == "sp_hub_timeshift" && startPointIndex == 7)
-    {
-        nextMap = "sp_beacon_spoke0"
-        startPointIndex = 0
-    }
-    // replace beacon 3 w/ trial by fire
-    if (nextMap == "sp_beacon" && startPointIndex == 2)
-    {
-        nextMap = "sp_tday"
-        startPointIndex = 0
-    }
-    // replace beacon 3 w/ trial by fire
-    if (nextMap == "sp_skyway_v1")
-    {
-        nextMap = "sp_skyway_v1"
-        startPointIndex = 1
+        // replace abyss 2 with abyss 3
+        if (nextMap == "sp_boomtown")
+        {
+            nextMap = "sp_boomtown_end"
+            startPointIndex = 0
+        }
+        // replace enc 1 with enc 2
+        if (nextMap == "sp_hub_timeshift" && startPointIndex == 0)
+        {
+            nextMap = "sp_timeshift_spoke02"
+            startPointIndex = 0
+        }
+        // replace enc ch.3 with beacon 2
+        if (nextMap == "sp_hub_timeshift" && startPointIndex == 7)
+        {
+            nextMap = "sp_beacon_spoke0"
+            startPointIndex = 0
+        }
+        // replace beacon 3 w/ trial by fire, unless on long routes, then go as normal
+        if (nextMap == "sp_beacon" && startPointIndex == 2 && route == 0)
+        {
+            nextMap = "sp_tday"
+            startPointIndex = 0
+        }
+        // replace beacon 3 w/ trial by fire
+        if (nextMap == "sp_skyway_v1")
+        {
+            nextMap = "sp_skyway_v1"
+            startPointIndex = 1
+        }
     }
     file.nextMap = nextMap
     file.startPointIndex = startPointIndex

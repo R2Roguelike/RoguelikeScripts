@@ -27,7 +27,7 @@ void function InventorySlot_Display( var slot, var content )
 
     Hud_SetHeight( icon, ContentScaledYAsInt(56) )
     Hud_SetWidth( icon, ContentScaledYAsInt(56) )
-    
+
     int segmentCount = Roguelike_GetItemMaxLevel( content )
     int length = Hud_GetWidth( energyBarPilot )
     int gap = segmentCount - length % segmentCount
@@ -65,7 +65,7 @@ void function InventorySlot_Display( var slot, var content )
             }
             Hud_SetImage( icon, $"ui/armor_chip" )
             Hud_SetColor( icon, 25, 25, 25, 255 )
-            
+
             switch (expect int( content.slot ))
             {
                 case 1:

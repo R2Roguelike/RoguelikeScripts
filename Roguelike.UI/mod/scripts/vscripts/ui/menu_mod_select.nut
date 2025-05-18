@@ -35,7 +35,7 @@ void function InitRoguelikeModSelectMenu()
 	file.gridData.initCallback = Slot_Init
 
     GridMenuInit( file.menu, file.gridData )
-    
+
 	var screen = Hud_GetChild( file.menu, "Screen" )
     print("ADDING CALLBACK")
 	Hud_AddEventHandler( screen, UIE_CLICK, OnModSelectBGScreen_Activate )
@@ -78,10 +78,10 @@ void function ModSelect_SetContext( string modSlot, int x, int y )
         maxEnergy = expect int(runData["ACPilot" + file.chipIndex].energy)
     }
     int usedEnergy = GetTotalEnergyUsed(file.chipIndex, file.isTitanMod)
-    
+
     string runTableIndex = FormatModIndex(file.chipIndex, file.isTitanMod, file.modIndex)
     RoguelikeMod currentMod = GetModForIndex(runData[runTableIndex])
-    
+
     array<RoguelikeMod> usedMods = GetModArrayForCategory( file.chipIndex, file.isTitanMod )
     for (int i = 0; i < usedMods.len(); i++)
     {
@@ -167,14 +167,14 @@ void function ModSlot_Click( var button )
     table runData = Roguelike_GetRunData()
 
     string modIndex = FormatModIndex(file.chipIndex, file.isTitanMod, file.modIndex)
-    
+
     if (choice.cost > file.maxUsableEnergy || file.usedMods.contains(file.modChoices[elemNum]))
     {
         EmitUISound( "blackmarket_purchase_fail" )
         return
     }
     runData[modIndex] = choice.index
-    
+
 
     CloseActiveMenu()
 }

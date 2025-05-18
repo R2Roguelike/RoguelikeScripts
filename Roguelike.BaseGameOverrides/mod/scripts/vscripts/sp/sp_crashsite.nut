@@ -3132,10 +3132,9 @@ void function JumpKitCalibrationProgressOverTime( entity player )
 			startStep = file.jumpKitCalibrationStep
 			maxStep = int( min( startStep + stepsPerFlag, JUMPKIT_CALIBRATION_STEPS ) )
 		}
-		
+
 		float elapsedTime = Time() - startTime
 		float progress = elapsedTime / secondsPerFlag
-		printt(progress)
 
 		int currentStep = int( GraphCapped( progress, 0, 1, startStep, maxStep ) )
 		if ( currentStep > file.jumpKitCalibrationStep )
@@ -4696,7 +4695,7 @@ void function Battery3Path_CanyonCombat( entity player )
 
 	foreach (entity npc in npcArray)
 		Roguelike_SetIgnoreBan( npc )
-	
+
 	npcArray = ArrayClosest( npcArray, player.GetOrigin() )
 	Assert( npcArray.len() >= 2 )
 
@@ -5556,7 +5555,7 @@ void function PilotLink_TitanTraining( entity player )
 	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", OFFHAND_LEFT )
 	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", OFFHAND_TITAN_CENTER )
 	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", 3 )
-	thread DisplayVortexHint( player )	
+	thread DisplayVortexHint( player )
 
 	WaitForEnemyCount( 3, 20 )
 

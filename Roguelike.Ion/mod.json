@@ -1,0 +1,24 @@
+{
+	"Name": "Roguelike.Ion",
+	"Description": "Handles all ion stuff.",
+	"LoadPriority": 0,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+
+	"Scripts": [
+		{
+			"Path": "_charge.nut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Charge_Init"
+            }
+		},
+		{
+			"Path": "mods/ion_mods.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		}
+	],
+
+	"ConVars": [
+	]
+}

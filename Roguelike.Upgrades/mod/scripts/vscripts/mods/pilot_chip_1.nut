@@ -10,17 +10,17 @@ void function PilotChip1_RegisterMods()
         mod.cost = 2
     }
     {
-        RoguelikeMod mod = NewMod("last_stand")
-        mod.name = "Last Stand"
-        mod.abbreviation = "LS"
-        mod.description = "While below 50% HP, gain damage resistance."
+        RoguelikeMod mod = NewMod("endurance_2")
+        mod.name = "Endurance+2"
+        mod.abbreviation = "E+2"
+        mod.description = "+10 <cyan>Endurance</>."
         mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("titan_aptitude")
         mod.name = "Titan Aptitude"
         mod.abbreviation = "TA"
-        mod.description = "Take reduced damage from titans."
+        mod.description = "One-Shot protection and 60% damage reduction against titans."
         mod.cost = 2
     }
     {
@@ -44,6 +44,20 @@ void function PilotChip1_RegisterMods()
         mod.abbreviation = "SBS"
         mod.description = "When moving at 50km/h or above, you are invulnerable."
         mod.cost = 3
+    }
+    {
+        RoguelikeMod mod = NewMod("always_regen")
+        mod.name = "Always Regen"
+        mod.abbreviation = "AR"
+        mod.description = "Health regeneration is always active, but health regeneration rate reduced by 33%."
+        mod.cost = 3
+    }
+    {
+        RoguelikeMod mod = NewMod("quick_regen")
+        mod.name = "Quick Regen"
+        mod.abbreviation = "QR"
+        mod.description = "Health regeneration rate increased by 100%."
+        mod.cost = 2
     }
 }
 

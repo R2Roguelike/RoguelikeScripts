@@ -18,7 +18,7 @@ global function Roguelike_FindWeaponForDamageInfo
 global function Roguelike_GetAlternateOffhand
 global function Roguelike_FindWeapon
 
-// doing overrides last 
+// doing overrides last
 global const int WEAPON_VAR_PRIORITY_OVERRIDE = 0
 global const int WEAPON_VAR_PRIORITY_ADD = 100
 global const int WEAPON_VAR_PRIORITY_MULT = 200
@@ -27,23 +27,23 @@ global const int WEAPON_VAR_PRIORITY_MULT = 200
 // e.g. hipfire spread, ads spread
 
 global const array<int> HIP_SPREAD_VARS = [eWeaponVar.spread_stand_hip, eWeaponVar.spread_stand_hip_run, eWeaponVar.spread_stand_hip_sprint,
-    eWeaponVar.spread_crouch_hip, eWeaponVar.spread_air_hip, eWeaponVar.spread_kick_on_fire_air_hip, eWeaponVar.spread_kick_on_fire_stand_hip, 
-    eWeaponVar.spread_kick_on_fire_crouch_hip, eWeaponVar.spread_max_kick_air_hip, eWeaponVar.spread_max_kick_stand_hip, 
+    eWeaponVar.spread_crouch_hip, eWeaponVar.spread_air_hip, eWeaponVar.spread_kick_on_fire_air_hip, eWeaponVar.spread_kick_on_fire_stand_hip,
+    eWeaponVar.spread_kick_on_fire_crouch_hip, eWeaponVar.spread_max_kick_air_hip, eWeaponVar.spread_max_kick_stand_hip,
     eWeaponVar.spread_max_kick_crouch_hip, eWeaponVar.spread_wallrunning, eWeaponVar.spread_wallhanging] // wallhanging is "ads" but aaplies spread on the level of hipfire? keeping it here.
 
-    
-global const array<int> SPREAD_KICK_VARS = [eWeaponVar.spread_kick_on_fire_air_hip, eWeaponVar.spread_kick_on_fire_stand_hip, 
-    eWeaponVar.spread_kick_on_fire_crouch_hip, eWeaponVar.spread_max_kick_air_hip, eWeaponVar.spread_max_kick_stand_hip, 
-    eWeaponVar.spread_max_kick_crouch_hip, eWeaponVar.spread_kick_on_fire_air_ads, eWeaponVar.spread_kick_on_fire_stand_ads, eWeaponVar.spread_kick_on_fire_crouch_ads, 
+
+global const array<int> SPREAD_KICK_VARS = [eWeaponVar.spread_kick_on_fire_air_hip, eWeaponVar.spread_kick_on_fire_stand_hip,
+    eWeaponVar.spread_kick_on_fire_crouch_hip, eWeaponVar.spread_max_kick_air_hip, eWeaponVar.spread_max_kick_stand_hip,
+    eWeaponVar.spread_max_kick_crouch_hip, eWeaponVar.spread_kick_on_fire_air_ads, eWeaponVar.spread_kick_on_fire_stand_ads, eWeaponVar.spread_kick_on_fire_crouch_ads,
     eWeaponVar.spread_max_kick_air_ads, eWeaponVar.spread_max_kick_stand_ads, eWeaponVar.spread_max_kick_crouch_ads] // wallhanging is "ads" but aaplies spread on the level of hipfire? keeping it here.
 
-global const array<int> ADS_SPREAD_VARS = [eWeaponVar.spread_stand_ads, eWeaponVar.spread_crouch_ads, eWeaponVar.spread_air_ads, 
-    eWeaponVar.spread_kick_on_fire_air_ads, eWeaponVar.spread_kick_on_fire_stand_ads, eWeaponVar.spread_kick_on_fire_crouch_ads, 
+global const array<int> ADS_SPREAD_VARS = [eWeaponVar.spread_stand_ads, eWeaponVar.spread_crouch_ads, eWeaponVar.spread_air_ads,
+    eWeaponVar.spread_kick_on_fire_air_ads, eWeaponVar.spread_kick_on_fire_stand_ads, eWeaponVar.spread_kick_on_fire_crouch_ads,
     eWeaponVar.spread_max_kick_air_ads, eWeaponVar.spread_max_kick_stand_ads, eWeaponVar.spread_max_kick_crouch_ads]
 
 global const array<int> RELOAD_TIME_VARS = [eWeaponVar.reload_time, eWeaponVar.reloadempty_time,
-eWeaponVar.reload_time_late1, eWeaponVar.reload_time_late2, eWeaponVar.reload_time_late3, eWeaponVar.reload_time_late4, 
-eWeaponVar.reload_time_late5, eWeaponVar.reloadempty_time_late1, eWeaponVar.reloadempty_time_late2, eWeaponVar.reloadempty_time_late3, 
+eWeaponVar.reload_time_late1, eWeaponVar.reload_time_late2, eWeaponVar.reload_time_late3, eWeaponVar.reload_time_late4,
+eWeaponVar.reload_time_late5, eWeaponVar.reloadempty_time_late1, eWeaponVar.reloadempty_time_late2, eWeaponVar.reloadempty_time_late3,
 eWeaponVar.reloadempty_time_late4, eWeaponVar.reloadempty_time_late5, eWeaponVar.reloadsegment_time_loop,
 eWeaponVar.reloadsegment_time_end, eWeaponVar.reloadsegmentempty_time_end]
 
@@ -129,7 +129,7 @@ int function SortByPriority( CallbackArray a, CallbackArray b )
         return 1
     else if (a.priority < b.priority)
         return -1
-    
+
     return 0
 }
 
@@ -165,7 +165,7 @@ void function CodeCallback_ApplyModWeaponVars( entity weapon )
         printt("entity of class " + weapon.GetClassName())
         return
     }
-    
+
     if (weapon.GetWeaponOwner() != GetLocalClientPlayer())
         return
     #endif
@@ -173,14 +173,13 @@ void function CodeCallback_ApplyModWeaponVars( entity weapon )
     // its not ready yet :(
     if (weapon.GetWeaponClassName() == "")
         return
-    
+
     if (!("lastPrint" in weapon.s))
         weapon.s.lastPrint <- 0.0
     float lastPrint = expect float(weapon.s.lastPrint)
     lastPrint = 999999.9 // comment for modweaponvars debugging
     foreach (CallbackArray arr in file.weaponVarCallbacks)
     {
-        printt()
         if (Time() - lastPrint > 1.0)
             printt("PRIORITY ", arr.priority)
         foreach (void functionref( entity ) callback in arr.callbacks)
@@ -255,12 +254,14 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
         if (IsValid(lastPrimary) && player.IsTitan() && Roguelike_GetTitanLoadouts().contains(PRIMARY_NORTHSTAR))
         {
             entity railgun = Roguelike_FindWeapon( player, PRIMARY_NORTHSTAR )
-            
+
             if (IsValid(railgun))
             {
                 if (!("railgunEndChargeTime" in railgun.s) || lastPrimary.GetWeaponClassName() == PRIMARY_NORTHSTAR)
                 {
-                    railgun.s.railgunEndChargeTime <- Time() + 5.0 * (1.0 - railgun.GetWeaponChargeFraction())
+                    float chargeTime = railgun.GetWeaponSettingFloat( eWeaponVar.charge_time ) // base 5.0, scales with charge time
+
+                    railgun.s.railgunEndChargeTime <- Time() + chargeTime * (1.0 - railgun.GetWeaponChargeFraction())
                     railgun.s.railgunStartChargeTime <- Time()
                     railgun.s.railgunStartChargeFrac <- railgun.GetWeaponChargeFraction()
                 }
@@ -269,7 +270,7 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
                     float start = expect float(railgun.s.railgunStartChargeTime)
                     float end = expect float(railgun.s.railgunEndChargeTime)
                     float frac = expect float(railgun.s.railgunStartChargeFrac)
-                    
+
                     //railgun.SetWeaponChargeFraction(Graph(Time(), start, end, frac, 1.0))
                     railgun.SetWeaponChargeFractionForced(Graph(Time(), start, end, frac, 1.0))
                 }
@@ -328,7 +329,7 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
     if ( titanLoadout == null )
         return
     expect TitanLoadoutDef( titanLoadout )
-    
+
     Roguelike_ModifyTitanLoadout( titan, titanLoadout )
 
     // we already have this loadout equipped...
@@ -355,7 +356,7 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
                 continue
 
             entity offhandWeapon = titan.TakeOffhandWeapon_NoDelete( i )
-            
+
             if (IsValid(offhandWeapon))
             {
                 offhandWeapon.s.storedWeaponOwner <- titan
@@ -393,7 +394,7 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
                 continue
             if (i == OFFHAND_EQUIPMENT && IsTitanCoreFiring( titan ))
                 continue
-            
+
             entity offhandWeapon = titan.TakeOffhandWeapon_NoDelete( i )
 
             if (IsValid(offhandWeapon))
@@ -432,7 +433,7 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
                     timePassed -= newOffhand.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_start_delay)
                     float newAmmo = timePassed * newOffhand.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_rate)
                     printt(newAmmo)
-                    
+
                     newOffhand.SetWeaponPrimaryClipCountAbsolute(clamp(newAmmo, 0, newOffhand.GetWeaponSettingInt(eWeaponVar.ammo_clip_size) + 0.0))
                 }
             }
@@ -477,6 +478,8 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
 
     SoulTitanCore_SetNextAvailableTime( soul, coreValue )
 
+    titan.Signal("LoadoutSwap")
+
     if ( titan.IsPlayer() )
     {
 //			Remote_CallFunction_Replay( titan, "ServerCallback_NotifyLoadout", titan.GetEncodedEHandle() )
@@ -503,11 +506,11 @@ string function GetOffhandWeaponBySlot( TitanLoadoutDef titanLoadout, int offhan
     return ""
 }
 
-void function RestoreCooldown( entity weapon, float frac ) 
+void function RestoreCooldown( entity weapon, float frac )
 {
     if (!IsValid(weapon) || weapon.GetWeaponClassName() == "")
         return
-    
+
     switch (weapon.GetWeaponInfoFileKeyField("cooldown_type"))
     {
         case "ammo":
@@ -519,22 +522,22 @@ void function RestoreCooldown( entity weapon, float frac )
             int ammoPerShot = weapon.GetAmmoPerShot()
             weapon.SetWeaponPrimaryClipCountNoRegenReset( minint( ammo + RoundToInt(frac * ammoPerShot), maxAmmo ) )
             break
-        
+
         case "charged_shot":
         case "chargeFrac":
         case "vortex_drain":
             weapon.SetWeaponChargeFractionForced( weapon.GetWeaponChargeFraction() - frac )
             break
-        
+
         case "shared_energy":
         case "shared_energy_drain":
             entity owner = weapon.GetWeaponOwner()
             if (!IsValid(owner))
                 owner = GetPlayerArray()[0]
-            
-            owner.AddSharedEnergy( RoundToInt(frac * 1000) )
+
+            owner.AddSharedEnergy( RoundToInt(frac * Ion_GetMaxEnergy( owner ) * 0.5) )
             break
-        
+
         case "grapple":
             entity owner = weapon.GetWeaponOwner()
             if (!IsValid(owner))
@@ -567,16 +570,16 @@ entity function Roguelike_FindWeaponForDamageInfo( var damageInfo )
 
     if (!IsValid(inflictor))
         return null
-    
+
     if (inflictor.GetClassName() == "weaponx")
         return inflictor
-    
+
     if (inflictor.IsProjectile())
     {
         string weaponName = inflictor.ProjectileGetWeaponClassName()
         return Roguelike_FindWeapon( attacker, weaponName )
     }
-    
+
     string damageSourceIdName = DamageSourceIDToString( DamageInfo_GetDamageSourceIdentifier( damageInfo ) )
     switch (damageSourceIdName)
     {
@@ -592,7 +595,7 @@ entity function Roguelike_GetAlternateOffhand( entity player, int index )
 {
     if (!("storedAbilities" in player.s))
         return null
-    
+
     if (!IsValid(player.s.storedAbilities[index]))
     {
         return null
@@ -617,7 +620,7 @@ entity function Roguelike_FindWeapon( entity player, string weapon )
 
     if (!("storedAbilities" in player.s))
         return null
-    
+
     foreach (var w in player.s.storedAbilities)
     {
         if (w == null || !IsValid(w))
@@ -631,7 +634,6 @@ entity function Roguelike_FindWeapon( entity player, string weapon )
 
 entity function Roguelike_GetOffhandWeaponByName( entity player, string weapon )
 {
-    printt(player, weapon)
     array<entity> currentOffhandWeapons = player.GetOffhandWeapons()
 
     foreach (entity w in currentOffhandWeapons)
@@ -642,10 +644,9 @@ entity function Roguelike_GetOffhandWeaponByName( entity player, string weapon )
 
     if (!("storedAbilities" in player.s))
         return null
-        
+
     foreach (var w in player.s.storedAbilities)
     {
-        printt(w, typeof(w))
         if (w == null || !IsValid(w))
             continue
         if (w.GetWeaponClassName() == weapon)
@@ -659,7 +660,7 @@ void function ScaleCooldown( entity weapon, float scalar )
 {
     if (!IsValid(weapon) || weapon.GetWeaponClassName() == "")
         return
-    
+
     switch (weapon.GetWeaponInfoFileKeyField("cooldown_type"))
     {
         case "ammo":
@@ -668,17 +669,18 @@ void function ScaleCooldown( entity weapon, float scalar )
         case "ammo_timed":
             ModWeaponVars_ScaleVar( weapon, eWeaponVar.regen_ammo_refill_rate, 1.0 / scalar )
             break
-        
+
         case "charged_shot":
         case "chargeFrac":
         case "vortex_drain":
             ModWeaponVars_ScaleVar( weapon, eWeaponVar.charge_cooldown_time, scalar )
             break
-        
+
         case "shared_energy":
-            weapon.SetWeaponEnergyCost(RoundToInt(weapon.GetWeaponSettingInt(eWeaponVar.shared_energy_cost) * scalar))
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.shared_energy_cost, scalar )
+            weapon.SetWeaponEnergyCost(weapon.GetWeaponSettingInt(eWeaponVar.shared_energy_cost))
             break
-        
+
         case "grapple":
             ModWeaponVars_ScaleVar( weapon, eWeaponVar.grapple_power_required, scalar )
             break

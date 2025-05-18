@@ -5,7 +5,7 @@
 	"RequiredOnClient": false,
 	"InitScript": "upgrades_init.nut",
 	"Version": "1.0.0",
-	
+
 	"Scripts": [
 		{
 			"Path": "_amped_shield.nut",
@@ -84,6 +84,16 @@
 			"Name": "roguelike_unlock_all",
 			"DefaultValue": "0",
 			"Flags": "CHEAT"
+		},
+		{
+			"Name": "memory_titan_hp",
+			"DefaultValue": "-1",
+			"Flags": "CHEAT | ARCHIVE_PLAYERPROFILE"
+		},
+		{
+			"Name": "memory_titan_settings",
+			"DefaultValue": "",
+			"Flags": "CHEAT | ARCHIVE_PLAYERPROFILE"
 		}
 	]
 }

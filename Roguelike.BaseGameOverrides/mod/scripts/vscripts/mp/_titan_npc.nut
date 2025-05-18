@@ -575,6 +575,8 @@ void function ResetTitanBuildTime( entity player )
 
 void function SpawnTitanBattery( entity batteryRef )
 {
+	if (GetConVarInt("sp_difficulty") == 3)
+		return
 	vector origin = batteryRef.GetOrigin()
 	entity battery = CreateTitanBattery( origin )
 	batteryRef.Destroy()
@@ -590,6 +592,7 @@ void function SpawnTitanBatteryOnDeath( entity titan, var damageInfo )
 	vector origin = titan.GetAttachmentOrigin( attachID )
 	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 	int damageType = DamageInfo_GetCustomDamageType( damageInfo )
+	int damageFlags = DamageInfo_GetDamageFlags( damageInfo )
 
 	int numBatt = 0
 
@@ -604,14 +607,13 @@ void function SpawnTitanBatteryOnDeath( entity titan, var damageInfo )
 			entity player = GetPlayerArray()[0]
 			entity playerTitan = GetTitanFromPlayer( player )
 
-			if (titan.GetTeam() == TEAM_MILITIA)
+			if (titan.IsTitan())
 				numBatt += 1
-
-			if (Roguelike_HasMod( player, "battery_spawn" ) && RandomFloat( 1.0 ) < 0.25 && titan.GetTeam() != TEAM_MILITIA)
+			if ( RoguelikeScorch_IsPerfectDish( player, titan, damageInfo ))
 			{
 				numBatt += 1
 			}
-			if ( RoguelikeScorch_IsPerfectDish( player, titan, damageInfo ))
+			if (damageFlags & DAMAGEFLAG_DISORDER && Roguelike_HasMod( player, "discharge_battery" ))
 			{
 				numBatt += 1
 			}

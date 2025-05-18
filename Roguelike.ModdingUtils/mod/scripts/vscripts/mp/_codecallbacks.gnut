@@ -14,6 +14,7 @@ global function CodeCallback_OnPlayerGrappled
 global function CodeCallback_OnProjectileGrappled
 global function DamageInfo_ScaleDamage
 global function DamageInfo_AddDamageBonus
+global function DamageInfo_AddCritDMG
 global function CodeCallback_CheckPassThroughAddsMods
 global function SetTitanMeterGainScale
 
@@ -51,10 +52,10 @@ void function OnClientConnected( entity player )
 	{
 		while (true)
 		{
-			wait 0
-			if (player.IsOnGround() && !player.IsWallRunning() 
+			wait 0.001
+			if (player.IsOnGround() && !player.IsWallRunning()
 				&& !player.IsWallHanging()
-				&& !player.p.doingQuickDeath 
+				&& !player.p.doingQuickDeath
 				&& !player.IsTraversing()
 				&& player.GetGroundEntity() == GetEntByIndex( 0 ))
 			{
@@ -66,6 +67,7 @@ void function OnClientConnected( entity player )
 }
 
 float additiveDMGBonus = 1.0
+float critDMGBonus = 1.0
 // TODO: Get an equivalent callback happening on the client, so we can stop using ServerCallback_PlayerTookDamage which is always out of date to some degree.
 void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 {
@@ -137,7 +139,9 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	}
 
 	float prevValue = additiveDMGBonus
+	float prevCritValue = critDMGBonus
 	additiveDMGBonus = 1.0
+	critDMGBonus = 1.0
 
 	if ( !ScriptCallback_ShouldEntTakeDamage( ent, damageInfo ) )
 	{
@@ -236,8 +240,16 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		if (IsValid(sourceWeapon))
 		{
 			float damage = DamageInfo_GetDamage( damageInfo )
-			// 
-			DamageInfo_SetDamage( damageInfo, damage + max(sourceWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force ), 0) / 1000 )
+			//
+			float force = sourceWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force )
+			if (ent.IsTitan())
+			{
+				DamageInfo_SetDamage( damageInfo, damage + max(force, 0) / 50 )
+			}
+			else
+			{
+				DamageInfo_SetDamage( damageInfo, damage + max(force, 0) / 1000 )
+			}
 		}
 	}
 
@@ -256,7 +268,7 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	RunClassDamageCallbacks( ent, damageInfo )
 	if (verboseDamagePrintouts)
 		printt( "    after class damage callbacks:", DamageInfo_GetDamage( damageInfo ) )
-		
+
 	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
 		return
 
@@ -323,24 +335,42 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if ("damageMult" in attacker.s)
 		DamageInfo_ScaleDamage( damageInfo, expect float(attacker.s.damageMult) )
 
-	if (GetBurn( ent ) > 0 && !BURN_DAMAGE_SOURCES.contains(damageSourceId))
-		DamageInfo_ScaleDamage( damageInfo, 1.0 + GetBurn( ent ) * 0.01 )
-	
+	bool isValidDamageSource = (attackerIsPlayer && Roguelike_HasMod( attacker, "burn_dmg" )) || !BURN_DAMAGE_SOURCES.contains(damageSourceId)
+	if (GetBurn( ent ) > 0 && isValidDamageSource)
+	{
+		float burn = GetBurn( ent )
+		float damage = DamageInfo_GetDamage( damageInfo )
+		DamageInfo_ScaleDamage( damageInfo, 1.0 + burn * 0.01 )
+		float restore = min(damage * min(burn * 0.004, 0.2), burn) // 25 burn = 10% shieldsteal, up to 20%
+		if (attackerIsPlayer &&  Roguelike_HasMod( attacker, "burn_shield" ))
+		{
+			entity soul = attacker.GetTitanSoul()
+			if (IsValid(soul))
+			{
+				soul.SetShieldHealth(min(soul.GetShieldHealth() + restore, soul.GetShieldHealthMax()))
+			}
+		}
+	}
+
     float blockIntensity = RSE_Get( attacker, RoguelikeEffect.ronin_block_buff )
     if (blockIntensity > 0.0)
     {
 		DamageInfo_AddDamageBonus( damageInfo, 0.35 * blockIntensity )
     }
 
-	if (attacker.IsPlayer() && "lastRearm" in attacker.s && Roguelike_IsWeaponDamage( damageInfo ))
+	if (attacker.IsPlayer() && Roguelike_IsWeaponDamage( damageInfo ))
 	{
 		if (RSE_Get( attacker, RoguelikeEffect.rearm_reload ) > 0.0 && Roguelike_HasMod( attacker, "rearm_reload" ))
 			DamageInfo_AddDamageBonus( damageInfo, 0.25 )
+		if (RSE_Get( attacker, RoguelikeEffect.offense_canister ) > 0.0)
+			DamageInfo_AddDamageBonus( damageInfo, 0.5 )
+		if (RSE_Get( attacker, RoguelikeEffect.gun_shield_shield ) > 0.0)
+			DamageInfo_AddDamageBonus( damageInfo, 0.2 )
 	}
 
-	// WEAK - 
+	// WEAK -
 	if ( attackerIsPlayer && GetWeaken( ent ) > 0 && Roguelike_IsWeaponDamage( damageInfo ) )
-		DamageInfo_AddDamageBonus( damageInfo, 0.25 )
+		DamageInfo_AddDamageBonus( damageInfo, 0.35 )
 
 	if ( GetWeaken( attacker ) > 0 )
 		DamageInfo_ScaleDamage( damageInfo, 0.75 )
@@ -354,7 +384,7 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 
 	if (verboseDamagePrintouts)
 		printt( "    after damageSourceID callbacks:", DamageInfo_GetDamage( damageInfo ) )
-		
+
 	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
 		return
 
@@ -373,7 +403,34 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	{
 		entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
 		if (IsValid(sourceWeapon) && Roguelike_HasMod( attacker, "never_ending_burst" ))
-			sourceWeapon.SetWeaponPrimaryClipCount(sourceWeapon.GetWeaponPrimaryClipCount() + 1) // half
+		{
+			entity soul = attacker.GetTitanSoul()
+			float curTime = Time()
+			float remainingTime = soul.GetCoreChargeExpireTime() - curTime
+
+			if ( remainingTime > 0 )
+			{
+				float USE_TIME = 0.05
+
+				remainingTime = max( remainingTime + USE_TIME, 0 )
+				float startTime = soul.GetCoreChargeStartTime()
+				float duration = soul.GetCoreUseDuration()
+
+				soul.SetTitanSoulNetFloat( "coreExpireFrac", remainingTime / duration )
+				soul.SetTitanSoulNetFloatOverTime( "coreExpireFrac", 0.0, remainingTime )
+				soul.SetCoreChargeExpireTime( remainingTime + curTime )
+
+				sourceWeapon.SetWeaponPrimaryClipCount(min(sourceWeapon.GetWeaponPrimaryClipCount() + 1, 50)) // half
+			}
+		}
+	}
+
+	if ((DamageInfo_GetCustomDamageType( damageInfo ) & DF_MELEE) != 0)
+	{
+		if (attackerIsPlayer && attacker.IsTitan() && Roguelike_HasMod( attacker, "addiction" ))
+		{
+			DamageInfo_AddDamageBonus( damageInfo, 1.0 )
+		}
 	}
 
 	// ADDITIVE DMG
@@ -381,11 +438,29 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if (verboseDamagePrintouts)
 		printt( format("    Additive DMG: %.1f%%", additiveDMGBonus * 100.0 ) )
 
+	if (DamageInfo_GetCustomDamageType( damageInfo ) & DF_CRITICAL)
+		DamageInfo_ScaleDamage( damageInfo, critDMGBonus )
+	else
+	{
+		if (attackerIsPlayer && (DamageInfo_GetDamageFlags( damageInfo) & DAMAGEFLAG_DISCHARGE) == 0)
+		{
+			switch (Roguelike_GetRunModifier("crit_or_nothing"))
+			{
+				case 1:
+					DamageInfo_ScaleDamage( damageInfo, 0.75 )
+					break
+				case 2:
+					DamageInfo_ScaleDamage( damageInfo, 0.5 )
+					break
+			}
+		}
+		
+	}
 	DamageInfo_ScaleDamage( damageInfo, additiveDMGBonus )
 
 	if (verboseDamagePrintouts)
 		printt( "    After Additive DMG:", DamageInfo_GetDamage( damageInfo ) )
-	
+
 
 
 	// ROGUELIKE - power calculations
@@ -398,7 +473,7 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	{
 		//entPower *= 0.6 // Cores get DEF shred!
 	}
-	
+
 	// non-player attacks / non-titans arent affected by DEF
 	//if (!attackerIsPlayer || ent.GetArmorType() != ARMOR_TYPE_HEAVY)
 		entPower = 0
@@ -415,12 +490,12 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	{
 		ent.Signal("MeleeDamage")
 	}
-	
+
 	/*if ( attacker.IsPlayer() && GetTitanLoadoutFlags() & TITAN_BITS[PRIMARY_RONIN]
 	&& damageSourceId != eDamageSourceId.melee_titan_sword
 	&& damageSourceId != eDamageSourceId.mp_titancore_shift_core )
 		AddDaze( ent, attacker, DamageInfo_GetDamage( damageInfo ) / 2500.0 )*/
-	
+
 	// Added via AddEntityCallback_OnDamaged
 	foreach ( callbackFunc in ent.e.entDamageCallbacks )
 	{
@@ -431,8 +506,8 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		return
 	if (verboseDamagePrintouts)
 		printt( "    after AddEntityCallback_OnDamaged callbacks:", DamageInfo_GetDamage( damageInfo ) )
-	
-	
+
+
 	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_DOOMED_HEALTH_LOSS )
 		DamageInfo_AddDamageFlags( damageInfo, DAMAGEFLAG_NOPAIN )
 
@@ -497,11 +572,15 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		printt( "    	Shield Damage:", titanDamage.shieldDamage )
 
 
-	if (attackerIsPlayer && Roguelike_HasMod( attacker, "lifesteal" ))
+	if (attackerIsPlayer && Roguelike_HasMod( attacker, "lifesteal" ) && attacker.IsTitan())
 	{
-		if (Distance(attacker.GetOrigin(), ent.GetOrigin()) < pow(787.4, 2))
+		entity soul = attacker.GetTitanSoul()
+		if (IsValid(soul) && DistanceSqr(attacker.GetOrigin(), ent.GetOrigin()) < pow(1181, 2))
 		{
-			HealPlayer( attacker, int(min(DamageInfo_GetDamage( damageInfo ), ent.GetHealth()) * 0.3) )
+			int shieldHealth = soul.GetShieldHealth()
+			int shieldHealthMax = soul.GetShieldHealthMax()
+			int restore = int(min(DamageInfo_GetDamage( damageInfo ), ent.GetHealth()) * 0.2)
+			soul.SetShieldHealth( minint(shieldHealth + restore, shieldHealthMax) )
 		}
 	}
 	// Added via AddEntityCallback_OnPostDamaged
@@ -572,6 +651,7 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	attacker.Signal( "DamagedPlayerOrNPC" )
 
 	additiveDMGBonus = prevValue
+	critDMGBonus = prevCritValue
 }
 
 void function EarnMeterDamageConversion( var damageInfo, entity attacker, entity ent, float savedDamage, TitanDamage titanDamage )
@@ -1041,6 +1121,16 @@ void function CodeCallback_OnProjectileGrappled( entity player, entity projectil
 void function DamageInfo_ScaleDamage( var damageInfo, float scalar )
 {
 	DamageInfo_SetDamage( damageInfo, DamageInfo_GetDamage( damageInfo ) * scalar )
+}
+
+void function DamageInfo_AddCritDMG( var damageInfo, float scalar )
+{
+	if (verboseDamagePrintouts)
+	{
+		var stackInfos = getstackinfos(2)
+		printt( format("    +%.1f%% CRIT DMG: %s:%s", scalar * 100.0, string( stackInfos.src ), string( stackInfos.line )) )
+	}
+	critDMGBonus += scalar
 }
 
 void function DamageInfo_AddDamageBonus( var damageInfo, float scalar )

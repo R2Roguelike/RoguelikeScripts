@@ -133,19 +133,19 @@ void function NPCTitanSpawned( entity titan )
 	Assert( !IsMultiplayer() )
 
 	printt("NPCTitanSpawned")
-	thread void function() : (titan) 
+	thread void function() : (titan)
 	{
 		wait 0.001
 
 		if (!IsValid(titan))
 			return
-		
+
 		printt("set baseHealth")
 		float healthFrac = GetHealthFrac( titan )
 		if (!("baseHealth" in titan.s))
 			titan.s.baseHealth <- titan.GetMaxHealth()
 		//titan.SetHealth(titan.GetMaxHealth())
-		
+
 		UpdateMercTitanHealthForDifficulty( titan )
 	}()
 

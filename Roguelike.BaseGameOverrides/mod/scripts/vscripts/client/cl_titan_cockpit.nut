@@ -1627,7 +1627,7 @@ void function ServerCallback_UpdateHealthSegmentCountRandom( float duration )
 }
 void function UpdateHealthSegmentCountRandom( float duration )
 {
-	
+
 	if ( file.cockpitRui == null )
 		return
 

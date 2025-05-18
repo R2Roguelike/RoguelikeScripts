@@ -4,5 +4,6 @@ WeaponData
     SP_BASE
     {
         "impulse_force"                 "20000"
+		"explosion_damage"								"100"
     }
 }

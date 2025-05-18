@@ -10,7 +10,8 @@ global enum eVGUIButtonState
 {
     None,
     Selected,
-    Locked
+    Locked,
+    Disabled
 }
 
 table<var, void functionref( var )> callbacks
@@ -27,7 +28,7 @@ void function VGUIButton_Init( var panel )
     Hud_SetVisible( goldBorder, false )
     Hud_SetVisible( overlay, false )
     Hud_SetVisible( lock, false )
-    overlay.SetColor( 0, 0, 0, 128 )
+    overlay.SetColor( 0, 0, 0, 192 )
     Hud_AddEventHandler( button, UIE_GET_FOCUS, OnGetFocus )
     Hud_AddEventHandler( button, UIE_LOSE_FOCUS, OnLoseFocus )
     Hud_AddEventHandler( button, UIE_CLICK, OnClick )
@@ -62,7 +63,7 @@ void function OnClick( var button )
 void function OnGetFocus( var button )
 {
     var panel = Hud_GetParent( button )
-    
+
     Hud_GetChild( panel, "Overlay" ).SetVisible( false )
     Hud_GetChild( panel, "Lock" ).SetVisible( false )
     Hud_GetChild( panel, "GoldBorder" ).SetVisible( false )
@@ -82,11 +83,12 @@ void function OnGetFocus( var button )
             Hud_SetNew( button, true )
             break
         case eVGUIButtonState.Locked:
+            Hud_GetChild( panel, "Lock" ).SetVisible( true )
+        case eVGUIButtonState.Disabled:
+            Hud_SetLocked( button, true )
             Hud_GetChild( panel, "BG" ).SetColor( 220, 220, 220, 255 )
             Hud_GetChild( panel, "Label" ).SetColor( 25, 25, 25, 255 )
             Hud_GetChild( panel, "Overlay" ).SetVisible( true )
-            Hud_GetChild( panel, "Lock" ).SetVisible( true )
-            Hud_SetLocked( button, true )
             break
     }
 }
@@ -112,10 +114,11 @@ void function OnLoseFocus( var button )
             Hud_GetChild( panel, "GoldBorder" ).SetVisible( true )
             break
         case eVGUIButtonState.Locked:
+            Hud_GetChild( panel, "Lock" ).SetVisible( true )
+        case eVGUIButtonState.Disabled:
             Hud_GetChild( panel, "BG" ).SetColor( 0, 0, 0, 128 )
             Hud_GetChild( panel, "Label" ).SetColor( 255, 255, 255, 255 )
             Hud_GetChild( panel, "Overlay" ).SetVisible( true )
-            Hud_GetChild( panel, "Lock" ).SetVisible( true )
             Hud_SetLocked( button, true )
             break
     }

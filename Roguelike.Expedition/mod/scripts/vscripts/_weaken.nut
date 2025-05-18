@@ -38,7 +38,7 @@ void function RocketDamage( entity ent, var damageInfo )
 void function PrimaryDamage( entity ent, var damageInfo )
 {
     entity attacker = DamageInfo_GetAttacker( damageInfo )
-    
+
     if (!attacker.IsPlayer())
         return
 
@@ -54,10 +54,10 @@ void function CoreDamage( entity ent, var damageInfo )
     PrimaryDamage( ent, damageInfo )
 
     entity attacker = DamageInfo_GetAttacker( damageInfo )
-    
+
     if (!attacker.IsPlayer())
         return
-    
+
     entity coreWeapon = attacker.GetActiveWeapon() // will always be equipped cuz its hitscan!!!
     coreWeapon.SetWeaponPrimaryClipCount(minint(coreWeapon.GetWeaponPrimaryClipCountMax(), coreWeapon.GetWeaponPrimaryClipCount() + 1))
 }

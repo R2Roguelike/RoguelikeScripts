@@ -228,7 +228,7 @@ void function OnPlayerClassChanged( entity player )
 		return
 
 	InitWeaponStatusRuis( player )
-	
+
 	delaythread(0.2) InitWeaponStatusRuis( GetLocalViewPlayer() ) // hack, fixes some shit being wrong sometimes
 }
 

@@ -91,7 +91,7 @@ resource/ui/roguelike_timer.res
 		labelText			"S"
 		allCaps				1
 		font				JetBrainsMonoBold_36
-		auto_wide_to_contents	0
+		auto_wide_tocontents	0
         auto_tall_tocontents    1
 		textAlignment		north
 		fgcolor_override 	"255 0 0 255"
@@ -113,7 +113,7 @@ resource/ui/roguelike_timer.res
 		labelText			"Kills"
 		allCaps				1
 		font				JetBrainsMono_18
-		auto_wide_to_contents	0
+		auto_wide_tocontents	0
         auto_tall_tocontents    1
 		textAlignment		east
 		fgcolor_override 	"255 255 255 255"
@@ -181,7 +181,7 @@ resource/ui/roguelike_timer.res
 		labelText			"S"
 		allCaps				1
 		font				JetBrainsMonoBold_36
-		auto_wide_to_contents	0
+		auto_wide_tocontents	0
         auto_tall_tocontents    1
 		textAlignment		north
 		fgcolor_override 	"255 0 0 255"
@@ -203,7 +203,7 @@ resource/ui/roguelike_timer.res
 		labelText			"Time"
 		allCaps				1
 		font				JetBrainsMono_18
-		auto_wide_to_contents	0
+		auto_wide_tocontents	0
         auto_tall_tocontents    1
 		textAlignment		west
 		fgcolor_override 	"255 255 255 255"
@@ -212,5 +212,28 @@ resource/ui/roguelike_timer.res
 		pin_corner_to_sibling		BOTTOM_LEFT
 		pin_to_sibling_corner		TOP_LEFT
     }
+
+	Heat
+	{
+		ControlName			Label
+		xpos				-1
+		ypos				0
+
+		visible				1
+		zpos				200
+        wide                128
+		tall				24
+		labelText			""
+		allCaps				1
+		font				JetBrainsMono_18
+		auto_wide_tocontents	0
+        auto_tall_tocontents    1
+		textAlignment		center
+		fgcolor_override 	"255 127 0 255"
+
+		pin_to_sibling				Time
+		pin_corner_to_sibling		TOP
+		pin_to_sibling_corner		BOTTOM
+	}
 
 }

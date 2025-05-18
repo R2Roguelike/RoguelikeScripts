@@ -40,10 +40,9 @@ void function PilotHealthRegenThinkSP( entity player )
 
 		vector origin = player.GetOrigin()
 
-		
+
 		if (GetMapName() == "sp_boomtown_start" && origin.x < -1530 && origin.x > -1700 && origin.y < -6700 && origin.y > -7010)
 		{
-			printt((origin - lastOrigin).y)
 			if ((origin - lastOrigin).y < -1000 * 0.05)
 				player.SetOrigin(player.GetOrigin() + <00,-200,0>)
 		}
@@ -59,6 +58,16 @@ void function PilotHealthRegenThinkSP( entity player )
 
 		float healthRegenStartDelay = 3.0
 		float healthRegenRate = 2.0
+
+		if (Roguelike_HasMod(player, "always_regen"))
+		{
+			healthRegenRate /= 1.5
+			healthRegenStartDelay = 0.0
+		}
+		if (Roguelike_HasMod(player, "quick_regen"))
+		{
+			healthRegenRate *= 2.0
+		}
 
 		//printt( "recentDamage " + recentDamage + " delay " + healthRegenStartDelay + " rate " + healthRegenRate )
 
@@ -83,9 +92,6 @@ void function PilotHealthRegenThinkMP( entity player )
 	player.EndSignal( "PilotHealthRegenThink" )
 
 	//float healthRegenStartDelay = player.GetPlayerSettingsField( "powerRegenRateOp" ) // seconds after we take damager to start regen
-	float healthRegenStartDelay = 5.0 //Needs to use GetPlayerSettingsField() instead of hard coding, waiting on Bug 129567
-	if ( PlayerHasPassive( player, ePassives.PAS_FAST_HEALTH_REGEN ) )
-		healthRegenStartDelay = 2.5
 
 	while ( IsValid( player ) )
 	{
@@ -101,6 +107,16 @@ void function PilotHealthRegenThinkMP( entity player )
 			continue
 
 		float healthRegenRate = file.healthRegenRate 	// health regen per tick
+
+		float healthRegenStartDelay = 5.0 //Needs to use GetPlayerSettingsField() instead of hard coding, waiting on Bug 129567
+		if ( PlayerHasPassive( player, ePassives.PAS_FAST_HEALTH_REGEN ) )
+			healthRegenStartDelay = 2.5
+
+		if (Roguelike_HasMod(player, "always_regen"))
+		{
+			healthRegenRate /= 2
+			healthRegenStartDelay = 0.0
+		}
 
 		if ( player.GetHealth() == player.GetMaxHealth() )
 			continue

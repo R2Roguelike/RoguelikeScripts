@@ -44,7 +44,7 @@ void function KickPattern_ApplyModWeaponVars( entity weapon )
 
         int maxAmmo = weapon.GetWeaponSettingInt(eWeaponVar.ammo_clip_size)
         float ammoFrac = float(ammo) / maxAmmo
-        
+
         int index = (maxAmmo - ammo) % kickPattern.len()
         array<string> kickPattern = split(kickPattern[index], " ")
         ModWeaponVars_SetFloat(weapon, eWeaponVar.viewkick_pitch_base, float(kickPattern[1]))

@@ -87,7 +87,7 @@ void function CodeCallback_DamageEntity( entity ent, var damageInfo )
 		DamageInfo_SetDamage( damageInfo, 0 )
 		return
 	}
-	
+
 	if (verboseDamagePrintouts)
 		printt( "CodeCallback_DamageEntity() top:", DamageInfo_GetDamage( damageInfo ) )
 
@@ -122,6 +122,12 @@ void function CodeCallback_DamageEntity( entity ent, var damageInfo )
 	if ( "isDestructibleVehicle" in ent.s && DamageInfo_GetCustomDamageType( damageInfo ) & DF_EXPLOSION )
 	{
 		DamageInfo_ScaleDamage( damageInfo, 2.0 )
+	}
+
+	if (IsValid(attacker) && Roguelike_HasMod( attacker, "anti_shield"))
+	{
+		printt("mass")
+		DamageInfo_ScaleDamage( damageInfo, 5 )
 	}
 
 	if ( ent.GetShieldHealth() > 0 )

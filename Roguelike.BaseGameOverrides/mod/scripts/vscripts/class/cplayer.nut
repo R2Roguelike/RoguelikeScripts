@@ -39,6 +39,7 @@ function CodeCallback_RegisterClass_CPlayer()
 	CPlayer.serverFlags <- 0
 	CPlayer.watchingKillreplayEndTime <- 0.0
 	CPlayer.cloakedForever <- false
+	CPlayer.uncloakOnDamage <- false
 	CPlayer.stimmedForever <- false
 
 	RegisterSignal( "OnRespawnPlayer" )
@@ -328,16 +329,16 @@ function CodeCallback_RegisterClass_CPlayer()
 			}
 		}
 	}
-	
+
     function CPlayer::GetUserInfoString( key, defaultValue = "" )
-    {	
+    {
 		// HACK: GetUserInfoKV crashes if we dont wait a bit after a save is loaded
-		// as a pilot 
+		// as a pilot
 		if (GetLastCheckPointLoadTime() - Time() < 0.5)
 			return defaultValue
         return GetUserInfoKVString_Internal( this, key, defaultValue )
     }
-	
+
     function CPlayer::GetUserInfoInt( key, defaultValue = 0 )
     {
 		if (GetLastCheckPointLoadTime() - Time() < 0.5)

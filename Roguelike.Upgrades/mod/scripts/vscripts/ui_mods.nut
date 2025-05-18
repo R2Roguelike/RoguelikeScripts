@@ -4,13 +4,14 @@ globalize_all_functions
 
 struct {
     array<RoguelikeMod> mods
+    array<RoguelikeRunModifier> modifiers
 } file
 
 void function Mods_Init()
 {
     // THIS HAS TO BE FIRST!!!!!!!
-    // ALL MODS ARE SET BY DEFAULT TO INDEX 0
-    
+    // ALL MODS ARE HARDCODED TO DEFAULT TO INDEX 0
+
     {
         RoguelikeMod mod
         mod.uniqueName = "empty"
@@ -40,17 +41,41 @@ void function Mods_Init()
 
     // NORTHSTAR
     Northstar_RegisterMods()
-    
+
     // SCORCH
     Scorch_RegisterMods()
 
     // EXPEDITION
     Expedition_RegisterMods()
-    
+
     // LEGION
     Legion_RegisterMods()
 
+    // ION
+    Ion_RegisterMods()
+
     printt("Registered", file.mods.len())
+    int loadoutSpecific = 0
+    table<string, int> modsPerLoadout
+    foreach (RoguelikeMod mod in file.mods)
+    {
+        if (mod.loadouts.len() > 0)
+        {
+            loadoutSpecific++
+            foreach (string loadout in mod.loadouts)
+            {
+                if (loadout in modsPerLoadout)
+                    modsPerLoadout[loadout]++
+                else
+                    modsPerLoadout[loadout] <- 1
+            }
+        }
+    }
+    printt(loadoutSpecific, "of which are loadout specific")
+    foreach (string loadout, int val in modsPerLoadout)
+    {
+        printt(loadout, val)
+    }
 }
 
 void function Roguelike_RegisterMod( RoguelikeMod mod )
@@ -64,6 +89,16 @@ RoguelikeMod function Roguelike_NewMod( string uniqueName )
     mod.uniqueName = uniqueName
     mod.index = file.mods.len()
     file.mods.append(mod)
+
+    return mod
+}
+
+RoguelikeRunModifier function Roguelike_NewRunModifier( string uniqueName )
+{
+    RoguelikeRunModifier mod
+    mod.uniqueName = uniqueName
+    mod.index = file.modifiers.len()
+    file.modifiers.append(mod)
 
     return mod
 }
@@ -116,7 +151,7 @@ bool function Roguelike_IsModCompatibleWithSlot( RoguelikeMod mod, int chipSlot,
 {
     if (mod.chip == ALL_CHIP_SLOTS && mod.loadouts.len() <= 0)
         return true
-    
+
     return GetModChipSlotFlags(mod) == chipSlot && isTitan == mod.isTitan
 }
 
@@ -127,7 +162,7 @@ bool function Roguelike_IsModUnlocked( RoguelikeMod mod )
 
     if (GetConVarBool("roguelike_unlock_all"))
         return true
-    
+
     return expect bool( Roguelike_GetRunData().unlockedMods.contains(mod.uniqueName) )
 }
 #endif
@@ -139,6 +174,19 @@ RoguelikeMod function GetModForIndex( var index )
     return file.mods[index]
 }
 
+RoguelikeRunModifier function GetRunModifierDataByName( var name )
+{
+    foreach (RoguelikeRunModifier mod in file.modifiers)
+    {
+        if (mod.uniqueName == name)
+            return mod
+    }
+
+    string error = "Could not find modifier of name \"" + name + "\""
+    throw error
+    unreachable
+}
+
 RoguelikeMod function GetModByName( var name )
 {
     foreach (RoguelikeMod mod in file.mods)
@@ -147,7 +195,8 @@ RoguelikeMod function GetModByName( var name )
             return mod
     }
 
-    throw "Could not find mod of name " + name
+    string error = "Could not find mod of name \"" + name + "\""
+    throw error
     unreachable
 }
 
@@ -155,11 +204,64 @@ RoguelikeMod function GetModByName( var name )
 array function GetAllLockedMods()
 {
     array result
+    array<string> loadouts = Roguelike_GetTitanLoadouts()
     foreach (RoguelikeMod mod in file.mods)
     {
-        if (!mod.unlockedByDefault && GetModChipSlotFlags(mod) != ALL_CHIP_SLOTS)
+        bool isModAvailable = mod.loadouts.len() == 0
+        foreach (string loadout in mod.loadouts)
+        {
+            if (loadouts.contains(loadout))
+            {
+                isModAvailable = true
+                break;
+            }
+        }
+        if (!mod.unlockedByDefault && isModAvailable)
             result.append(mod.uniqueName)
     }
+    printt("total pool of", result.len(), "mods")
+    return result
+}
+array function GetAllLockedPilotMods()
+{
+    array result
+    array<string> loadouts = Roguelike_GetTitanLoadouts()
+    foreach (RoguelikeMod mod in file.mods)
+    {
+        bool isModAvailable = mod.loadouts.len() == 0
+        foreach (string loadout in mod.loadouts)
+        {
+            if (loadouts.contains(loadout))
+            {
+                isModAvailable = true
+                break;
+            }
+        }
+        if (!mod.unlockedByDefault && isModAvailable && !mod.isTitan)
+            result.append(mod.uniqueName)
+    }
+    printt("total pool of", result.len(), "mods")
+    return result
+}
+array function GetAllLockedTitanMods()
+{
+    array result
+    array<string> loadouts = Roguelike_GetTitanLoadouts()
+    foreach (RoguelikeMod mod in file.mods)
+    {
+        bool isModAvailable = mod.loadouts.len() == 0
+        foreach (string loadout in mod.loadouts)
+        {
+            if (loadouts.contains(loadout))
+            {
+                isModAvailable = true
+                break;
+            }
+        }
+        if (!mod.unlockedByDefault && isModAvailable && mod.isTitan)
+            result.append(mod.uniqueName)
+    }
+    printt("total pool of", result.len(), "mods")
     return result
 }
 
@@ -167,14 +269,14 @@ int function GetModChipSlotFlags(RoguelikeMod mod)
 {
     if (mod.loadouts.len() <= 0)
         return mod.chip
-    
+
     array<string> loadout
 
     if (mod.isTitan)
         loadout = Roguelike_GetTitanLoadouts()
     else
         loadout = ["mp_weapon_frag_grenade", "mp_ability_cloak"]
-    
+
     int result = 0;
     for (int i = 0; i < loadout.len(); i++)
     {
@@ -184,7 +286,7 @@ int function GetModChipSlotFlags(RoguelikeMod mod)
             {
                 return (3 + i)
             }
-            
+
             return mod.chip
         }
     }

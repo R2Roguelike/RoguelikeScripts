@@ -5,6 +5,7 @@ global function Roguelike_HasMod
 global function AddCallback_InventoryRefreshed
 global function Roguelike_GetStat
 global function Roguelike_RefreshInventory
+global function CC_Fuck
 
 struct {
     array<void functionref( entity )> onInventoryRefreshed
@@ -12,7 +13,11 @@ struct {
 
 void function Inventory_Init()
 {
+    RegisterSignal("UnfreezeAll")
     AddClientCommandCallback( "RefreshInventory", CC_RefreshInventory )
+    AddClientCommandCallback( "notarget", CC_NoTarget )
+    AddClientCommandCallback( "freezeall", CC_FreezeAll )
+    //AddClientCommandCallback( "fuck", CC_Fuck )
 
     AddCallback_OnClientConnected( OnClientConnected )
     AddCallback_OnLoadSaveGame( void function( entity player ) : () {
@@ -29,9 +34,9 @@ void function OnClientConnected( entity player )
     AddPlayerMovementEventCallback( player, ePlayerMovementEvents.DOUBLE_JUMP, OnPlayerDoubleJump )
     AddPlayerMovementEventCallback( player, ePlayerMovementEvents.DODGE, OnPlayerDodge )
 
-    
+
     delaythread(0.1) void function() : (player) { wait 0.001; SetServerVar( "startTime", Time() ); RefreshInventory( player ) }()
-    
+
 }
 
 void function Roguelike_RefreshInventory( entity player )
@@ -122,10 +127,25 @@ void function RefreshInventory( entity player )
 
         if (shouldSwapWeapons)
         {
+            int weaponsTaken = 2
             foreach (entity mainWeapon in mainWeapons)
-                if (mainWeapon.GetWeaponClassName() != "sp_weapon_arc_tool")
+            {
+                // oh my GOD how did he miss this AGAIN
+                if (mainWeapon.GetWeaponClassName() == "sp_weapon_arc_tool")
+                    continue
+                if (!weaponsList.contains( mainWeapon.GetWeaponClassName() ))
+                {
                     player.TakeWeaponNow( mainWeapon.GetWeaponClassName() )
-            
+                    weaponsTaken--
+                }
+                else
+                {
+                    int index = weaponsList.find(mainWeapon.GetWeaponClassName())
+                    weaponsList.remove(index)
+                    weaponModsList.remove(index)
+                }
+            }
+
             for (int i = 0; i < weaponsList.len(); i++)
             {
                 entity weapon = player.GiveWeapon(weaponsList[i], weaponModsList[i])
@@ -137,7 +157,7 @@ void function RefreshInventory( entity player )
     {
         if (s == "" || s == "0")
             continue
-        
+
         int index = int( s )
         RoguelikeMod mod = GetModForIndex( index )
         player.s.mods.append(mod.uniqueName)
@@ -147,15 +167,34 @@ void function RefreshInventory( entity player )
     {
         if (s == "")
             continue
-        
+
         int value = int( s )
         player.s.stats.append(value)
     }
 
+    if (!player.IsTitan() && player.GetPlayerSettings() != "spectator")
+    {
+        switch (Roguelike_GetRunModifier("unwalkable"))
+        {
+            case 1:
+                player.SetPlayerSettingPosMods(PLAYERPOSE_STANDING, ["75_speed"])
+                player.SetPlayerSettingPosMods(PLAYERPOSE_CROUCHING, ["75_speed"])
+                break
+            case 2:
+                player.SetPlayerSettingPosMods(PLAYERPOSE_STANDING, ["50_speed"])
+                player.SetPlayerSettingPosMods(PLAYERPOSE_CROUCHING, ["50_speed"])
+                break
+            case 3:
+                player.SetPlayerSettingPosMods(PLAYERPOSE_STANDING, ["25_speed"])
+                player.SetPlayerSettingPosMods(PLAYERPOSE_CROUCHING, ["25_speed"])
+                break
+        }
+    }
+
     foreach (void functionref( entity ) callback in file.onInventoryRefreshed)
         callback( player )
-    
-    
+
+
     foreach (entity w in player.GetMainWeapons())
     {
         if (w.GetWeaponClassName() == "mp_titanweapon_meteor")
@@ -193,6 +232,149 @@ bool function CC_RefreshInventory( entity player, array<string> args )
     RefreshInventory( player )
     return true
 }
+bool function CC_Fuck( entity player, entity target )
+{
+    thread void function () : (player, target)
+    {
+        target.EndSignal("OnDeath")
+        target.EndSignal("OnDestroy")
+        entity cpEnd = CreateEntity( "info_placement_helper" )
+        SetTargetName( cpEnd, UniqueString( "balls" ) )
+        cpEnd.SetOrigin( target.GetOrigin() + <0, 0, 3000> )
+        DispatchSpawn( cpEnd )
+
+        array<entity> fx = []
+        const int COUNT = 150
+        for (int i = 0; i < COUNT; i++)
+        {
+            float rightOffset = deg_sin(i * 360.0 / COUNT) * 100
+            float forwardOffset = deg_cos(i * 360.0 / COUNT) * 100
+
+            entity fxHandle = CreateEntity( "info_particle_system" )
+            fxHandle.SetValueForEffectNameKey( $"P_wpn_lasercannon" )
+            fxHandle.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
+            fxHandle.kv.start_active = 0
+            fxHandle.kv.cpoint1 = cpEnd.GetTargetName()
+            fxHandle.SetOrigin( target.GetOrigin() + <0,1,0> * forwardOffset + <1,0,0> * rightOffset - <0,0,100> )
+            fxHandle.SetAngles( <0,0,0> )
+            DispatchSpawn(fxHandle)
+            
+            fx.append(fxHandle)
+        }
+
+
+        EmitSoundOnEntity( player, "Titan_Core_Laser_FireBeam_1P_extended" )
+        EmitSoundOnEntity( player, "Titan_Core_Laser_FireStart_1P" )
+        for (int i = 0; i < COUNT; i++)
+        {
+            fx[i].Fire( "Start" )
+        }
+
+
+        OnThreadEnd( void function() : (cpEnd, player, fx)
+        {
+            foreach (entity fxHandle in fx)
+            {
+            fxHandle.Fire( "Stop" )
+            fxHandle.Fire( "DestroyImmediately" )
+            fxHandle.Destroy()
+            }
+            if (IsValid(cpEnd))
+            {
+                cpEnd.Destroy()
+            }
+            StopSoundOnEntity( player, "Titan_Core_Laser_FireStart_1P" )
+            StopSoundOnEntity( player, "Titan_Core_Laser_FireBeam_1P_extended" )
+        } )
+        float endTime = Time() + 5
+        while (Time() < endTime)
+        {
+            int i =0
+            foreach (entity fxHandle in fx)
+            {
+                float rightOffset = deg_sin(i * 360.0 / COUNT) * 100
+                float forwardOffset = deg_cos(i * 360.0 / COUNT) * 100
+                fxHandle.SetOrigin( target.GetOrigin() + <1,0,0> * rightOffset + <0,1,0> * forwardOffset - <0,0,100> )
+                i++
+            }
+            target.TakeDamage( 100, player, player, { damageSourceId = eDamageSourceId.mp_titancore_laser_cannon, origin = target.GetWorldSpaceCenter() })
+            wait 0.01
+        }
+    }()
+    return true
+}
+
+void function LaserSegment( vector origin, vector dir, entity cpEnd, entity player, array<entity> ignore )
+{
+    entity fxHandle = CreateEntity( "info_particle_system" )
+    fxHandle.SetValueForEffectNameKey( $"P_wpn_lasercannon" )
+    fxHandle.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
+    fxHandle.kv.start_active = 1
+    fxHandle.kv.cpoint1 = cpEnd.GetTargetName()
+    fxHandle.SetOrigin( origin )
+    fxHandle.SetAngles( <0,0,0> )
+    DispatchSpawn( fxHandle )
+
+
+
+    OnThreadEnd( void function() : (fxHandle)
+    {
+        if (IsValid(fxHandle))
+        {
+            fxHandle.Fire( "Stop" )
+            fxHandle.Fire( "DestroyImmediately" )
+            fxHandle.Destroy()
+        }
+    } )
+
+    float startTime = Time()
+
+    float endTime = Time() + 3
+    while (Time() < endTime)
+    {
+        wait 0
+    }
+
+}
+bool function CC_NoTarget( entity player, array<string> args )
+{
+    if (!GetConVarBool("sv_cheats"))
+        return false
+
+    player.SetNoTarget( !player.GetNoTarget() )
+    printt("notarget set to", player.GetNoTarget())
+
+    return true
+}
+
+bool freezeall = false
+bool function CC_FreezeAll( entity player, array<string> args )
+{
+    if (!GetConVarBool("sv_cheats"))
+        return false
+
+    printt("freeze!")
+    player.SetNoTarget( true )
+    foreach (entity npc in GetNPCArrayEx( "any", TEAM_ANY, TEAM_ANY, player.GetOrigin(), 65536.0 ))
+        thread FreezeNPC(npc)
+
+    return true
+}
+
+void function FreezeNPC( entity npc )
+{
+	npc.DisableNPCFlag( NPC_ALLOW_PATROL | NPC_ALLOW_INVESTIGATE )
+    npc.ClearEnemy()
+    npc.ClearEnemyMemory()
+	npc.SetNoTarget( true )
+    npc.EnableNPCFlag( NPC_IGNORE_ALL )
+	npc.EnableNPCFlag( NPC_DISABLE_SENSING )	// don't do traces to look for enemies or players
+
+    svGlobal.worldspawn.EndSignal("UnfreezeAll")
+    npc.EndSignal("OnDeath")
+
+    WaitForever()
+}
 
 int function Roguelike_GetModCount( entity player, string modName )
 {
@@ -219,5 +401,5 @@ bool function Roguelike_HasMod( entity player, string modName )
 
 int function Roguelike_GetStat( entity player, int stat )
 {
-    return minint(expect int(player.s.stats[stat]), 100)
+    return minint(expect int(player.s.stats[stat]), STAT_CAP)
 }

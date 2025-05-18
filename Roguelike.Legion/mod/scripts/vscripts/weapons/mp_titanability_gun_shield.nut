@@ -1,8 +1,10 @@
+untyped
 global function OnWeaponPrimaryAttack_gun_shield
 global function MpTitanAbilityGunShield_Init
 
 #if SERVER
 global function OnWeaponNpcPrimaryAttack_gun_shield
+global function IsGunShieldActive
 #else
 global function ServerCallback_PilotCreatedGunShield
 #endif
@@ -133,6 +135,10 @@ var function OnWeaponNpcPrimaryAttack_gun_shield( entity weapon, WeaponPrimaryAt
 #endif
 
 #if SERVER
+bool function IsGunShieldActive( entity titan )
+{
+	return "gunShieldActive" in titan.s
+}
 void function Sv_CreateGunShield( entity titan, entity weapon, entity shieldWeapon, float duration )
 {
 	titan.EndSignal( "OnDeath" )
@@ -140,6 +146,7 @@ void function Sv_CreateGunShield( entity titan, entity weapon, entity shieldWeap
 	titan.EndSignal( "DisembarkingTitan" )
 	titan.EndSignal( "TitanEjectionStarted" )
 	titan.EndSignal( "ContextAction_SetBusy" )
+	//titan.EndSignal( "LoadoutSwap" )
 
 	entity vortexWeapon = weapon
 	entity vortexSphere = CreateGunShieldVortexSphere( titan, vortexWeapon, shieldWeapon )
@@ -179,6 +186,8 @@ void function Sv_CreateGunShield( entity titan, entity weapon, entity shieldWeap
 				vortexWeapon.SetWeaponUtilityEntity( null )
 			}
 
+			delete titan.s.gunShieldActive
+
 			if ( IsValid( shieldWallFX ) )
 				EffectStop( shieldWallFX )
 
@@ -190,9 +199,23 @@ void function Sv_CreateGunShield( entity titan, entity weapon, entity shieldWeap
 			{
 				EmitSoundOnEntity( titan, "titan_energyshield_down" )
 				PlayFXOnEntity( FX_TITAN_GUN_SHIELD_BREAK, titan, "PROPGUN" )
+				if (Roguelike_HasMod( titan, "power_shield" ))
+				{
+					printt("shield destroyed!")
+					entity primary = Roguelike_FindWeapon( titan, "mp_titanweapon_predator_cannon" )
+					primary.SetWeaponPrimaryClipCount(primary.GetWeaponPrimaryClipCountMax())
+					entity offensive = Roguelike_FindWeapon( titan, "mp_titanability_power_shot" )
+					if (IsValid(offensive))
+					{
+						offensive.SetWeaponPrimaryClipCount( offensive.GetWeaponPrimaryClipCountMax() )
+					}
+
+				}
 			}
 		}
 	)
+
+	titan.s.gunShieldActive <- true
 
 	if ( duration > 0 )
 		wait duration
@@ -341,7 +364,7 @@ void function CL_GunShield_Internal( entity player, entity vortexWeapon, entity 
 	player.EndSignal( "GunShieldEnd" )
 
 	asset shieldFX = FX_TITAN_GUN_SHIELD_VM
-	file.sphereClientFXHandle = vortexWeapon.PlayWeaponEffectReturnViewEffectHandle( shieldFX, $"", "gun_shield_fp" )
+	//file.sphereClientFXHandle = vortexWeapon.PlayWeaponEffectReturnViewEffectHandle( shieldFX, $"", "gun_shield_fp" )
 
 	OnThreadEnd(
 		function() : ()
@@ -353,9 +376,26 @@ void function CL_GunShield_Internal( entity player, entity vortexWeapon, entity 
 		}
 	)
 
+	bool weaponWasActive = false
 	float oldHealth = float( vortexSphere.GetHealth() )
 	while( true )
 	{
+		bool weaponIsActive = player.GetActiveWeapon() == vortexWeapon
+
+		if (weaponIsActive && !weaponWasActive)
+		{
+			file.sphereClientFXHandle = vortexWeapon.PlayWeaponEffectReturnViewEffectHandle( shieldFX, $"", "gun_shield_fp" )
+		}
+		else if (!weaponIsActive && weaponWasActive)
+		{
+			if ( file.sphereClientFXHandle != -1 )
+				EffectStop( file.sphereClientFXHandle, true, false )
+
+			file.sphereClientFXHandle = -1
+		}
+
+		weaponWasActive = weaponIsActive
+
 		float newHealth = float( vortexSphere.GetHealth() )
 		UpdateShieldColor( player, oldHealth, newHealth, oldHealth == newHealth )
 		oldHealth = newHealth

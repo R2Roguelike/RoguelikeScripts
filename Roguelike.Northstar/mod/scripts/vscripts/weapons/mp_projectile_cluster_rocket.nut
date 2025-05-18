@@ -14,7 +14,7 @@ void function OnProjectileCollision_ClusterRocket( entity projectile, vector pos
 			PlayFX( TITAN_NUCLEAR_CORE_FX_3P, pos + Vector( 0, 0, -10 ), Vector(0,RandomInt(360),0) )
 
 			EmitSoundAtPosition( TEAM_ANY, pos, "titan_nuclear_death_explode" )
-			
+
 			float titanDamage = 1000
 			RadiusDamage( pos,			// origin
 				projectile.GetOwner(),						// owner
@@ -27,7 +27,7 @@ void function OnProjectileCollision_ClusterRocket( entity projectile, vector pos
 				0,							// distFromAttacker
 				10000,						// force
 				damageTypes.explosive,
-				eDamageSourceId.mp_titanweapon_dumbfire_rockets )	
+				eDamageSourceId.mp_titanweapon_dumbfire_rockets )
 		}
 
 		ClusterRocket_Detonate( projectile, normal )

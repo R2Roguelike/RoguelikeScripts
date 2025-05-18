@@ -27,7 +27,7 @@ void function Healthbars_Think()
 {
     entity player = GetLocalClientPlayer()
     var healthbarsPanel = HudElement("Healthbars")
-    
+
     while (true)
     {
         wait 0.001
@@ -48,8 +48,10 @@ void function Healthbars_Think()
             // dont show player healthbar above them???
             if (ent == player)
                 continue
+            if (ent.GetTitleForUI() == "Laser Tripwire")
+                continue
             file.hitEnts.append(ent)
-            
+
             if (ent.IsTitan())
             {
                 if (!file.titanHealthbarEntities.contains(ent))
@@ -65,12 +67,14 @@ void function Healthbars_Think()
                 }
             }
         }
-        
-        bool isUsingRonin = Roguelike_GetTitanLoadouts().contains("mp_titanweapon_leadwall")
+
+        entity lastPrimary = player.GetLatestPrimaryWeapon()
+        bool isUsingRonin = IsValid(lastPrimary) && lastPrimary.GetWeaponClassName() == PRIMARY_RONIN
         if (player.IsTitan() && isUsingRonin)
         {
-            bool hasMod = false
+            bool hasMod = Roguelike_HasMod( player, "reflective_sword" )
             Hud_SetVisible( HudElement("CrosshairBar"), hasMod )
+            Hud_SetBarProgress( HudElement("CrosshairBar"), GraphCapped(RSE_Get( player, RoguelikeEffect.ronin_block_buff ), 0, 1, 0.370, 0.625) )
         }
         else if (!player.IsTitan())
         {
@@ -90,7 +94,7 @@ void function Healthbars_Think()
             Hud_SetVisible( HudElement("CrosshairBar"), false )
         }
     }
-    
+
 }
 
 void function HealthBar( var healthbarsPanel, entity ent )
@@ -139,7 +143,7 @@ void function HealthBar( var healthbarsPanel, entity ent )
             file.healthbarEntities[index] = null
             ent.Signal("EndTargetInfo")
         }
-        
+
         Hud_SetVisible( healthbar, !clGlobal.isMenuOpen )
 
         // check team
@@ -240,7 +244,7 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
             file.titanHealthbarEntities[index] = null
             ent.Signal("EndTargetInfo")
         }
-        
+
         Hud_SetVisible( healthbar, !clGlobal.isMenuOpen )
 
         // check team
@@ -289,12 +293,12 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
                     healthPerSegment = 2500.0
                     break
                 case 3:
-                    healthPerSegment = 3000.0
+                    healthPerSegment = 2500.0
                     break
             }
             if (title == "BT-7274")
             {
-                healthPerSegment = 1800.0
+                healthPerSegment = 2500.0
             }
         }
         float segments = ent.GetMaxHealth() / healthPerSegment
@@ -333,11 +337,11 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
             lastHealthFrac = healthFrac
         }
         Hud_SetBarProgress( changeBar, lastLastHealthFrac )
-        Hud_SetBarProgress( shieldBar, IsValid(soul) && soul.GetShieldHealthMax() > 0.0 ? 
+        Hud_SetBarProgress( shieldBar, IsValid(soul) && soul.GetShieldHealthMax() > 0.0 ?
             float(soul.GetShieldHealth()) / float(soul.GetShieldHealthMax()) : 0.0 )
-        
+
         // set status frac
-        
+
         array<string> titanLoadouts = Roguelike_GetTitanLoadouts()
         for (int i = 0; i < 2; i++)
         {
@@ -382,6 +386,21 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
                         Hud_SetText( statusEffectText, "Fulminate")
                         Hud_SetColor( statusEffectBar, 64, 96, 255, 255 )
                         Hud_SetColor( statusEffectText, 64, 96, 255, 255 )
+                        break
+                    case "mp_titanweapon_particle_accelerator":
+                        float cur = RSE_Get( ent, RoguelikeEffect.ion_charge )
+                        Hud_SetBarProgress( statusEffectBar, cur )
+                        Hud_SetText( statusEffectText, "Charge")
+                        if (cur > 0.99)
+                        {
+                            Hud_SetColor( statusEffectBar, 64, 255, 255, 255 )
+                            Hud_SetColor( statusEffectText, 64, 255, 255, 255 )
+                        }
+                        else
+                        {
+                            Hud_SetColor( statusEffectBar, 127, 127, 127, 255 )
+                            Hud_SetColor( statusEffectText, 127, 127, 127, 255 )
+                        }
                         break
                 }
             }

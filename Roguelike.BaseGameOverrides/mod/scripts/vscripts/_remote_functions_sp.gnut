@@ -431,7 +431,7 @@ function RemoteFunctions_Init()
 	RegisterEntityVar( "player", "reviveBleedingOut", 0.0, true )
 	RegisterEntityVar( "player", "reviveHealedTime", 0.0, true )
 	RegisterEntityVar( "player", "reviveHealedTime", 0.0, true )
-	
+
 	RegisterEntityVar( "player", "reviveHealedTime", 0.0, true )
 
 	// SP Objectives
@@ -684,6 +684,11 @@ function RemoteFunctions_Init()
 			Remote_RegisterFunction( "ServerCallback_s2sCrash" )
 			Remote_RegisterFunction( "ServerCallback_ShipStreamingSetup" )
 			Remote_RegisterFunction( "ServerCallback_LevelIntroText" )
+			// ROGUELIKE - FLYING FIGHT
+			Remote_RegisterFunction( "ServerCallback_FlyingFightStart" )
+			Remote_RegisterFunction( "ServerCallback_FlyingFightFlight" )
+			Remote_RegisterFunction( "ServerCallback_FlyingFightRefueling" )
+			Remote_RegisterFunction( "ServerCallback_FlyingFightEnd" )
 
 			RegisterServerVar( "ShipTitles", 0 )
 			RegisterServerVar( "ShipStreaming", 0 )
@@ -775,7 +780,7 @@ function RemoteFunctions_Init()
 	Remote_RegisterFunction( "ServerCallback_GetObjectiveReminderOnLoad" )
 	Remote_RegisterFunction( "ServerCallback_ClearObjectiveReminderOnLoad" )
 	Remote_RegisterFunction( "ScriptCallback_Beacon_FreeTrialOverMessage" )
-	
+
 	Remote_RegisterFunction( "Roguelike_GenerateLoot" )
 	Remote_RegisterFunction( "ServerCallback_RSE_Apply" )
 	Remote_RegisterFunction( "ServerCallback_Roguelike_AddMoney" )

@@ -54,11 +54,11 @@ string function RoguelikeWeapon_GetSlot( string weapon )
 {
 	if (!IsFullyConnected())
 		throw "RoguelikeWeapon_GetSlot called while not fully connected"
-	
+
 	var slot = GetWeaponInfoFileKeyField_Global( weapon, "inventory_slot" )
 	if (slot == null)
 		slot = "primary"
-	
+
 	expect string(slot)
 
 	return slot
@@ -75,9 +75,9 @@ table function RoguelikeWeapon_Generate()
     float chanceForBetterRarity = GraphCapped( levelsComplete % 2, 0, 2, 0, 1 )
     if (RandomFloat(1) < chanceForBetterRarity)
         baseRarity++
-		
+
     baseRarity = minint(RARITY_LEGENDARY, maxint(baseRarity, RARITY_COMMON))
-	
+
 	return RoguelikeWeapon_CreateWeapon( weapon, baseRarity, RoguelikeWeapon_GetSlot( weapon ) )
 }
 

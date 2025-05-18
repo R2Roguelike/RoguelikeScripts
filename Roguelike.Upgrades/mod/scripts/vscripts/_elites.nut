@@ -12,6 +12,7 @@ void function Elites_Init()
 {
     RegisterSignal("MeleeDamage")
     RegisterSignal("SacrificeTime")
+    RegisterSignal("LoadoutSwap")
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT )
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT_MOD )
 	PrecacheImpactEffectTable( ARC_CANNON_FX_TABLE )
@@ -19,7 +20,8 @@ void function Elites_Init()
     Elites_Add( Elite_Healing )
     Elites_Add( Elite_Enraged )
     Elites_Add( Elite_Invulnerable )
-    Elites_Add( Elite_Sacrifice )
+    if (!("titan_health" in Roguelike_GetRunModifiers()))
+        Elites_Add( Elite_Sacrifice )
 }
 
 string function GetEliteType( entity npc )
@@ -41,7 +43,7 @@ void function Elites_Generate( entity npc )
     float chance = GraphCapped( levelsComplete, 0, 5, 0.05, 0.333 )
     if (RandomFloat(1) > chance)
         return
-    
+
     if (npc.GetTeam() != TEAM_IMC)
         return
 
@@ -89,7 +91,7 @@ void function Elite_BubbleShield( entity npc )
     npc.EndSignal("OnDeath")
     npc.EndSignal("OnDestroy")
 
-    
+
     entity bubbleShield = TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
 
 
@@ -104,7 +106,7 @@ void function Elite_BubbleShield( entity npc )
         npc.WaitSignal("MeleeDamage")
 
         bubbleShield.Destroy()
-        
+
         Highlight_SetEnemyHighlight( npc, "elite_bubble_shield_off")
 
         wait 30
@@ -129,7 +131,7 @@ entity function TestBubbleShield( int team, vector origin, vector angles, entity
     {
         origin += <0,0,60>
     }
-    
+
 	bubbleShield.SetOrigin( origin )
 	bubbleShield.SetAngles( angles )
      // Blocks bullets, projectiles but not players and not AI
@@ -139,7 +141,7 @@ entity function TestBubbleShield( int team, vector origin, vector angles, entity
 	DispatchSpawn( bubbleShield )
 	//bubbleShield.Hide()
     // no, mr railgun sir
-	bubbleShield.SetPassThroughThickness( 501 ) 
+	bubbleShield.SetPassThroughThickness( 501 )
     //bubbleShield.SetTeam( owner.GetTeam() )
 	//bubbleShield.SetPassThroughDirection( 0 )
 
@@ -148,7 +150,7 @@ entity function TestBubbleShield( int team, vector origin, vector angles, entity
 
 	vector coloredFXOrigin = origin + Vector( 0, 0, 25 )
 	table bubbleShieldDotS = expect table( bubbleShield.s )
-    
+
 
 	bubbleShield.SetParent(owner)
 
@@ -176,7 +178,7 @@ void function Elite_Invulnerable( entity npc )
         {
             if (GetEliteType(ent) == "invulnerable")
                 continue
-            
+
             if (!ent.IsNPC())
                 continue
 
@@ -185,7 +187,7 @@ void function Elite_Invulnerable( entity npc )
 
             if (ent.GetTeam() != npc.GetTeam())
                 continue
-            
+
             shieldCanActivate = true
 
             // Control point sets the end position of the effect
@@ -210,7 +212,7 @@ void function Elite_Invulnerable( entity npc )
             cpEnd.Kill_Deprecated_UseDestroyInstead( 0.2 )
             break
         }
-        
+
         if (shieldCanActivate && !IsInvulnerable)
         {
             IsInvulnerable = true
@@ -225,7 +227,7 @@ void function Elite_Invulnerable( entity npc )
             npc.SetNoTarget( false )
             Highlight_SetEnemyHighlight( npc, "elite_invulnerable_off" )
         }
-        
+
         wait 0.5
     }
 }
@@ -253,17 +255,18 @@ void function Elite_Healing( entity npc )
             if (!IsValid(ent) || ent.IsMarkedForDeletion() || !IsAlive(ent))
                 continue
 
-            int healingAmount = 50
+            int healingAmount = 100
             if (ent.IsTitan())
-                healingAmount = 160 //
-            
+                healingAmount = 500 //
+
             if (ent == npc || GetEliteType(npc) == "healing")
-                healingAmount = healingAmount / 4 // heavily reduced!
+                healingAmount = healingAmount / 10 // heavily reduced!
 
             ent.SetHealth( minint( ent.GetMaxHealth(), ent.GetHealth() + healingAmount ))
 
             if (ent == npc)
                 continue
+
             // Control point sets the end position of the effect
             entity cpEnd = CreateEntity( "info_placement_helper" )
             SetTargetName( cpEnd, UniqueString( "arc_cannon_beam_cpEnd" ) )
@@ -284,7 +287,7 @@ void function Elite_Healing( entity npc )
             zapBeam.Fire( "StopPlayEndCap", "", 0.2 )
             zapBeam.Kill_Deprecated_UseDestroyInstead( 0.2 )
             cpEnd.Kill_Deprecated_UseDestroyInstead( 0.2 )
-
+            break
         }
 
         wait 0.19
@@ -329,10 +332,10 @@ void function SacrificeDeath( entity npc, entity player )
 
 
     entity titan = GetTitanFromPlayer( player )
-    
+
     if (!IsAlive(player) || !IsValid(titan) || !IsAlive(titan))
         return
-    
+
     RSE_Apply( player, expect int(getconsttable().RoguelikeEffect[option]), 1.0, 20.0, 0.0 )
     if (!titan.IsPlayer())
         titan.ai.titanSettings.titanSetFileMods.append(option)
@@ -344,7 +347,7 @@ void function SacrificeDeath( entity npc, entity player )
         player.SetPlayerSettingsWithMods( player.GetPlayerSettings(), mods )
         player.SetHealth( player.GetMaxHealth() * healthFrac )
     }
-    
+
     OnThreadEnd( function() : (player, option)
     {
         if (!IsValid(player) || !IsAlive(player))
@@ -365,7 +368,7 @@ void function SacrificeDeath( entity npc, entity player )
         RSE_Stop( player, expect int(getconsttable().RoguelikeEffect[option] ))
 
         Remote_CallFunction_Replay( player, "ServerCallback_UpdateHealthSegmentCountRandom", -1 )
-        
+
     })
 
     wait 20.0

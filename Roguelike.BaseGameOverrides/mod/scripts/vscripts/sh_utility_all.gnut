@@ -1155,7 +1155,7 @@ int function GetCollectiblesFoundForLevel( string mapName )
 
 	int numCollectiblesFound = 0
 	int numCollectiblesInLevel = GetMaxLionsInLevel( mapName )
-	string unlockVar = "sp_unlocks_level_" + saveIndex
+	string unlockVar = "meta_helmets_" + saveIndex
 	int bitMask = GetConVarInt( unlockVar )
 
 	for ( int i = 0 ; i < numCollectiblesInLevel ; i++ )
@@ -1705,6 +1705,35 @@ array<string> function Roguelike_GetTitanLoadouts()
 	cachedVal = GetConVarString("roguelike_titan_loadout")
 	cachedResult = split( GetConVarString("roguelike_titan_loadout"), " " )
 	return cachedResult
+}
+
+string cachedValModifiers = ""
+table<string, int> cachedResultModifiers
+table<string, int> function Roguelike_GetRunModifiers()
+{
+	if (GetConVarString("roguelike_run_modifiers") == cachedValModifiers)
+		return cachedResultModifiers
+	cachedValModifiers = GetConVarString("roguelike_run_modifiers")
+	array<string> list = split( GetConVarString("roguelike_run_modifiers"), " " )
+
+	cachedResultModifiers.clear()
+
+	for (int i = 0; i < list.len() - 1; i+=2)
+	{
+		string key = list[i]
+		int val = int(list[i+1])
+		printt(key, val)
+		if (val > 0)
+			cachedResultModifiers[key] <- val
+	}
+	return cachedResultModifiers
+}
+int function Roguelike_GetRunModifier( string key )
+{
+	if (!(key in Roguelike_GetRunModifiers()))
+		return 0
+	
+	return Roguelike_GetRunModifiers()[key]
 }
 
 array<string> function Roguelike_GetPilotLoadouts()

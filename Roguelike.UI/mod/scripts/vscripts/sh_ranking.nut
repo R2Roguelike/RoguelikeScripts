@@ -12,6 +12,8 @@ array<int> function GetKillsForMaxRank(string map)
             return [40,30]
         case "sp_hub_timeshift":
             return [40,20]
+        case "sp_boomtown_start":
+            return [240, 160]
         case "sp_boomtown_end":
             return [110, 60]
         case "sp_beacon_spoke0":
@@ -76,7 +78,14 @@ array<int> function GetTimeForMaxRank(string map)
 
 float function GetTimeRankMultiplier()
 {
-    return 1
+    switch (Roguelike_GetRunModifier("time_requirement"))
+    {
+        case 1:
+            return 1.25
+        case 2:
+            return 1.0
+    }
+    return 1.5
 }
 
 array< array > rankColors = [

@@ -124,7 +124,7 @@ resource/ui/menus/panels/inventory_slot.res
 		tall					 80
 		zpos					1000
 	}
-	
+
 	SwapEffect
 	{
 		ControlName			ImagePanel

@@ -2,5 +2,7 @@ WeaponData
 {
     SP_BASE
     {
+		"zoom_toggle_lerp_time"						"<KEEP_DEFAULT>"
+		"zoom_toggle_fov"							"<KEEP_DEFAULT>"
     }
 }

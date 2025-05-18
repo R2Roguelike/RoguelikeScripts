@@ -5,7 +5,7 @@ void function ModdingUtils_Init()
     print("balls")
     if (IsSingleplayer())
         SetConVarBool("sv_cheats", true)
-    else 
+    else
         SetConVarBool("sv_cheats", false)
 }
 

@@ -17,7 +17,6 @@ var stackingIncomingDamageTextRui = null
 float lastIncomingDamageTextHitTime = -99.0
 float accumulatedIncomingDamage = 0.0
 
-vector msgPos = <0,0,0>
 var aspectRatioFixTopo
 
 float[2]& screenSize = [1920, 1080]
@@ -59,7 +58,7 @@ void function Cl_DamageIndicator_Init()
 		while (1)
 		{
 			float t = Time()
-			wait 0
+			wait 0.001
 			float dt = Time() - t
 
 			entity player = GetLocalViewPlayer()
@@ -126,11 +125,11 @@ void function Cl_DamageIndicator_Init()
 		RuiSetFloat( rui, "thicken", 0.2 )
 		while (1)
 		{
-			wait 0
+			wait 0.001
 
 			if (!IsValid(GetLocalViewPlayer()))
 				continue
-			
+
 			string text = ""
 
 			foreach (RSEInstance instance in GetLocalViewPlayer().e.rseData)
@@ -197,25 +196,54 @@ void function CreateStackingDamageFlyout( entity s, float damage, bool isCrit, v
 	delete damageIndicators[s]
 }
 
-void function AddSmallDamageTextFlyout(float damage, bool isCrit, vector msgPos)
+void function AddSmallDamageTextFlyout(float damage, bool isCrit, vector msgPos, int damageFlags)
 {
+	entity player = GetLocalClientPlayer()
 	var rui = RuiCreate( $"ui/cockpit_console_text_center.rpak", aspectRatioFixTopo, RUI_DRAW_HUD, 0)
 	RuiSetInt( rui, "maxLines", 1 );
 	RuiSetInt( rui, "lineNum", 0 );
-	vector posOffset = <0.5, 0.6, 0>
+	vector posOffset = <0.5 + RandomFloatRange(-0.05, 0.05), 0.6 + RandomFloatRange(-0.05, 0.05), 0>
 	RuiSetFloat2( rui, "msgPos", WorldToScreenPos(msgPos) - posOffset )
-	RuiSetString( rui, "msgText",  RecursiveCommas(damage.tointeger()) )
-	RuiSetFloat3( rui, "msgColor", isCrit ? <1.0, 0.75, 0.0> : <1.0, 1.0, 1.0> )
-	RuiSetFloat( rui, "msgFontSize", GraphCapped(damage, 100.0, 1000.0, 75.0, 150.0) )
+	string prefix = ""
+	string suffix = ""
+	float duration = OUTGOING_DAMAGE_TEXT_SMALL_FADE_TIME
+	vector color = isCrit ? <1.0, 0.75, 0.0> : <1.0, 1.0, 1.0>
+
+	if (damageFlags & DAMAGEFLAG_DISORDER)
+	{
+		EmitSoundOnEntity(player, "ronin_sword_impact_metal_1p_vs_3p")
+		EmitSoundOnEntity(player, "ronin_sword_impact_armor_1p_vs_3p")
+		EmitSoundOnEntity(player, "titan_rocket_explosion_1p_vs_3p")
+		prefix = "DISORDER!\n"
+		duration += 1.0
+		color = <1.0, 0.0, 0.0>
+	}
+	else if (damageFlags & DAMAGEFLAG_DISCHARGE)
+	{
+		EmitSoundOnEntity(player, "ronin_sword_impact_metal_1p_vs_3p")
+		EmitSoundOnEntity(player, "ronin_sword_impact_armor_1p_vs_3p")
+		EmitSoundOnEntity(player, "titan_rocket_explosion_1p_vs_3p")
+		prefix = "DISCHARGE!\n"
+		duration += 1.0
+		color = <0.0, 1.0, 1.0>
+	}
+	if (isCrit)
+		suffix += "!!"
+	duration += GraphCapped(damage, 200.0, 1000.0, 0.0, 1.0)
+
+	RuiSetString( rui, "msgText", prefix + RecursiveCommas(damage.tointeger()) + suffix )
+
+	RuiSetFloat3( rui, "msgColor", color )
+	RuiSetFloat( rui, "msgFontSize", GraphCapped(damage, 100.0, 1000.0, 80.0, 125.0) )
 	RuiSetFloat( rui, "msgAlpha", 0.9 )
 	RuiSetFloat( rui, "thicken", 0.0 )
 
 	float startTime = Time()
 
-	while ( Time() - startTime < OUTGOING_DAMAGE_TEXT_SMALL_FADE_TIME )
+	while ( Time() - startTime < duration )
 	{
-		float alpha = Graph( Time() - startTime, 0, OUTGOING_DAMAGE_TEXT_SMALL_FADE_TIME, 1.0, 0 )
-		posOffset.y += Graph( Time() - startTime, 0, OUTGOING_DAMAGE_TEXT_SMALL_FADE_TIME, 0, 0.0 )
+		float alpha = Graph( Time() - startTime, duration - 1.0, duration, 1.0, 0 )
+		posOffset.y += Graph( Time() - startTime, 0, duration, 0, 0.0 )
 		RuiSetFloat( rui, "msgAlpha", alpha )
 		RuiSetFloat2( rui, "msgPos", WorldToScreenPos(msgPos) - posOffset )
 		WaitFrame()
@@ -246,28 +274,34 @@ string function RecursiveCommas(int n, bool recursed = false)
 
     return rest.tostring(); //first chunk of the number
 }
-void function PlayerDidDamageText( float damage, vector damagePosition, entity victim, bool isCrit, bool isIneffective )
+void function PlayerDidDamageText( float damage, vector damagePosition, entity victim, bool isCrit, bool isIneffective, int damageFlags, entity weapon )
 {
 	if (!GetConVarBool("comp_hud_damage_indicator")) return
-	
+
 	int entDEF = GetConVarInt("power_enemy_def")
+	entity player = GetLocalViewPlayer()
 
 	float scalar = 1.0
 	//if (victim.IsTitan() || IsSuperSpectre(victim))
 	//	scalar = 500.0 / (500 + entDEF)
 
 	damage /= scalar
-	
+
+	if (victim.GetOwner() == player)
+		return
+
+	if (Distance( victim.GetWorldSpaceCenter(), damagePosition ) >= 200)
+		damagePosition = victim.GetWorldSpaceCenter()
+
 	//damagePosition = victim.GetOrigin() + <0,0,victim.GetBoundingMaxs().z>
 	if (victim.IsTitan())
 		damagePosition += <RandomFloatRange(-24, 24), RandomFloatRange(-24, 24), RandomFloatRange(-24, 24) + 12>
 	else
 		damagePosition += <RandomFloatRange(-6, 6), RandomFloatRange(-6, 6), RandomFloatRange(-6, 6) + 12>
-	msgPos = damagePosition
 	//damage /= scalar
 	//damage *= 1.0 + entDEF * 0.003333
 
-	thread AddSmallDamageTextFlyout( damage, isCrit, msgPos )
+	thread AddSmallDamageTextFlyout( damage, isCrit, damagePosition, damageFlags )
 
 	if (victim in damageIndicators)
 	{
@@ -275,7 +309,7 @@ void function PlayerDidDamageText( float damage, vector damagePosition, entity v
 		data.lastHitTime = Time()
 		data.damage += damage
 		data.isLastHitCrit = isCrit
-		data.msgPos = msgPos
+		data.msgPos = damagePosition
 	}
 	else
 	{

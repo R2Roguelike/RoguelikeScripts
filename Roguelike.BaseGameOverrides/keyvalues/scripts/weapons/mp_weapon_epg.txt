@@ -3,7 +3,7 @@ WeaponData
 	"inventory_slot"		"special"
 	SP_BASE
 	{
-		"explosion_damage"								"90"
+		"explosion_damage"								"100"
 	}
 	"impulse_force"   								"17500"
 }

@@ -48,7 +48,7 @@ function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, bool pl
 	{
 		int numProjectiles = weapon.GetProjectilesPerShot()
 		Assert( numProjectiles <= file.boltOffsets.len() )
-		
+
 		FireBoltAtOffset( attackParams, playerFired, weapon, [0.0,0.0], projectiles )
 		FireBoltAtOffset( attackParams, playerFired, weapon, [0.25,0.0], projectiles )
 		FireBoltAtOffset( attackParams, playerFired, weapon, [-0.25,0.0], projectiles )
@@ -74,7 +74,7 @@ void function FireBoltAtOffset(WeaponPrimaryAttackParams attackParams, bool play
 
 	float boltSpreadMax = 0.1
 	float boltSpreadMin = 0.05
-	
+
 	float spreadFrac = Graph( zoomFrac, 0, 1, boltSpreadMax, boltSpreadMin )
 
 	vector upVec = baseUpVec * offset[1] * spreadFrac

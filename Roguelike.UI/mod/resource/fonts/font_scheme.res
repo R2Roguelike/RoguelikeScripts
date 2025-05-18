@@ -2,7 +2,7 @@ Scheme
 {
     Fonts
     {
-		
+
 		JetBrainsMono_36
 		{
 			isproportional only
@@ -46,7 +46,7 @@ Scheme
 				antialias 		1
 			}
 		}
-		
+
 		JetBrainsMonoBold_100
 		{
 			isproportional only
@@ -57,7 +57,7 @@ Scheme
 				antialias 		1
 			}
 		}
-		
+
 		JetBrainsMonoBold_150
 		{
 			isproportional only
@@ -68,7 +68,7 @@ Scheme
 				antialias 		1
 			}
 		}
-		
+
 		JetBrainsMonoBold_56_Outline
 		{
 			isproportional only
@@ -170,7 +170,7 @@ Scheme
 				dropshadow		1
 			}
 		}
-		
+
 		JetBrainsMono_32
 		{
 			isproportional only
@@ -215,7 +215,7 @@ Scheme
 				shadowglow		7
 			}
 		}
-		
+
 		JetBrainsMono_27_DropShadow
 		{
 			isproportional only
@@ -272,7 +272,7 @@ Scheme
 				antialias 		1
 			}
 		}
-		
+
 		GothicExpanded_72
 		{
 			isproportional only
