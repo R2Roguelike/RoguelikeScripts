@@ -20,6 +20,7 @@ resource/ui/menus/inventory.menu
 		{
 			ControlName			ImagePanel
 			InheritProperties	MenuVignette
+            zpos                -2
 		}
 
 		ButtonRowAnchor
@@ -38,13 +39,6 @@ resource/ui/menus/inventory.menu
 
 			xpos	90
 	 		ypos	848
-		}
-
-		FooterButtons
-		{
-			ControlName				CNestedPanel
-			InheritProperties       FooterButtons
-            zpos                    -1
 		}
 
         Screen
@@ -121,13 +115,20 @@ resource/ui/menus/inventory.menu
             pin_to_sibling_corner	RIGHT
         }
 
+		FooterButtons
+		{
+			ControlName				CNestedPanel
+			InheritProperties       FooterButtons
+            zpos                    0
+		}
+
 		GridPanel
 		{
 			ControlName				CNestedPanel
 			xpos					0
-            ypos                    0
-			wide					720
-			tall					200
+            ypos                    -24
+			wide					608
+			tall					168
 			visible					1
 			tabPosition				1
 			zpos					20
@@ -864,7 +865,7 @@ resource/ui/menus/inventory.menu
         {
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
-            xpos			24
+            xpos			72
             ypos			0
             wide			 80
             tall			 80
@@ -887,6 +888,22 @@ resource/ui/menus/inventory.menu
             visible			1
             scaleImage		1
             pin_to_sibling			WeaponPrimary
+            pin_corner_to_sibling	LEFT
+            pin_to_sibling_corner	RIGHT
+
+            zpos			1
+        }
+        Grenade
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            xpos			8
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			WeaponSecondary
             pin_corner_to_sibling	LEFT
             pin_to_sibling_corner	RIGHT
 

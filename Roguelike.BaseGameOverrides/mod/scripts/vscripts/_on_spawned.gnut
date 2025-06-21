@@ -34,8 +34,16 @@ void function CodeCallback_PreSpawn( entity npc )
 		SetAISettingsWrapper( npc, aisettings )
 	}
 
+
 	if ( npc.IsTitan() )
 	{
+		bool isBT = StartsWith(npc.GetAISettingsName(), "npc_titan_buddy") || StartsWith(npc.GetAISettingsName(), "npc_titan_vanguard")
+		bool isMerc = npc.HasKey("TitanType") && int( npc.kv.TitanType ) == TITAN_MERC
+		bool overrideTitan = GetConVarString("roguelike_force_titan")!="" && !isBT && !isMerc && npc.GetTeam() != TEAM_MILITIA
+		if (overrideTitan)
+		{
+			SetAISettingsWrapper( npc, GetConVarString("roguelike_force_titan") )
+		}
 		if ( npc.ai.titanSettings.titanSetFile == "" )
 		{
 			if ( npc.HasKey( "leveled_titan_settings" ) )
@@ -46,7 +54,7 @@ void function CodeCallback_PreSpawn( entity npc )
 
 		var builtInLoadout
 
-		if ( npc.HasKey( "leveled_titan_loadout" ) )
+		if ( npc.HasKey( "leveled_titan_loadout" ) && !overrideTitan)
 		{
 			builtInLoadout = npc.GetValueForKey( "leveled_titan_loadout" )
 		}

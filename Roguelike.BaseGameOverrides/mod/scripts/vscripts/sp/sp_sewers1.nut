@@ -510,6 +510,8 @@ void function ChannelMortarRun_MilitiaTitansThink( entity player )
 {
 	player.EndSignal( "OnDestroy" )
 
+	return
+
 	FlagWait( "Channel_spawn_titan_lookout" )
 
 	// Spawn militia titans

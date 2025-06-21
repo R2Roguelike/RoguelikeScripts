@@ -18,11 +18,9 @@ void function AmpedShield_Init()
 
 void function OnClientConnected( entity player) 
 {
-    if (!Roguelike_GetRunModifier("memory"))
-        return
-    
     thread void function() : (player)
     {
+        player.EndSignal("OnDestroy")
         bool setHP = false
         while (true)
         {
@@ -34,7 +32,7 @@ void function OnClientConnected( entity player)
                 {
                     if (hp != -1)
                     {
-                        player.SetHealth(hp)
+                        player.SetHealth(max(hp,1))
                         if (GetConVarString("memory_titan_settings") != "")
                         {
                             array<string> mods = player.GetPlayerSettingsMods()
@@ -48,7 +46,7 @@ void function OnClientConnected( entity player)
                 {
                     if (hp != -1)
                     {
-                        player.GetPetTitan().SetHealth(hp)
+                        player.GetPetTitan().SetHealth(max(hp,1))
                         if (GetConVarString("memory_titan_settings") != "")
                         {
                             player.GetPetTitan().ai.titanSettings.titanSetFileMods.append(GetConVarString("memory_titan_settings"))
@@ -358,8 +356,9 @@ void function PilotProcs( entity victim, entity player, var damageInfo, entity p
     float damage = DamageInfo_GetDamage( damageInfo )
     int scriptDamageFlags = DamageInfo_GetCustomDamageType( damageInfo )
     int damageSourceID = DamageInfo_GetDamageSourceIdentifier( damageInfo )
+    entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
 
-    if ((scriptDamageFlags & DF_CRITICAL) != 0 && Roguelike_HasMod( player, "headshot_booster") && !player.IsTitan())
+    if ((scriptDamageFlags & DF_CRITICAL) != 0 && Roguelike_HasMod( player, "headshot_booster"))
     {
         if (verboseDamagePrintouts)
             printt("headshot boost")
@@ -369,15 +368,53 @@ void function PilotProcs( entity victim, entity player, var damageInfo, entity p
 
     if (DistanceSqr( victim.GetOrigin(), player.GetOrigin() ) < 196.8 * 196.8 && Roguelike_HasMod( player, "bloodthirst"))
     {
-        player.SetHealth( min(player.GetMaxHealth(), player.GetHealth() + 5) )
+        // start regen immediately
+        if (Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.fire)
+            player.p.lastDamageTime = 0.1
     }
 
-    if (Roguelike_HasMod( player, "pain_to_gain"))
+    if (Roguelike_HasMod( player, "master_of_the_elements") && player != victim)
     {
-        float restoration = min(damage, victim.GetHealth()) / 1000.0
-        entity grenade = player.GetOffhandWeapon(OFFHAND_ORDNANCE)
-        if (IsValid(grenade))
-            RestoreCooldown( grenade, restoration )
+        int element = Roguelike_GetDamageInfoElement( damageInfo )
+        switch (element)
+        {
+            case RoguelikeElement.fire:
+                if (RSE_Get( player, RoguelikeEffect.master_fire ) > 0.0)
+                    DamageInfo_AddDamageBonus( player, 0.25 )
+                RSE_Apply( player, RoguelikeEffect.master_electric, 1.0, 5.0, 0.0 )
+                RSE_Apply( player, RoguelikeEffect.master_physical, 1.0, 5.0, 0.0 )
+                break
+            case RoguelikeElement.electric:
+                if (RSE_Get( player, RoguelikeEffect.master_fire ) > 0.0)
+                    DamageInfo_AddDamageBonus( player, 0.25 )
+                RSE_Apply( player, RoguelikeEffect.master_fire, 1.0, 5.0, 0.0 )
+                RSE_Apply( player, RoguelikeEffect.master_physical, 1.0, 5.0, 0.0 )
+                break
+            case RoguelikeElement.physical:
+                if (RSE_Get( player, RoguelikeEffect.master_physical ) > 0.0)
+                    DamageInfo_AddDamageBonus( player, 0.25 )
+                RSE_Apply( player, RoguelikeEffect.master_electric, 1.0, 5.0, 0.0 )
+                RSE_Apply( player, RoguelikeEffect.master_fire, 1.0, 5.0, 0.0 )
+                break
+        }
+    }
+
+    if (Roguelike_HasMod( player, "explosive_start") && IsValid(sourceWeapon))
+    {
+        if (ROGUELIKE_GRENADES.contains(sourceWeapon.GetWeaponClassName()))
+        {
+            RSE_Apply( player, RoguelikeEffect.explosive_start, 1.0, 8.0, 0.0 )
+        }
+        else
+        {
+            if (RSE_Get( player, RoguelikeEffect.explosive_start ) > 0.0)
+            {
+                if (Roguelike_GetWeaponElement(player.GetOffhandWeapon(0).GetWeaponClassName()) == Roguelike_GetDamageInfoElement(damageInfo))
+                {
+                    DamageInfo_AddDamageBonus( damageInfo, 0.2 )
+                }
+            }
+        }
     }
 }
 
@@ -405,7 +442,7 @@ void function TitanProcs( entity victim, entity player, var damageInfo, entity p
         procEnt.e.procs.fastremovebyvalue("shock_bullets")
     }
 
-    if (Roguelike_HasMod( player, "atg_missile" ) && RandomFloat(1.0) < 0.2 && !inflictor.e.procs.contains("atg_missile") && player.IsTitan() && IsValid(victim))
+    if (Roguelike_HasMod( player, "atg_missile" ) && RandomFloat(1.0) < 0.2 && !inflictor.e.procs.contains("atg_missile") && IsValid(victim))
     {
         entity activeWeapon = player.GetActiveWeapon()
         entity weapon = Roguelike_GetOffhandWeaponByName( player, "mp_titanweapon_shoulder_rockets" )
@@ -457,7 +494,7 @@ void function TitanProcs( entity victim, entity player, var damageInfo, entity p
                 RSE_Apply( player, RoguelikeEffect.overcrit, min(weaponCrit + 1, 20.0), 4.0, 0.0 )
         }
     }
-    else
+    else if (inflictor.GetClassName() != "info_target")
     {
         printt("sourceWeapon is not valid!", inflictor, damageSourceID, player)
         printt(inflictor.GetClassName())

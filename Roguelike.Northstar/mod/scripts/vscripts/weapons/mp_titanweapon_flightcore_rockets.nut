@@ -58,6 +58,10 @@ void function OnProjectileCollision_titanweapon_flightcore_rockets( entity proje
 	#if SERVER
 	if (!IsValid(projectile.GetOwner()) || !Roguelike_HasMod( projectile.GetOwner(), "cluster_core" ))
 		return
+
+	if (RandomFloat(1.0) > 0.333)
+		return
+
 	PopcornInfo popcornInfo
 
 	popcornInfo.weaponName = "mp_titanweapon_flightcore_rockets"

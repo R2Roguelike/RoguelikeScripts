@@ -3,6 +3,7 @@ global function Elites_Init
 global function Elites_Add
 global function Elites_Generate
 global function GetEliteType
+global function HealingElite_Pylon
 
 struct {
     array<void functionref( entity )> eliteFuncs
@@ -16,12 +17,15 @@ void function Elites_Init()
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT )
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT_MOD )
 	PrecacheImpactEffectTable( ARC_CANNON_FX_TABLE )
-    Elites_Add( Elite_BubbleShield )
-    Elites_Add( Elite_Healing )
-    Elites_Add( Elite_Enraged )
-    Elites_Add( Elite_Invulnerable )
-    if (!("titan_health" in Roguelike_GetRunModifiers()))
-        Elites_Add( Elite_Sacrifice )
+
+    
+    //Elites_Add( Elite_BubbleShield )
+    //Elites_Add( Elite_Healing )
+    //Elites_Add( Elite_Enraged )
+    //Elites_Add( Elite_Invulnerable )
+    Elites_Add( Elite_Parry )
+    //if (!("titan_health" in Roguelike_GetRunModifiers()))
+    //    Elites_Add( Elite_Sacrifice )
 }
 
 string function GetEliteType( entity npc )
@@ -40,37 +44,135 @@ void function Elites_Add( void functionref( entity ) eliteFunc )
 void function Elites_Generate( entity npc )
 {
     int levelsComplete = GetConVarInt("roguelike_levels_completed")
-    float chance = GraphCapped( levelsComplete, 0, 5, 0.05, 0.333 )
+    float chance = 1.0 // GraphCapped( levelsComplete, 0, 5, 10, 5 )
     if (RandomFloat(1) > chance)
-        return
-
-    if (npc.GetTeam() != TEAM_IMC)
         return
 
     delaythread(0.001) void function() : (npc)
     {
-        if (IsValid(npc) && !npc.IsMarkedForDeletion()) file.eliteFuncs.getrandom()( npc )
+        if (!IsValid(npc))
+            return
+        if (npc.GetTeam() == TEAM_MILITIA)
+            return
+        if (npc.IsMarkedForDeletion())
+            return
+        thread file.eliteFuncs.getrandom()( npc )
     }()
 }
 
 void function Elite_Enraged( entity npc )
 {
-    if (npc.IsInvulnerable())
+    npc.EndSignal("OnDeath")
+    npc.EndSignal("OnDestroy")
+    if (!IsValid(npc))
         return
+    while (npc.IsInvulnerable())
+    {
+        wait 0.01
+    }
     if (npc.GetMaxHealth() <= 0)
         return
+	NPC_SetNuclearPayload( npc )
     npc.s.elite <- "enraged"
+    TakeAllWeapons( npc )
+    GiveTitanLoadout( npc, npc.ai.titanSpawnLoadout )
     Highlight_SetEnemyHighlight( npc, "elite_enraged")
     npc.SetNPCMoveSpeedScale( 2.0 ) // lololol
     npc.s.healthMult <- 1.0 // MY GOD ARE THEY ANNOYING
-    npc.s.damageMult <- 2.0
     UpdateNPCForSpDifficulty( npc ) // update health
+
+    while (GetPlayerArray().len() < 1)
+        wait 0.01
+    
+    entity lastPlayer = null
+    while (1)
+    {
+        wait 0.19
+        
+        entity player = npc.GetEnemy()
+        npc.TakeOffhandWeapon(0)
+        if (IsAlive(npc))
+        {
+            if (IsValid(player) && player != lastPlayer && !IsTurret(npc))
+            {
+                npc.AssaultSetGoalRadius( 100 )
+                npc.AssaultSetGoalHeight( 500 )
+                npc.AssaultSetArrivalTolerance( 100 )
+                npc.AssaultPoint( player.GetOrigin() )
+                npc.AssaultSetFightRadius( 100 )
+            }
+        }
+
+        if (npc.IsTitan() && GetHealthFrac(npc) > 0.2)
+            continue
+
+        if (!IsValid(player) || Distance2D( npc.GetOrigin(), player.GetOrigin() ) > 300)
+            continue
+        
+        if(npc.IsTitan())
+            AutoTitan_SelfDestruct( npc )
+        else
+            thread SelfDestruct_Enraged( npc )
+        return
+    }
+}
+
+void function SelfDestruct_Enraged( entity npc )
+{
+    npc.EndSignal("OnDestroy")
+    npc.EndSignal("OnDeath")
+    npc.s.attackedByPlayer <- GetPlayerArray()[0]
+    npc.SetInvulnerable()
+    local e = {}
+    e.nukeFX <- []
+
+    OnThreadEnd( void function() : (e) 
+    {
+        StopSoundOnEntity( e.nukeFXInfoTarget, "titan_nuclear_death_charge" )
+        foreach (ent in e.nukeFX)
+            ent.Destroy()
+    })
+
+    e.needToClearNukeFX <- false
+    e.nukeFXInfoTarget <- CreateEntity( "info_target" )
+    e.nukeFXInfoTarget.kv.spawnflags = SF_INFOTARGET_ALWAYS_TRANSMIT_TO_CLIENT
+    e.nukeFXInfoTarget.SetParent( npc, "CHESTFOCUS" ) //Play FX and sound on entity since we need something that lasts across the player titan -> pilot transition
+    DispatchSpawn( e.nukeFXInfoTarget )
+    
+    EmitSoundOnEntity( e.nukeFXInfoTarget, "titan_nuclear_death_charge" )
+    e.nukeFX.append( PlayFXOnEntity( TITAN_NUCLEAR_CORE_NUKE_FX, expect entity( e.nukeFXInfoTarget ) ) )
+
+    AI_CreateDangerousArea_DamageDef( damagedef_nuclear_core, e.nukeFXInfoTarget, npc.GetTeam(), true, true )
+
+    wait 3
+
+    entity nukeFXInfoTarget = expect entity( e.nukeFXInfoTarget )
+    EmitSoundOnEntity( e.nukeFXInfoTarget, "titan_nuclear_death_explode" )
+
+    PlayFX( TITAN_NUCLEAR_CORE_FX_3P, nukeFXInfoTarget.GetOrigin() + Vector( 0, 0, -10 ), Vector(0,RandomInt(360),0) )
+    
+    RadiusDamage_DamageDef( damagedef_nuclear_core,
+        nukeFXInfoTarget.GetOrigin(),								// origin
+        npc,						// owner
+        npc,							// inflictor
+        100,						// normal damage
+        2000,					// heavy armor damage
+        400,						// inner radius
+        500,						// outer radius
+        0 )									// dist from attacker
+    
+    npc.Die( npc, npc, {} )
+
+    wait 0.5
 }
 
 void function Elite_BubbleShield( entity npc )
 {
-    if (npc.IsInvulnerable())
-        return
+    npc.EndSignal("OnDeath")
+    npc.EndSignal("OnDestroy")
+    
+    while (npc.IsInvulnerable())
+        wait 0.01
     if (npc.GetMaxHealth() <= 0)
         return
     npc.s.elite <- "bubble_shield"
@@ -87,9 +189,6 @@ void function Elite_BubbleShield( entity npc )
     // kiss them on the mouth to damage them
     if (npc.IsTitan())
         npc.EnableNPCMoveFlag(NPCMF_WALK_ALWAYS)
-
-    npc.EndSignal("OnDeath")
-    npc.EndSignal("OnDestroy")
 
 
     entity bubbleShield = TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
@@ -114,6 +213,45 @@ void function Elite_BubbleShield( entity npc )
         Highlight_SetEnemyHighlight( npc, "elite_bubble_shield")
 
         bubbleShield = TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
+    }
+    WaitForever()
+
+}
+
+void function Elite_Parry( entity npc )
+{
+    npc.EndSignal("OnDeath")
+    npc.EndSignal("OnDestroy")
+    
+    while (npc.IsInvulnerable())
+        wait 0.01
+    if (npc.GetMaxHealth() <= 0)
+        return
+    npc.s.elite <- "parry"
+    Highlight_SetEnemyHighlight( npc, "elite_parry")
+
+    OnThreadEnd(function() : ()
+    {
+    })
+
+    while (1)
+    {
+        table results = WaitSignal( npc, "MeleeDamage")
+        entity player = expect entity(results.attacker)
+
+        if (!player.IsPlayer())
+            continue
+
+		EmitSoundOnEntity(player, "ronin_sword_impact_metal_1p_vs_3p")
+		EmitSoundOnEntity(player, "ronin_sword_impact_armor_1p_vs_3p")
+		EmitSoundOnEntity(player, "titan_rocket_explosion_1p_vs_3p")
+        print("FUCK")
+        PlayFX( TITAN_NUCLEAR_CORE_FX_3P, npc.GetOrigin() )
+
+        float dist = Distance( npc.GetOrigin(), player.GetOrigin() )
+        player.SetVelocity( Normalize( player.GetOrigin() - npc.GetOrigin() ) * 1000 )
+        player.TakeDamage( 1000, svGlobal.worldspawn, svGlobal.worldspawn, { origin = npc.GetOrigin(), damageSourceId = eDamageSourceId.auto_titan_melee })
+        //RadiusDamage()
     }
     WaitForever()
 
@@ -161,17 +299,22 @@ entity function TestBubbleShield( int team, vector origin, vector angles, entity
 
 void function Elite_Invulnerable( entity npc )
 {
-    if (npc.IsInvulnerable())
-        return
-    npc.s.elite <- "invulnerable"
-
     npc.EndSignal("OnDeath")
     npc.EndSignal("OnDestroy")
+
+    while (npc.IsInvulnerable())
+        wait 0.01
+    // JFS: enemies link to enemies inside the bridge, player cant kill the enemies inside the bridge since enemies remain
+    // and enemies cant be killed since there are enemies inside the bridge
+    if (GetMapName() == "sp_s2s")
+        return
+    npc.s.elite <- "invulnerable"
 
     bool IsInvulnerable = false
     while (1)
     {
-        array<entity> arr = GetNPCArrayEx( "any", npc.GetTeam(), -1, npc.GetOrigin(), npc.IsTitan() ? 1500.0 : 750.0 )
+        float maxDist = npc.IsTitan() ? 1500.0 : 750.0
+        array<entity> arr = GetNPCArrayEx( "any", npc.GetTeam(), -1, npc.GetOrigin(), maxDist )
 
         bool shieldCanActivate = false
         foreach (entity ent in arr)
@@ -189,6 +332,10 @@ void function Elite_Invulnerable( entity npc )
                 continue
 
             shieldCanActivate = true
+            npc.SetInvulnerable()
+            npc.SetNoTarget( true )
+
+            Highlight_SetEnemyHighlight( npc, "elite_invulnerable_on" )
 
             // Control point sets the end position of the effect
             entity cpEnd = CreateEntity( "info_placement_helper" )
@@ -207,70 +354,88 @@ void function Elite_Invulnerable( entity npc )
             zapBeam.SetParent( ent )
 
             zapBeam.Fire( "Start" )
+            while (IsAlive( ent ) && Distance( npc.GetOrigin(), ent.GetOrigin() ) < maxDist)
+            {
+                npc.AssaultSetGoalRadius( 100 )
+                npc.AssaultSetGoalHeight( 500 )
+                npc.AssaultSetArrivalTolerance( 100 )
+                npc.AssaultPoint( ent.GetOrigin() )
+                npc.AssaultSetFightRadius( 100 )
+                wait 0.5
+            }
             zapBeam.Fire( "StopPlayEndCap", "", 0.2 )
             zapBeam.Kill_Deprecated_UseDestroyInstead( 0.2 )
             cpEnd.Kill_Deprecated_UseDestroyInstead( 0.2 )
             break
         }
 
-        if (shieldCanActivate && !IsInvulnerable)
-        {
-            IsInvulnerable = true
-            npc.SetInvulnerable()
-            npc.SetNoTarget( true )
-            Highlight_SetEnemyHighlight( npc, "elite_invulnerable_on" )
-        }
-        else if (IsInvulnerable && !shieldCanActivate)
-        {
-            IsInvulnerable = false
-            npc.ClearInvulnerable()
-            npc.SetNoTarget( false )
-            Highlight_SetEnemyHighlight( npc, "elite_invulnerable_off" )
-        }
+        npc.ClearInvulnerable()
+        npc.SetNoTarget( false )
+        Highlight_SetEnemyHighlight( npc, "elite_invulnerable_off" )
 
-        wait 0.5
+        wait 30.0
     }
 }
 
 void function Elite_Healing( entity npc )
 {
-    if (npc.IsInvulnerable())
-        return
+    npc.EndSignal("OnDeath")
+    npc.EndSignal("OnDestroy")
+
+    while (npc.IsInvulnerable())
+        wait 0.01
     npc.s.elite <- "healing"
     Highlight_SetEnemyHighlight( npc, "elite_healing" )
     npc.kv.rendercolor = "0 255 0 255"
     //TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
 
-    npc.EndSignal("OnDeath")
-    npc.EndSignal("OnDestroy")
+    int index = 2
+    if (IsValid(npc.GetOffhandWeapon(1)) && npc.GetOffhandWeapon(1).GetWeaponClassName() == "mp_titanability_tether_trap")
+        index = 1
+    npc.TakeOffhandWeapon(index)
+    npc.GiveOffhandWeapon( "mp_titanability_roguelike_pylon", index )
+}
+
+void function HealingElite_Pylon( entity npc, entity tower )
+{
+    tower.EndSignal("OnDeath")
+    tower.EndSignal("OnDestroy")
+
+    float range = npc.IsTitan() ? 1500.0 : 750.0
+    int team = npc.GetTeam()
+
+    wait 6
 
     while (1)
     {
         //HACK - Need a simpler custom FX that doesn't have to be restarted
-        array<entity> arr = GetNPCArrayEx( "any", npc.GetTeam(), TEAM_ANY, npc.GetOrigin(), npc.IsTitan() ? 1500.0 : 750.0 )
+        array<entity> arr = GetNPCArrayEx( "any", team, TEAM_ANY, tower.GetOrigin(), range )
+        arr.sort( int function ( entity a, entity b ) : ()
+        {
+            if (GetHealthFrac(a) < GetHealthFrac(b))
+                return 1
+            if (GetHealthFrac(a) > GetHealthFrac(b))
+                return -1
 
+            return 0
+        })
 
         foreach (entity ent in arr)
         {
             if (!IsValid(ent) || ent.IsMarkedForDeletion() || !IsAlive(ent))
                 continue
-
-            int healingAmount = 100
-            if (ent.IsTitan())
-                healingAmount = 500 //
-
-            if (ent == npc || GetEliteType(npc) == "healing")
-                healingAmount = healingAmount / 10 // heavily reduced!
-
-            ent.SetHealth( minint( ent.GetMaxHealth(), ent.GetHealth() + healingAmount ))
-
-            if (ent == npc)
+            
+            // dont heal enemies at max health
+            if (GetHealthFrac( ent ) > 0.98)
+                continue
+            
+            if (TraceLine( tower.GetWorldSpaceCenter(), ent.GetWorldSpaceCenter(), [], TRACE_MASK_NPCWORLDSTATIC, TRACE_COLLISION_GROUP_NONE ).fraction < 0.99)
                 continue
 
             // Control point sets the end position of the effect
             entity cpEnd = CreateEntity( "info_placement_helper" )
             SetTargetName( cpEnd, UniqueString( "arc_cannon_beam_cpEnd" ) )
-            cpEnd.SetOrigin( npc.GetWorldSpaceCenter() )
+            cpEnd.SetOrigin( tower.GetWorldSpaceCenter() )
             DispatchSpawn( cpEnd )
             cpEnd.SetParent( ent )
 
@@ -284,27 +449,34 @@ void function Elite_Healing( entity npc )
             zapBeam.SetParent( ent )
 
             zapBeam.Fire( "Start" )
+
+            while (IsAlive( ent ) && Distance( npc.GetOrigin(), ent.GetOrigin() ) < range && ent.GetHealth() < ent.GetMaxHealth())
+            {
+                ent.SetHealth( minint( ent.GetMaxHealth(), ent.GetHealth() + int(ent.GetMaxHealth() * 0.02) ))
+                wait 0.19
+            }
+
             zapBeam.Fire( "StopPlayEndCap", "", 0.2 )
             zapBeam.Kill_Deprecated_UseDestroyInstead( 0.2 )
             cpEnd.Kill_Deprecated_UseDestroyInstead( 0.2 )
             break
         }
 
-        wait 0.19
+        wait 1.0
     }
 }
 
 void function Elite_Sacrifice( entity npc )
 {
-    if (npc.IsInvulnerable())
-        return
+    npc.EndSignal("OnDeath")
+    npc.EndSignal("OnDestroy")
+
+    while (npc.IsInvulnerable())
+        wait 0.01
     npc.s.elite <- "sacrifice"
     Highlight_SetEnemyHighlight( npc, "elite_sacrifice" )
     npc.kv.rendercolor = "255 128 0 255"
     //TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
-
-    npc.EndSignal("OnDeath")
-    npc.EndSignal("OnDestroy")
 
     OnThreadEnd(function() : (npc)
     {

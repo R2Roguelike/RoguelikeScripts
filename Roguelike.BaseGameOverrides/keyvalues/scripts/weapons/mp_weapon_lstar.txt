@@ -4,4 +4,8 @@ WeaponData
     {
 		"lifetime_shots_default"						"<KEEP_DEFAULT>"
     }
+	"projectile_trail_effect_0" 					"P_mastiff_proj"
+	"impact_effect_table" 							"bullet_mastiff"
+	"fx_muzzle_flash_view"							"P_wpn_muz_mastiff_FP"
+	"fx_muzzle_flash_world"							"P_wpn_muz_mastiff"
 }

@@ -105,7 +105,7 @@ array<int> function ArmorChip_GetStats( table data )
             if (boost == index)
                 count++
         }
-        stats[val] += count * 4
+        stats[val] += count * CHIP_SUB_STAT_MULT
     }
 
     return stats

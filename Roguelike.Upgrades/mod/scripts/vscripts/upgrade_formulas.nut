@@ -53,7 +53,7 @@ float function Roguelike_GetPilotCooldownReduction( int power )
 float function Roguelike_GetGrenadeDamageBoost( int power )
 {
     // +233%
-    return pow(1.012, power) // +50% cd when low, -40% when max
+    return 1.0 + power * 0.008 // +50% cd when low, -40% when max
 }
 
 float function Roguelike_GetTitanCoreGain( int power )
@@ -78,7 +78,7 @@ bool function Roguelike_HasTitanLoadout(string weapon)
 int function Roguelike_GetUpgradePrice( table item )
 {
     int level = expect int(item.level)
-    int price = 50 + (level * 25) + expect int(item.priceOffset)
+    int price = 100 + (level * 50) + expect int(item.priceOffset)
 
     return price
 }
@@ -90,6 +90,7 @@ int function Roguelike_GetItemMaxLevel( table item )
         case "armor_chip":
             return MAX_CHIP_LEVEL
         case "weapon":
+        case "grenade":
             int rarity = expect int(item.rarity)
             return 3
     }

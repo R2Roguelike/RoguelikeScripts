@@ -4,6 +4,7 @@ WeaponData
 	SP_BASE
 	{
 		"explosion_damage"								"100"
+		"ammo_clip_reload_max"							"1000"
 	}
 	"impulse_force"   								"17500"
 }

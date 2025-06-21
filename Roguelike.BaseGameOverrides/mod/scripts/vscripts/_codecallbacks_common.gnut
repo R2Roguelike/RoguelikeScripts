@@ -236,11 +236,6 @@ void function SendEntityKilledEvent( entity ent, var damageInfo )
 	if ( scriptDamageType & DF_VORTEX_REFIRE )
 		damageSourceId = eDamageSourceId.mp_titanweapon_vortex_shield
 
-	if ( IsValidHeadShot( damageInfo, ent ) )
-		scriptDamageType = scriptDamageType | DF_HEADSHOT
-	else
-		scriptDamageType = scriptDamageType & (~DF_HEADSHOT)
-
 	foreach ( player in players )
 	{
 		Remote_CallFunction_NonReplay( player, "ServerCallback_OnEntityKilled", attackerEHandle, victimEHandle, scriptDamageType, damageSourceId )

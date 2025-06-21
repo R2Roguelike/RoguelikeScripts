@@ -33,7 +33,7 @@ void function PilotChip3_RegisterMods()
         " +25% Fire Rate\n" +
         " -25% Reload Time\n" +
         " Instant Zoom In/Out\n" +
-        " +200% Titan Damage"
+        " +50% Titan Damage"
         mod.cost = 3
     }
     {
@@ -54,7 +54,28 @@ void function PilotChip3_RegisterMods()
         RoguelikeMod mod = NewMod("mag_size_pilot")
         mod.name = "Bigger Mag"
         mod.abbreviation = "BM"
-        mod.description = "+5 Mag Size for all weapons."
+        mod.description = "+5 Mag Size for weapons that <cyan>match your grenade type</>."
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("fire_heal")
+        mod.name = "Blood Refund"
+        mod.abbreviation = "BR"
+        mod.description = "<burn>Fire</> weapon kills heal you for a small amount."
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("energy_load")
+        mod.name = "Killer Ammo"
+        mod.abbreviation = "KA"
+        mod.description = "<cyan>Energy</> weapon kills return ammo to the magazine."
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("physical_dmg")
+        mod.name = "Snowball"
+        mod.abbreviation = "Sb"
+        mod.description = "<daze>Physical</> weapon kills grant a damage bonus."
         mod.cost = 2
     }
     {
@@ -72,6 +93,27 @@ void function PilotChip3_RegisterMods()
         mod.cost = 2
     }
     {
+        RoguelikeMod mod = NewMod("fire_spread")
+        mod.name = "Wildfire"
+        mod.abbreviation = "Wf"
+        mod.description = "Getting a <burn>Fire</> weapon kill applies damage over time to nearby enemies."
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("shock_spread")
+        mod.name = "Shocker"
+        mod.abbreviation = "Sk"
+        mod.description = "Getting an <cyan>Energy</> weapon kill deals damage to nearby enemies."
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("physical_spread")
+        mod.name = "Impending Impact"
+        mod.abbreviation = "II"
+        mod.description = "Getting a <daze>Physical</> weapon kill makes your next hit a guranteed <cyan>headshot</>."
+        mod.cost = 2
+    } 
+    {
         RoguelikeMod mod = NewMod("random_headshot")
         mod.name = "Random Crits"
         mod.abbreviation = "RC"
@@ -82,7 +124,7 @@ void function PilotChip3_RegisterMods()
         RoguelikeMod mod = NewMod("force_dmg")
         mod.name = "Act of Physics"
         mod.abbreviation = "AoP"
-        mod.description = "Bonus Explosion Force increases damage <note>except self-damage</>."
+        mod.description = "Explosion Force increases damage <note>except self-damage</>."
         mod.cost = 2
     }
 }

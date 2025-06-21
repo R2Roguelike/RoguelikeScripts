@@ -50,6 +50,7 @@ void function OnClientConnected( entity player )
 
 	thread void function() : (player)
 	{
+		player.EndSignal("OnDestroy")
 		while (true)
 		{
 			wait 0.001
@@ -222,6 +223,9 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if (verboseDamagePrintouts)
 		printt( "    after location based damage:", DamageInfo_GetDamage( damageInfo ) )
 
+	string damageSourceIdStr = DamageSourceIDToString(DamageInfo_GetDamageSourceIdentifier(damageInfo))
+	DamageInfo_AddDamageFlags( damageInfo, Roguelike_GetWeaponElement( damageSourceIdStr ) )
+	
 	// use AddDamageCallbackSourceID( "classname", function ) to registed functions
 	// moved this up since northstar uses this to add more damage
 	// would bypass most difficulty stuff
@@ -234,22 +238,33 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		}
 	}
 
+	if (verboseDamagePrintouts)
+		printt( "    after damageSourceID callbacks:", DamageInfo_GetDamage( damageInfo ) )
+
 	if (attackerIsPlayer && attacker != ent && Roguelike_HasMod( attacker, "force_dmg" ) && !attacker.IsTitan())
 	{
 		entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
 		if (IsValid(sourceWeapon))
 		{
 			float damage = DamageInfo_GetDamage( damageInfo )
+			if (damage > 0)
+			{
+				float force = sourceWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force )
+				if (ent.IsTitan())
+				{ 
+					DamageInfo_SetDamage( damageInfo, damage + max(force, 0) / 50 )
+				}
+				else
+				{
+					if (sourceWeapon.GetWeaponClassName() == "mp_weapon_shotgun")
+					{
+						DamageInfo_SetDamage( damageInfo, damage + max(force, 0) / 62.5 )
+					}
+					else
+						DamageInfo_SetDamage( damageInfo, damage + max(force, 0) / 500 )
+				}
+			}
 			//
-			float force = sourceWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force )
-			if (ent.IsTitan())
-			{
-				DamageInfo_SetDamage( damageInfo, damage + max(force, 0) / 50 )
-			}
-			else
-			{
-				DamageInfo_SetDamage( damageInfo, damage + max(force, 0) / 1000 )
-			}
 		}
 	}
 
@@ -311,6 +326,11 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 			DamageInfo_AddDamageBonus( damageInfo, 0.2 )
 		if (RSE_Get( attacker, RoguelikeEffect.segment_sacrifice_2 ) > 0.0)
 			DamageInfo_AddDamageBonus( damageInfo, 0.4 )
+	}
+	if (attackerIsPlayer && !attacker.IsTitan() && attacker != ent)
+	{
+		if (RSE_Get( attacker, RoguelikeEffect.physical_dmg ) > 0.0 && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.physical)
+			DamageInfo_AddDamageBonus( damageInfo, 0.2 )
 	}
 	if (attackerIsPlayer && attacker != ent)
 	{
@@ -382,11 +402,11 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if ( damageMultiplier != 1.0 )
 		DamageInfo_ScaleDamage( damageInfo, damageMultiplier )
 
-	if (verboseDamagePrintouts)
-		printt( "    after damageSourceID callbacks:", DamageInfo_GetDamage( damageInfo ) )
-
 	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
 		return
+
+	if (attackerIsPlayer && attacker != ent)
+		Roguelike_PlayerDealtDamage( ent, attacker, damageInfo )
 
 	RunClassDamageFinalCallbacks( ent, damageInfo )
 	if (verboseDamagePrintouts)
@@ -396,8 +416,6 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		return
 
 
-	if (attackerIsPlayer)
-		Roguelike_PlayerDealtDamage( ent, attacker, damageInfo )
 
 	if (attackerIsPlayer && damageSourceId == eDamageSourceId.mp_titancore_amp_core)
 	{
@@ -484,11 +502,11 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 
 	array<int> swordDamageSourceIds = [ eDamageSourceId.mp_titancore_shift_core, eDamageSourceId.melee_titan_sword ]
 	if (swordDamageSourceIds.contains(damageSourceId) && GetHealthFrac( ent ) < 0.25 && Roguelike_HasMod( attacker, "executioner" ) )
-		DamageInfo_SetDamage( damageInfo, 99999 )
+		DamageInfo_SetDamage( damageInfo, ent.GetHealth() + 1 )
 
 	if ((DamageInfo_GetCustomDamageType( damageInfo ) & DF_MELEE) != 0)
 	{
-		ent.Signal("MeleeDamage")
+		ent.Signal("MeleeDamage", {attacker = attacker})
 	}
 
 	/*if ( attacker.IsPlayer() && GetTitanLoadoutFlags() & TITAN_BITS[PRIMARY_RONIN]

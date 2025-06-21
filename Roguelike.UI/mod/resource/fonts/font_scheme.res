@@ -158,6 +158,27 @@ Scheme
 				antialias 		1
 			}
 		}
+		JetBrainsMono_11
+		{
+			isproportional only
+			1
+			{
+				name			JetBrainsMonoBold
+				tall			11
+				antialias 		1
+			}
+		}
+		JetBrainsMono_9
+		{
+			isproportional only
+			1
+			{
+				name			JetBrainsMonoBold
+				tall			9
+				antialias 		1
+			}
+		}
+
 
 		JetBrainsMono_36_DropShadow
 		{

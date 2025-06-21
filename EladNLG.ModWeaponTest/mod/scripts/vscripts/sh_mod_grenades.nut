@@ -1,19 +1,11 @@
+untyped
 global function Sh_ModGrenades_Init
-
-const array<string> MOD_GRENADES = [
-    "mp_weapon_frag_grenade",
-    "mp_weapon_grenade_emp",
-    "mp_weapon_grenade_gravity",
-    "mp_weapon_satchel",
-    "mp_weapon_grenade_electric_smoke",
-    "mp_weapon_thermite_grenade"
-]
 
 void function Sh_ModGrenades_Init()
 {
     AddCallback_ApplyModWeaponVars( WEAPON_VAR_PRIORITY_OVERRIDE, Grenades_ApplyModWeaponVars )
     #if SERVER
-    foreach (string grenade in MOD_GRENADES)
+    foreach (string grenade in ROGUELIKE_GRENADES)
         AddDamageCallbackSourceID( eDamageSourceId[grenade], GrenadeDamage )
     #endif
 }
@@ -24,22 +16,40 @@ void function GrenadeDamage( entity ent, var damageInfo )
     entity attacker = DamageInfo_GetAttacker( damageInfo )
     if (!attacker.IsPlayer())
         return
-
+    
     if (attacker == ent)
     {
         print("self damage")
         return
     }
 
-    DamageInfo_ScaleDamage( damageInfo, 1.75 )
     DamageInfo_ScaleDamage( damageInfo, Roguelike_GetGrenadeDamageBoost( Roguelike_GetStat( attacker, STAT_TEMPER ) ) )
+
+    
+    entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
+
+    if (!IsValid(sourceWeapon))
+        return
+
+    array<string> weaponPerks = Roguelike_GetWeaponPerks(sourceWeapon)
+    if (weaponPerks.contains("epic"))
+    {
+        DamageInfo_ScaleDamage( damageInfo, 1.15 )
+    }
+    if (weaponPerks.contains("legendary"))
+    {
+        DamageInfo_ScaleDamage( damageInfo, 1.25 )
+    }
+    //if ("roguelikeLevel" in sourceWeapon.s)
+    //    DamageInfo_ScaleDamage( damageInfo, 1.0 + 0.1 * expect int(sourceWeapon.s.roguelikeLevel) )
 }
 #endif
 
 void function Grenades_ApplyModWeaponVars( entity weapon )
 {
     string weaponClassName = weapon.GetWeaponClassName()
-    if (!MOD_GRENADES.contains(weaponClassName))
+    entity owner = weapon.GetWeaponOwner()
+    if (!ROGUELIKE_GRENADES.contains(weaponClassName))
         return
 
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_clip_size, 300 )
@@ -53,4 +63,33 @@ void function Grenades_ApplyModWeaponVars( entity weapon )
         ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_clip_size, 450 )
         ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_default_total, 450 )
     }
+
+    if (!IsValid(owner) || !owner.IsPlayer())
+        return
+
+    array<string> weaponPerks = Roguelike_GetWeaponPerks(weapon)
+    int level = 0
+    float bonus = 0.0
+    
+    foreach (string perk in weaponPerks)
+    {
+        if (StartsWith(perk, "level_"))
+        {
+            level = int( weaponPerks[0].slice( 6, weaponPerks[0].len() ))
+            continue
+        }
+
+        switch (perk)
+        {
+            default:
+                RoguelikeWeaponPerk perk = GetWeaponPerkDataByName(perk)
+                if (perk.mwvCallback != null)
+                    perk.mwvCallback( weapon, owner, level )
+                break
+        }
+    }
+
+    weapon.s.roguelikeLevel <- level
+
+    ScaleCooldown( weapon, 1.0 - level * 0.1 )
 }

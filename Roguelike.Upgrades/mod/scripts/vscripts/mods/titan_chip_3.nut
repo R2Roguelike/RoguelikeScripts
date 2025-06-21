@@ -25,8 +25,8 @@ void function TitanChip3_RegisterMods()
     }
     {
         RoguelikeMod mod = NewMod("weapon_load")
-        mod.name = "Quickload"
-        mod.abbreviation = "Ql"
+        mod.name = "Fast Loader"
+        mod.abbreviation = "FL"
         mod.description = "-35% Reload Time."
         mod.cost = 2
     }

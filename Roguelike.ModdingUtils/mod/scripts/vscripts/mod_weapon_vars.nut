@@ -17,6 +17,7 @@ global function Roguelike_GetOffhandWeaponByName
 global function Roguelike_FindWeaponForDamageInfo
 global function Roguelike_GetAlternateOffhand
 global function Roguelike_FindWeapon
+global function Roguelike_GetDamageInfoElement
 
 // doing overrides last
 global const int WEAPON_VAR_PRIORITY_OVERRIDE = 0
@@ -554,8 +555,8 @@ void function RestoreCooldown( entity weapon, float frac )
 entity function Roguelike_FindWeaponForDamageInfo( var damageInfo )
 {
     entity attacker = DamageInfo_GetAttacker( damageInfo )
-    if (!IsValid(attacker))
-        return
+    if (!IsValid(attacker) || !attacker.IsPlayer())
+        return null
 
     entity weapon = DamageInfo_GetWeapon( damageInfo )
     if (IsValid(weapon))
@@ -685,4 +686,16 @@ void function ScaleCooldown( entity weapon, float scalar )
             ModWeaponVars_ScaleVar( weapon, eWeaponVar.grapple_power_required, scalar )
             break
     }
+}
+
+int function Roguelike_GetDamageInfoElement( var damageInfo )
+{
+    int damageFlags = DamageInfo_GetDamageFlags( damageInfo )
+    if (damageFlags & DAMAGEFLAG_ELECTRIC)
+        return RoguelikeElement.electric
+
+    if (damageFlags & DAMAGEFLAG_FIRE)
+        return RoguelikeElement.fire
+
+    return RoguelikeElement.physical
 }

@@ -5,4 +5,13 @@ WeaponData
       "damage_near_value"   							"22"
       "damage_far_value"								"18"
     }
+    "projectilemodel" 								"models/dev/empty_model.mdl"
+    "projectile_trail_effect_0" 					"P_mastiff_proj"
+    "impact_effect_table" 							"bullet_mastiff"
+    //"fx_muzzle_flash_view"							"P_wpn_muz_mastiff_FP"
+    //"fx_muzzle_flash_world"							"P_wpn_muz_mastiff"
+    "OnWeaponPrimaryAttack"           "OnWeaponPrimaryAttack_weapon_sniper"
+    "OnWeaponNpcPrimaryAttack"           "OnWeaponNpcPrimaryAttack_weapon_sniper"
+    "bolt_speed"                "15000"
+    "bolt_gravity_amount"                "0.0"
 }

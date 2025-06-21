@@ -27,7 +27,7 @@ resource/ui/menus/hovers/armor_chip.res
         scaleImage			1
 
         wide				450
-        tall			    200
+        tall			    268
 
         "xpos"			"0"
         "ypos"			"0"

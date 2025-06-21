@@ -6,7 +6,7 @@ void function Northstar_RegisterMods()
         RoguelikeMod mod = NewMod("cluster_core")
         mod.name = "Cluster Bananza"
         mod.abbreviation = "CB"
-        mod.description = "Flight Core fires cluster rockets. <note>These are not cluster rockets from your offensive, and wont trigger benefits related to it.</>"
+        mod.description = "Flight Core has a 33% chance to fire a cluster rocket instead of a normal one. <note>These are not cluster rockets from your offensive, and wont trigger benefits related to it.</>"
         mod.cost = 3
         mod.chip = TITAN_CHIP_CORE
     }

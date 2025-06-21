@@ -88,6 +88,9 @@ void function InventorySlot_Display( var slot, var content )
             }
             break
         case "weapon":
+            Hud_SetHeight( icon, ContentScaledYAsInt(40) )
+            Hud_SetWidth( icon, ContentScaledYAsInt(80) )
+        case "grenade":
             if (!IsFullyConnected())
                 break
             switch (content.rarity)
@@ -108,9 +111,7 @@ void function InventorySlot_Display( var slot, var content )
                     bg.SetColor( [255, 226, 64,255] )
                     break
             }
-
-            Hud_SetHeight( icon, ContentScaledYAsInt(40) )
-            Hud_SetWidth( icon, ContentScaledYAsInt(80) )
+            
             Hud_SetColor( icon, 255, 255, 255, 255 )
             Hud_SetText( slotLabel, "" )
             Hud_SetImage( icon, GetWeaponInfoFileKeyFieldAsset_Global( content.weapon, "hud_icon" ) )

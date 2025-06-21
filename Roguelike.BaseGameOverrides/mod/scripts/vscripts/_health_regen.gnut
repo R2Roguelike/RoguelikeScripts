@@ -28,6 +28,7 @@ void function PilotHealthRegenThinkSP( entity player )
 	vector lastOrigin = player.GetOrigin()
 	player.EndSignal( "OnDestroy" )
 
+	float frac = 0.0
 	while ( IsValid( player ) )
 	{
 		wait( 0.04 )
@@ -57,12 +58,12 @@ void function PilotHealthRegenThinkSP( entity player )
 			continue
 
 		float healthRegenStartDelay = 3.0
-		float healthRegenRate = 2.0
+		float healthRegenRate = 1.75
 
 		if (Roguelike_HasMod(player, "always_regen"))
 		{
-			healthRegenRate /= 1.5
-			healthRegenStartDelay = 0.0
+			healthRegenRate *= 0.75
+			healthRegenStartDelay *= 0.5
 		}
 		if (Roguelike_HasMod(player, "quick_regen"))
 		{
@@ -76,7 +77,9 @@ void function PilotHealthRegenThinkSP( entity player )
 			continue
 		}
 
-		player.SetHealth( min( player.GetMaxHealth(), player.GetHealth() + healthRegenRate ) )
+		float newHealth = min( player.GetMaxHealth(), player.GetHealth() + healthRegenRate + frac )
+		player.SetHealth( newHealth )
+		frac = newHealth - player.GetHealth()
 	}
 }
 
@@ -111,12 +114,6 @@ void function PilotHealthRegenThinkMP( entity player )
 		float healthRegenStartDelay = 5.0 //Needs to use GetPlayerSettingsField() instead of hard coding, waiting on Bug 129567
 		if ( PlayerHasPassive( player, ePassives.PAS_FAST_HEALTH_REGEN ) )
 			healthRegenStartDelay = 2.5
-
-		if (Roguelike_HasMod(player, "always_regen"))
-		{
-			healthRegenRate /= 2
-			healthRegenStartDelay = 0.0
-		}
 
 		if ( player.GetHealth() == player.GetMaxHealth() )
 			continue

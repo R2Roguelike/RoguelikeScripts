@@ -27,15 +27,8 @@ void function PilotChip4_RegisterMods()
         RoguelikeMod mod = NewMod("big_boom")
         mod.name = "Big Boom"
         mod.abbreviation = "BB"
-        mod.description = "Grenade blast radius increased."
+        mod.description = "Grenade blast radius increased by <cyan>25%</>."
         mod.cost = 1
-    }
-    {
-        RoguelikeMod mod = NewMod("impact_frag")
-        mod.name = "Fragile Frag"
-        mod.abbreviation = "FF"
-        mod.description = "Frag Grenades detonate on impact."
-        mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("cloak_infinite")
@@ -55,7 +48,14 @@ void function PilotChip4_RegisterMods()
         RoguelikeMod mod = NewMod("pain_to_gain")
         mod.name = "Pain to Gain"
         mod.abbreviation = "PtG"
-        mod.description = "Damage from any source <cyan>restores grenade cooldown</>."
+        mod.description = "Damage that matches your Grenade's damage type <cyan>restores grenade cooldown</>."
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("explosive_start")
+        mod.name = "Explosive Start"
+        mod.abbreviation = "ES"
+        mod.description = "Throwing a grenade grants weapons that match it's <daze>damage type</> <cyan>bonus DMG</>."
         mod.cost = 2
     }
 }

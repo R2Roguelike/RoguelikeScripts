@@ -67,14 +67,41 @@ void function PrecacheJack()
 	//PrecacheWeapon( "mp_weapon_40mm" )
 	//PrecacheWeapon( "mp_weapon_lstar_csgo" )
 	//PrecacheWeapon( "mp_weapon_rspn101_csgo" )
+	// script CreatePropDynamic( $"models/weapons/titan_trip_wire/titan_trip_wire.mdl", __p().GetOrigin() )
+    //PrecacheModel( $"models/containers/test.mdl" )
     PrecacheModel( $"models/containers/pelican_case_large_open.mdl" )
     PrecacheModel( $"models/containers/pelican_case_large.mdl" )
+	PrecacheModel( $"models/titans/heavy/sp_titan_heavy_deadbolt.mdl" )
+	PrecacheModel( $"models/titans/heavy/sp_titan_heavy_ogre.mdl" )
+	PrecacheModel( $"models/titans/heavy/sp_titan_heavy_deadbolt.mdl" )
+	PrecacheModel( $"models/titans/medium/sp_titan_medium_ajax.mdl" )
+	PrecacheModel( $"models/titans/medium/sp_titan_medium_wraith.mdl" )
+	PrecacheModel( $"models/titans/light/sp_titan_light_locust.mdl" )
+	PrecacheModel( $"models/titans/light/sp_titan_light_raptor.mdl" )
+	PrecacheModel( $"models/titans/heavy/titan_heavy_rodeo_battery.mdl" )
+	PrecacheModel( $"models/titans/medium/titan_medium_rodeo_battery.mdl" )
+	PrecacheModel( $"models/titans/light/titan_light_rodeo_battery.mdl" )
 	PrecacheWeapon("mp_weapon_mega_turret_boss");
+	PrecacheWeapon("mp_titanability_roguelike_pylon");
+	PrecacheWeapon("mp_titanability_nuclear_explosion");
 	foreach ( string weaponName in allowedWeapons )
 	{
-		//print(weaponName)
 		if (!WeaponIsPrecached(weaponName))
 			PrecacheWeapon(weaponName);
 	}
 
+
+	array<string> validTitans = [
+		"npc_titan_ogre_meteor",
+		"npc_titan_ogre_minigun",
+		"npc_titan_atlas_tracker",
+		"npc_titan_atlas_stickybomb",
+		"npc_titan_stryder_leadwall",
+		"npc_titan_stryder_sniper"]
+
+	if (RandomFloat(1.0) < 0.1 && GetMapName() != "sp_skyway_v1") // should remove the latter when i finally test fold weapon with force titan
+		SetConVarString("roguelike_force_titan", validTitans.getrandom())
+	else
+		SetConVarString("roguelike_force_titan", "")
+		
 }

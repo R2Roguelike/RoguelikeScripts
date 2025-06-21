@@ -6,6 +6,7 @@ global function RSE_Apply
 global function RSE_Consume
 global function RSE_Stop
 global function RSE_GetEffectFrac
+global function RSE_GetEffectEndTime
 global function RoguelikeStatusEffects_Init
 array<entity> entitiesToSync
 #endif
@@ -25,13 +26,20 @@ global table<int, string> effectDisplayNames = {
     [ RoguelikeEffect.parry ] = "Parry CD",
     [ RoguelikeEffect.counter ] = "Counter CD",
     [ RoguelikeEffect.offense_canister ] = "Burning!",
+    [ RoguelikeEffect.master_fire ] = "Fire Mastery",
+    [ RoguelikeEffect.master_electric ] = "Energy Mastery",
+    [ RoguelikeEffect.master_physical ] = "Physical Mastery",
+    [ RoguelikeEffect.explosive_start ] = "Explosive Start",
+    [ RoguelikeEffect.kill_self_dmg ] = "Deal with Death",
+    [ RoguelikeEffect.physical_spread ] = "Impending Impact",
 }
 
 global table<int, bool> effectDisplayPercentage = {
     [ RoguelikeEffect.ronin_block_buff ] = true
 }
 global table<int, bool> effectDisplayStacks = {
-    [ RoguelikeEffect.overcrit ] = true
+    [ RoguelikeEffect.overcrit ] = true,
+    [ RoguelikeEffect.kill_self_dmg ] = true
 }
 
 #if SERVER
@@ -39,11 +47,14 @@ void function RoguelikeStatusEffects_Init()
 {
     AddCallback_OnLoadSaveGame( void function( entity player ) : ()
         {
-            foreach (entity ent in entitiesToSync)
+            foreach (int index, entity ent in entitiesToSync)
             {
                 foreach (int effect, RSEInstance instance in ent.e.rseData)
                 {
-                    delaythread(0.1) Remote_CallFunction_NonReplay( player, "ServerCallback_RSE_Apply", ent.GetEncodedEHandle(), effect, instance.stacks, instance.startTime, instance.endTime, instance.fadeOutTime )
+                    if (instance.endTime < Time())
+                        continue
+                    
+                    delaythread(index * 0.01) Remote_CallFunction_NonReplay( player, "ServerCallback_RSE_Apply", ent.GetEncodedEHandle(), effect, instance.stacks, instance.startTime, instance.endTime, instance.fadeOutTime )
                 }
             }
         }
@@ -74,6 +85,16 @@ float function RSE_Get( entity ent, int effect )
 float function RSE_GetIntensity( RSEInstance instance )
 {
     return GraphCapped( Time(), instance.endTime - instance.fadeOutTime, instance.endTime, instance.stacks, 0.0 )
+}
+
+float function RSE_GetEffectEndTime( entity ent, int effect )
+{
+    RSEInstance ornull instance = RSE_FindEffect( ent, effect )
+    if (instance == null)
+        return 0.0
+
+    expect RSEInstance(instance)
+    return instance.startTime
 }
 
 float function RSE_GetEffectFrac( entity ent, int effect )
@@ -125,7 +146,7 @@ void function RSE_Apply( entity ent, int effect, float stacks, float duration = 
     entitiesToSync.append(ent)
     thread void function() : (ent)
     {
-        ent.WaitSignal("OnDestroy")
+        WaitSignal(ent, "OnDeath", "OnDestroy")
         entitiesToSync.fastremovebyvalue(ent)
     }()
 

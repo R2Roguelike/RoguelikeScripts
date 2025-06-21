@@ -8,4 +8,37 @@ WeaponData
         "impulse_force"                 "1500"
 		"damage_headshot_scale"							"1.5"
     }
+	RUI_CrosshairData
+	{
+		DefaultArgs
+		{
+			adjustedSpread				weapon_spread
+			adsFrac 					player_zoomFrac
+			isSprinting					player_is_sprinting
+			isReloading					weapon_is_reloading
+			teamColor					crosshair_team_color
+			isAmped						weapon_is_amped
+			crosshairMovementX          crosshair_movement_x
+			crosshairMovementY          crosshair_movement_y
+		}
+
+		Crosshair_1
+		{
+			"ui"						"ui/crosshair_shotgun"
+			"base_spread"				"-4.0"
+			Args
+			{
+				isFiring				weapon_is_firing
+			}
+		}
+		Crosshair_2
+		{
+			"ui"						"ui/crosshair_shotgun"
+			"base_spread"				"-2.0"
+			Args
+			{
+				isFiring				weapon_is_firing
+			}
+		}
+	}
 }

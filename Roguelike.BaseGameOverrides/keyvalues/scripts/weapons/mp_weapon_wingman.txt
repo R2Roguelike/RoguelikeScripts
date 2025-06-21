@@ -1,7 +1,40 @@
 WeaponData
 {
     "inventory_slot"                "secondary"
+
+	"spread_stand_hip" 								"0.5"
+	"spread_stand_hip_run" 							"1.0"
+	"spread_stand_hip_sprint"						"2.0"
+	"spread_crouch_hip"								"0.0"
+	"spread_air_hip"	   							"2.0"
+	"spread_stand_ads"  							"0.0" //"0.15"
+	"spread_crouch_ads"  							"0.0" //"0.1"
+	"spread_air_ads"   								"0.0" //"0.25"
     SP_BASE
     {
     }
+	RUI_CrosshairData
+	{
+		DefaultArgs
+		{
+			adjustedSpread				weapon_spread
+			adsFrac 					player_zoomFrac
+			isSprinting					player_is_sprinting
+			isReloading					weapon_is_reloading
+			teamColor					crosshair_team_color
+			isAmped						weapon_is_amped
+			crosshairMovementX          crosshair_movement_x
+			crosshairMovementY          crosshair_movement_y
+		}
+
+		Crosshair_1
+		{
+			"ui"						"ui/crosshair_wingman"
+			"base_spread"				"1.0"
+			Args
+			{
+				isFiring				weapon_is_firing
+			}
+		}
+	}
 }

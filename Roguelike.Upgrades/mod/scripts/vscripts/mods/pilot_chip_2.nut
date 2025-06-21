@@ -7,7 +7,7 @@ void function PilotChip2_RegisterMods()
         RoguelikeMod mod = NewMod("grenade_cd")
         mod.name = "Grenadier"
         mod.abbreviation = "Gd"
-        mod.description = "Kills restore grenade energy."
+        mod.description = "Kills <cyan>with weapons that match your Grenade's damage type</> restore grenade energy."
         mod.cost = 2
     }
     {

@@ -5,4 +5,9 @@ WeaponData
       "damage_near_value"   							"15"
       "damage_far_value"								"13"
     }
+    "fx_muzzle_flash_view"							"wpn_muzzleflash_pulse_FP"
+    "fx_muzzle_flash_world"							"wpn_muzzleflash_pulse"
+	"tracer_effect_first_person"                    "P_wpn_tracer_pulse"
+	"tracer_effect"   								"P_wpn_tracer_pulse"
+	"impact_effect_table" 							"pulse_bullet"
 }

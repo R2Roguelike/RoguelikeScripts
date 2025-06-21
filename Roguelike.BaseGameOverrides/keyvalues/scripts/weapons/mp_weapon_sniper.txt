@@ -1,5 +1,6 @@
 WeaponData
 {
+	"projectile_trail_effect_0" 					"P_mastiff_proj"
     SP_BASE
     {
 		"zoom_toggle_lerp_time"						"<KEEP_DEFAULT>"

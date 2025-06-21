@@ -54,7 +54,7 @@ var function OnWeaponPrimaryAttack_titanability_rearm( entity weapon, WeaponPrim
 		if (offhand.GetWeaponPrimaryClipCountMax() > 0)
 		offhand.SetWeaponPrimaryClipCount( offhand.GetWeaponPrimaryClipCountMax() )
 		#if SERVER
-		if ( offhand.IsChargeWeapon() )
+		if ( offhand.IsChargeWeapon() && offhand.IsWeaponOffhand() )
 			offhand.SetWeaponChargeFractionForced( 0 )
 		#endif
 	}

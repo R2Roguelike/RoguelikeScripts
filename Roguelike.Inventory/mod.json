@@ -47,7 +47,17 @@
 			"DefaultValue": ""
 		},
 		{
+			"Name": "player_ordnance",
+			"Flags": "USERINFO | CHEAT",
+			"DefaultValue": ""
+		},
+		{
 			"Name": "player_weapon_perks",
+			"Flags": "USERINFO | CHEAT",
+			"DefaultValue": ""
+		},
+		{
+			"Name": "player_ordnance_perks",
 			"Flags": "USERINFO | CHEAT",
 			"DefaultValue": ""
 		},

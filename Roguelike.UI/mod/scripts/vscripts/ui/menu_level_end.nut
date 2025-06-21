@@ -75,8 +75,7 @@ void function MenuAnimation()
     levelsCompleted++
 
     // add power
-    int prevPower = expect int(runData.powerPlayer)
-    int powerGained = [300 + 75 * levelsCompleted, 200 + 50 * levelsCompleted, 120 + 30 * levelsCompleted][killsRank]
+    int powerGained = [300 + 75 * levelsCompleted, 200 + 50 * levelsCompleted, 120 + 30 * levelsCompleted][timeRank]
     Roguelike_AddMoney( powerGained )
 
     runData.map <- file.nextMap
@@ -106,7 +105,7 @@ void function MenuAnimation()
     runData.enemyDEF += enemyDEFGained
     runData.levelsCompleted <- levelsCompleted
 
-    int modsUnlocked = [8,6,4][timeRank]
+    int modsUnlocked = [6,4,2][killsRank]
     Roguelike_UnlockMods( modsUnlocked )
 
     NSSaveJSONFile( "run_backup.json", runData )
@@ -133,7 +132,7 @@ void function MenuAnimation()
 
     Hud_SetText(Hud_GetChild(file.menu, "KillsRank"), GetRankName(killsRank))
     Hud_GetChild(file.menu, "KillsRank").SetColor(GetColorForRank(killsRank))
-    Hud_SetText(Hud_GetChild(file.menu, "KillsReward"), format("+%i$", powerGained))
+    Hud_SetText(Hud_GetChild(file.menu, "KillsReward"), format("%i Mods Unlocked", modsUnlocked))
 
     wait 0.2
 
@@ -154,7 +153,7 @@ void function MenuAnimation()
 
     Hud_SetText(Hud_GetChild(file.menu, "TimeRank"), GetRankName(timeRank))
     Hud_GetChild(file.menu, "TimeRank").SetColor(GetColorForRank(timeRank))
-    Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), format("%i Mods Unlocked", modsUnlocked))
+    Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), format("+%i$", powerGained))
 
     wait 0.2
 }

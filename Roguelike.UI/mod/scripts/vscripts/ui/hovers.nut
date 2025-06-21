@@ -48,7 +48,7 @@ void function Hover_Init()
         Hud_SetHeight( panel, ContentScaledYAsInt( 296 ) )
     }
     file.preHoverCallbacks[HOVER_WEAPON] <- void function (var panel) : (){
-        Hud_SetHeight( panel, ContentScaledYAsInt( 296 ) )
+        Hud_SetHeight( panel, ContentScaledYAsInt( 364 ) )
     }
 
     Hud_SetVisible( file.menu, true )
@@ -56,11 +56,12 @@ void function Hover_Init()
     Hud_GetChild(file.menu,HOVER_SIMPLE).SetPanelAlpha(0.0)
     Hud_GetChild(file.menu,HOVER_WEAPON).SetPanelAlpha(0.0)
 
-    delaythread(0.001) Hover_Update()
+    delaythread(0.1) Hover_Update()
 }
 
 void function Hover_Update()
 {
+
     string lastHoverType
     float lastTime = -1.0
     int[2] screenSize = GetScreenSize()

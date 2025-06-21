@@ -207,7 +207,7 @@ resource/ui/healthbars.res
         xpos				0
         ypos				128
         wide				359
-        tall				64
+        tall				128
         visible				0
         enabled				0
         zpos				10
@@ -220,7 +220,7 @@ resource/ui/healthbars.res
         xpos				0
         ypos				0
         wide				359
-        tall				64
+        tall				128
         visible				0
         enabled				0
         zpos				10
@@ -233,7 +233,7 @@ resource/ui/healthbars.res
         xpos				0
         ypos				0
         wide				359
-        tall				64
+        tall				128
         visible				0
         enabled				0
         zpos				10
@@ -246,7 +246,7 @@ resource/ui/healthbars.res
         xpos				0
         ypos				0
         wide				359
-        tall				64
+        tall				128
         visible				0
         enabled				0
         zpos				10
@@ -259,7 +259,7 @@ resource/ui/healthbars.res
         xpos				0
         ypos				0
         wide				359
-        tall				64
+        tall				128
         visible				0
         enabled				0
         zpos				10
@@ -272,7 +272,7 @@ resource/ui/healthbars.res
         xpos				0
         ypos				0
         wide				359
-        tall				64
+        tall				128
         visible				0
         enabled				0
         zpos				10
@@ -285,7 +285,7 @@ resource/ui/healthbars.res
         xpos				0
         ypos				0
         wide				359
-        tall				64
+        tall				128
         visible				0
         enabled				0
         zpos				10
@@ -298,7 +298,7 @@ resource/ui/healthbars.res
         xpos				0
         ypos				0
         wide				359
-        tall				64
+        tall				128
         visible				0
         enabled				0
         zpos				10

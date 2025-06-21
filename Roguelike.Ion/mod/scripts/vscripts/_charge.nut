@@ -24,6 +24,7 @@ void function IonDischarge( entity ent, entity attacker, var damageInfo )
 
     bool disorder = false
     float scalar = 1
+    int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
     if (GetBurn( ent ) > 0.0)
     {
         disorder = true
@@ -69,6 +70,11 @@ void function IonDischarge( entity ent, entity attacker, var damageInfo )
     }
     // Discharge/Disorder cannot crit
     
+    if (Roguelike_HasMod( attacker, "laser_disorder" ) && damageSourceId == eDamageSourceId.mp_titanweapon_laser_lite)
+    {
+        attacker.AddSharedEnergy(5000)
+    }
+
     if (!Roguelike_HasMod( attacker, "discharge_crit" ))
         DamageInfo_RemoveCustomDamageType( damageInfo, DF_CRITICAL )
 

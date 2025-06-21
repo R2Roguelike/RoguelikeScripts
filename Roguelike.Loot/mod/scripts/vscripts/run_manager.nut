@@ -1,6 +1,7 @@
 untyped
 global function Inventory_Init
 global function Roguelike_GenerateLoot
+global function Roguelike_AddToInventory
 global function Roguelike_StartNewRun
 global function Roguelike_GetInventory
 global function Roguelike_IsRunActive
@@ -134,10 +135,10 @@ void function Roguelike_StartNewRun()
     runData.chipSlotOrder <- [1,2,3,4,5,6,7,8]
     runData.chipSlotOrder.randomize()
     runData.chipSlotIndex <- 0
+    runData.difficulty <- GetConVarInt("sp_difficulty")
 
     runData.balanced <- false
 
-    runData.powerPlayer <- 0
     runData.enemyBonusHP <- 0
     runData.enemyDEF <- 0
     runData.levelsCompleted <- 0
@@ -180,6 +181,7 @@ void function Roguelike_StartNewRun()
 
     runData.WeaponPrimary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_vinson", RARITY_COMMON, "primary" )
     runData.WeaponSecondary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_epg", RARITY_COMMON, "special" )
+    runData.Grenade <- RoguelikeGrenade_CreateWeapon( "mp_weapon_frag_grenade", RARITY_COMMON )
 
     Roguelike_ForceRefreshInventory()
 
@@ -193,6 +195,7 @@ void function Roguelike_ApplyRunDataToConVars()
     table runData = Roguelike_GetRunData()
 
     SetConVarInt("roguelike_levels_completed", expect int(runData.levelsCompleted))
+    SetConVarInt("roguelike_levels_completed", expect int(runData.levelsCompleted))
     SetConVarInt("power_enemy_hp", expect int(runData.enemyBonusHP))
     SetConVarInt("power_enemy_def", expect int(runData.enemyDEF))
     SetConVarString("roguelike_titan_loadout", expect string(runData.loadouts))
@@ -201,6 +204,7 @@ void function Roguelike_ApplyRunDataToConVars()
     SetConVarString("memory_titan_settings", expect string(runData.memorySettings))
     SetConVarInt("roguelike_run_heat", expect int(runData.runHeat))
     SetConVarBool("roguelike_stat_balance", expect bool(runData.balanced))
+    SetConVarInt("sp_difficulty", expect int(runData.difficulty))
 
     // server doesnt care about mod order since it only uses this
     // userinfo convar to check which mods to apply
@@ -234,11 +238,12 @@ void function Roguelike_ApplyRunDataToConVars()
         string otherSlotName = i == 0 ? "WeaponSecondary" : "WeaponPrimary"
         table slot = expect table(runData[slotName])
         array perks = []
-        perks.extend(expect array(slot.perks))
         array mods = expect array(slot.mods)
         int level = expect int(slot.level)
         int rarity = expect int(slot.rarity)
+
         perks.append("level_" + level)
+
         switch (rarity)
         {
             case RARITY_UNCOMMON:
@@ -255,6 +260,13 @@ void function Roguelike_ApplyRunDataToConVars()
                 break
         }
 
+        if (slot.bonusStat != "")
+            perks.append(slot.bonusStat)
+        if (slot.perk1 != "")
+            perks.append(slot.perk1)
+        if (slot.perkInherited != "")
+            perks.append(slot.perkInherited)
+
         weaponPerks.append(JoinDynamicArray(perks, ","))
         weaponMods.append(JoinDynamicArray(mods, ","))
 
@@ -263,6 +275,26 @@ void function Roguelike_ApplyRunDataToConVars()
     SetConVarString( "player_weapon_perks", JoinStringArray( weaponPerks, " " ) )
     SetConVarString( "player_weapon_mods", JoinStringArray( weaponMods, " " ) )
     SetConVarString( "player_weapons", JoinStringArray( weapons, " " ) )
+
+    var ordnanceSlot = runData["Grenade"]
+    array<string> ordnancePerks = ["level_" + expect int(ordnanceSlot.level)]
+    switch (ordnanceSlot.rarity)
+    {
+        case RARITY_UNCOMMON:
+            ordnancePerks.append("uncommon")
+            break
+        case RARITY_RARE:
+            ordnancePerks.append("rare")
+            break
+        case RARITY_EPIC:
+            ordnancePerks.append("epic")
+            break
+        case RARITY_LEGENDARY:
+            ordnancePerks.append("legendary")
+            break
+    }
+    SetConVarString( "player_ordnance_perks", JoinStringArray( ordnancePerks, " " ))
+    SetConVarString( "player_ordnance", expect string(ordnanceSlot.weapon))
 }
 
 void function Roguelike_Reset()
@@ -271,27 +303,43 @@ void function Roguelike_Reset()
     file.isRunActive = false
 }
 
+void function Roguelike_AddToInventory( table item )
+{
+    file.runData.inventory.append(item)
+
+    Roguelike_ForceRefreshInventory()
+
+    if (IsFullyConnected())
+        RunClientScript( "Roguelike_ItemGained" )
+}
+
 void function Roguelike_GenerateLoot()
 {
     print("GENERATING LOOT")
-    int r = RandomInt(3)
+    int r = RandomInt(9)
 
     table item = {}
     switch (r)
     {
         case 0:
+        case 1: // 22.2% weapon
             item = RoguelikeWeapon_Generate()
             break
-        case 1:
-        case 2:
+        case 2: // 11.1% grenade
+            item = RoguelikeGrenade_Generate()
+            break
+        case 3: // 66.7% armor chip
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
             item = ArmorChip_Generate()
             break
     }
     file.runData.inventory.append(item)
 
     Roguelike_ForceRefreshInventory()
-
-    Roguelike_AddMoney( RandomIntRange(25, 50) )
 
     if (IsFullyConnected())
         RunClientScript( "Roguelike_ItemGained" )

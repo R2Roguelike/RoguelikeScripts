@@ -67,6 +67,7 @@ void function InitInventoryMenu()
 
     AddHover( Hud_GetChild(file.menu, "WeaponPrimary"), Weapon_Hover, HOVER_WEAPON )
     AddHover( Hud_GetChild(file.menu, "WeaponSecondary"), Weapon_Hover, HOVER_WEAPON )
+    AddHover( Hud_GetChild(file.menu, "Grenade"), Grenade_Hover, HOVER_WEAPON )
 
     AddHover( Hud_GetChild( file.menu, "BalanceSymbol" ), void function( var symbol, var panel ) : (){
         table runData = Roguelike_GetRunData()
@@ -179,7 +180,7 @@ void function AttemptDismantle( var fuck )
 
         SwapSequence(slot)
         if ("moneyInvested" in item)
-            Roguelike_AddMoney( expect int(item.moneyInvested) * 2 / 3 ) // return 66% of money
+            Roguelike_AddMoney( expect int(item.moneyInvested) / 2 ) // return 66% of money
         inventory.remove(elemNum)
 
         EmitUISound( "Menu_LoadOut_WeaponCamo_Select" )
@@ -293,6 +294,7 @@ void function RefreshInventory()
 
     InventorySlot_Display( Hud_GetChild(file.menu, "WeaponPrimary"), runData.WeaponPrimary )
     InventorySlot_Display( Hud_GetChild(file.menu, "WeaponSecondary"), runData.WeaponSecondary )
+    InventorySlot_Display( Hud_GetChild(file.menu, "Grenade"), runData.Grenade )
 
     //Hud_SetText( Hud_GetChild(file.menu, "AC3_TitanHelp"), GetTitanNameFromWeapon(Roguelike_GetTitanLoadouts()[0]) )
     //Hud_SetText( Hud_GetChild(file.menu, "AC4_TitanHelp"), GetTitanNameFromWeapon(Roguelike_GetTitanLoadouts()[1]) )
@@ -457,6 +459,9 @@ bool function Slot_Init( var button, int elemNum )
             case "weapon":
                 AddHover( button, Weapon_Hover, HOVER_WEAPON )
                 break
+            case "grenade":
+                AddHover( button, Grenade_Hover, HOVER_WEAPON )
+                break
         }
     }
     else
@@ -464,6 +469,105 @@ bool function Slot_Init( var button, int elemNum )
         InventorySlot_Display( button, null )
     }
     return true
+}
+
+void function Grenade_Hover( var slot, var panel )
+{
+    table data = {}
+    bool isEquipped = Hud_GetHudName(slot) ==  "Grenade"
+    if (isEquipped)
+    {
+        data = expect table( Roguelike_GetRunData()[Hud_GetHudName(slot)] )
+    }
+    else
+    {
+        int elemNum = Grid_GetElemNumForButton( slot )
+        data = expect table(Roguelike_GetInventory()[elemNum])
+    }
+
+    Hud_EnableKeyBindingIcons( Hud_GetChild( panel, "FooterText") )
+    int level = expect int(data.level)
+    int price = Roguelike_GetUpgradePrice( data )
+    array<string> options = []
+    if (level < Roguelike_GetItemMaxLevel( data ))
+    {
+        options.append( "%[X_BUTTON|MOUSE2]%Upgrade (" + price + "$)" )
+    }
+    else
+    {
+        options.append("MAX LEVEL")
+    }
+    if (!isEquipped)
+        options.append("%[X_BUTTON|F]%Dismantle")
+    Hud_SetText( Hud_GetChild( panel, "LevelLabel"), format("Level %i/%i", level, Roguelike_GetItemMaxLevel( data )))
+    Hud_SetText( Hud_GetChild( panel, "FooterText" ), JoinStringArray( options, " " ) )
+
+    string weaponClassName = expect string(data.weapon)
+    int rarity = expect int(data.rarity)
+
+    string description = "Grenade"
+    Hud_SetText( Hud_GetChild( panel, "SubTitle" ), FormatDescription( description ) )
+
+    Hud_SetText( Hud_GetChild(panel, "Title"), GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "shortprintname" ))
+    string weaponDesc =  GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "description" ) 
+
+    switch (Roguelike_GetWeaponElement( weaponClassName ))
+    {
+        case RoguelikeElement.fire: 
+            weaponDesc += FormatDescription( " Deals <burn>Fire</> damage." )
+            break
+        case RoguelikeElement.electric: 
+            weaponDesc += FormatDescription(" Deals <cyan>Energy</> damage.")
+            break
+        case RoguelikeElement.physical: 
+            weaponDesc += FormatDescription(" Deals <daze>Physical</> damage.")
+            break
+    }
+
+    weaponDesc += "\n\n"
+    string formatting = "+%i%% Damage\n"
+    string levelFormatting = "Level %i: -%i%% Cooldown\n\n"
+    table<int, string> rarityNames = {
+        [ RARITY_COMMON ] = "Common",
+        [ RARITY_UNCOMMON ] = "Uncommon",
+        [ RARITY_RARE ] = "Rare",
+        [ RARITY_EPIC ] = "Epic",
+        [ RARITY_LEGENDARY ] = "Legendary"
+    }
+    table<int, int> values = {
+        [ RARITY_UNCOMMON ] = 0,
+        [ RARITY_RARE ] = 0,
+        [ RARITY_EPIC ] = 15,
+        [ RARITY_LEGENDARY ] = 25
+    }
+    if (rarity in values && values[rarity] != 0)
+        weaponDesc += FormatDescription(format(rarityNames[rarity] + ": " + formatting, values[rarity]))
+    
+    if (level > 0)
+        weaponDesc += FormatDescription(format(levelFormatting, level, level * 10))
+
+    if (data.bonusStat != "")
+    {
+        RoguelikeWeaponPerk statPerk = GetWeaponPerkDataByName( data.bonusStat )
+        weaponDesc += format(statPerk.description + "\n", (statPerk.baseValue + statPerk.valuePerLevel * level) * 100)
+    }
+
+    if (data.perk1 != "")
+    {
+        RoguelikeWeaponPerk perk1 = GetWeaponPerkDataByName( data.perk1 )
+        weaponDesc += format("%s: %s\n", perk1.name, perk1.description)
+    }
+
+    if (file.startDismantleTime != -1.0)
+    {
+        Hud_SetBarProgress( Hud_GetChild( panel, "FooterBar" ), GraphCapped(Time(), file.startDismantleTime, file.endDismantleTime, 0, 1) )
+    }
+    else
+    {
+        Hud_SetBarProgress( Hud_GetChild( panel, "FooterBar" ), 0.0 )
+    }
+
+    Hud_SetText( Hud_GetChild(panel, "Description"), weaponDesc )
 }
 
 void function Weapon_Hover( var slot, var panel )
@@ -513,18 +617,32 @@ void function Weapon_Hover( var slot, var panel )
     Hud_SetText( Hud_GetChild( panel, "SubTitle" ), FormatDescription( description ) )
 
     Hud_SetText( Hud_GetChild(panel, "Title"), GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "shortprintname" ))
-    string weaponDesc = GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "description" )
+    string weaponDesc =  GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "description" ) 
+
+    switch (Roguelike_GetWeaponElement( weaponClassName ))
+    {
+        case RoguelikeElement.fire: 
+            weaponDesc += FormatDescription( " Deals <burn>Fire</> damage." )
+            break
+        case RoguelikeElement.electric: 
+            weaponDesc += FormatDescription(" Deals <cyan>Energy</> damage.")
+            break
+        case RoguelikeElement.physical: 
+            weaponDesc += FormatDescription(" Deals <daze>Physical</> damage.")
+            break
+    }
+
     weaponDesc += "\n\n"
 
 
-    string formatting = "+%i%% Damage\n\n"
-    string levelFormatting = "Level %i: +%i%% Damage"
+    string formatting = "+%i%% Non-Titan Damage\n"
+    string levelFormatting = "Level %i: +%i%% Non-Titan Damage"
 
     table<int, int> values = {
-        [ RARITY_UNCOMMON ] = 15,
-        [ RARITY_RARE ] = 25,
-        [ RARITY_EPIC ] = 35,
-        [ RARITY_LEGENDARY ] = 45
+        [ RARITY_UNCOMMON ] = 0,
+        [ RARITY_RARE ] = 0,
+        [ RARITY_EPIC ] = 15,
+        [ RARITY_LEGENDARY ] = 25
     }
     int valuePerLevel = 15
     table<int, string> rarityNames = {
@@ -537,7 +655,7 @@ void function Weapon_Hover( var slot, var panel )
 
     if (slot == "special")
     {
-        formatting = "+%i%% Explosion Force\n\n"
+        formatting = "+%i%% Explosion Force\n"
         levelFormatting = "Level %i: +%i%% Explosion Force"
         values = {
             [ RARITY_UNCOMMON ] = 25,
@@ -550,16 +668,33 @@ void function Weapon_Hover( var slot, var panel )
         int damage = GetWeaponInfoFileKeyField_GlobalInt( weaponClassName, "explosion_damage" )
         float selfDMGMult = Roguelike_GetPilotSelfDamageMult(Roguelike_GetStat( STAT_ENDURANCE ))
         weaponDesc += "Explosion Damage: " + damage
-        if (weaponClassName == "mp_weapon_shotgun")
+        if (weaponClassName == "mp_weapon_shotgun" || weaponClassName == "mp_weapon_mastiff")
             weaponDesc += "x8"
-        if (weaponClassName == "mp_weapon_mastiff")
-            weaponDesc += "x8"
-        weaponDesc += "\nSelf Damage: " + (damage * selfDMGMult) + "\n\n"
+
+        weaponDesc += " (" + (damage * selfDMGMult) + " Self Damage)" + "\n\n"
+    }
+
+    if (data.bonusStat != "")
+    {
+        RoguelikeWeaponPerk statPerk = GetWeaponPerkDataByName( data.bonusStat )
+        weaponDesc += format(statPerk.description + "\n\n", (statPerk.baseValue + statPerk.valuePerLevel * level) * 100)
+    }
+
+    if (data.perkInherited != "")
+    {
+        RoguelikeWeaponPerk perk1 = GetWeaponPerkDataByName( data.perkInherited )
+        weaponDesc += FormatDescription( format("<daze>%s</>: %s\n\n", perk1.name, perk1.description) )
+    }
+
+    if (data.perk1 != "")
+    {
+        RoguelikeWeaponPerk perk1 = GetWeaponPerkDataByName( data.perk1 )
+        weaponDesc += FormatDescription( format("<daze>%s</>: %s\n\n", perk1.name, perk1.description) )
     }
 
     int rarity = expect int(data.rarity)
 
-    if (rarity in values)
+    if (rarity in values && values[rarity] != 0)
         weaponDesc += FormatDescription(format(rarityNames[rarity] + ": " + formatting, values[rarity]))
 
     if (level > 0)
@@ -612,7 +747,6 @@ void function InventorySlot_Click( var button )
             switch (weaponSlot)
             {
                 case "primary":
-                case "secondary":
                     table equippedChip = expect table(runData["WeaponPrimary"])
                     runData["WeaponPrimary"] = curSlot
                     inventory[elemNum] = equippedChip
@@ -620,6 +754,7 @@ void function InventorySlot_Click( var button )
                     SwapSequence(slot)
                     SwapSequenceAlt(Hud_GetChild(file.menu, "WeaponPrimary"))
                     break
+                case "secondary":
                 case "special":
                     table equippedChip = expect table(runData["WeaponSecondary"])
                     runData["WeaponSecondary"] = curSlot
@@ -629,6 +764,18 @@ void function InventorySlot_Click( var button )
                     SwapSequenceAlt(Hud_GetChild(file.menu, "WeaponSecondary"))
                     break
             }
+            RefreshInventory()
+            break
+        case "grenade":
+            string weaponClassName = expect string(curSlot.weapon)
+
+            table equippedChip = expect table(runData["Grenade"])
+            runData["Grenade"] = curSlot
+            inventory[elemNum] = equippedChip
+            EmitUISound( "menu_loadout_ordinance_select" )
+            SwapSequence(slot)
+            SwapSequenceAlt(Hud_GetChild(file.menu, "Grenade"))
+            
             RefreshInventory()
             break
 
@@ -871,7 +1018,7 @@ string function FormatDescription(string desc)
     result = StringReplace( result, "<warn>",  "^FFA00000", true )
     result = StringReplace( result, "<note>",  "^88888800", true )
     result = StringReplace( result, "<fulm>",  "^4060FF00", true )
-    result = StringReplace( result, "<burn>",  "^FFAF4B00", true )
+    result = StringReplace( result, "<burn>",  "^FF891200", true )
     result = StringReplace( result, "<green>", "^60FF6000", true )
     result = StringReplace( result, "<red>",   "^FF404000", true )
     result = StringReplace( result, "<weak>",  "^B15EFF00", true )
@@ -900,7 +1047,7 @@ void function AttemptUpgrade( var env )
         return
 
     table data = {}
-    if (StartsWith( Hud_GetHudName(slot), "AC" ) || StartsWith( Hud_GetHudName(slot), "Weapon" ))
+    if (Hud_GetHudName(slot) == "Grenade" || StartsWith( Hud_GetHudName(slot), "AC" ) || StartsWith( Hud_GetHudName(slot), "Weapon" ))
     {
         data = expect table( Roguelike_GetRunData()[Hud_GetHudName(slot)] )
     }
@@ -1079,7 +1226,7 @@ void function ArmorChip_Hover( var slot, var panel )
             if (boost == i)
                 count++
         }
-        text += "<chip>" + STAT_NAMES[subStat] + "</> +" + (count * 4) + "\n"
+        text += "<chip>" + STAT_NAMES[subStat] + "</> +" + (count * CHIP_SUB_STAT_MULT) + "\n"
     }
     text = FormatDescription( text )
     text = StringReplace( text, "<chip>", format("^%02X%02X%02X00", r, g, b), true )
@@ -1144,8 +1291,6 @@ void function UpdateMenuState()
 
 void function UpdateInventory()
 {
-    if (IsFullyConnected())
-        Roguelike_StartNewRun()
 	for ( ;; )
 	{
 		WaitSignal( uiGlobal.signalDummy, "LevelStartedLoading" )

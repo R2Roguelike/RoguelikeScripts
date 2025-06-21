@@ -20,6 +20,8 @@ array<int> function GetKillsForMaxRank(string map)
             return [50, 30]
         case "sp_sewers1":
             return [300, 200]
+        case "sp_crashsite":
+            return [225, 150]
     }
 
     //     [S,A]

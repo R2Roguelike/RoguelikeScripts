@@ -5,6 +5,7 @@ globalize_all_functions
 struct {
     array<RoguelikeMod> mods
     array<RoguelikeRunModifier> modifiers
+    array<RoguelikeWeaponPerk> perks
 } file
 
 void function Mods_Init()
@@ -103,6 +104,16 @@ RoguelikeRunModifier function Roguelike_NewRunModifier( string uniqueName )
     return mod
 }
 
+RoguelikeWeaponPerk function Roguelike_NewWeaponPerk( string uniqueName )
+{
+    RoguelikeWeaponPerk perk
+    perk.uniqueName = uniqueName
+    perk.index = file.perks.len()
+    file.perks.append(perk)
+
+    return perk
+}
+
 
 #if UI
 array<RoguelikeMod> function GetModsForChipSlot( int chipSlot, bool isTitan, bool includeLocked = false )
@@ -187,6 +198,34 @@ RoguelikeRunModifier function GetRunModifierDataByName( var name )
     unreachable
 }
 
+RoguelikeWeaponPerk function GetWeaponPerkDataByName( var name )
+{
+    foreach (RoguelikeWeaponPerk mod in file.perks)
+    {
+        if (mod.uniqueName == name)
+            return mod
+    }
+
+    string error = "Could not find modifier of name \"" + name + "\""
+    throw error
+    unreachable
+}
+
+array<RoguelikeWeaponPerk> function Roguelike_GetWeaponPerksForSlotAndWeapon( int slot, string weapon = "" )
+{
+    array<RoguelikeWeaponPerk> result = []
+    foreach (RoguelikeWeaponPerk mod in file.perks)
+    {
+        if (mod.slot == slot)
+        {
+            if (mod.allowedWeapons.len() <= 0 || mod.allowedWeapons.contains(weapon))
+                result.append(mod)
+        }
+    }
+
+    return result
+}
+
 RoguelikeMod function GetModByName( var name )
 {
     foreach (RoguelikeMod mod in file.mods)
@@ -240,7 +279,7 @@ array function GetAllLockedPilotMods()
         if (!mod.unlockedByDefault && isModAvailable && !mod.isTitan)
             result.append(mod.uniqueName)
     }
-    printt("total pool of", result.len(), "mods")
+    printt("PILOT: total pool of", result.len(), "mods")
     return result
 }
 array function GetAllLockedTitanMods()
@@ -261,7 +300,7 @@ array function GetAllLockedTitanMods()
         if (!mod.unlockedByDefault && isModAvailable && mod.isTitan)
             result.append(mod.uniqueName)
     }
-    printt("total pool of", result.len(), "mods")
+    printt("TITAN: total pool of", result.len(), "mods")
     return result
 }
 
@@ -327,4 +366,13 @@ int function GetTotalEnergyUsed( int chipSlot, bool isTitan )
 string function FormatModIndex( int chipSlot, bool isTitan, int modSlot )
 {
     return format("AC%i_%sMod%i", chipSlot, isTitan ? "Titan" : "Pilot", modSlot)
+}
+
+int function Roguelike_GetWeaponElement( string weapon )
+{
+    if (ROGUELIKE_FIRE_WEAPONS.contains(weapon))
+        return RoguelikeElement.fire
+    if (ROGUELIKE_ELECTRIC_WEAPONS.contains(weapon))
+        return RoguelikeElement.electric
+    return RoguelikeElement.physical
 }

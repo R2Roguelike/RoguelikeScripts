@@ -160,7 +160,11 @@ void function FlameWaveDamage( entity ent, var damageInfo )
 
     DamageInfo_ScaleDamage( damageInfo, 0.5 ) // reduce base damage by 50%. were gonna cause eruptions lol
 
-    RSE_Apply( ent, RoguelikeEffect.burn_flame_core, 100.0, 15.0, 5.0 )
+    if (Roguelike_HasMod( attacker, "flame_core_burn_dmg"))
+        RSE_Apply( ent, RoguelikeEffect.burn_flame_core, 100.0, 15.0, 5.0 )
+    else
+        AddBurn( ent, attacker, 500 )
+
     if (Roguelike_HasMod( attacker, "again" ))
         RSE_Apply( ent, RoguelikeEffect.core_on_kill, 1.0, 15.0, 5.0 )
 

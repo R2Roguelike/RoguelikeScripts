@@ -6,6 +6,14 @@
 	"Version": "1.0.0",
 
 	"Scripts": [
+		{
+			"Path": "weapons/mp_titanability_roguelike_pylon.nut",
+			"RunOn": "SERVER || CLIENT"
+		},
+		{
+			"Path": "weapons/mp_titanability_nuclear_explosion.nut",
+			"RunOn": "SERVER || CLIENT"
+		}
 	],
 
 	"ConVars": [

@@ -72,19 +72,6 @@
 			"RunOn": "UI"
 		},
 		{
-			"Path": "mods/run_modifiers.nut",
-			"RunOn": "CLIENT || UI || SERVER",
-			"UICallback":{
-				"Before": "RunModifiers_Init"
-			},
-			"ServerCallback":{
-				"Before": "RunModifiers_Init"
-			},
-			"ClientCallback":{
-				"Before": "RunModifiers_Init"
-			}
-		},
-		{
 			"Path": "ui/run_modifier_panel.nut",
 			"RunOn": "UI"
 		}
@@ -105,6 +92,11 @@
             "Name": "barchangestyle",
             "DefaultValue": "3",
             "Flags": ""
+		},
+		{
+            "Name": "roguelike_force_titan",
+            "DefaultValue": "",
+            "Flags": "FCVAR_CHEAT"
 		}
 	]
 }

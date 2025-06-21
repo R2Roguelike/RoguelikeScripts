@@ -252,8 +252,7 @@ bool function IsProtectedFromFriendlyFire_SP( entity attacker, entity ent, var d
 				return true
 
 			// bullets dont damage same team of npcs
-			if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_BULLET )
-				return true
+			return true
 		}
 		else if ( attacker.IsPlayer() )
 		{
@@ -517,11 +516,7 @@ function HandleLocationBasedDamage( entity ent, var damageInfo )
 	else if ( DamageInfo_GetInflictor( damageInfo ) && (DamageInfo_GetInflictor( damageInfo ) instanceof CProjectile ) )
 		weaponName = DamageInfo_GetInflictor( damageInfo ).ProjectileGetWeaponClassName()
 
-	if ( ent.IsTitan() )
-	{
-		damageMult_location = GetCriticalScaler( ent, damageInfo )
-	}
-	else if ( IsSuperSpectre( ent ) )
+	if ( (ent.IsTitan() || IsSuperSpectre( ent )) && attacker.IsTitan() )
 	{
 		damageMult_location = GetCriticalScaler( ent, damageInfo )
 	}
@@ -535,7 +530,7 @@ function HandleLocationBasedDamage( entity ent, var damageInfo )
 				break
 		}
 	}
-	else if ( isValidHeadShot )
+	else if ( isValidHeadShot && !ent.IsTitan() )
 	{
 		damageMult_location = GetHeadshotDamageMultiplierFromDamageInfo( damageInfo )
 	}
@@ -1308,7 +1303,7 @@ void function OnNPCKilled_SP( entity npc, var damageInfo )
 
 	if ( npc.IsTitan() )
 	{
-		npc.SetPassThroughThickness( 0 )
+		npc.SetPassThroughThickness( -1 )
 		// if a player is getting in, kill him too
 		entity player = GetEmbarkPlayer( npc )
 		if ( IsAlive( player ) )

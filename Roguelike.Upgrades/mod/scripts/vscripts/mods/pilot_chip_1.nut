@@ -6,7 +6,7 @@ void function PilotChip1_RegisterMods()
         RoguelikeMod mod = NewMod("bloodthirst")
         mod.name = "Bloodthirst"
         mod.abbreviation = "Bt"
-        mod.description = "Heal for 5HP for every hit on a nearby enemy."
+        mod.description = "Dealing <burn>Fire</> damage within 10 meters starts regeneration immediately."
         mod.cost = 2
     }
     {
@@ -46,17 +46,17 @@ void function PilotChip1_RegisterMods()
         mod.cost = 3
     }
     {
-        RoguelikeMod mod = NewMod("always_regen")
-        mod.name = "Always Regen"
-        mod.abbreviation = "AR"
-        mod.description = "Health regeneration is always active, but health regeneration rate reduced by 33%."
-        mod.cost = 3
-    }
-    {
         RoguelikeMod mod = NewMod("quick_regen")
         mod.name = "Quick Regen"
         mod.abbreviation = "QR"
         mod.description = "Health regeneration rate increased by 100%."
+        mod.cost = 2
+    }
+    {
+        RoguelikeMod mod = NewMod("always_regen")
+        mod.name = "Immediate Regen"
+        mod.abbreviation = "IM"
+        mod.description = "Regeneration delay reduced by 50%. Regeneration rate reduced by 25%."
         mod.cost = 2
     }
 }

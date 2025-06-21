@@ -15,6 +15,10 @@
 			"RunOn": "UI"
 		},
 		{
+			"Path": "ui_grenade.nut",
+			"RunOn": "UI"
+		},
+		{
 			"Path": "run_manager.nut",
 			"RunOn": "UI",
 			"UICallback": {

@@ -188,8 +188,23 @@ bool function IsValidHeadShot( var damageInfo = null, entity victim = null, enti
 	if ( !IsValid( attacker ) || !attacker.IsPlayer() )
 		return false
 
-	bool hasRandomHeadshots = !attacker.IsTitan() && Roguelike_HasMod( attacker, "random_headshot" )
-	if ( (!hasRandomHeadshots || RandomFloat( 1.0 ) > 0.2) && hitGroup != HITGROUP_HEAD )
+	// WHY CAN THIS HAPPEN??????
+	if (attacker == victim)
+		return false
+
+	bool randomHeadshot = RandomFloat( 1.0 ) > 0.2 && Roguelike_HasMod( attacker, "random_headshot" )
+	bool forceHeadshot = randomHeadshot
+
+	if (RSE_Get( attacker, RoguelikeEffect.physical_spread ) > 0.0)
+	{
+		printt("impact!")
+		forceHeadshot = true
+	}
+
+	if (attacker.IsTitan())
+		forceHeadshot = false
+
+	if ( !forceHeadshot && hitGroup != HITGROUP_HEAD )
 		return false
 
 
@@ -211,7 +226,14 @@ bool function IsValidHeadShot( var damageInfo = null, entity victim = null, enti
 		if ( attackDist > weapon.s.headshotDistance )
 			return false
 
-		return weapon.GetAllowHeadShots()
+		if (weapon.GetAllowHeadShots())
+		{
+			#if SERVER
+			RSE_Stop( attacker, RoguelikeEffect.physical_spread ) 
+			#endif
+			return true
+		}
+
 	}
 	else if ( IsValid( inflictor ) && inflictor.IsProjectile() )
 	{
@@ -221,7 +243,13 @@ bool function IsValidHeadShot( var damageInfo = null, entity victim = null, enti
 		if ( inflictor.s.headshotDistance != null && attackDist > inflictor.s.headshotDistance )
 			return false
 
-		return expect bool( inflictor.GetProjectileAllowHeadShots() )
+		if (inflictor.GetProjectileAllowHeadShots())
+		{
+			#if SERVER
+			RSE_Stop( attacker, RoguelikeEffect.physical_spread ) 
+			#endif
+			return true
+		}
 	}
 
 	return false

@@ -8,9 +8,6 @@ STRENGTHS:
 - can heal you :3 (the only loadout that can do that)
 WEAKNESSES:
 - Lacks damage (and if it doesnt we nerf it hard)
-BONUSES:
-- +5% Burn DMG multiplier
-- -5% Fire Wall cooldown
 
 EXPEDITION - Support
 Weakens enemies and rearms your loadout.
@@ -19,9 +16,6 @@ STRENGTHS:
 - Damage multiplier
 WEAKNESSES:
 - Lacks damage lol (NERF PRIMARY PLEASE PLEASE PLEASE)
-BONUSES:
-- +5% DMG against Weakened enemies
-- -5% rearm cooldown
 
 Northstar - Support
 Tethers grant a damage multiplier. Railgun can charge up in the bg for burst damage.
@@ -34,13 +28,17 @@ WEAKNESSES:
 - cluster rocket good at taking care of smalls, but doesnt help much against titans.
 - hover can help with scorch/ronin enemies, though you kinda dont care
 - tethers can keep enemies out of range
-BONUSES:
-- -0.25s charge time
-- -5% cluster missile cooldown
 
 ION - Support
-replace vortex with Energy Store
-Splitter Rifle 
+replace tripwire with energy transfer
+Energy Transfer:
+- consume all remaining energy to restore up to 100% of your cd to the other loadout 
+STRENGTHS:
+- strong laser Shot
+- vortex shield (takes from energy tho...)
+WEAKNESSES:
+- weak primary
+- everything uses the same energy source, you run out of cd quick...
 
 RONIN - Damage
 STRENGTHS:
@@ -50,10 +48,6 @@ WEAKNESSES:
 - range
 - primary runs out of ammo quickly... long reload time..
 - hit n run - no prolonged fight damage options - have to setup all over. 
-MOD BONUSES:
-- +1 Overload gained from Daze
-- -10% Arc Wave cooldown
-
 
 LEGION - Damage
 Build up Incursion with primary fire. Use Power Shot to consume all Incursion for damage.
@@ -84,9 +78,5 @@ WEAKNESSES:
 - range, rockets are slow.
 - hover does nothing
 
-
 NOTES:
 How do you fight viper with Ronin/Scorch?
-
-TODO:
-

@@ -235,7 +235,7 @@ void function GiveWeaponsFromStoredArray( entity player, array<StoredWeapon> sto
 				#else
 				weapon.SetWeaponPrimaryAmmoCount( storedWeapon.ammoCount )
 				if ( weapon.GetWeaponPrimaryClipCountMax() > 0 )
-					weapon.SetWeaponPrimaryClipCount( storedWeapon.clipCount )
+					weapon.SetWeaponPrimaryClipCount( min(storedWeapon.clipCount, weapon.GetWeaponPrimaryClipCountMax()) )
 				#endif
 
 

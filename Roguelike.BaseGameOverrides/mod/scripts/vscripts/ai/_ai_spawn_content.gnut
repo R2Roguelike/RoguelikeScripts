@@ -71,6 +71,19 @@ function CommonNPCOnSpawned( entity npc )
 
 	SetAISettingsWrapper( npc, aisetting )
 
+	bool isBT = StartsWith(npc.GetAISettingsName(), "npc_titan_buddy") || StartsWith(npc.GetAISettingsName(), "npc_titan_vanguard")
+	bool isMerc = npc.HasKey("TitanType") && int( npc.kv.TitanType ) == TITAN_MERC
+	bool overrideTitan = GetConVarString("roguelike_force_titan")!="" && !isBT && !isMerc && npc.GetTeam() != TEAM_MILITIA
+	if (npc.IsTitan() && overrideTitan)
+	{
+		SetAISettingsWrapper( npc, GetConVarString("roguelike_force_titan") )
+		aisetting = GetConVarString("roguelike_force_titan")
+		
+		npc.ai.titanSpawnLoadout.setFile = expect string(npc.Dev_GetAISettingByKeyField( "npc_titan_player_settings" ))
+		// OverwriteLoadoutWithDefaultsForSetFile_ExceptSpecialAndAntiRodeo( npc.ai.titanSpawnLoadout )
+		OverwriteLoadoutWithDefaultsForSetFile( npc.ai.titanSpawnLoadout ) // get the entire loadout, including defensive and tactical
+	}
+
 	Assert( !npc.executedSpawnOptions, npc + " tried to spawn twice?" )
 	npc.executedSpawnOptions = true
 
@@ -433,7 +446,7 @@ function CommonNPCOnSpawned( entity npc )
 		if (npc.IsTitan())
 		{
 			npc.EnableNPCFlag( NPC_NO_PAIN | NPC_NO_GESTURE_PAIN | NPC_NEW_ENEMY_FROM_SOUND | NPC_DIRECTIONAL_MELEE | NPC_IGNORE_FRIENDLY_SOUND ) //NPC_AIM_DIRECT_AT_ENEMY
-			npc.EnableNPCMoveFlag( NPCMF_PREFER_SPRINT | NPCMF_DISABLE_MOVE_TRANSITIONS )
+			//npc.EnableNPCMoveFlag( NPCMF_PREFER_SPRINT | NPCMF_DISABLE_MOVE_TRANSITIONS )
 			npc.DisableNPCFlag( NPC_PAIN_IN_SCRIPTED_ANIM | NPC_ALLOW_FLEE | NPC_USE_SHOOTING_COVER )
 			npc.DisableNPCMoveFlag( NPCMF_WALK_NONCOMBAT )
 			npc.SetCapabilityFlag( bits_CAP_NO_HIT_SQUADMATES, false )
@@ -444,7 +457,8 @@ function CommonNPCOnSpawned( entity npc )
 			npc.SetEngagementDistVsWeak( 0, 800 )
 			npc.SetEngagementDistVsStrong( 0, 800 )
 		}
-		Elites_Generate( npc )
+		if (npc.GetTeam() == TEAM_IMC)
+			Elites_Generate( npc )
 	}
 
 

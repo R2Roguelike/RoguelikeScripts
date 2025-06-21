@@ -42,6 +42,32 @@
             }
 		},
 		{
+			"Path": "mods/run_modifiers.nut",
+			"RunOn": "CLIENT || UI || SERVER",
+			"UICallback":{
+				"Before": "RunModifiers_Init"
+			},
+			"ServerCallback":{
+				"Before": "RunModifiers_Init"
+			},
+			"ClientCallback":{
+				"Before": "RunModifiers_Init"
+			}
+		},
+		{
+			"Path": "mods/weapon_perks.nut",
+			"RunOn": "CLIENT || UI || SERVER",
+			"UICallback":{
+				"Before": "WeaponPerks_Init"
+			},
+			"ServerCallback":{
+				"Before": "WeaponPerks_Init"
+			},
+			"ClientCallback":{
+				"Before": "WeaponPerks_Init"
+			}
+		},
+		{
 			"Path": "upgrade_formulas.nut",
 			"RunOn": "UI || SERVER || CLIENT"
 		},

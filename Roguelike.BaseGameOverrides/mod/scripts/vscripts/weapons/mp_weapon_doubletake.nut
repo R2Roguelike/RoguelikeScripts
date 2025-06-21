@@ -50,8 +50,13 @@ function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, bool pl
 		Assert( numProjectiles <= file.boltOffsets.len() )
 
 		FireBoltAtOffset( attackParams, playerFired, weapon, [0.0,0.0], projectiles )
-		FireBoltAtOffset( attackParams, playerFired, weapon, [0.25,0.0], projectiles )
-		FireBoltAtOffset( attackParams, playerFired, weapon, [-0.25,0.0], projectiles )
+		FireBoltAtOffset( attackParams, playerFired, weapon, [0.2,0.0], projectiles )
+		FireBoltAtOffset( attackParams, playerFired, weapon, [-0.2,0.0], projectiles )
+		if (Roguelike_GetWeaponPerks( weapon ).contains("quintuple_take"))
+		{
+			FireBoltAtOffset( attackParams, playerFired, weapon, [0.6,0.0], projectiles )
+			FireBoltAtOffset( attackParams, playerFired, weapon, [-0.6,0.0], projectiles )
+		}
 	}
 
 	return 2

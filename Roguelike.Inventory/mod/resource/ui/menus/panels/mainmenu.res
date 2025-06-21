@@ -10,6 +10,49 @@
         visible					0
     }
 
+    Credits1
+    {
+		ControlName				Label
+		xpos					-18
+		ypos					-18
+		wide					400
+		tall					24
+		visible					1
+		enabled					1
+		//auto_tall_tocontents	1
+		auto_wide_tocontents	1
+		labelText				"Made by EladNLG"
+		textAlignment			east
+		fgcolor_override 		"255 225 100 255"
+		//bgcolor_override 		"0 0 0 200"
+		font					JetBrainsMono_24
+		//fgcolor_override		""
+		allcaps					0
+		pin_to_sibling			Screen
+		pin_corner_to_sibling	TOP_RIGHT
+		pin_to_sibling_corner	TOP_RIGHT
+    }
+    Credits2
+    {
+		ControlName				Label
+		xpos					0
+		ypos					1
+		wide					400
+		tall					24
+		visible					1
+		enabled					1
+		//auto_tall_tocontents	1
+		auto_wide_tocontents	1
+		labelText				"Art by Natalia"
+		textAlignment			east
+		fgcolor_override 		"255 225 100 255"
+		font					JetBrainsMono_24
+		allcaps					0
+		pin_to_sibling			Credits1
+		pin_corner_to_sibling	TOP_RIGHT
+		pin_to_sibling_corner	BOTTOM_RIGHT
+    }
+
     PinFrame
     {
         ControlName				Label

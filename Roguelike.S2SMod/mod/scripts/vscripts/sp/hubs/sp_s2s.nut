@@ -1140,8 +1140,11 @@ void function PlayerDidLoad( entity player )
 
 	entity bt = player.GetPetTitan()
 	Assert( IsValid( bt ) )
-	bt.SetInvulnerable()
-	bt.DisableHibernation()
+	if (IsValid(bt))
+	{
+		bt.SetInvulnerable()
+		bt.DisableHibernation()
+	}
 
 	thread DriftWorldCenterWithPlayer( player )
 	FlagSet( "DriftWorldCenter" )

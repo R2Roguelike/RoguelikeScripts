@@ -42,7 +42,7 @@ void function PowerShot_ApplyModWeaponVars( entity weapon )
 		return
 
 	array<string> bonusChargeMods = ["swap_load", "stat_belt", "mag_dump", "ready_up",
-									"charge_power"]
+									"charge_power", "power_shield", "support_puncture"]
 
 	int extraCharges = 0
 	foreach (string mod in bonusChargeMods)

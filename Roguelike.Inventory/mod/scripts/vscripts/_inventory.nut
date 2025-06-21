@@ -127,7 +127,8 @@ void function RefreshInventory( entity player )
 
         if (shouldSwapWeapons)
         {
-            int weaponsTaken = 2
+            int inventoryIndex = 0
+            entity existingWeapon = null
             foreach (entity mainWeapon in mainWeapons)
             {
                 // oh my GOD how did he miss this AGAIN
@@ -136,22 +137,61 @@ void function RefreshInventory( entity player )
                 if (!weaponsList.contains( mainWeapon.GetWeaponClassName() ))
                 {
                     player.TakeWeaponNow( mainWeapon.GetWeaponClassName() )
-                    weaponsTaken--
                 }
                 else
                 {
                     int index = weaponsList.find(mainWeapon.GetWeaponClassName())
+                    if (mainWeapon.GetInventoryIndex() != index)
+                    {
+                        existingWeapon = mainWeapon
+                        inventoryIndex = index
+                        player.TakeWeapon_NoDelete( mainWeapon.GetWeaponClassName() )
+                    }
                     weaponsList.remove(index)
                     weaponModsList.remove(index)
                 }
             }
 
+            if (inventoryIndex == 0 && existingWeapon != null)
+            {
+                player.GiveExistingWeapon( existingWeapon )
+                existingWeapon.SetWeaponBurstFireCount(GetWeaponInfoFileKeyField_GlobalInt(existingWeapon.GetWeaponClassName(), "burst_fire_count"))
+            }
+            printt(weaponsList[0])
             for (int i = 0; i < weaponsList.len(); i++)
             {
                 entity weapon = player.GiveWeapon(weaponsList[i], weaponModsList[i])
+                ModWeaponVars_CalculateWeaponMods( weapon )
+                printt(weapon.GetInventoryIndex())
+                weapon.SetWeaponPrimaryClipCount(min(weapon.GetWeaponPrimaryClipCount(), weapon.GetWeaponPrimaryClipCountMax()))
+            }
+            if (inventoryIndex == 1 && existingWeapon != null)
+            {
+                player.GiveExistingWeapon( existingWeapon )
+                ModWeaponVars_CalculateWeaponMods( existingWeapon )
+                existingWeapon.SetWeaponBurstFireCount(GetWeaponInfoFileKeyField_GlobalInt(existingWeapon.GetWeaponClassName(), "burst_fire_count"))
+                existingWeapon.SetWeaponPrimaryClipCount(min(existingWeapon.GetWeaponPrimaryClipCount(), existingWeapon.GetWeaponPrimaryClipCountMax()))
             }
         }
 
+        entity ordnance = player.GetOffhandWeapon(0)
+        string ordnanceName = ""
+        int ammo = -1
+        if (IsValid(ordnance))
+        {
+            ammo = ordnance.GetWeaponPrimaryClipCount()
+            ordnanceName = ordnance.GetWeaponClassName()
+        }
+        if (ordnanceName != GetConVarString("player_ordnance"))
+        {
+            if (ordnanceName !="")
+                player.TakeOffhandWeapon(0)
+            
+            player.GiveOffhandWeapon( GetConVarString("player_ordnance"), 0 )
+            if (ammo != -1)
+                player.GetOffhandWeapon(0).SetWeaponPrimaryClipCount(min(player.GetOffhandWeapon(0).GetWeaponPrimaryClipCountMax(), ammo))
+        }
+        
     }
     foreach (string s in modsList)
     {

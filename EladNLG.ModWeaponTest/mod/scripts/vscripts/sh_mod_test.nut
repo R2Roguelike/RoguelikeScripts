@@ -1,5 +1,6 @@
 untyped
 global function Sh_ModWeaponVarTest_Init
+global function Roguelike_GetWeaponPerks
 
 void function Sh_ModWeaponVarTest_Init()
 {
@@ -26,6 +27,8 @@ void function ApplyModWeaponVars( entity weapon )
     {
         PlayerWeaponBuffs( weapon, owner )
     }
+
+    ModWeaponVars_SetInt( weapon, eWeaponVar.pass_through_depth, maxint(weapon.GetWeaponSettingInt(eWeaponVar.pass_through_depth), 1 ) )
 
     if (weapon.GetWeaponClassName() != "mp_titanweapon_sniper")
         ModWeaponVars_SetBool( weapon, eWeaponVar.critical_hit, false )
@@ -104,12 +107,11 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
     {
         ScaleCooldown( weapon, 4 ) // +300%
     }
+    /*
     if (weaponClassName == "mp_weapon_frag_grenade" && Roguelike_HasMod( owner, "impact_frag"))
     {
-        ModWeaponVars_SetFloat( weapon, eWeaponVar.grenade_fuse_time, 0 )
-        ModWeaponVars_SetFloat( weapon, eWeaponVar.grenade_ignition_time, 0.15 )
-        ModWeaponVars_SetInt( weapon, eWeaponVar.grenade_arc_indicator_bounce_count, minint(weapon.GetWeaponSettingInt(eWeaponVar.grenade_arc_indicator_bounce_count), 1) )
     }
+    */
     if (weaponClassName == "mp_weapon_wingman_n")
     {
         ModWeaponVars_ScaleDamage( weapon, 1.2 )
@@ -251,21 +253,23 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
         }
         else
         {
-            #if CLIENT
-            string weaponPerksConVar = GetConVarString( "player_weapon_perks" )
-            #elseif SERVER
-            string weaponPerksConVar = GetConVarString( "player_weapon_perks" )
-            #endif
-            array<string> weaponPerks
-            if (weaponPerksConVar.len() > 0 && weapon.GetInventoryIndex() < 2)
-                weaponPerks = split( split( weaponPerksConVar, " " )[weapon.GetInventoryIndex()], "," )
+            
+            if (Roguelike_HasMod( owner, "mag_size_pilot" ))
+            {
+                entity ordnance = owner.GetOffhandWeapon(0)
+                if (IsValid(ordnance) && Roguelike_GetWeaponElement( weaponClassName ) == Roguelike_GetWeaponElement( ordnance.GetWeaponClassName() ))
+                    ModWeaponVars_AddToVar( weapon, eWeaponVar.ammo_clip_size, 5 )
+            }
+
+            
+            array<string> weaponPerks = Roguelike_GetWeaponPerks( weapon )
 
             int stat = -1
             table<int, float> values = {
-                [ RARITY_UNCOMMON ] = 0.15,
-                [ RARITY_RARE ] = 0.25,
-                [ RARITY_EPIC ] = 0.35,
-                [ RARITY_LEGENDARY ] = 0.45
+                [ RARITY_UNCOMMON ] = 0.0,
+                [ RARITY_RARE ] = 0.0,
+                [ RARITY_EPIC ] = 0.15,
+                [ RARITY_LEGENDARY ] = 0.25
             }
             float valuePerLevel = 0.15
 
@@ -273,33 +277,57 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
             {
                 stat = eWeaponVar.impulse_force
                 values = {
-                    [ RARITY_UNCOMMON ] = 0.25,
-                    [ RARITY_RARE ] = 0.4,
-                    [ RARITY_EPIC ] = 0.55,
-                    [ RARITY_LEGENDARY ] = 0.7
+                    [ RARITY_UNCOMMON ] = 0.0,
+                    [ RARITY_RARE ] = 0.0,
+                    [ RARITY_EPIC ] = 0.25,
+                    [ RARITY_LEGENDARY ] = 0.5
                 }
                 valuePerLevel = 0.25
             }
 
             float bonus = 0.0
-            if (weaponPerks.contains("uncommon"))
-                bonus += values[RARITY_UNCOMMON]
-            else if (weaponPerks.contains("rare"))
-                bonus += values[RARITY_RARE]
-            else if (weaponPerks.contains("epic"))
-                bonus += values[RARITY_EPIC]
-            else if (weaponPerks.contains("legendary"))
-                bonus += values[RARITY_LEGENDARY]
 
-            //printt(weaponPerks.len())
-            if (weaponPerks.len() > 0 && StartsWith(weaponPerks[0], "level_"))
+            int level = 0
+            
+            foreach (string perk in weaponPerks)
             {
-                int level = int( weaponPerks[0].slice( 6, weaponPerks[0].len() ))
-                bonus += valuePerLevel * level
+                if (StartsWith(perk, "level_"))
+                {
+                    level = int( weaponPerks[0].slice( 6, weaponPerks[0].len() ))
+                    continue
+                }
+
+                switch (perk)
+                {
+                    case "uncommon":
+                        bonus += values[RARITY_UNCOMMON]
+                        break
+                    case "rare":
+                        bonus += values[RARITY_RARE]
+                        break
+                    case "epic":
+                        bonus += values[RARITY_EPIC]
+                        break
+                    case "legendary":
+                        bonus += values[RARITY_LEGENDARY]
+                        break
+                    default:
+                        RoguelikeWeaponPerk perk = GetWeaponPerkDataByName(perk)
+                        if (perk.mwvCallback != null)
+                            perk.mwvCallback( weapon, owner, level )
+                        break
+                }
             }
 
+            bonus += valuePerLevel * level
+
             if (stat == -1)
-                ModWeaponVars_ScaleDamage( weapon, 1.0 + bonus )
+            {
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_value, 1.0 + bonus )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_value, 1.0 + bonus )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_very_far_value, 1.0 + bonus )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_damage, 1.0 + bonus )
+            }
             else
                 ModWeaponVars_ScaleVar( weapon, stat, 1.0 + bonus )
 
@@ -319,8 +347,9 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
                 ModWeaponVars_SetFloat( weapon, eWeaponVar.zoom_fov, GraphCapped( 0.25, 0, 1, zoomFov, 70 ) )
                 ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_rate, 1.25 )
                 ModWeaponVars_ScaleVar( weapon, eWeaponVar.rechamber_time, 0.8 )
-                ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_value_titanarmor, 3.0 )
-                ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_value_titanarmor, 3.0 )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_value_titanarmor, 2.0 )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_value_titanarmor, 2.0 )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_damage_heavy_armor, 2.0 )
                 ModWeaponVars_ScaleVar( weapon, eWeaponVar.zoom_time_in, 0.001 )
                 ModWeaponVars_ScaleVar( weapon, eWeaponVar.zoom_time_out, 0.001 )
             }
@@ -353,11 +382,6 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
                 scalar = 0.4
                 ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_pitch_random, scalar )
                 ModWeaponVars_ScaleVar( weapon, eWeaponVar.viewkick_yaw_random, scalar )
-            }
-
-            if (Roguelike_HasMod( owner, "mag_size_pilot" ))
-            {
-                ModWeaponVars_AddToVar( weapon, eWeaponVar.ammo_clip_size, 5 )
             }
         }
     }
@@ -458,8 +482,18 @@ void function NPCWeaponBuffs( entity weapon, entity owner )
         return
     if (weapon.GetWeaponClassName() == "mp_titanweapon_tracker_rockets")
         return
+    // WHY
+    if (weapon.GetWeaponClassName() == "mp_titanability_roguelike_pylon")
+        return
 
     float cd = GraphCapped( GetConVarFloat("sp_difficulty"), 0, 3, 1, 0.05 )
+
+
+    if (GetEliteType(owner) == "enraged")
+    {
+        ModWeaponVars_SetFloat( weapon, eWeaponVar.npc_max_range, 500 )
+        ModWeaponVars_SetFloat( weapon, eWeaponVar.npc_min_range, 0 )
+    }
 
     // defensives can be frustrating and also fuck w/ ai :/
     if (weapon.IsWeaponOffhand() && weapon.GetInventoryIndex() == 1)
@@ -526,3 +560,43 @@ void function RestoreWeaponLoadouts( entity player )
     }()
 }
 #endif
+
+string cachedVal
+string cachedOffhandVal
+array< array<string> > cachedResults
+array< string > cachedOffhandResults
+array<string> function Roguelike_GetWeaponPerks( entity weapon )
+{
+    if (!IsValid(weapon))
+        return []
+    entity owner = weapon.GetWeaponOwner()
+    if (!IsValid(owner) || !owner.IsPlayer() || owner.IsTitan())
+        return []
+
+    if (weapon.IsWeaponOffhand())
+    {
+        if (weapon.GetInventoryIndex() != 0)
+            return []
+        
+        if (GetConVarString("player_ordnance_perks") != cachedOffhandVal)
+            cachedOffhandResults = split( GetConVarString("player_ordnance_perks"), "," )
+        return cachedOffhandResults
+    }
+
+    if (GetConVarString("player_weapon_perks") != cachedVal)
+    {
+        cachedVal = GetConVarString("player_weapon_perks")
+        cachedResults.clear()
+
+        foreach (string perksStr in split( GetConVarString("player_weapon_perks"), " " ))
+        {
+            cachedResults.append(split(perksStr, ","))
+        }
+    }
+
+    if (cachedResults.len() <= weapon.GetInventoryIndex())
+        return []
+
+    return cachedResults[weapon.GetInventoryIndex()]
+}
+

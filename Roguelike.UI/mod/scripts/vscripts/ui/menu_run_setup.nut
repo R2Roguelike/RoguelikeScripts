@@ -61,14 +61,13 @@ void function InitRoguelikeRunSetupMenu()
         Hud_SetBarProgress( Hud_GetChild( button, "Bar" ), 0.0 )
     }
 
-    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers0" ), "memory")
-    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers1" ), "the_long_way")
-    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers2" ), "pain")
-    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers3" ), "unwalkable")
-    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers4" ), "titan_health")
-    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers5" ), "crit_or_nothing")
-    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers6" ), "defense")
-    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers7" ), "time_requirement")
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers0" ), "the_long_way")
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers1" ), "pain")
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers2" ), "unwalkable")
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers3" ), "titan_health")
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers4" ), "crit_or_nothing")
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers5" ), "defense")
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers6" ), "time_requirement")
     for (int i = 0; i < 8; i++)
     {
         button = Hud_GetChild( file.menu, "LoadoutButton" + i )
@@ -97,16 +96,9 @@ void function OnStartClicked( var panel )
         return
 
     Roguelike_StartNewRun()
-    if (Roguelike_GetRunModifier("the_long_way") > 0)
-    {
-        ExecuteLoadingClientCommands_SetStartPoint( "sp_crashsite", 7 )
-        ClientCommand("map sp_crashsite")
-    }
-    else
-    {
-        ExecuteLoadingClientCommands_SetStartPoint( "sp_sewers1", 0 )
-        ClientCommand("map sp_sewers1")
-    }
+    
+    ExecuteLoadingClientCommands_SetStartPoint( "sp_crashsite", 7 )
+    ClientCommand("map sp_crashsite")
 
     delaythread(0.1) void function() : ()
     {

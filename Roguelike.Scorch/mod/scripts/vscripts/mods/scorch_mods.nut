@@ -94,10 +94,26 @@ void function Scorch_RegisterMods()
         mod.chip = TITAN_CHIP_UTILITY
     }
     {
+        RoguelikeMod mod = NewMod("quickload")
+        mod.name = "Meteor Stun"
+        mod.abbreviation = "MS"
+        mod.description = "<cyan>Fire Duration +25%</>.\n\nHitting an enemy with your Thermite Launcher <cyan>stuns them</>."
+        mod.cost = 2
+        mod.chip = TITAN_CHIP_UTILITY
+    }
+    {
         RoguelikeMod mod = NewMod("gassin")
         mod.name = "Gassed Up"
         mod.abbreviation = "GU"
         mod.description = "<cyan>Fire Duration +25%</>.\n\nFire 2 Gas Canisters per use."
+        mod.cost = 2
+        mod.chip = TITAN_CHIP_WEAPON
+    }
+    {
+        RoguelikeMod mod = NewMod("flame_core_burn_dmg")
+        mod.name = "Overburn"
+        mod.abbreviation = "Ob"
+        mod.description = "<cyan>Burn DMG Multiplier +10%</>.\n\nFlame Core applies a <burn>200% DMG Taken</> debuff onto enemies."
         mod.cost = 2
         mod.chip = TITAN_CHIP_WEAPON
     }

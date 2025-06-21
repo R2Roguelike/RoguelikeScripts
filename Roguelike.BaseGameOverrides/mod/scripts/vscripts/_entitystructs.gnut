@@ -195,6 +195,7 @@ global struct ServerEntityStruct
 
 	// laser tripwire
 	int laserPylonArrayIdx = -1 //script managed ent array index
+	int roguelikePylonArrayIdx = -1 //script managed ent array index
 
 	//Survivor
 	int crateType
