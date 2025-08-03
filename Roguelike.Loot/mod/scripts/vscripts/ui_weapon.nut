@@ -68,7 +68,7 @@ table function RoguelikeWeapon_CreateWeapon( string name, int rarity, string slo
 		perk1 = "",
 		bonusStat = "",
 		mods = [],
-        moneyInvested = 30 + 15 * (rarity) // give 10 * rarity dolla when dismantled ()
+        moneyInvested = 80 + 20 * (rarity) // give 10 * rarity dolla when dismantled ()
     }
 
 	array<RoguelikeWeaponPerk> perkArr = Roguelike_GetWeaponPerksForSlotAndWeapon( PERK_SLOT_INHERIT, name )
@@ -87,7 +87,7 @@ table function RoguelikeWeapon_CreateWeapon( string name, int rarity, string slo
 	if (rarity > RARITY_COMMON)
 		item.bonusStat = perkArr.getrandom().uniqueName
 
-    item.priceOffset += rarity * 25
+    item.priceOffset += rarity * 50
 
     return item
 }

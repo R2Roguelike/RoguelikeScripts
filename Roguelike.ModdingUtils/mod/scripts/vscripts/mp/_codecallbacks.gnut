@@ -69,6 +69,7 @@ void function OnClientConnected( entity player )
 
 float additiveDMGBonus = 1.0
 float critDMGBonus = 1.0
+bool isCloneDamage = false
 // TODO: Get an equivalent callback happening on the client, so we can stop using ServerCallback_PlayerTookDamage which is always out of date to some degree.
 void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 {
@@ -92,6 +93,11 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	}
 	else
 		verboseDamagePrintouts = false
+
+	if (isCloneDamage)
+	{
+		DamageInfo_AddDamageFlags( damageInfo, DAMAGEFLAG_CLONE )
+	}
 
 	// Set damage source correctly when npc grunts or titans try to melee us
 	if ( attackerIsNPC && DamageInfo_GetCustomDamageType( damageInfo ) & DF_MELEE )
@@ -167,6 +173,59 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if ( DamageInfo_GetDamageSourceIdentifier( damageInfo ) == damagedef_titan_step )
 		HandleFootstepDamage( ent, damageInfo )
 
+	// HACK for enemy pets
+	if ( IsValid( attacker ) && "hacker" in attacker.s )
+	{
+		local ogOwner = attacker.s.hacker
+		printt(ogOwner)
+		if ( IsValid( ogOwner ) && ent != ogOwner )
+		{
+			printt("transferring dmg responsibilities")
+			// HACK to do this legit we need DamageInfo_SetAttacker( damageInfo )
+			// victim should take damage from the original owner instead of the satchel attacker so he gets a kill credit
+			// also, cant set 
+			isCloneDamage = true
+			ent.TakeDamage( DamageInfo_GetDamage( damageInfo ), ogOwner, inflictor, 
+				{ weapon = DamageInfo_GetWeapon( damageInfo ), 
+				origin = DamageInfo_GetDamagePosition( damageInfo ), 
+				force = DamageInfo_GetDamageForce( damageInfo ), 
+				scriptType = DamageInfo_GetCustomDamageType( damageInfo ), 
+				damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo ), 
+				 } )
+			isCloneDamage = false
+
+			// now zero out the normal damage and return
+			DamageInfo_SetDamage( damageInfo, 0 )
+			return
+		}
+	}
+
+	if ((DamageInfo_GetDamageFlags( damageInfo ) & DAMAGEFLAG_CLONE) != 0)
+	{
+		int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
+		if (Roguelike_HasMod( attacker, "hack_dmg") )
+			DamageInfo_AddDamageBonus( damageInfo, 0.5 )
+		
+		if (Roguelike_HasMod( attacker, "clone_lockons_generic" ))
+		{
+			if (RSE_Get( attacker, RoguelikeEffect.clone_lockons_generic ) <= 0 && damageSourceId != eDamageSourceId.mp_titanweapon_sticky_40mm)
+			{
+				ApplyTrackerMark( attacker, ent )
+				RSE_Apply( attacker, RoguelikeEffect.clone_lockons_generic, 1.0, 1.0, 1.0 )
+			}
+		}
+	}
+
+	if (Roguelike_HasMod( attacker, "hit_locks" ) && RSE_Get( attacker, RoguelikeEffect.hit_locks ) <= 0)
+	{
+		int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
+		if (damageSourceId != eDamageSourceId.mp_titanweapon_sticky_40mm)
+		{
+			ApplyTrackerMark( attacker, ent )
+			RSE_Apply( attacker, RoguelikeEffect.hit_locks, 1.0, 0.5, 0.5 )
+		}
+	}
+
 	// HACK helps trap/grenade weapons do damage to the correct entities (player who deployed it as well as the team opposite his)
 	if ( IsValid( inflictor ) && "originalOwner" in inflictor.s )
 	{
@@ -229,6 +288,8 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	// use AddDamageCallbackSourceID( "classname", function ) to registed functions
 	// moved this up since northstar uses this to add more damage
 	// would bypass most difficulty stuff
+	// burn calculated here so fire sources dont buff themselves for the 1st damage instance
+	float burn = GetBurn( ent )
 	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 	if ( damageSourceId in shGlobal.damageSourceIdCallbacks )
 	{
@@ -356,9 +417,8 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		DamageInfo_ScaleDamage( damageInfo, expect float(attacker.s.damageMult) )
 
 	bool isValidDamageSource = (attackerIsPlayer && Roguelike_HasMod( attacker, "burn_dmg" )) || !BURN_DAMAGE_SOURCES.contains(damageSourceId)
-	if (GetBurn( ent ) > 0 && isValidDamageSource)
+	if (burn > 0 && isValidDamageSource)
 	{
-		float burn = GetBurn( ent )
 		float damage = DamageInfo_GetDamage( damageInfo )
 		DamageInfo_ScaleDamage( damageInfo, 1.0 + burn * 0.01 )
 		float restore = min(damage * min(burn * 0.004, 0.2), burn) // 25 burn = 10% shieldsteal, up to 20%
@@ -378,15 +438,12 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		DamageInfo_AddDamageBonus( damageInfo, 0.35 * blockIntensity )
     }
 
-	if (attacker.IsPlayer() && Roguelike_IsWeaponDamage( damageInfo ))
-	{
-		if (RSE_Get( attacker, RoguelikeEffect.rearm_reload ) > 0.0 && Roguelike_HasMod( attacker, "rearm_reload" ))
-			DamageInfo_AddDamageBonus( damageInfo, 0.25 )
-		if (RSE_Get( attacker, RoguelikeEffect.offense_canister ) > 0.0)
-			DamageInfo_AddDamageBonus( damageInfo, 0.5 )
-		if (RSE_Get( attacker, RoguelikeEffect.gun_shield_shield ) > 0.0)
-			DamageInfo_AddDamageBonus( damageInfo, 0.2 )
-	}
+	if (RSE_Get( attacker, RoguelikeEffect.rearm_reload ) > 0.0 && Roguelike_HasMod( attacker, "rearm_reload" ))
+		DamageInfo_AddDamageBonus( damageInfo, 0.25 )
+	if (RSE_Get( attacker, RoguelikeEffect.gun_shield_shield ) > 0.0)
+		DamageInfo_AddDamageBonus( damageInfo, 0.2 )
+	if (RSE_Get( attacker, RoguelikeEffect.offense_canister ) > 0.0)
+		DamageInfo_AddDamageBonus( damageInfo, 0.5 )
 
 	// WEAK -
 	if ( attackerIsPlayer && GetWeaken( ent ) > 0 && Roguelike_IsWeaponDamage( damageInfo ) )
@@ -509,10 +566,8 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		ent.Signal("MeleeDamage", {attacker = attacker})
 	}
 
-	/*if ( attacker.IsPlayer() && GetTitanLoadoutFlags() & TITAN_BITS[PRIMARY_RONIN]
-	&& damageSourceId != eDamageSourceId.melee_titan_sword
-	&& damageSourceId != eDamageSourceId.mp_titancore_shift_core )
-		AddDaze( ent, attacker, DamageInfo_GetDamage( damageInfo ) / 2500.0 )*/
+	if ( attacker.IsPlayer() )
+    	attacker.AddToPlayerGameStat( PGS_ASSAULT_SCORE, RoundToInt(DamageInfo_GetDamage( damageInfo )))
 
 	// Added via AddEntityCallback_OnDamaged
 	foreach ( callbackFunc in ent.e.entDamageCallbacks )

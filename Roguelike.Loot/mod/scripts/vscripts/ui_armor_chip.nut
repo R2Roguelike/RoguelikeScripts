@@ -32,7 +32,7 @@ table function ArmorChip_Generate()
         level = 0,
         priceOffset = 0,
         rarity = RARITY_COMMON
-        moneyInvested = 30 + 15 * (baseRarity) // give 20 dolla when dismantled ()
+        moneyInvested = 80 + 20 * (baseRarity) // give 20 dolla when dismantled ()
     }
 
     chip.isTitan <- expect int(chip.slot) <= 4
@@ -68,7 +68,7 @@ table function ArmorChip_Generate()
     chip.subStats.sort()
 
     chip.energy = maxint(expect int(chip.energy) + minint(baseRarity, RARITY_EPIC), 0)
-    chip.priceOffset += baseRarity * 25
+    chip.priceOffset += baseRarity * 50
 
     runData.chipSlotIndex = (++slotIndex) % 8
 

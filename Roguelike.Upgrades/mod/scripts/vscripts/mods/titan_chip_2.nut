@@ -18,8 +18,8 @@ void function TitanChip2_RegisterMods()
     }
     {
         RoguelikeMod mod = NewMod("titan_move_speed")
-        mod.name = "Overclock (Legs)"
-        mod.abbreviation = "OL"
+        mod.name = "Titan Leg Day"
+        mod.abbreviation = "TLD"
         mod.description = "Base movement speed increased by 20%."
         mod.cost = 1
     }

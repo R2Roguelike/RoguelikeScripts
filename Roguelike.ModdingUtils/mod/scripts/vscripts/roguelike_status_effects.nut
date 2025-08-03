@@ -5,11 +5,11 @@ global function RSE_GetIntensity
 global function RSE_Apply
 global function RSE_Consume
 global function RSE_Stop
-global function RSE_GetEffectFrac
-global function RSE_GetEffectEndTime
 global function RoguelikeStatusEffects_Init
 array<entity> entitiesToSync
 #endif
+global function RSE_GetEffectFrac
+global function RSE_GetEffectEndTime
 #if CLIENT
 global function ServerCallback_RSE_Apply
 #endif
@@ -32,6 +32,7 @@ global table<int, string> effectDisplayNames = {
     [ RoguelikeEffect.explosive_start ] = "Explosive Start",
     [ RoguelikeEffect.kill_self_dmg ] = "Deal with Death",
     [ RoguelikeEffect.physical_spread ] = "Impending Impact",
+    [ RoguelikeEffect.gun_shield_shield ] = "Shields to Shields",
 }
 
 global table<int, bool> effectDisplayPercentage = {
@@ -85,26 +86,6 @@ float function RSE_Get( entity ent, int effect )
 float function RSE_GetIntensity( RSEInstance instance )
 {
     return GraphCapped( Time(), instance.endTime - instance.fadeOutTime, instance.endTime, instance.stacks, 0.0 )
-}
-
-float function RSE_GetEffectEndTime( entity ent, int effect )
-{
-    RSEInstance ornull instance = RSE_FindEffect( ent, effect )
-    if (instance == null)
-        return 0.0
-
-    expect RSEInstance(instance)
-    return instance.startTime
-}
-
-float function RSE_GetEffectFrac( entity ent, int effect )
-{
-    RSEInstance ornull instance = RSE_FindEffect( ent, effect )
-    if (instance == null)
-        return 0.0
-
-    expect RSEInstance(instance)
-    return GraphCapped( Time(), instance.startTime, instance.endTime, 1.0, 0.0 )
 }
 
 float function RSE_GetDuration( RSEInstance instance )
@@ -199,6 +180,26 @@ float function RSE_Stop( entity ent, int effect )
 }
 #endif
 
+float function RSE_GetEffectEndTime( entity ent, int effect )
+{
+    RSEInstance ornull instance = RSE_FindEffect( ent, effect )
+    if (instance == null)
+        return 0.0
+
+    expect RSEInstance(instance)
+    return instance.startTime
+}
+
+float function RSE_GetEffectFrac( entity ent, int effect )
+{
+    RSEInstance ornull instance = RSE_FindEffect( ent, effect )
+    if (instance == null)
+        return 0.0
+
+    expect RSEInstance(instance)
+    return GraphCapped( Time(), instance.startTime, instance.endTime, 1.0, 0.0 )
+}
+
 #if CLIENT
 void function ServerCallback_RSE_Apply( int handle, int effect, float amount, float startTime, float endTime, float fadeOutTime )
 {
@@ -219,8 +220,11 @@ void function ServerCallback_RSE_Apply( int handle, int effect, float amount, fl
 
     RSEInstance ornull oldEffect = RSE_FindEffect( ent, effect )
 
-    if (oldEffect != null)
+    while (oldEffect != null)
+    {
         ent.e.rseData.fastremovebyvalue(expect RSEInstance(oldEffect))
+        oldEffect = RSE_FindEffect( ent, effect )
+    }
 
     ent.e.rseData.append(instance)
 }

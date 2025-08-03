@@ -351,7 +351,7 @@ menace to society."
             enabled					1
             //auto_wide_tocontents	1
             auto_tall_tocontents	1
-            labelText				"Select 2 Loadouts"
+            labelText				"Select A Loadout"
             fgcolor_override		"225 225 225 255"
             textAlignment			south-west
             //fgcolor_override 		"255 255 255 255"

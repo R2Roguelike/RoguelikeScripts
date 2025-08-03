@@ -116,11 +116,16 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
     {
         ModWeaponVars_ScaleDamage( weapon, 1.2 )
     }
+    if (weaponClassName == "mp_titanweapon_tracker_rockets")
+    {
+        ModWeaponVars_SetFloat( weapon, eWeaponVar.charge_time, 10.0 )
+        ModWeaponVars_SetFloat( weapon, eWeaponVar.regen_ammo_refill_rate, 13.3 )
+        ModWeaponVars_SetString( weapon, eWeaponVar.burst_or_looping_fire_sound_start_1p, "" )
+    }
     if (weaponClassName == "mp_titanweapon_xo16_shorty" && Roguelike_HasMod( owner, "xo16_long_range"))
     {
         //ModWeaponVars_SetBool( weapon, eWeaponVar.looping_sounds, false )
         //ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_rate, 0.9 )
-        //ModWeaponVars_SetString( weapon, eWeaponVar.fire_sound_3, "Weapon_xo16_fire_first_1P" )
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_distance, 2 )
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_distance, 2 )
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_very_far_distance, 2 )
@@ -412,6 +417,10 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
             ModWeaponVars_SetInt( weapon, eWeaponVar.custom_int_3, overcap )
         }
     }
+    if (weaponClassName == "mp_titanweapon_sticky_40mm" && Roguelike_HasMod( owner, "40mm_fire_rate" ))
+    {
+        ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_rate, 1.25 )
+    }
     if (weaponClassName == "mp_titanweapon_particle_accelerator" && Roguelike_HasMod( owner, "energy_split" ))
     {
         ModWeaponVars_ScaleDamage( weapon, 0.666 )
@@ -551,9 +560,12 @@ void function RestoreWeaponLoadouts( entity player )
                 delete player.s.storedAbilities
                 delete player.s.currentLoadout
             }
-            player.GiveWeapon(playerTitanWeapons[0])
-            player.SetActiveWeaponByName(playerTitanWeapons[0])
-            player.GiveWeapon(playerTitanWeapons[1])
+            for (int i = 0; i < playerTitanWeapons.len(); i++)
+            {
+                player.GiveWeapon(playerTitanWeapons[i])
+                if (i == 0)
+                    player.SetActiveWeaponByName(playerTitanWeapons[i])
+            }
             Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetMainWeapons()[0] )
             print("GIVING WEAPON 2")
         }

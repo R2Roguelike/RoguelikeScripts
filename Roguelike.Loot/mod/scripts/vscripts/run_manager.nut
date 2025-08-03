@@ -146,8 +146,8 @@ void function Roguelike_StartNewRun()
     runData.money <- 0
     runData.map <- "sp_crashsite"
     runData.startPointIndex <- 7
-    if (Roguelike_GetTitanLoadouts().len() < 2)
-        SetConVarString( "roguelike_titan_loadout", "mp_titanweapon_leadwall mp_titanweapon_meteor")
+    if (Roguelike_GetTitanLoadouts().len() > 1)
+        SetConVarString( "roguelike_titan_loadout", Roguelike_GetTitanLoadouts()[0])
     runData.loadouts <- GetConVarString("roguelike_titan_loadout")
     runData.runModifiers <- GetConVarString("roguelike_run_modifiers")
     runData.memoryHP <- "-1"

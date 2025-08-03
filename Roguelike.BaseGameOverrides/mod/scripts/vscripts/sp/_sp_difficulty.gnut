@@ -98,16 +98,16 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 	{
 		if (ent.IsTitan())
 		{
-			AddKillsAndMoney( GetFirstPlayer(), 25, 25 )
+			AddKillsAndMoney( GetFirstPlayer(), 25, 100 )
 		}
 		else if (IsSuperSpectre( ent ))
 		{
-			AddKillsAndMoney( GetFirstPlayer(), 10, 15 )
+			AddKillsAndMoney( GetFirstPlayer(), 10, 25 )
 		}
 		else
 		{
 			if (ent.GetClassName() == "npc_marvin" || AllowGruntKills(GetMapName()))
-				AddKillsAndMoney( GetFirstPlayer(), 2, 5 )
+				AddKillsAndMoney( GetFirstPlayer(), 2, 10 )
 		}
 	}
 
@@ -463,6 +463,7 @@ void function Roguelike_QuickDeathInsteadOfKill( entity player )
 
 	ScreenFade( player, 0, 0, 0, 255, FADE_TIME, 2.2, FFADE_IN | FFADE_PURGE )
 	player.FreezeControlsOnServer()
+	player.SetInvulnerable() // youre fucking kidding me.
 	player.p.doingQuickDeath = true
 
 	EmitSoundOnEntity( player, "quickdeath_fadeout_to_fadein" )
@@ -482,6 +483,7 @@ void function Roguelike_QuickDeathInsteadOfKill( entity player )
 	wait 2.1
 
 	player.UnfreezeControlsOnServer()
+	player.ClearInvulnerable()
 	player.p.doingQuickDeath = false
 	player.EnableWeapon()
 	EmitSoundOnEntity( player, "Player_Death_PrespawnTransition" )

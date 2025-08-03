@@ -195,17 +195,14 @@ void function AddBurn( entity ent, entity attacker, float amount )
 
     float maxBaseBurn = 25
 
-    array<string> extraBurnMods = [ "offense_canister", "buy1get1free", "flamethrower", "gas_recycle", "burn_dmg", "burn_shield"]
+    array<string> extraBurnMods = [ "offense_canister", "buy1get1free", "flamethrower", "gas_recycle", "burn_dmg", "burn_shield", "flame_core_burn_dmg"]
 
     foreach (string mod in extraBurnMods)
         if (Roguelike_HasMod( attacker, mod ))
-            maxBaseBurn += 10
+            maxBaseBurn += 5
 
-    if (cur < maxBaseBurn)
-    {
-        float duration = 5.0 * Roguelike_GetFireDurationMultiplier( attacker )
-        RSE_Apply( ent, RoguelikeEffect.burn, min(cur + amount, maxBaseBurn), duration + 2.0, 2.0 )
-    }
+    float duration = 5.0 * Roguelike_GetFireDurationMultiplier( attacker )
+    RSE_Apply( ent, RoguelikeEffect.burn, maxBaseBurn, 4.0, 0.0 )
 
     if (cur >= 200)
     {

@@ -408,7 +408,10 @@ void function OnLeaveButton_Activate( var button )
 
 void function OnRestartLevel_Activate( var button )
 {
-	ShowAreYouSureDialog( "#MENU_RESTART_MISSION_CONFIRM", RestartMission, "#WARNING_LOSE_PROGRESS" )
+	if (level.ui.roguelikePlayerDead)
+		ShowAreYouSureDialog( "#MENU_RESTART_MISSION_CONFIRM", PermissionDenied, "#WARNING_LOSE_PROGRESS"  )
+	else
+		ShowAreYouSureDialog( "#MENU_RESTART_MISSION_CONFIRM", RestartMission, "#WARNING_LOSE_PROGRESS" )
 }
 
 void function OnChangeDifficulty_Activate( var button )
@@ -430,7 +433,10 @@ void function OnReloadCheckpoint_Activate( var button )
 	}
 	else
 	{
-		ShowAreYouSureDialog( "#MENU_RESTART_CHECKPOINT_CONFIRM", ReloadLastCheckpoint, "#EMPTY_STRING"  )
+		if (level.ui.roguelikePlayerDead)
+			ShowAreYouSureDialog( "#MENU_RESTART_CHECKPOINT_CONFIRM", PermissionDenied, "#EMPTY_STRING"  )
+		else
+			ShowAreYouSureDialog( "#MENU_RESTART_CHECKPOINT_CONFIRM", ReloadLastCheckpoint, "#EMPTY_STRING"  )
 	}
 }
 
@@ -442,6 +448,20 @@ void function ShowAreYouSureDialog( string header, void functionref() func, stri
 
 	AddDialogButton( dialogData, "#NO" )
 	AddDialogButton( dialogData, "#YES", func )
+
+	AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
+	AddDialogFooter( dialogData, "#B_BUTTON_BACK" )
+
+	OpenDialog( dialogData )
+}
+
+void function PermissionDenied()
+{
+	DialogData dialogData
+	dialogData.header = "Denied :)"
+	dialogData.message = "You can't do that. You're dead. Close the pause menu, and face the consenquences."
+
+	AddDialogButton( dialogData, "#OK" )
 
 	AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
 	AddDialogFooter( dialogData, "#B_BUTTON_BACK" )

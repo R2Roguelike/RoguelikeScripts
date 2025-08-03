@@ -1,0 +1,24 @@
+{
+	"Name": "Roguelike.Tone",
+	"Description": "Watch your tone, pilot.",
+	"LoadPriority": 0,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+
+	"Scripts": [
+		{
+			"Path": "_expose.nut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Expose_Init"
+            }
+		},
+		{
+			"Path": "mods/tone_mods.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		}
+	],
+
+	"ConVars": [
+	]
+}

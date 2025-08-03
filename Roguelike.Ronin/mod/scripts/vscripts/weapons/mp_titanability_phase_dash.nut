@@ -33,6 +33,7 @@ var function OnWeaponPrimaryAttack_titanability_phase_dash( entity weapon, Weapo
 					StatusEffect_AddTimed( soul, eStatusEffect.move_slow, 0.6, shiftTime + fade, fade )
 					if ( Roguelike_HasMod( player, "phase_ammo" ))
 					{
+						SetShotgunBuff( player, GetShotgunBuff( player ) + 2 )
 						foreach (entity weapon in player.GetMainWeapons())
 						{
 							weapon.SetWeaponPrimaryClipCount(weapon.GetWeaponPrimaryClipCountMax())

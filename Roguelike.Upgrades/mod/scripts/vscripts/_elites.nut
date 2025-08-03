@@ -6,7 +6,8 @@ global function GetEliteType
 global function HealingElite_Pylon
 
 struct {
-    array<void functionref( entity )> eliteFuncs
+    array<void functionref( entity )> eliteTitanFuncs
+    array<void functionref( entity )> elitePilotFuncs
 } file
 
 void function Elites_Init()
@@ -19,13 +20,13 @@ void function Elites_Init()
 	PrecacheImpactEffectTable( ARC_CANNON_FX_TABLE )
 
     
-    //Elites_Add( Elite_BubbleShield )
-    //Elites_Add( Elite_Healing )
-    //Elites_Add( Elite_Enraged )
-    //Elites_Add( Elite_Invulnerable )
-    Elites_Add( Elite_Parry )
-    //if (!("titan_health" in Roguelike_GetRunModifiers()))
-    //    Elites_Add( Elite_Sacrifice )
+    Elites_Add( Elite_BubbleShield )
+    Elites_AddTitan( Elite_Healing )
+    Elites_Add( Elite_Enraged )
+    Elites_Add( Elite_Invulnerable )
+    Elites_AddTitan( Elite_Parry )
+    if (!("titan_health" in Roguelike_GetRunModifiers()))
+        Elites_AddTitan( Elite_Sacrifice )
 }
 
 string function GetEliteType( entity npc )
@@ -38,13 +39,24 @@ string function GetEliteType( entity npc )
 
 void function Elites_Add( void functionref( entity ) eliteFunc )
 {
-    file.eliteFuncs.append(eliteFunc)
+    file.eliteTitanFuncs.append(eliteFunc)
+    file.elitePilotFuncs.append(eliteFunc)
+}
+
+void function Elites_AddTitan( void functionref( entity ) eliteFunc )
+{
+    file.eliteTitanFuncs.append(eliteFunc)
+}
+
+void function Elites_AddPilot( void functionref( entity ) eliteFunc )
+{
+    file.elitePilotFuncs.append(eliteFunc)
 }
 
 void function Elites_Generate( entity npc )
 {
     int levelsComplete = GetConVarInt("roguelike_levels_completed")
-    float chance = 1.0 // GraphCapped( levelsComplete, 0, 5, 10, 5 )
+    float chance = 1.0 / GraphCapped( levelsComplete, 0, 5, 10, 5 )
     if (RandomFloat(1) > chance)
         return
 
@@ -56,7 +68,12 @@ void function Elites_Generate( entity npc )
             return
         if (npc.IsMarkedForDeletion())
             return
-        thread file.eliteFuncs.getrandom()( npc )
+        if (IsMercTitan( npc )) // NO BOSSES!!!
+            return
+        if (!npc.IsTitan() && !IsSuperSpectre(npc))
+            thread file.elitePilotFuncs.getrandom()( npc )
+        else
+            thread file.eliteTitanFuncs.getrandom()( npc )
     }()
 }
 
@@ -337,35 +354,40 @@ void function Elite_Invulnerable( entity npc )
 
             Highlight_SetEnemyHighlight( npc, "elite_invulnerable_on" )
 
-            // Control point sets the end position of the effect
-            entity cpEnd = CreateEntity( "info_placement_helper" )
-            SetTargetName( cpEnd, UniqueString( "arc_cannon_beam_cpEnd" ) )
-            cpEnd.SetOrigin( npc.GetWorldSpaceCenter() )
-            DispatchSpawn( cpEnd )
-            cpEnd.SetParent( ent )
-
-            entity zapBeam = CreateEntity( "info_particle_system" )
-            zapBeam.kv.cpoint1 = cpEnd.GetTargetName()
-            zapBeam.SetValueForEffectNameKey( ARC_CANNON_BEAM_EFFECT_MOD )
-            zapBeam.kv.start_active = 1
-            zapBeam.SetOwner( npc )
-            zapBeam.SetOrigin( ent.GetWorldSpaceCenter() )
-            DispatchSpawn( zapBeam )
-            zapBeam.SetParent( ent )
-
-            zapBeam.Fire( "Start" )
             while (IsAlive( ent ) && Distance( npc.GetOrigin(), ent.GetOrigin() ) < maxDist)
             {
-                npc.AssaultSetGoalRadius( 100 )
-                npc.AssaultSetGoalHeight( 500 )
-                npc.AssaultSetArrivalTolerance( 100 )
-                npc.AssaultPoint( ent.GetOrigin() )
-                npc.AssaultSetFightRadius( 100 )
+                // Control point sets the end position of the effect
+                entity cpEnd = CreateEntity( "info_placement_helper" )
+                SetTargetName( cpEnd, UniqueString( "arc_cannon_beam_cpEnd" ) )
+                cpEnd.SetOrigin( npc.GetWorldSpaceCenter() )
+                DispatchSpawn( cpEnd )
+                cpEnd.SetParent( ent )
+
+                entity zapBeam = CreateEntity( "info_particle_system" )
+                zapBeam.kv.cpoint1 = cpEnd.GetTargetName()
+                zapBeam.SetValueForEffectNameKey( ARC_CANNON_BEAM_EFFECT_MOD )
+                zapBeam.kv.start_active = 1
+                zapBeam.SetOwner( npc )
+                zapBeam.SetOrigin( ent.GetWorldSpaceCenter() )
+                DispatchSpawn( zapBeam )
+                zapBeam.SetParent( ent )
+
+                zapBeam.Fire( "Start" )
+                if (!IsTurret( npc ))
+                {
+                    npc.AssaultSetGoalRadius( 100 )
+                    npc.AssaultSetGoalHeight( 500 )
+                    npc.AssaultSetArrivalTolerance( 100 )
+                    npc.AssaultPoint( ent.GetOrigin() )
+                    npc.AssaultSetFightRadius( 100 )
+                }
+
+                zapBeam.Fire( "StopPlayEndCap", "", 0.5 )
+                zapBeam.Kill_Deprecated_UseDestroyInstead( 0.5 )
+                cpEnd.Kill_Deprecated_UseDestroyInstead( 0.5 )
+
                 wait 0.5
             }
-            zapBeam.Fire( "StopPlayEndCap", "", 0.2 )
-            zapBeam.Kill_Deprecated_UseDestroyInstead( 0.2 )
-            cpEnd.Kill_Deprecated_UseDestroyInstead( 0.2 )
             break
         }
 
@@ -450,7 +472,7 @@ void function HealingElite_Pylon( entity npc, entity tower )
 
             zapBeam.Fire( "Start" )
 
-            while (IsAlive( ent ) && Distance( npc.GetOrigin(), ent.GetOrigin() ) < range && ent.GetHealth() < ent.GetMaxHealth())
+            while (IsValid(ent) && IsAlive( ent ) && Distance( npc.GetOrigin(), ent.GetOrigin() ) < range && ent.GetHealth() < ent.GetMaxHealth())
             {
                 ent.SetHealth( minint( ent.GetMaxHealth(), ent.GetHealth() + int(ent.GetMaxHealth() * 0.02) ))
                 wait 0.19

@@ -71,6 +71,9 @@ global const int MOD_SLOTS = 4;
 global const bool MOD_TYPE_TITAN = true
 global const bool MOD_TYPE_PILOT = false
 
+global const int STAT_COUNT = 6;
+global const int STAT_TITAN_COUNT = 3;
+
 global const int STAT_ARMOR     = 0;
 global const int STAT_ENERGY    = 1;
 global const int STAT_POWER     = 2;
@@ -139,6 +142,7 @@ global const int DAMAGEFLAG_DISCHARGE = 32
 global const int DAMAGEFLAG_DISORDER = 64
 global const int DAMAGEFLAG_ELECTRIC = 128
 global const int DAMAGEFLAG_FIRE = 256
+global const int DAMAGEFLAG_CLONE = 512 // for tone's hacked enemy
 
 global const int STAT_CAP = 3000
 
@@ -169,6 +173,7 @@ global enum RoguelikeEffect
     legion_puncture,
     ronin_quickswap,
     northstar_fulminate,
+    tone_expose,
     pilot_fatigue,
     sacrifice_roll,
     segment_sacrifice_1,
@@ -190,6 +195,8 @@ global enum RoguelikeEffect
     explosive_start,
     kill_self_dmg,
     physical_dmg,
+    clone_lockons_generic,
+    hit_locks,
     physical_spread,
     count,
 }

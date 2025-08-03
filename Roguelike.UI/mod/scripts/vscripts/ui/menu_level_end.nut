@@ -211,11 +211,11 @@ void function ClientCallback_LevelEnded( string nextMap, int startPointIndex, in
             nextMap = "sp_timeshift_spoke02"
             startPointIndex = 0
         }
-        // replace enc ch.3 with beacon 2
+        // replace enc ch.3 with trial by fire
         if (nextMap == "sp_hub_timeshift" && startPointIndex == 7)
         {
-            nextMap = "sp_beacon_spoke0"
-            startPointIndex = 0
+            nextMap = route > 0 ? "sp_beacon_spoke0" : "sp_beacon"
+            startPointIndex = route > 0 ? 0 : 2
         }
         // replace beacon 3 w/ trial by fire, unless on long routes, then go as normal
         if (nextMap == "sp_beacon" && startPointIndex == 2 && route == 0)
@@ -234,8 +234,12 @@ void function ClientCallback_LevelEnded( string nextMap, int startPointIndex, in
     file.startPointIndex = startPointIndex
     file.kills = kills
     file.time = time
-
+    
     AdvanceMenu( file.menu )
+    if (GetActiveLevel() == "sp_boomtown_end")
+    {
+        AdvanceMenu( GetMenu("LimitedLoadoutChoice"))
+    }
 }
 
 void function LevelEnd_ResetTolls()

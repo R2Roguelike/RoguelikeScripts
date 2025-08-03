@@ -1,0 +1,125 @@
+resource/ui/menus/limited_loadout_choice.menu
+{
+    menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+        Screen
+        {
+            ControlName				RuiButton
+            wide					%100
+            tall					%100
+            tabPosition             0
+            visible					1
+            scaleImage				1
+            fillColor				"0 0 0 0"
+            drawColor				"0 0 0 0"
+            labelText 				""
+        }
+
+        Vignette
+        {
+            ControlName			ImagePanel
+            InheritProperties	MenuVignette
+        }
+
+        ButtonRowAnchor
+        {
+            ControlName	Label
+            labelText	""
+
+            xpos	120
+            ypos	160
+        }
+
+        FooterButtons
+        {
+            ControlName				CNestedPanel
+            InheritProperties       FooterButtons
+        }
+
+        Title
+        {
+            ControlName				Label
+            xpos					0
+            ypos				    -80
+            wide					74
+            tall					27
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            auto_tall_tocontents	1
+            labelText				"CHOOSE YOUR 2ND LOADOUT"
+            fgcolor_override		"225 225 225 255"
+            textAlignment			center
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					GothicExpanded_56
+
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	TOP
+            pin_to_sibling_corner	TOP
+        }
+
+        Choice1
+        {
+            ControlName				CNestedPanel
+            xpos					-32
+            ypos                    0
+            wide					512
+            tall					512
+            visible					1
+            tabPosition				1
+            zpos					20
+            controlSettingsFile		"Resource/UI/menus/panels/vgui_button_loadout.res"
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	RIGHT
+            pin_to_sibling_corner	CENTER
+            scriptID        0
+        }
+        Choice2
+        {
+            ControlName				CNestedPanel
+            xpos					32
+            ypos                    0
+            wide					512
+            tall				    512
+            visible					1
+            tabPosition				1
+            zpos					20
+            controlSettingsFile		"Resource/UI/menus/panels/vgui_button_loadout.res"
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	LEFT
+            pin_to_sibling_corner	CENTER
+            scriptID        1
+        }
+        Confirm
+        {
+            ControlName				CNestedPanel
+            xpos					0
+            ypos                    300
+            wide					256
+            tall				    64
+            visible					1
+            tabPosition				1
+            zpos					20
+            controlSettingsFile		"Resource/UI/menus/panels/vgui_button_big.res"
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	TOP
+            pin_to_sibling_corner	CENTER
+            scriptID        1
+        }
+    }
+}

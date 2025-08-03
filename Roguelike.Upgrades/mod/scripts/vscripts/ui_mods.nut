@@ -55,6 +55,9 @@ void function Mods_Init()
     // ION
     Ion_RegisterMods()
 
+    // TONE
+    Tone_RegisterMods()
+
     printt("Registered", file.mods.len())
     int loadoutSpecific = 0
     table<string, int> modsPerLoadout
@@ -239,7 +242,7 @@ RoguelikeMod function GetModByName( var name )
     unreachable
 }
 
-// is not typed array cuz this is for storing in rundata
+// is not typed array cuz this is for storing in runData
 array function GetAllLockedMods()
 {
     array result

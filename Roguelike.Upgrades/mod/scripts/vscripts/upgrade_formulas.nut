@@ -26,6 +26,13 @@ float function Roguelike_GetTitanDamageResist( int armor )
     return resist
 }
 
+int function Roguelike_GetBatteryHealingMultiplier( int armor )
+{
+    int base = 800
+    base += 8 * armor
+    return base
+}
+
 // -90% dash cooldown? why the fuck not...
 float function Roguelike_GetDashCooldownMultiplier( int energy )
 {
@@ -133,6 +140,8 @@ array function GetTitanColor(string primary)
             return [64, 96, 255, 255]
         case "mp_titanweapon_particle_accelerator":
             return [64, 255, 255, 255]
+        case "mp_titanweapon_sticky_40mm":
+            return [32, 200, 32, 255]
     }
 
     return [40,40,40,255]

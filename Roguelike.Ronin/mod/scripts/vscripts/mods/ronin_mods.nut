@@ -104,7 +104,7 @@ void function Ronin_RegisterMods()
         RoguelikeMod mod = NewMod("phase_ammo")
         mod.name = "Phase Ammo"
         mod.abbreviation = "PA"
-        mod.description = "Phase Dash reloads all weapons."
+        mod.description = "Phase Dash reloads all weapons, and grants <overload>2 Overload charges</>."
         mod.cost = 1
         mod.chip = TITAN_CHIP_ABILITIES
     }

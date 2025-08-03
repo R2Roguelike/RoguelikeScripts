@@ -20,7 +20,7 @@ resource/ui/layouts/Destiny2/Healthbar_Champion.res
 		tall				8
 
 		"xpos"			"0"
-		"ypos"			"23"
+		"ypos"			"64"
 	}
 
     ChangeBar

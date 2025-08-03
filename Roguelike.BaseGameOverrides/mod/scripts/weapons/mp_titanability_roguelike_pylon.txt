@@ -10,7 +10,7 @@ WeaponData
 	"hud_icon"										"rui/titan_loadout/tactical/titan_tactical_laser_tripwire"
 
 	"weaponClass" 									"titan"
-	"weaponType"									"tactical"
+	//"weaponType"									"tactical"
 	"fire_mode"   									"offhand_instant"
 	"minimap_reveal_distance"						"32000"
 

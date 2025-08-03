@@ -11,6 +11,10 @@
 			"RunOn": "UI"
 		},
 		{
+			"Path": "ui/vgui_button_loadout.nut",
+			"RunOn": "UI"
+		},
+		{
 			"Path": "cl_roguelike_timer.nut",
 			"RunOn": "CLIENT",
             "ClientCallback": {
@@ -65,6 +69,13 @@
 			"RunOn": "UI",
 			"UICallback":{
 				"Before": "RunSetup_Init"
+			}
+		},
+		{
+			"Path": "ui/menu_limited_loadout_choice.nut",
+			"RunOn": "UI",
+			"UICallback":{
+				"Before": "LimitedLoadoutChoice_Init"
 			}
 		},
 		{

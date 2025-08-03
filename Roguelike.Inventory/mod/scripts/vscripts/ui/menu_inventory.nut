@@ -105,7 +105,7 @@ void function InitInventoryMenu()
     AddHover( Hud_GetChild(file.menu, "TitanPassive"), ModHelp_Hover, HOVER_SIMPLE )
 
     // STAT IMAGES
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < STAT_COUNT; i++)
     {
         string statName = STAT_NAMES[i]
         var statPanel = Hud_GetChild( file.menu, statName + "Stat" )
@@ -140,7 +140,7 @@ void function InitInventoryMenu()
         while( 1)
         {
             wait 0
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < STAT_COUNT; i++)
             {
                 string statName = STAT_NAMES[i]
                 var statPanel = Hud_GetChild( file.menu, statName + "Stat" )
@@ -180,7 +180,7 @@ void function AttemptDismantle( var fuck )
 
         SwapSequence(slot)
         if ("moneyInvested" in item)
-            Roguelike_AddMoney( expect int(item.moneyInvested) / 2 ) // return 66% of money
+            Roguelike_AddMoney( expect int(item.moneyInvested) / 4 ) // return 25% of money
         inventory.remove(elemNum)
 
         EmitUISound( "Menu_LoadOut_WeaponCamo_Select" )
@@ -204,9 +204,11 @@ void function Stat_Hover( var statPanel, var panel )
     switch (statIndex)
     {
         case STAT_ARMOR:
-            description = format("Reduces Titan damage taken.\n\n"
-                + "Titan damage reduced by <cyan>%.1f%%</>.",
-                Roguelike_GetTitanDamageResist(statValue) * 100.0
+            description = format("Reduces Titan damage taken, and increases healing from batteries.\n\n"
+                + "Titan damage reduced by <cyan>%.1f%%</>.\n"
+                + "Battery healing increased by <cyan>%.1f%%</>.",
+                Roguelike_GetTitanDamageResist(statValue) * 100.0,
+                Roguelike_GetBatteryHealingMultiplier(statValue) / 8.0 - 100.0
             )
             break
         case STAT_ENERGY:
@@ -403,10 +405,10 @@ void function RefreshInventory()
     }
 
 
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < STAT_COUNT; i++)
     {
         int total = stats[i]
-        if (i < 3)
+        if (i < STAT_TITAN_COUNT)
             file.totalTitan += total
         else
             file.totalPilot += total
@@ -895,16 +897,15 @@ string function GetTitanDescription(string weapon)
                 "\n<daze>Rearm</> <cyan>resets all cooldowns<note> (except itself) <cyan>for both loadouts</>.\n \n" +
                 "Expedition's status effect is <weak>Weak</>.\n" +
                 "<weak>Weak</> is applied with <daze>Expedition's missiles</>.\n" +
-                "<weak>Weak</> reduces outgoing damage by 25%, and increases <cyan>incoming weapon<note>*<cyan> damage</> by 35%.\n" +
-                "<note>* Weapon = Primaries and Melee"
+                "<weak>Weak</> reduces outgoing damage by 25%, and increases <cyan>incoming weapon and melee damage</> by 35%.\n"
 
         case "mp_titanweapon_sticky_40mm":
-            return "Tone"
+            return "<note>Watch your Tone, Pilot.</>\n\nTone's Status is <"
 
         case "mp_titanweapon_meteor": // scorch
             return "<note>Set the world ablaze.</>\n\nScorch's status effect is <burn>Burn</>." +
                 "\n<burn>Burn</> is inflicted by using <daze>anything in Scorch's kit</>,\n" +
-                "and increases <cyan>all non-fire damage by up to 50%</>.\n\n"
+                "and increases <cyan>all <red>NON<cyan>-fire damage</>.\n\n"
 
         case "mp_titanweapon_rocketeer_rocketstream":
             return "Brute"
@@ -920,7 +921,7 @@ string function GetTitanDescription(string weapon)
         case "mp_titanweapon_leadwall": // ronin
             return "<note>No need for a shield if you've got a giant sword...</>\n \nRonin's status effect is <daze>Daze</>." +
                 "\n\n<daze>Daze</> is inflicted with <cyan>Arc Wave</>.\n" +
-                "<cyan>Sword hits</> consume <daze>Daze</> to grant <overload>Overload</> stacks.\n" +
+                "Gain <overload>Overload</> stacks from <cyan>Sword hits against Dazed enemies</> or through <cyan>Arc Wave against Dazed enemies</>.\n" +
                 "\n<overload>Overload</> stacks are consumed when you <daze>fire your shotgun</> for a <red>high base damage increase</>."
 
         case "mp_titanweapon_sniper":
@@ -1024,6 +1025,7 @@ string function FormatDescription(string desc)
     result = StringReplace( result, "<weak>",  "^B15EFF00", true )
     result = StringReplace( result, "<magic>", "^FF7AF400", true )
     result = StringReplace( result, "<punc>", "^FF404000", true )
+    result = StringReplace( result, "<hack>", "^20FF2000", true )
 
     return result
 }
@@ -1236,7 +1238,7 @@ void function ArmorChip_Hover( var slot, var panel )
 
     if (data != equippedChip)
     {
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < STAT_COUNT; i++)
         {
             string statName = STAT_NAMES[i]
             var statPanel = Hud_GetChild( file.menu, statName + "Stat" )

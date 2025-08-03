@@ -225,9 +225,9 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
     var barBG = Hud_GetChild( healthbar, "BG" )
     var changeBar = Hud_GetChild( healthbar, "ChangeBar" )
     // top, then bottom
-    var statusEffectBars = [ Hud_GetChild( healthbar, "StatusEffectBar2" ), Hud_GetChild( healthbar, "StatusEffectBar" ) ]
-    var statusEffectTexts = [ Hud_GetChild( healthbar, "StatusEffectText2" ), Hud_GetChild( healthbar, "StatusEffectText" ) ]
-    var statusEffectIcons = [ Hud_GetChild( healthbar, "StatusEffectIcon2" ), Hud_GetChild( healthbar, "StatusEffectIcon" ) ]
+    var statusEffectBars = [ Hud_GetChild( healthbar, "StatusEffectBar" ), Hud_GetChild( healthbar, "StatusEffectBar2" ) ]
+    var statusEffectTexts = [ Hud_GetChild( healthbar, "StatusEffectText" ), Hud_GetChild( healthbar, "StatusEffectText2" ) ]
+    var statusEffectIcons = [ Hud_GetChild( healthbar, "StatusEffectIcon" ), Hud_GetChild( healthbar, "StatusEffectIcon2" ) ]
 
     // alpha variables
     float alpha = 0.0
@@ -359,7 +359,13 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
             Hud_SetWidth( statusEffectBar, width * 3 / 4 )
             if (player.IsTitan())
             {
-                switch (titanLoadouts[i])
+                string titanLoadout = ""
+                if (titanLoadouts.len() > i)
+                    titanLoadout = titanLoadouts[i]
+                Hud_SetVisible( statusEffectBar, true )
+                Hud_SetVisible( statusEffectText, true )
+                Hud_SetVisible( statusEffectIcon, true )
+                switch (titanLoadout)
                 {
                     case "mp_titanweapon_leadwall":
                         Hud_SetBarProgress( statusEffectBar, RSE_Get( ent, RoguelikeEffect.ronin_daze ) / 3.0 )
@@ -369,11 +375,21 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
                         Hud_SetImage( statusEffectIcon, $"ui/daze")
                         break
                     case "mp_titanweapon_meteor":
-                        float burn = max(RSE_Get( ent, RoguelikeEffect.burn ), RSE_Get( ent, RoguelikeEffect.burn_flame_core ))
-                        Hud_SetBarProgress( statusEffectBar, burn / 50.0 )
-                        Hud_SetText( statusEffectText, RoundToInt(burn + 100) + "% DMG")
-                        Hud_SetColor( statusEffectBar, 255, 175, 75, 255 )
-                        Hud_SetColor( statusEffectText, 255, 175, 75, 255 )
+                        float coreBurn = RSE_GetEffectFrac( ent, RoguelikeEffect.burn_flame_core )
+                        bool isCoreBurn = coreBurn > 0
+                        float burn = isCoreBurn ? coreBurn : RSE_GetEffectFrac( ent, RoguelikeEffect.burn ) * 1.1
+                        float dmgPercent = max(RSE_Get( ent, RoguelikeEffect.burn ), RSE_Get( ent, RoguelikeEffect.burn_flame_core ))
+                        Hud_SetBarProgress( statusEffectBar, burn )
+                        Hud_SetText( statusEffectText, RoundToInt(dmgPercent + 100) + "% DMG")
+                        int g = RoundToInt(GraphCapped(sin(Time() * 6.28), -1, 1, 0, 255))
+                        int b = RoundToInt(GraphCapped(sin(Time() * 6.28), -1, 1, 0, 255))
+                        if (!isCoreBurn)
+                        {
+                            g = 175
+                            b = 75
+                        }
+                        Hud_SetColor( statusEffectBar, 255, g, b, 255 )
+                        Hud_SetColor( statusEffectText, 255, g, b, 255 )
                         Hud_SetImage( statusEffectIcon, $"ui/burn")
                         break
                     case "mp_titanweapon_xo16_shorty":
@@ -412,6 +428,19 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
                             Hud_SetColor( statusEffectBar, 127, 127, 127, 255 )
                             Hud_SetColor( statusEffectText, 127, 127, 127, 255 )
                         }
+                        break
+                    case "mp_titanweapon_sticky_40mm":
+                        float cur = RSE_Get( ent, RoguelikeEffect.tone_expose )
+                        Hud_SetBarProgress( statusEffectBar, cur )
+                        Hud_SetText( statusEffectText, "Hack")
+                        Hud_SetImage( statusEffectIcon, $"ui/charge")
+                        Hud_SetColor( statusEffectBar, 32, 255, 32, 255 )
+                        Hud_SetColor( statusEffectText, 32, 200, 32, 255 )
+                        break
+                    default:
+                        Hud_SetVisible( statusEffectBar, false )
+                        Hud_SetVisible( statusEffectText, false )
+                        Hud_SetVisible( statusEffectIcon, false )
                         break
                 }
             }

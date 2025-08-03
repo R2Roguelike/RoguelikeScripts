@@ -3,7 +3,7 @@ WeaponData
     "inventory_slot"                "special"
     SP_BASE
     {
-        "explosionradius"              "200"
+        "explosionradius"              "50"
         "explosion_damage"              "10"
         "impulse_force"                 "1500"
         // _why_ did it have a x3 headshot mult

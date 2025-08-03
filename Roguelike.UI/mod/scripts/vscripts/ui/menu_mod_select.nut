@@ -175,6 +175,7 @@ void function ModSlot_Click( var button )
     }
     runData[modIndex] = choice.index
 
+    Roguelike_ForceRefreshInventory()
 
     CloseActiveMenu()
 }

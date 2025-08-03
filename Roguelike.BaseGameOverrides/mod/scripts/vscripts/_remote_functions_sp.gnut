@@ -131,8 +131,8 @@ function RemoteFunctions_Init()
 	Remote_RegisterFunction( "RestorePrecacheErrors" )
 
 	Remote_RegisterFunction( "SCB_SetUserPerformance" )
-	Remote_RegisterFunction( "SCB_UpdateSponsorables" )
-	Remote_RegisterFunction( "SCB_ClientDebug" )
+	//Remote_RegisterFunction( "SCB_UpdateSponsorables" )
+	//Remote_RegisterFunction( "SCB_ClientDebug" )
 	Remote_RegisterFunction( "SCB_CheckPoint" )
 
 	Remote_RegisterFunction( "ScriptCallback_UnlockAchievement" )
@@ -325,7 +325,7 @@ function RemoteFunctions_Init()
 	Remote_RegisterFunction( "ServerCallback_ReplacementTitanSpawnpoint" )
 	Remote_RegisterFunction( "ServerCallback_TitanTookDamage" ) // should be converted into a code callback... similar to NotifyDidDamage
 	Remote_RegisterFunction( "ServerCallback_PilotTookDamage" ) // should be converted into a code callback... similar to NotifyDidDamage
-	Remote_RegisterFunction( "ServerCallback_PlayerUsesBurnCard" ) // tell a player that somebody used a burn card he should know about
+	//Remote_RegisterFunction( "ServerCallback_PlayerUsesBurnCard" ) // tell a player that somebody used a burn card he should know about
 	Remote_RegisterFunction( "ServerCallback_ScreenShake" )
 	Remote_RegisterFunction( "ServerCallback_MinimapPulse" ) // if burn card moves to weapon then we dont need this
 	Remote_RegisterFunction( "ServerCallback_UpdateOverheadIconForNPC" )
@@ -784,6 +784,7 @@ function RemoteFunctions_Init()
 	Remote_RegisterFunction( "Roguelike_GenerateLoot" )
 	Remote_RegisterFunction( "ServerCallback_RSE_Apply" )
 	Remote_RegisterFunction( "ServerCallback_Roguelike_AddMoney" )
+	Remote_RegisterFunction( "ServerCallback_Tone_SetTrackedWeapon" )
 
 	RegisterNetworkedVariable( "rewardState", SNDC_PLAYER_GLOBAL, SNVT_INT, 0 )
 	RegisterNetworkedVariable( "goalState", SNDC_PLAYER_GLOBAL, SNVT_INT, 0 )

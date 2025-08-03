@@ -245,6 +245,13 @@ bool function IsProtectedFromFriendlyFire_SP( entity attacker, entity ent, var d
 
 	if ( attacker.GetTeam() == ent.GetTeam() )
 	{
+		if ("hacker" in ent.s)
+		{
+			entity hacker = expect entity(ent.s.hacker)
+			if (Roguelike_HasMod( hacker, "you_fucking_bitch" ))
+			return false
+		}
+
 		if ( attacker.IsNPC() )
 		{
 			// dont titanfall me!

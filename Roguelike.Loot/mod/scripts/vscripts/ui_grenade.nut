@@ -52,10 +52,10 @@ table function RoguelikeGrenade_CreateWeapon( string name, int rarity, string pe
 		perk1 = "",
 		bonusStat = "",
 		mods = [],
-        moneyInvested = 30 + 15 * (rarity) // give 10 * rarity dolla when dismantled ()
+        moneyInvested = 80 + 20 * (rarity) // give 10 * rarity dolla when dismantled ()
     }
 
-    item.priceOffset += rarity * 25
+    item.priceOffset += rarity * 50
 
     return item
 }

@@ -473,6 +473,11 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
             else
                 w.RemoveMod("ammo_swap_ranged_mode")
         }
+        if (w.GetWeaponClassName() == "mp_titanweapon_tracker_rockets")
+        {
+            // ainoway!
+            Remote_CallFunction_Replay( titan, "ServerCallback_Tone_SetTrackedWeapon", w.GetEncodedEHandle() )
+        }
     }
 
     titan.s.currentLoadout <- primary.GetWeaponClassName()

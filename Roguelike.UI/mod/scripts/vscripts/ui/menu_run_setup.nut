@@ -6,7 +6,7 @@ struct
     array<string> selectedLoadouts = []
 } file
 
-const array<string> VALID_LOADOUTS =  ["mp_titanweapon_xo16_shorty",
+global const array<string> VALID_LOADOUTS =  ["mp_titanweapon_xo16_shorty",
                                         "mp_titanweapon_sticky_40mm",
                                         "mp_titanweapon_meteor",
                                         "mp_titanweapon_rocketeer_rocketstream",
@@ -15,10 +15,10 @@ const array<string> VALID_LOADOUTS =  ["mp_titanweapon_xo16_shorty",
                                           "mp_titanweapon_sniper",
                                         "mp_titanweapon_predator_cannon"]
 
-const array<string> LOCKED_LOADOUTS =  ["mp_titanweapon_rocketeer_rocketstream",
+global const array<string> LOCKED_LOADOUTS =  ["mp_titanweapon_rocketeer_rocketstream",
                                          //"mp_titanweapon_particle_accelerator",
                                          //"mp_titanweapon_sniper"
-                                          "mp_titanweapon_sticky_40mm"]
+                                          /*"mp_titanweapon_sticky_40mm"*/]
 const array<string> DIFFICULTY_NAMES = [ "Normal", "Hard", "Master", "Masochist" ]
 
 void function RunSetup_Init()
@@ -74,7 +74,7 @@ void function InitRoguelikeRunSetupMenu()
         VGUIButton_Init( button )
         VGUIButton_SetText( button, GetTitanNameFromWeapon(VALID_LOADOUTS[i]) )
         VGUIButton_OnClick( button, DamageLoadoutButtonEventHandler(VALID_LOADOUTS[i]))
-        int unselectedState = Roguelike_GetTitanLoadouts().len() >= 2 ? eVGUIButtonState.Disabled : eVGUIButtonState.None
+        int unselectedState = eVGUIButtonState.None
         VGUIButton_SetState( button, Roguelike_GetTitanLoadouts().contains(VALID_LOADOUTS[i]) ? eVGUIButtonState.Selected : unselectedState )
     }
 
@@ -92,13 +92,21 @@ void function InitRoguelikeRunSetupMenu()
 
 void function OnStartClicked( var panel )
 {
-    if (VGUIButton_GetState( panel ) == eVGUIButtonState.Disabled)
+    if (VGUIButton_GetState( panel ) == eVGUIButtonState.Locked)
         return
 
     Roguelike_StartNewRun()
     
-    ExecuteLoadingClientCommands_SetStartPoint( "sp_crashsite", 7 )
-    ClientCommand("map sp_crashsite")
+    if (Roguelike_GetRunModifier("the_long_way") != 0)
+    {
+        ExecuteLoadingClientCommands_SetStartPoint( "sp_crashsite", 7 )
+        ClientCommand("map sp_crashsite")
+    }
+    else
+    {
+        ExecuteLoadingClientCommands_SetStartPoint( "sp_sewers1", 0 )
+        ClientCommand("map sp_sewers1")
+    }
 
     delaythread(0.1) void function() : ()
     {
@@ -129,7 +137,12 @@ void functionref( var ) function DamageLoadoutButtonEventHandler( string weapon 
             file.selectedLoadouts.fastremovebyvalue(weapon)
         }
         else
-            file.selectedLoadouts.append(weapon)
+        {
+            if (file.selectedLoadouts.len() > 0)
+                file.selectedLoadouts[0] = weapon
+            else
+                file.selectedLoadouts.append( weapon )
+        }
 
 
         for (int i = 0; i < VALID_LOADOUTS.len(); i++)
@@ -137,7 +150,7 @@ void functionref( var ) function DamageLoadoutButtonEventHandler( string weapon 
             var loadoutButton = Hud_GetChild( file.menu, "LoadoutButton" + i )
             if (file.selectedLoadouts.contains(VALID_LOADOUTS[i]))
                 VGUIButton_SetState(loadoutButton, eVGUIButtonState.Selected)
-            else if (file.selectedLoadouts.len() >= 2 || LOCKED_LOADOUTS.contains(VALID_LOADOUTS[i]))
+            else if (file.selectedLoadouts.len() >= 1 || LOCKED_LOADOUTS.contains(VALID_LOADOUTS[i]))
             {
                 VGUIButton_SetState(loadoutButton, eVGUIButtonState.Locked)
             }
@@ -168,7 +181,7 @@ void function UpdateUpgradeBars()
             VGUIButton_SetValueText( loadoutButton, string(file.selectedLoadouts.find(VALID_LOADOUTS[i]) + 1))
             VGUIButton_SetState(loadoutButton, eVGUIButtonState.Selected)
         }
-        else if (file.selectedLoadouts.len() >= 2 || LOCKED_LOADOUTS.contains(VALID_LOADOUTS[i]))
+        else if (LOCKED_LOADOUTS.contains(VALID_LOADOUTS[i]))
         {
             VGUIButton_SetState(loadoutButton, eVGUIButtonState.Disabled)
         }
@@ -178,7 +191,7 @@ void function UpdateUpgradeBars()
         }
     }
 
-    VGUIButton_SetState( Hud_GetChild( file.menu, "StartButton" ), file.selectedLoadouts.len() == 2 ? eVGUIButtonState.Selected : eVGUIButtonState.Locked )
+    VGUIButton_SetState( Hud_GetChild( file.menu, "StartButton" ), file.selectedLoadouts.len() == 1 ? eVGUIButtonState.Selected : eVGUIButtonState.Locked )
 
     string desc = ""
     string title = ""
@@ -193,19 +206,6 @@ void function UpdateUpgradeBars()
         title)
     Hud_SetText(Hud_GetChild(file.menu, "DamageLoadoutDesc"),
         desc)
-
-    title = ""
-    desc = ""
-    if (file.selectedLoadouts.len() > 1)
-    {
-        title = GetTitanNameFromWeapon(file.selectedLoadouts[1]).toupper()
-        desc = FormatDescription(GetTitanDescription(file.selectedLoadouts[1]))
-    }
-
-    Hud_SetText(Hud_GetChild(file.menu, "SupportLoadoutDescTitle"),
-        title)
-    Hud_SetText(Hud_GetChild(file.menu, "SupportLoadoutDesc"),
-        FormatDescription(desc))
 
     for (int i = 0; i < 4; i++)
     {

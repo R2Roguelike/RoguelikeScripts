@@ -45,7 +45,7 @@ void function Ion_RegisterMods()
     {
         RoguelikeMod mod = NewMod("discharge_battery")
         mod.name = "Disorder Battery"
-        mod.abbreviation = "DB"
+        mod.abbreviation = "DBt"
         mod.description = "<cyan>+10% base Discharge DMG.</>\n\nIf an enemy is killed by a <red>Disorder</>, <green>spawn an additional battery</>."
         mod.cost = 2
         mod.chip = TITAN_CHIP_CHASSIS
