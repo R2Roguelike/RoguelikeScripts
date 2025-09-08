@@ -331,6 +331,13 @@ void function CodeCallback_OnSpawned( entity ent )
 	RegisterForDamageDeathCallbacks( ent )
 
 	RunMySpawnFunctions( ent )
+	if (ent.IsNPC())
+	{
+	foreach (entity weapon in ent.GetOffhandWeapons())
+		ModWeaponVars_CalculateWeaponMods( weapon )
+	foreach (entity weapon in ent.GetMainWeapons())
+		ModWeaponVars_CalculateWeaponMods( weapon )
+	}
 }
 
 function RunMySpawnFunctions( entity self )

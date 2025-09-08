@@ -113,8 +113,8 @@ WeaponData
 	// NPC
 	"npc_min_burst"   								"0"		// this must be 0 so AI don't shoot vortex automatically
 	"npc_max_burst"   								"0"		// this must be 0 so AI don't shoot vortex automatically
-	"npc_rest_time_between_bursts_min"				"0.1"
-	"npc_rest_time_between_bursts_max"				"0.1"
+    "npc_rest_time_between_bursts_min"       	   "5"
+    "npc_rest_time_between_bursts_max"        	  "6"
 
 	// NPC
 	"proficiency_poor_additional_rest"				"20"

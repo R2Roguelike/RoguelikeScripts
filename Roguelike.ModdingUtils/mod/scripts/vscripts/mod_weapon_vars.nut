@@ -247,6 +247,10 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
             {
                 RSE_Apply( player, RoguelikeEffect.ronin_quickswap, 1.0, 0.75, 0.0 )
             }
+            if (Roguelike_HasDatacorePerk( player, "swap" ))
+            {
+                RSE_Apply( player, RoguelikeEffect.swap, 1.0, 5.0, 0.0 )
+            }
             Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetActiveWeapon() )
             player.s.lastActiveWeapon <- player.GetActiveWeapon().GetWeaponClassName()
         }

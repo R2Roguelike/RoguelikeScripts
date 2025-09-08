@@ -34,7 +34,7 @@ void function ApplyModWeaponVars( entity weapon )
         ModWeaponVars_SetBool( weapon, eWeaponVar.critical_hit, false )
     else
     {
-        if (IsValid(owner) && owner.IsPlayer())
+        /*if (IsValid(owner) && owner.IsPlayer())
         {
             bool hasCritCharge = Roguelike_HasMod( owner, "crit_charge" ) || ("cc" in weapon.s)
             if (hasCritCharge)
@@ -47,7 +47,7 @@ void function ApplyModWeaponVars( entity weapon )
                 ModWeaponVars_ScaleVar( weapon, eWeaponVar.charge_time, 2.0 )
             }
 
-        }
+        }*/
     }
     if (weapon.GetWeaponClassName() == "mp_titanweapon_leadwall" && IsValid(owner) && RSE_Get( owner, RoguelikeEffect.ronin_overload ) > 0.0)
         ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_clip, true )
@@ -174,6 +174,9 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
         ModWeaponVars_SetBool( weapon, eWeaponVar.smart_ammo_search_npcs, false )
         ModWeaponVars_SetInt( weapon, eWeaponVar.rui_crosshair_index, 1 )
     }
+
+    int power = Roguelike_GetStat( owner, STAT_COOLING )
+
     if (weapon.IsWeaponOffhand())
     {
 
@@ -181,12 +184,17 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
 
         if (owner.IsTitan())
         {
-            int power = Roguelike_GetStat( owner, STAT_POWER )
             int index = weapon.GetInventoryIndex()
-            //float cdScalar = Roguelike_GetTitanCooldownReduction( power )
-            if (weapon.GetWeaponInfoFileKeyField("cooldown_type") != "shared_energy")
-                ScaleCooldown( weapon, 1.5 )
+            float cdScalar = Roguelike_GetTitanCooldownReduction( power )
+            if (weapon.GetWeaponInfoFileKeyField("cooldown_type") == "shared_energy")
+                ScaleCooldown( weapon, cdScalar / 1.5 )
+            else
+                ScaleCooldown( weapon, cdScalar )
 
+            if (Roguelike_HasDatacorePerk( owner, "gun" ))
+                ScaleCooldown( weapon, 1.25 )
+            if (Roguelike_HasDatacorePerk( owner, "ability_cd" ))
+                ScaleCooldown( weapon, 0.9 )
 
             if (index == 0 && Roguelike_HasMod( owner, "offensive_charge" ))
             {
@@ -204,9 +212,19 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
         }
         else
         {
-            int temper = Roguelike_GetStat( owner, STAT_TEMPER )
-            float cdScalar = Roguelike_GetPilotCooldownReduction( temper )
-            ScaleCooldown( weapon, cdScalar )
+            if (weapon.GetInventoryIndex() == 0)
+            {
+                int temper = Roguelike_GetStat( owner, STAT_TEMPER )
+                float cdScalar = Roguelike_GetPilotCooldownReduction( temper )
+                ScaleCooldown( weapon, cdScalar )
+            }
+            else
+            {
+                int temper = Roguelike_GetStat( owner, STAT_VISION )
+                float cdScalar = Roguelike_GetPilotCooldownReduction( temper )
+                ScaleCooldown( weapon, cdScalar )
+                ModWeaponVars_ScaleVar( weapon, eWeaponVar.fire_duration, Roguelike_GetPilotCloakDuration( temper ) )
+            }
         }
 
         // Frost Walker
@@ -245,11 +263,17 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
     {
         if (owner.IsTitan())
         {
-            if (Roguelike_HasMod( owner, "weapon_load" ))
+            bool hasWeaponLoad = Roguelike_HasMod( owner, "weapon_load" )
+            float reloadTime = 1.0 / Roguelike_GetTitanReloadSpeedBonus(power)
+
+            if (hasWeaponLoad)
+                reloadTime *= 0.65
+            
+            foreach (int weaponVar in RELOAD_TIME_VARS)
             {
-                foreach (int weaponVar in RELOAD_TIME_VARS)
-                    ModWeaponVars_ScaleVar( weapon, weaponVar, 0.65 )
+                ModWeaponVars_ScaleVar( weapon, weaponVar, reloadTime )
             }
+
             if (Roguelike_HasMod( owner, "bonus_mag" ))
             {
                 int magSize = weapon.GetWeaponSettingInt(eWeaponVar.ammo_clip_size)
@@ -483,6 +507,7 @@ void function CloseQuartersPlus( entity weapon, entity owner )
 
 void function NPCWeaponBuffs( entity weapon, entity owner )
 {
+    PrintEntityAddress(weapon)
     foreach (int weaponVar in RELOAD_TIME_VARS)
         ModWeaponVars_ScaleVar( weapon, weaponVar, 0.25 )
 
@@ -490,22 +515,24 @@ void function NPCWeaponBuffs( entity weapon, entity owner )
     if (weapon.GetWeaponClassName() == "mp_weapon_mgl")
         return
     if (weapon.GetWeaponClassName() == "mp_titanweapon_tracker_rockets")
+    {
+        ModWeaponVars_SetFloat( weapon, eWeaponVar.smart_ammo_search_angle, 15 )
         return
+    }
     // WHY
     if (weapon.GetWeaponClassName() == "mp_titanability_roguelike_pylon")
         return
 
     float cd = GraphCapped( GetConVarFloat("sp_difficulty"), 0, 3, 1, 0.05 )
 
-
-    if (GetEliteType(owner) == "enraged")
+    if (IsValid(owner) && GetEliteType(owner) == "enraged")
     {
         ModWeaponVars_SetFloat( weapon, eWeaponVar.npc_max_range, 500 )
         ModWeaponVars_SetFloat( weapon, eWeaponVar.npc_min_range, 0 )
     }
 
     // defensives can be frustrating and also fuck w/ ai :/
-    if (weapon.IsWeaponOffhand() && weapon.GetInventoryIndex() == 1)
+    if (IsValid(owner) && weapon.IsWeaponOffhand() && weapon.GetInventoryIndex() == 1)
     {
         cd = GraphCapped( GetConVarFloat("sp_difficulty"), 0, 3, 1, 0.75 )
         switch (Roguelike_GetRunModifier("defense"))
@@ -529,7 +556,7 @@ void function NPCWeaponBuffs( entity weapon, entity owner )
     ModWeaponVars_SetInt( weapon, eWeaponVar.npc_min_burst, 1 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.npc_max_burst, 1 )
 
-    if (owner.IsTitan() && weapon.IsWeaponOffhand())
+    if (IsValid(owner) && owner.IsTitan() && weapon.IsWeaponOffhand())
     {
         ModWeaponVars_ScaleVar( weapon, eWeaponVar.npc_rest_time_between_bursts_min, cd )
     }

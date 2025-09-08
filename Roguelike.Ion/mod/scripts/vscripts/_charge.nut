@@ -78,7 +78,7 @@ void function IonDischarge( entity ent, entity attacker, var damageInfo )
     if (!Roguelike_HasMod( attacker, "discharge_crit" ))
         DamageInfo_RemoveCustomDamageType( damageInfo, DF_CRITICAL )
 
-    scalar *= 1.0 + (0.1 * count)
+    scalar *= 1.0 + (0.25 * count)
     printt("DISORDER!", scalar)
     DamageInfo_ScaleDamage( damageInfo, scalar )
     RSE_Stop( ent, RoguelikeEffect.ion_charge )

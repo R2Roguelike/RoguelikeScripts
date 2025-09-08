@@ -22,6 +22,10 @@
         dodgeKeepSpeedFrac 	0.0
         ClassMods
         {
+			vanilla
+			{
+				sprint			1
+			}
 			75_speed
 			{
 				speed				*0.75
@@ -42,6 +46,10 @@
 		speed						80
 		PoseMods
 		{
+			vanilla
+			{
+				speed				80
+			}
 			75_speed
 			{
 				speed				*0.75
@@ -60,8 +68,14 @@
 	"stand"
 	{
 		speed						243
+		sprintspeed					243
 		PoseMods
 		{
+			vanilla
+			{
+				speed						162.5
+				sprintspeed					243
+			}
 			75_speed
 			{
 				speed				*0.75

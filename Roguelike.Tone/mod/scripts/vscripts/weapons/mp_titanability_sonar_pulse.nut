@@ -65,7 +65,7 @@ void function OnProjectileCollision_titanability_sonar_pulse( entity projectile,
 		int team = owner.GetTeam()
 		array<string> mods = projectile.ProjectileGetMods()
 		bool hasIncreasedDuration = mods.contains( "fd_sonar_duration" )
-		bool hasDamageAmp = mods.contains( "fd_sonar_damage_amp" )
+		bool hasDamageAmp = mods.contains( "fd_sonar_damage_amp" ) || Roguelike_HasMod( owner, "red_sonar" )
 		PulseLocation( owner, team, pos, hasIncreasedDuration, hasDamageAmp )
 		if ( Roguelike_HasMod( owner, "routine_exposure" ) )
 			thread DelayedPulseLocation( owner, team, pos, hasIncreasedDuration, hasDamageAmp )

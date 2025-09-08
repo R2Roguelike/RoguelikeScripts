@@ -3,6 +3,7 @@ global function RoguelikeTimer_Init
 global function ServerCallback_Roguelike_AddMoney
 global function Roguelike_ItemGained
 global function Roguelike_MoneyGained
+global function RoguelikeTimer_SetMoney
 
 /*
 1 1 1
@@ -12,6 +13,7 @@ distribute 15 points randomly
 
 struct {
     int kills = 0
+    int money = 0
     float startTime = 0.0
     float lastItemAcquireTime = -99.9
     float lastMoneyGainTime = -99.9
@@ -28,6 +30,14 @@ void function RoguelikeTimer_Init()
     AddServerToClientStringCommandCallback( "level_end", LevelEnded )
 }
 
+void function RoguelikeTimer_SetMoney( int money )
+{
+    file.money = money
+    var timer = HudElement("RoguelikeTimer")
+    var moneyLabel = Hud_GetChild(timer, "Money")
+    Hud_SetText(moneyLabel, file.money + "$")
+}
+
 void function RunEnded( array<string> args )
 {
     RunUIScript( "RunEnded" )
@@ -42,7 +52,11 @@ void function LevelEnded( array<string> args )
     string nextMap = args[0]
     int startPointIndex = int( args[1] )
 
-    RunUIScript( "ClientCallback_LevelEnded", nextMap, startPointIndex, expect int(GetServerVar("roguelikeKills")), Time() - expect float(GetServerVar("startTime")) )
+    float time = Time() - expect float(GetServerVar("startTime"))
+    if (GetServerVar("isTimerPaused"))
+        time = expect float(GetServerVar("timerValue"))
+
+    RunUIScript( "ClientCallback_LevelEnded", nextMap, startPointIndex, expect int(GetServerVar("roguelikeKills")), time )
 }
 
 void function RoguelikeTimer_Think()
@@ -56,6 +70,7 @@ void function RoguelikeTimer_Think()
     var timeBar = Hud_GetChild(timer, "TimeBar")
     var timeRank = Hud_GetChild(timer, "TimeRank")
     var timeLabel = Hud_GetChild(timer, "TimeLabel")
+    var moneyLabel = Hud_GetChild(timer, "Money")
     array<int> killsRequired = GetKillsForMaxRank(GetMapName())
     array<int> timeRequired = GetTimeForMaxRank(GetMapName())
     Hud_EnableKeyBindingIcons(HudElement("ItemAcquired"))
@@ -76,6 +91,12 @@ void function RoguelikeTimer_Think()
         {
             Hud_SetText(HudElement("ItemAcquired"), "Item Acquired - Press %titan_loadout_select% to open your inventory")
         }
+        if (IsValid(GetLocalClientPlayer()))
+        {
+        vector velocity = GetLocalClientPlayer().GetVelocity()
+        Hud_SetText(HudElement("Velocity"), format("<%.1f, %.1f, %.1f>\n%.1f", velocity.x, velocity.y, velocity.z, Length(<velocity.x, velocity.y, 0>)))
+        }
+        Hud_SetText(moneyLabel, file.money + "$")
         HudElement("ItemAcquired").SetAlpha(GraphCapped(Time() - file.lastItemAcquireTime, 4.5, 5.0, 255.0, 0.0))
         if (IsValid(GetLocalClientPlayer()))
         {
@@ -83,11 +104,13 @@ void function RoguelikeTimer_Think()
             if (player.IsTitan() && player.IsInvulnerable())
                 SetCockpitHealthColorTemp( <1, 0.5, -1> )
         }
+        
         float time = Time() - expect float(GetServerVar("startTime"))
+        if (GetServerVar("isTimerPaused"))
+            time = expect float(GetServerVar("timerValue"))
         int kills = expect int(GetServerVar("roguelikeKills"))
         
-        if (GetConVarInt("roguelike_run_heat") > 0)
-            Hud_SetText(heatLabel, GetConVarInt("roguelike_run_heat") + " ^FFFFFF00HEAT")
+        Hud_SetText(heatLabel, GetConVarInt("roguelike_run_heat") + " ^FFFFFF00HEAT")
         for (int i = 2; i >= 0; i--)
         {
             if (i != 0 && kills >= killsRequired[i-1])
@@ -116,7 +139,7 @@ void function RoguelikeTimer_Think()
             timeRank.SetColor( GetColorForRank(i) )
             Hud_SetText(timeRank, GetRankName(i))
             Hud_SetText(timeLabel, "TIME" + (GetConVarBool("roguelike_timer_debug") ? format(" (%02i:%02i)", int(time / 60), int(time % 60)) : ""))
-            Hud_SetText(bigTimer, format("%02i:%02i", int(time / 60), int(time % 60)))
+            Hud_SetText(bigTimer, format("%02i:%02i ", int(time / 60), int(time % 60)))
             break
         }
     }

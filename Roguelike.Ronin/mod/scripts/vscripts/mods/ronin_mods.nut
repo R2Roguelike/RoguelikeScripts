@@ -11,11 +11,19 @@ void function Ronin_RegisterMods()
         mod.chip = TITAN_CHIP_UTILITY
     }
     {
-        // NOT IMPLEMENTED
         RoguelikeMod mod = NewMod("reflective_sword")
         mod.name = "Reflective Sword"
         mod.abbreviation = "RS"
         mod.description = "Sword block blocks <green>100%</> damage.\nBlocked damage <cyan>grants up to +35% DMG</>.\nSword block <red>no longer blocks ANY damage</> while at max charge."
+        mod.cost = 2
+        mod.chip = TITAN_CHIP_ABILITIES
+    }
+    {
+        // NOT IMPLEMENTED
+        RoguelikeMod mod = NewMod("perfect_sword")
+        mod.name = "Perfect Technique"
+        mod.abbreviation = "PT"
+        mod.description = "If Sword block blocks damage <daze>during it's first second of usage</>, you are <cyan>invulnerable for 1s</> and gain 3 Overload stacks."
         mod.cost = 2
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -72,7 +80,7 @@ void function Ronin_RegisterMods()
         RoguelikeMod mod = NewMod("executioner_meal")
         mod.name = "Executioners Meal"
         mod.abbreviation = "EM"
-        mod.description = "Enemies finished off with a <cyan>sword hit</> spawn a <green>battery</>."
+        mod.description = "Enemies finished off with a <cyan>sword hit</> spawn an additional <green>battery</>."
         mod.cost = 3
         mod.chip = TITAN_CHIP_CHASSIS
     }

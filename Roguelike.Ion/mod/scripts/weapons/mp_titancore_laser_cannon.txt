@@ -134,8 +134,8 @@ WeaponData
 		// Damage - When Used by NPCs
 		"npc_damage_near_value"   							"100"
 		"npc_damage_far_value"								"100"
-		"npc_damage_near_value_titanarmor"					"100"
-		"npc_damage_far_value_titanarmor" 					"100"
+		"npc_damage_near_value_titanarmor"					"75"
+		"npc_damage_far_value_titanarmor" 					"75"
 		"npc_explosion_damage"								"100"
 		"npc_explosion_damage_heavy_armor"					"100"
 

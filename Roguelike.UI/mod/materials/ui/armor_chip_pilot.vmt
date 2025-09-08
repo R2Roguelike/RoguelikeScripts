@@ -1,0 +1,11 @@
+"Basic"
+{
+    $basetexture "ui/armor_chip_pilot"
+    $translucent		"1"
+	"$vertexcolor" 1
+	"$vertexalpha" 1
+	"$no_fullbright" 1
+    "Proxies"
+    {
+    }
+}

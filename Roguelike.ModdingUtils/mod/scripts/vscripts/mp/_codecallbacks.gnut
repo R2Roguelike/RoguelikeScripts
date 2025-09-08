@@ -177,10 +177,10 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if ( IsValid( attacker ) && "hacker" in attacker.s )
 	{
 		local ogOwner = attacker.s.hacker
-		printt(ogOwner)
+		//printt(ogOwner)
 		if ( IsValid( ogOwner ) && ent != ogOwner )
 		{
-			printt("transferring dmg responsibilities")
+			//printt("transferring dmg responsibilities")
 			// HACK to do this legit we need DamageInfo_SetAttacker( damageInfo )
 			// victim should take damage from the original owner instead of the satchel attacker so he gets a kill credit
 			// also, cant set 
@@ -206,7 +206,7 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		if (Roguelike_HasMod( attacker, "hack_dmg") )
 			DamageInfo_AddDamageBonus( damageInfo, 0.5 )
 		
-		if (Roguelike_HasMod( attacker, "clone_lockons_generic" ))
+		if (Roguelike_HasMod( attacker, "clone_lockons_generic" ) && attacker.IsTitan())
 		{
 			if (RSE_Get( attacker, RoguelikeEffect.clone_lockons_generic ) <= 0 && damageSourceId != eDamageSourceId.mp_titanweapon_sticky_40mm)
 			{
@@ -299,13 +299,32 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		}
 	}
 
+	if (Roguelike_IsWeaponDamage( damageInfo ))
+	{
+		if (Roguelike_HasDatacorePerk( attacker, "weapon_dmg" ))
+			DamageInfo_AddDamageBonus( damageInfo, 0.15 )
+		if (Roguelike_HasDatacorePerk( attacker, "gun" ))
+			DamageInfo_AddDamageBonus( damageInfo, 0.5 )
+	}
+	else
+	{
+		if (Roguelike_HasDatacorePerk( attacker, "ability_dmg" ))
+			DamageInfo_AddDamageBonus( damageInfo, 0.15 )
+	}
+	if (Roguelike_HasDatacorePerk( attacker, "tanky" ) && RSE_Get( attacker, RoguelikeEffect.tanky_perk ) > 0.0)
+		DamageInfo_AddDamageBonus( damageInfo, 0.25 )
+
 	if (verboseDamagePrintouts)
 		printt( "    after damageSourceID callbacks:", DamageInfo_GetDamage( damageInfo ) )
 
-	if (attackerIsPlayer && attacker != ent && Roguelike_HasMod( attacker, "force_dmg" ) && !attacker.IsTitan())
+	if (attackerIsPlayer && attacker != ent)
 	{
+		if (Time() - GetLastDodgeTime() < 2.0 && Roguelike_HasDatacorePerk( attacker, "dash+"))
+		{
+			DamageInfo_AddDamageBonus( damageInfo, 0.35 )
+		}
 		entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
-		if (IsValid(sourceWeapon))
+		if (IsValid(sourceWeapon) && Roguelike_HasMod( attacker, "force_dmg" ) && !attacker.IsTitan())
 		{
 			float damage = DamageInfo_GetDamage( damageInfo )
 			if (damage > 0)
@@ -326,6 +345,10 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 				}
 			}
 			//
+		}
+		if (IsValid(sourceWeapon) && sourceWeapon.GetInventoryIndex() == 0 && sourceWeapon.IsWeaponOffhand() && Roguelike_HasDatacorePerk( attacker, "offended" ))
+		{
+			DamageInfo_AddDamageBonus( damageInfo, 0.35 )
 		}
 	}
 
@@ -438,6 +461,10 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		DamageInfo_AddDamageBonus( damageInfo, 0.35 * blockIntensity )
     }
 
+	if (Roguelike_HasDatacorePerk( attacker, "unlocalized" ))
+		DamageInfo_AddDamageBonus( damageInfo, 0.2 )
+	if (RSE_Get( attacker, RoguelikeEffect.swap ) > 0.0 && Roguelike_HasDatacorePerk( attacker, "swap" ))
+		DamageInfo_AddDamageBonus( damageInfo, 0.3 )
 	if (RSE_Get( attacker, RoguelikeEffect.rearm_reload ) > 0.0 && Roguelike_HasMod( attacker, "rearm_reload" ))
 		DamageInfo_AddDamageBonus( damageInfo, 0.25 )
 	if (RSE_Get( attacker, RoguelikeEffect.gun_shield_shield ) > 0.0)
@@ -453,17 +480,11 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		DamageInfo_ScaleDamage( damageInfo, 0.75 )
 
 	if ( RSE_Get( attacker, RoguelikeEffect.railgun_trauma ) > 0.0 )
-		DamageInfo_ScaleDamage( damageInfo, 0.75 )
+		DamageInfo_ScaleDamage( damageInfo, 0.5 )
 
 	float damageMultiplier = 1.0 + StatusEffect_Get( ent, eStatusEffect.damage_received_multiplier )
 	if ( damageMultiplier != 1.0 )
-		DamageInfo_ScaleDamage( damageInfo, damageMultiplier )
-
-	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
-		return
-
-	if (attackerIsPlayer && attacker != ent)
-		Roguelike_PlayerDealtDamage( ent, attacker, damageInfo )
+		DamageInfo_AddDamageBonus( damageInfo, StatusEffect_Get( ent, eStatusEffect.damage_received_multiplier ) )
 
 	RunClassDamageFinalCallbacks( ent, damageInfo )
 	if (verboseDamagePrintouts)
@@ -472,7 +493,8 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
 		return
 
-
+	if (attackerIsPlayer && attacker != ent)
+		Roguelike_PlayerDealtDamage( ent, attacker, damageInfo )
 
 	if (attackerIsPlayer && damageSourceId == eDamageSourceId.mp_titancore_amp_core)
 	{
@@ -517,6 +539,11 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		DamageInfo_ScaleDamage( damageInfo, critDMGBonus )
 	else
 	{
+		if (Roguelike_HasDatacorePerk( attacker, "damage_min"))
+		{
+			DamageInfo_SetDamage( damageInfo, 0 )
+			return
+		}
 		if (attackerIsPlayer && (DamageInfo_GetDamageFlags( damageInfo) & DAMAGEFLAG_DISCHARGE) == 0)
 		{
 			switch (Roguelike_GetRunModifier("crit_or_nothing"))
@@ -529,12 +556,22 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 					break
 			}
 		}
-		
+	}
+	if (Roguelike_HasDatacorePerk( attacker, "damage_cap" ))
+	{
+		DamageInfo_AddDamageBonus( damageInfo, 1.0 )
 	}
 	DamageInfo_ScaleDamage( damageInfo, additiveDMGBonus )
-
+	if (Roguelike_HasDatacorePerk( attacker, "damage_cap" ))
+	{
+		DamageInfo_SetDamage( damageInfo, min(DamageInfo_GetDamage(damageInfo), 500.0) )
+	}
 	if (verboseDamagePrintouts)
 		printt( "    After Additive DMG:", DamageInfo_GetDamage( damageInfo ) )
+
+	if ( DamageInfo_GetDamage( damageInfo ) == 0 )
+		return
+
 
 
 

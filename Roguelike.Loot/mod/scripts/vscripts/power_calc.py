@@ -7,14 +7,14 @@ def basicPowerScalar(player, enemy):
 
 levels = 15
 
-enemyPower = 0
+EnemyHP = 0
 for i in range(levels):
-    enemyPower += 10
+    EnemyHP += 10
 
 playerPower = levels * 6
 
-print("Player to Enemy scalar: " + str(basicPowerScalar(playerPower, enemyPower)))
-print("Enemy to Player scalar: " +  str((basicPowerScalar(enemyPower, playerPower))))
+print("Player to Enemy scalar: " + str(basicPowerScalar(playerPower, EnemyHP)))
+print("Enemy to Player scalar: " +  str((basicPowerScalar(EnemyHP, playerPower))))
 
-print("Enemy: " + str(enemyPower))
+print("Enemy: " + str(EnemyHP))
 print("Player: " + str(playerPower))

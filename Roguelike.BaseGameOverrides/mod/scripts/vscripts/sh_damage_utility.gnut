@@ -70,6 +70,11 @@ float function Roguelike_GetCritRate( entity player, entity victim, var damageIn
 	if (guranteedCrit)
 		base += 1.0
 
+	if (Roguelike_HasDatacorePerk( player, "gambling" ))
+	{
+		base = min(base, 0.5)
+	}
+
 	return base
 }
 
@@ -80,6 +85,7 @@ float function Roguelike_GetCritDMG( entity player, entity victim, var damageInf
 	if (damageInfo != null && Roguelike_GetTitanLoadouts().contains("mp_titanweapon_sniper"))
 	{
 		float cur = RSE_Get( victim, RoguelikeEffect.northstar_fulminate )
+		base += 0.2 * cur
 		if (DamageInfo_GetDamageSourceIdentifier( damageInfo ) != eDamageSourceId.mp_titanweapon_sniper
 		 && DamageInfo_GetDamageSourceIdentifier( damageInfo ) != eDamageSourceId.ion_disorder)
 			RSE_Apply( victim, RoguelikeEffect.northstar_fulminate, min(cur + DamageInfo_GetDamage( damageInfo ) / 2500.0, 1.0) )
@@ -98,6 +104,14 @@ float function Roguelike_GetCritDMG( entity player, entity victim, var damageInf
 		Roguelike_HasMod( player, "support_puncture" ) && RSE_Get( victim, RoguelikeEffect.legion_puncture ) > 0.0)
 		base += 0.25
 
+	if (Roguelike_HasDatacorePerk( player, "gambling" ))
+	{
+		base += 1.5
+	}
+	if (Roguelike_HasDatacorePerk( player, "damage_min" ))
+	{
+		base += 1
+	}
 
 	return base
 }

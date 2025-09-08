@@ -96,19 +96,29 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 	}
 	if ("attackedByPlayer" in ent.s)
 	{
+		entity player = GetFirstPlayer()
+		int cashReward = 0
+		int killReward = 0
 		if (ent.IsTitan())
 		{
-			AddKillsAndMoney( GetFirstPlayer(), 25, 100 )
+			cashReward = 50
+			killReward = 25
 		}
 		else if (IsSuperSpectre( ent ))
 		{
-			AddKillsAndMoney( GetFirstPlayer(), 10, 25 )
+			cashReward = 25
+			killReward = 10
 		}
-		else
+		else if (ent.GetClassName() == "npc_marvin" || AllowGruntKills(GetMapName()))
 		{
-			if (ent.GetClassName() == "npc_marvin" || AllowGruntKills(GetMapName()))
-				AddKillsAndMoney( GetFirstPlayer(), 2, 10 )
+			cashReward = 10
+			killReward = 2
+			if (ent.GetClassName() == "npc_marvin" && Roguelike_HasMod( player, "morality" ) && !player.IsTitan())
+			{
+				cashReward *= 2
+			}
 		}
+		AddKillsAndMoney( player, killReward, cashReward )
 	}
 
 	if (!attacker.IsPlayer())
@@ -192,7 +202,7 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 	}
 
 
-	if (attacker.IsPlayer() && attacker.IsTitan() && ent.IsTitan() && Roguelike_HasMod( attacker, "second_wind" ))
+	if (attacker.IsPlayer() && attacker.IsTitan() && ent.IsTitan() && Roguelike_HasDatacorePerk( attacker, "second_wind" ))
 	{
 		if (attacker.GetTitanSoul().IsDoomed())
 			UndoomTitan( attacker, 1 )
@@ -377,6 +387,12 @@ void function SpPlayer_OnDamaged( entity player, var damageInfo )
 	{
 		DamageInfo_SetDamage( damageInfo, 0 )
 		return
+	}
+
+	if (Roguelike_HasDatacorePerk( player, "polarity" ) && player.IsTitan())
+	{
+		if (RSE_Get( player, RoguelikeEffect.polarity_blue ))
+			DamageInfo_ScaleDamage( damageInfo, 0.75 )
 	}
 
 	if (RSE_Get( attacker, RoguelikeEffect.kill_self_dmg ) > 0.0)

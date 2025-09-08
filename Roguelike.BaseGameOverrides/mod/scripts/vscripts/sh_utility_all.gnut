@@ -1695,7 +1695,6 @@ void function FindAndRemove( array<entity> arr, entity target )
 	}
 }
 
-
 string cachedVal
 array<string> cachedResult
 array<string> function Roguelike_GetTitanLoadouts()

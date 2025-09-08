@@ -36,6 +36,7 @@ global const int PERK_SLOT_STAT = 0
 global const int PERK_SLOT_PERK = 1
 global const int PERK_SLOT_GRENADE = 2
 global const int PERK_SLOT_INHERIT = 3
+global const int RUNDATA_VERSION = 1
 
 global struct RoguelikeWeaponPerk
 {
@@ -48,6 +49,17 @@ global struct RoguelikeWeaponPerk
     float baseValue = 0.0
     float valuePerLevel = 0.0
     void functionref( entity, entity, int ) mwvCallback = null
+}
+
+global struct RoguelikeDatacorePerk
+{
+    string uniqueName = "unnamed_perk"
+    string name = "UNNAMED PERK!!"
+    string description = "THERE IS NO DESCRIPTION DEVS DIDNT MAKE ONE"
+    int index = 0
+    int slot = 0
+    float baseValue = 0.0
+    float valuePerLevel = 0.0
 }
 
 global struct UniqueTitanPassiveData
@@ -71,15 +83,17 @@ global const int MOD_SLOTS = 4;
 global const bool MOD_TYPE_TITAN = true
 global const bool MOD_TYPE_PILOT = false
 
-global const int STAT_COUNT = 6;
-global const int STAT_TITAN_COUNT = 3;
+global const int STAT_COUNT = 8;
+global const int STAT_TITAN_COUNT = 4;
 
 global const int STAT_ARMOR     = 0;
 global const int STAT_ENERGY    = 1;
 global const int STAT_POWER     = 2;
-global const int STAT_TEMPER    = 3;
-global const int STAT_SPEED     = 4;
-global const int STAT_ENDURANCE = 5;
+global const int STAT_COOLING   = 3;
+global const int STAT_TEMPER    = 4;
+global const int STAT_SPEED     = 5;
+global const int STAT_ENDURANCE = 6;
+global const int STAT_VISION = 7;
 
 global const int TITAN_CHIP_CHASSIS = 1;
 global const int TITAN_CHIP_UTILITY = 2;
@@ -94,24 +108,28 @@ global const int RARITY_UNCOMMON    = 1;
 global const int RARITY_RARE        = 2;
 global const int RARITY_EPIC        = 3;
 global const int RARITY_LEGENDARY   = 4;
+// following are only intended for long runs, they are unbalanced because yes
+global const int RARITY_MYTHIC      = 5;
+global const int RARITY_STELLAR     = 6;
+global const int RARITY_RADIANT     = 7;
 
-global const int ENEMY_DEF_PER_LEVEL_EASY  = 50;
-global const int ENEMY_DEF_PER_LEVEL       = 50;
-global const int ENEMY_DEF_PER_LEVEL_HARD  = 75;
-global const int ENEMY_DEF_PER_LEVEL_MASTER= 75;
-global const int ENEMY_HP_PER_LEVEL        = 750;
-global const int ENEMY_HP_PER_LEVEL_HARD   = 750;
-global const int ENEMY_HP_PER_LEVEL_MASTER = 750;
+global const int ENEMY_DEF_PER_LEVEL_EASY  = 175;
+global const int ENEMY_DEF_PER_LEVEL       = 175;
+global const int ENEMY_DEF_PER_LEVEL_HARD  = 200;
+global const int ENEMY_DEF_PER_LEVEL_MASTER= 200;
+global const int ENEMY_HP_PER_LEVEL        = 0;
+global const int ENEMY_HP_PER_LEVEL_HARD   = 0;
+global const int ENEMY_HP_PER_LEVEL_MASTER = 0;
 
 global const int CHIP_MAIN_STAT_MULT = 5;
-global const int CHIP_SUB_STAT_MULT = 4;
+global const int CHIP_SUB_STAT_MULT = 5;
 
 global const string NORMAL_DIFFICULTY_DESC = "For those who are either fresh off the campaign or after not playing for a long time. ^F4D5A600Not very hard, but great if you want to learn the fundementals."
 global const string HARD_DIFFICULTY_DESC = "The intended experience.\n^F4D5A600Recommended if you've played Titanfall 2 recently."
 global const string MASTER_DIFFICULTY_DESC = "Enemy health increased, enemy cooldowns halved.\n^F4D5A600Recommended for those who found Hard too easy."
 global const string MASOCHIST_DIFFICULTY_DESC = "Batteries no longer spawn naturally.\n^F4D5A600Recommended if you're really looking for pain."
 
-global const array<string> STAT_NAMES = ["Armor", "Energy", "Power", "Temper", "Speed", "Endurance"]
+global const array<string> STAT_NAMES = ["Armor", "Energy", "Power", "Cooling", "Temper", "Speed", "Endurance", "Vision"]
 
 global const string PRIMARY_EXPEDITION = "mp_titanweapon_xo16_shorty"
 global const string PRIMARY_TONE = "mp_titanweapon_sticky_40mm"
@@ -144,6 +162,9 @@ global const int DAMAGEFLAG_ELECTRIC = 128
 global const int DAMAGEFLAG_FIRE = 256
 global const int DAMAGEFLAG_CLONE = 512 // for tone's hacked enemy
 
+global const int SHOP_MOD_PRICE = 500
+global const int SHOP_LOOT_PRICE = 500
+
 global const int STAT_CAP = 3000
 
 // PILOT DAMAGE ELEMENTS
@@ -170,6 +191,7 @@ global enum RoguelikeEffect
     ronin_daze,
     rearm_reload,
     ronin_block_buff,
+    ronin_perfect_block,
     legion_puncture,
     ronin_quickswap,
     northstar_fulminate,
@@ -198,6 +220,13 @@ global enum RoguelikeEffect
     clone_lockons_generic,
     hit_locks,
     physical_spread,
+    salvo_locks,
+    wall_locks,
+    polarity_blue,
+    polarity_red,
+    swap,
+    dash_plus,
+    tanky_perk,
     count,
 }
 
@@ -288,4 +317,10 @@ global struct RSEInstance
 global struct RStatusEffectData
 {
     table<int, RSEInstance> data
+}
+
+global struct PRandom
+{
+    int originalSeed
+    int seed
 }

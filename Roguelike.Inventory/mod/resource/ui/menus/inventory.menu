@@ -59,7 +59,7 @@ resource/ui/menus/inventory.menu
             image           "vgui/hud/white"
             wide			1500
             tall		    850
-            ypos            100
+            ypos            140
             visible			1
             scaleImage		1
             fillColor		"0 0 0 0"
@@ -73,7 +73,7 @@ resource/ui/menus/inventory.menu
         {
             ControlName				Label
             xpos					0
-            ypos				    -100
+            ypos				    -140
             wide					74
             tall					27
             visible					1
@@ -90,29 +90,6 @@ resource/ui/menus/inventory.menu
             pin_to_sibling			Screen
             pin_corner_to_sibling	TOP
             pin_to_sibling_corner	TOP
-        }
-
-        Money
-        {
-            ControlName				Label
-            xpos					128
-            ypos				    0
-            wide					74
-            tall					27
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"0$"
-            fgcolor_override		"255 192 64 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
-
-            pin_to_sibling			Title
-            pin_corner_to_sibling	LEFT
-            pin_to_sibling_corner	RIGHT
         }
 
 		FooterButtons
@@ -861,6 +838,22 @@ resource/ui/menus/inventory.menu
             pin_to_sibling_corner	BOTTOM
         }
 
+        Datacore
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            xpos			72
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			GridPanel
+            pin_corner_to_sibling	RIGHT
+            pin_to_sibling_corner	LEFT
+
+            zpos			1
+        }
         WeaponPrimary
         {
             ControlName			CNestedPanel
@@ -966,6 +959,22 @@ resource/ui/menus/inventory.menu
 
             zpos			1
         }
+        CoolingStat
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/stat.res"
+            xpos            8
+            ypos			0
+            wide		     80
+            tall			128
+            visible			1
+            scaleImage		1
+            pin_to_sibling			PowerStat
+            pin_to_sibling_corner	TOP_RIGHT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
 
         EnduranceStat
         {
@@ -1010,6 +1019,22 @@ resource/ui/menus/inventory.menu
             visible			1
             scaleImage		1
             pin_to_sibling			SpeedStat
+            pin_to_sibling_corner	TOP_LEFT
+            pin_corner_to_sibling	TOP_RIGHT
+
+            zpos			1
+        }
+        VisionStat
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/stat.res"
+            xpos            8
+            ypos			0
+            wide		     80
+            tall			128
+            visible			1
+            scaleImage		1
+            pin_to_sibling			TemperStat
             pin_to_sibling_corner	TOP_LEFT
             pin_corner_to_sibling	TOP_RIGHT
 

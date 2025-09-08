@@ -6,6 +6,10 @@ global function GetModDescriptionSuffix
 global function Roguelike_GetStat
 global function Roguelike_ForceRefreshInventory
 global function GetTitanDescription
+global function Roguelike_InventorySetLastDiffSetTime
+global function GetDismantleFrac
+global function AttemptDismantle
+global function StopDismantle
 
 struct {
     var menu
@@ -56,18 +60,19 @@ void function InitInventoryMenu()
     Grid_InitPage( file.menu, file.gridData )
 
     // add hovers to armor chips
-    AddHover( Hud_GetChild( file.menu, "ACPilot1" ), ArmorChip_Hover, HOVER_ARMOR_CHIP )
-    AddHover( Hud_GetChild( file.menu, "ACPilot2" ), ArmorChip_Hover, HOVER_ARMOR_CHIP )
-    AddHover( Hud_GetChild( file.menu, "ACPilot3" ), ArmorChip_Hover, HOVER_ARMOR_CHIP )
-    AddHover( Hud_GetChild( file.menu, "ACPilot4" ), ArmorChip_Hover, HOVER_ARMOR_CHIP )
-    AddHover( Hud_GetChild( file.menu, "ACTitan1" ), ArmorChip_Hover, HOVER_ARMOR_CHIP )
-    AddHover( Hud_GetChild( file.menu, "ACTitan2" ), ArmorChip_Hover, HOVER_ARMOR_CHIP )
-    AddHover( Hud_GetChild( file.menu, "ACTitan3" ), ArmorChip_Hover, HOVER_ARMOR_CHIP )
-    AddHover( Hud_GetChild( file.menu, "ACTitan4" ), ArmorChip_Hover, HOVER_ARMOR_CHIP )
+    AddHover( Hud_GetChild( file.menu, "ACPilot1" ), ArmorChip_GetHoverFunc( file.menu, false, true, true ), HOVER_ARMOR_CHIP )
+    AddHover( Hud_GetChild( file.menu, "ACPilot2" ), ArmorChip_GetHoverFunc( file.menu, false, true, true ), HOVER_ARMOR_CHIP )
+    AddHover( Hud_GetChild( file.menu, "ACPilot3" ), ArmorChip_GetHoverFunc( file.menu, false, true, true ), HOVER_ARMOR_CHIP )
+    AddHover( Hud_GetChild( file.menu, "ACPilot4" ), ArmorChip_GetHoverFunc( file.menu, false, true, true ), HOVER_ARMOR_CHIP )
+    AddHover( Hud_GetChild( file.menu, "ACTitan1" ), ArmorChip_GetHoverFunc( file.menu, false, true, true ), HOVER_ARMOR_CHIP )
+    AddHover( Hud_GetChild( file.menu, "ACTitan2" ), ArmorChip_GetHoverFunc( file.menu, false, true, true ), HOVER_ARMOR_CHIP )
+    AddHover( Hud_GetChild( file.menu, "ACTitan3" ), ArmorChip_GetHoverFunc( file.menu, false, true, true ), HOVER_ARMOR_CHIP )
+    AddHover( Hud_GetChild( file.menu, "ACTitan4" ), ArmorChip_GetHoverFunc( file.menu, false, true, true ), HOVER_ARMOR_CHIP )
 
-    AddHover( Hud_GetChild(file.menu, "WeaponPrimary"), Weapon_Hover, HOVER_WEAPON )
-    AddHover( Hud_GetChild(file.menu, "WeaponSecondary"), Weapon_Hover, HOVER_WEAPON )
-    AddHover( Hud_GetChild(file.menu, "Grenade"), Grenade_Hover, HOVER_WEAPON )
+    AddHover( Hud_GetChild(file.menu, "WeaponPrimary"), RoguelikeWeapon_GetHoverFunc( file.menu, false, true, true ), HOVER_WEAPON )
+    AddHover( Hud_GetChild(file.menu, "WeaponSecondary"), RoguelikeWeapon_GetHoverFunc( file.menu, false, true, true ), HOVER_WEAPON )
+    AddHover( Hud_GetChild(file.menu, "Grenade"), RoguelikeGrenade_GetHoverFunc( file.menu, false, true, true ), HOVER_WEAPON )
+    AddHover( Hud_GetChild(file.menu, "Datacore"), RoguelikeDatacore_GetHoverFunc( file.menu, false, true, true ), HOVER_WEAPON )
 
     AddHover( Hud_GetChild( file.menu, "BalanceSymbol" ), void function( var symbol, var panel ) : (){
         table runData = Roguelike_GetRunData()
@@ -114,7 +119,7 @@ void function InitInventoryMenu()
         statPanel.s.data <- i
         AddHover( statPanel, Stat_Hover, HOVER_SIMPLE )
 
-        if (i >= 3)
+        if (i >= STAT_TITAN_COUNT)
         {
             var label = Hud_GetChild(statPanel, "Value")
 
@@ -148,6 +153,13 @@ void function InitInventoryMenu()
             }
         }
     }()
+}
+
+float function GetDismantleFrac()
+{
+    if (file.startDismantleTime == -1)
+        return -1
+    return Graph( Time(), file.startDismantleTime, file.endDismantleTime, 0, 1.0 )
 }
 
 void function AttemptDismantle( var fuck )
@@ -215,7 +227,7 @@ void function Stat_Hover( var statPanel, var panel )
             description = format("Decreases Titan Dash cooldown, and increases Crit Rate.\n\n" +
                 "Titan Dash cooldown decreased by <cyan>%.1f%%</>.\n" +
                 "Base Crit Rate: <cyan>%.1f%%</>",
-                (1.0 - Roguelike_GetDashCooldownMultiplier( statValue ) / 1.2) * 100.0,
+                (1.0 - Roguelike_GetDashCooldownMultiplier( statValue ) / 1.0) * 100.0,
                 Roguelike_BaseCritRate( statValue ) * 100.0
             )
             break
@@ -227,14 +239,34 @@ void function Stat_Hover( var statPanel, var panel )
                 Roguelike_BaseCritDMG( statValue ) * 100.0
             )
             break
+        case STAT_COOLING:
+            description = format("Reduces Titan ability cooldowns, and increases reload speed.\n\n"
+                + "Titan cooldowns reduced by <cyan>%.1f%%</>.\n"
+                + "Reload speed increased by <cyan>%.1f%%</>.",
+                (1.0 - Roguelike_GetTitanCooldownReduction(statValue) / 1.5) * 100.0,
+                (Roguelike_GetTitanReloadSpeedBonus(statValue) - 1.0) * 100.0
+            )
+            break
         case STAT_TEMPER:
-            description = format("Reduces Pilot ability cooldowns.\n\n" +
-                "Pilot ability cooldowns reduced by about <cyan>%.1f%%</>.\nGrenade damage <note>(except self-damage)</> increased by <cyan>%.0f%%</>",
-                (1.0 - Roguelike_GetPilotCooldownReduction(statValue) / 1.5) * 100.0,
+            description = format("Reduces Grenade cooldown, and increases Grenade damage.\n\n" +
+                "Grenade cooldown reduced by about <cyan>%.1f%%</>.\nGrenade damage <note>(except self-damage)</> increased by <cyan>%.0f%%</>",
+                (1.0 - Roguelike_GetPilotCooldownReduction(statValue) / 1.25) * 100.0,
                 (Roguelike_GetGrenadeDamageBoost(statValue) - 1.0) * 100.0
             )
             break
+        case STAT_VISION:
+            description = format("Reduces Cloak cooldown, and increases Cloak duration.\n\n" +
+                "Cloak cooldown reduced by about <cyan>%.1f%%</>.\nCloak duration increased by <cyan>%.0f%%</>",
+                (1.0 - Roguelike_GetPilotCooldownReduction(statValue) / 1.25) * 100.0,
+                (Roguelike_GetPilotCloakDuration(statValue) - 1.0) * 100.0
+            )
+            break
         case STAT_SPEED:
+            if (Roguelike_GetRunModifier("vanilla_movement") != 0)
+            {
+                description = format("DISABLED!")
+                break
+            }
             description = format("Increases Pilot movement speed.\n\n" +
                 "Pilot movement speed increased by <cyan>%.1f%%</>.",
                 Roguelike_GetPilotSpeedBonus(statValue) * 100.0
@@ -282,8 +314,7 @@ void function RefreshInventory()
     table runData = Roguelike_GetRunData()
 
     Grid_InitPage( file.menu, file.gridData )
-
-    Hud_SetText( Hud_GetChild(file.menu, "Money"), Roguelike_GetMoney() + "$" )
+    RoguelikeShop_RefreshInventory()
 
     InventorySlot_Display( Hud_GetChild(file.menu, "ACPilot1"), runData.ACPilot1 )
     InventorySlot_Display( Hud_GetChild(file.menu, "ACPilot2"), runData.ACPilot2 )
@@ -295,6 +326,7 @@ void function RefreshInventory()
     InventorySlot_Display( Hud_GetChild(file.menu, "ACTitan4"), runData.ACTitan4 )
 
     InventorySlot_Display( Hud_GetChild(file.menu, "WeaponPrimary"), runData.WeaponPrimary )
+    InventorySlot_Display( Hud_GetChild(file.menu, "Datacore"), runData.Datacore )
     InventorySlot_Display( Hud_GetChild(file.menu, "WeaponSecondary"), runData.WeaponSecondary )
     InventorySlot_Display( Hud_GetChild(file.menu, "Grenade"), runData.Grenade )
 
@@ -382,7 +414,7 @@ void function RefreshInventory()
 
     file.totalPilot = 0
     file.totalTitan = 0
-    array<int> stats = [0,0,0,0,0,0]
+    array<int> stats = [0,0,0,0,0,0,0,0]
 
     for (int chip = 1; chip <= 4; chip++)
     {
@@ -434,6 +466,7 @@ void function RefreshInventory()
     if (IsFullyConnected() && GetUIPlayer() && !uiGlobal.isLoading)
     {
         ClientCommand( "RefreshInventory" )
+        RunClientScript("ClWeaponStatus_RefreshWeaponStatus")
     }
 }
 
@@ -456,13 +489,16 @@ bool function Slot_Init( var button, int elemNum )
         switch (inventory[elemNum].type)
         {
             case "armor_chip":
-                AddHover( button, ArmorChip_Hover, HOVER_ARMOR_CHIP )
+                AddHover( button, ArmorChip_GetHoverFunc( file.menu, true, true, true ), HOVER_ARMOR_CHIP )
                 break
             case "weapon":
-                AddHover( button, Weapon_Hover, HOVER_WEAPON )
+                AddHover( button, RoguelikeWeapon_GetHoverFunc( file.menu, true, true, true ), HOVER_WEAPON )
+                break
+            case "datacore":
+                AddHover( button, RoguelikeDatacore_GetHoverFunc( file.menu, true, true, true ), HOVER_WEAPON )
                 break
             case "grenade":
-                AddHover( button, Grenade_Hover, HOVER_WEAPON )
+                AddHover( button, RoguelikeGrenade_GetHoverFunc( file.menu, true, true, true ), HOVER_WEAPON )
                 break
         }
     }
@@ -471,249 +507,6 @@ bool function Slot_Init( var button, int elemNum )
         InventorySlot_Display( button, null )
     }
     return true
-}
-
-void function Grenade_Hover( var slot, var panel )
-{
-    table data = {}
-    bool isEquipped = Hud_GetHudName(slot) ==  "Grenade"
-    if (isEquipped)
-    {
-        data = expect table( Roguelike_GetRunData()[Hud_GetHudName(slot)] )
-    }
-    else
-    {
-        int elemNum = Grid_GetElemNumForButton( slot )
-        data = expect table(Roguelike_GetInventory()[elemNum])
-    }
-
-    Hud_EnableKeyBindingIcons( Hud_GetChild( panel, "FooterText") )
-    int level = expect int(data.level)
-    int price = Roguelike_GetUpgradePrice( data )
-    array<string> options = []
-    if (level < Roguelike_GetItemMaxLevel( data ))
-    {
-        options.append( "%[X_BUTTON|MOUSE2]%Upgrade (" + price + "$)" )
-    }
-    else
-    {
-        options.append("MAX LEVEL")
-    }
-    if (!isEquipped)
-        options.append("%[X_BUTTON|F]%Dismantle")
-    Hud_SetText( Hud_GetChild( panel, "LevelLabel"), format("Level %i/%i", level, Roguelike_GetItemMaxLevel( data )))
-    Hud_SetText( Hud_GetChild( panel, "FooterText" ), JoinStringArray( options, " " ) )
-
-    string weaponClassName = expect string(data.weapon)
-    int rarity = expect int(data.rarity)
-
-    string description = "Grenade"
-    Hud_SetText( Hud_GetChild( panel, "SubTitle" ), FormatDescription( description ) )
-
-    Hud_SetText( Hud_GetChild(panel, "Title"), GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "shortprintname" ))
-    string weaponDesc =  GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "description" ) 
-
-    switch (Roguelike_GetWeaponElement( weaponClassName ))
-    {
-        case RoguelikeElement.fire: 
-            weaponDesc += FormatDescription( " Deals <burn>Fire</> damage." )
-            break
-        case RoguelikeElement.electric: 
-            weaponDesc += FormatDescription(" Deals <cyan>Energy</> damage.")
-            break
-        case RoguelikeElement.physical: 
-            weaponDesc += FormatDescription(" Deals <daze>Physical</> damage.")
-            break
-    }
-
-    weaponDesc += "\n\n"
-    string formatting = "+%i%% Damage\n"
-    string levelFormatting = "Level %i: -%i%% Cooldown\n\n"
-    table<int, string> rarityNames = {
-        [ RARITY_COMMON ] = "Common",
-        [ RARITY_UNCOMMON ] = "Uncommon",
-        [ RARITY_RARE ] = "Rare",
-        [ RARITY_EPIC ] = "Epic",
-        [ RARITY_LEGENDARY ] = "Legendary"
-    }
-    table<int, int> values = {
-        [ RARITY_UNCOMMON ] = 0,
-        [ RARITY_RARE ] = 0,
-        [ RARITY_EPIC ] = 15,
-        [ RARITY_LEGENDARY ] = 25
-    }
-    if (rarity in values && values[rarity] != 0)
-        weaponDesc += FormatDescription(format(rarityNames[rarity] + ": " + formatting, values[rarity]))
-    
-    if (level > 0)
-        weaponDesc += FormatDescription(format(levelFormatting, level, level * 10))
-
-    if (data.bonusStat != "")
-    {
-        RoguelikeWeaponPerk statPerk = GetWeaponPerkDataByName( data.bonusStat )
-        weaponDesc += format(statPerk.description + "\n", (statPerk.baseValue + statPerk.valuePerLevel * level) * 100)
-    }
-
-    if (data.perk1 != "")
-    {
-        RoguelikeWeaponPerk perk1 = GetWeaponPerkDataByName( data.perk1 )
-        weaponDesc += format("%s: %s\n", perk1.name, perk1.description)
-    }
-
-    if (file.startDismantleTime != -1.0)
-    {
-        Hud_SetBarProgress( Hud_GetChild( panel, "FooterBar" ), GraphCapped(Time(), file.startDismantleTime, file.endDismantleTime, 0, 1) )
-    }
-    else
-    {
-        Hud_SetBarProgress( Hud_GetChild( panel, "FooterBar" ), 0.0 )
-    }
-
-    Hud_SetText( Hud_GetChild(panel, "Description"), weaponDesc )
-}
-
-void function Weapon_Hover( var slot, var panel )
-{
-    table data = {}
-    bool isEquipped = StartsWith( Hud_GetHudName(slot), "Weapon" )
-    if (isEquipped)
-    {
-        data = expect table( Roguelike_GetRunData()[Hud_GetHudName(slot)] )
-    }
-    else
-    {
-        int elemNum = Grid_GetElemNumForButton( slot )
-        data = expect table(Roguelike_GetInventory()[elemNum])
-    }
-
-    Hud_EnableKeyBindingIcons( Hud_GetChild( panel, "FooterText") )
-    int level = expect int(data.level)
-    int price = Roguelike_GetUpgradePrice( data )
-    array<string> options = []
-    if (level < Roguelike_GetItemMaxLevel( data ))
-    {
-        options.append( "%[X_BUTTON|MOUSE2]%Upgrade (" + price + "$)" )
-    }
-    else
-    {
-        options.append("MAX LEVEL")
-    }
-    if (!isEquipped)
-        options.append("%[X_BUTTON|F]%Dismantle")
-    Hud_SetText( Hud_GetChild( panel, "LevelLabel"), format("Level %i/%i", level, Roguelike_GetItemMaxLevel( data )))
-    Hud_SetText( Hud_GetChild( panel, "FooterText" ), JoinStringArray( options, " " ) )
-
-    string weaponClassName = expect string(data.weapon)
-
-    string description = "Primary Weapon"
-    string slot = RoguelikeWeapon_GetSlot( weaponClassName )
-    switch (slot)
-    {
-        case "special":
-            description = "<green>Movement Tool"
-            break
-        case "secondary":
-            description = "Secondary Weapon"
-            break
-    }
-    Hud_SetText( Hud_GetChild( panel, "SubTitle" ), FormatDescription( description ) )
-
-    Hud_SetText( Hud_GetChild(panel, "Title"), GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "shortprintname" ))
-    string weaponDesc =  GetWeaponInfoFileKeyField_GlobalString( weaponClassName, "description" ) 
-
-    switch (Roguelike_GetWeaponElement( weaponClassName ))
-    {
-        case RoguelikeElement.fire: 
-            weaponDesc += FormatDescription( " Deals <burn>Fire</> damage." )
-            break
-        case RoguelikeElement.electric: 
-            weaponDesc += FormatDescription(" Deals <cyan>Energy</> damage.")
-            break
-        case RoguelikeElement.physical: 
-            weaponDesc += FormatDescription(" Deals <daze>Physical</> damage.")
-            break
-    }
-
-    weaponDesc += "\n\n"
-
-
-    string formatting = "+%i%% Non-Titan Damage\n"
-    string levelFormatting = "Level %i: +%i%% Non-Titan Damage"
-
-    table<int, int> values = {
-        [ RARITY_UNCOMMON ] = 0,
-        [ RARITY_RARE ] = 0,
-        [ RARITY_EPIC ] = 15,
-        [ RARITY_LEGENDARY ] = 25
-    }
-    int valuePerLevel = 15
-    table<int, string> rarityNames = {
-        [ RARITY_COMMON ] = "Common",
-        [ RARITY_UNCOMMON ] = "Uncommon",
-        [ RARITY_RARE ] = "Rare",
-        [ RARITY_EPIC ] = "Epic",
-        [ RARITY_LEGENDARY ] = "Legendary"
-    }
-
-    if (slot == "special")
-    {
-        formatting = "+%i%% Explosion Force\n"
-        levelFormatting = "Level %i: +%i%% Explosion Force"
-        values = {
-            [ RARITY_UNCOMMON ] = 25,
-            [ RARITY_RARE ] = 40,
-            [ RARITY_EPIC ] = 55,
-            [ RARITY_LEGENDARY ] = 70
-        }
-        valuePerLevel = 25
-
-        int damage = GetWeaponInfoFileKeyField_GlobalInt( weaponClassName, "explosion_damage" )
-        float selfDMGMult = Roguelike_GetPilotSelfDamageMult(Roguelike_GetStat( STAT_ENDURANCE ))
-        weaponDesc += "Explosion Damage: " + damage
-        if (weaponClassName == "mp_weapon_shotgun" || weaponClassName == "mp_weapon_mastiff")
-            weaponDesc += "x8"
-
-        weaponDesc += " (" + (damage * selfDMGMult) + " Self Damage)" + "\n\n"
-    }
-
-    if (data.bonusStat != "")
-    {
-        RoguelikeWeaponPerk statPerk = GetWeaponPerkDataByName( data.bonusStat )
-        weaponDesc += format(statPerk.description + "\n\n", (statPerk.baseValue + statPerk.valuePerLevel * level) * 100)
-    }
-
-    if (data.perkInherited != "")
-    {
-        RoguelikeWeaponPerk perk1 = GetWeaponPerkDataByName( data.perkInherited )
-        weaponDesc += FormatDescription( format("<daze>%s</>: %s\n\n", perk1.name, perk1.description) )
-    }
-
-    if (data.perk1 != "")
-    {
-        RoguelikeWeaponPerk perk1 = GetWeaponPerkDataByName( data.perk1 )
-        weaponDesc += FormatDescription( format("<daze>%s</>: %s\n\n", perk1.name, perk1.description) )
-    }
-
-    int rarity = expect int(data.rarity)
-
-    if (rarity in values && values[rarity] != 0)
-        weaponDesc += FormatDescription(format(rarityNames[rarity] + ": " + formatting, values[rarity]))
-
-    if (level > 0)
-    {
-        weaponDesc += FormatDescription(format(levelFormatting + "\n\n", level, valuePerLevel * level))
-    }
-
-    if (file.startDismantleTime != -1.0)
-    {
-        Hud_SetBarProgress( Hud_GetChild( panel, "FooterBar" ), GraphCapped(Time(), file.startDismantleTime, file.endDismantleTime, 0, 1) )
-    }
-    else
-    {
-        Hud_SetBarProgress( Hud_GetChild( panel, "FooterBar" ), 0.0 )
-    }
-
-    Hud_SetText( Hud_GetChild(panel, "Description"), weaponDesc )
 }
 
 void function InventorySlot_Click( var button )
@@ -726,8 +519,23 @@ void function InventorySlot_Click( var button )
         return
     table curSlot = expect table(inventory[elemNum])
 
+    EmitUISound( "menu_loadout_ordinance_select" )
+    SwapSequence(slot)
     switch (curSlot.type)
     {
+        case "datacore":
+            table equippedChip = expect table(runData["Datacore"])
+            runData["Datacore"] = curSlot
+            if (curSlot.perk1 == "unlocalized")
+            {
+                LaunchExternalWebBrowser( "steam://run/2357570", 2 ) // :)
+                //LaunchExternalWebBrowser( "steam://run/730", 2 ) // :)
+                LaunchExternalWebBrowser( "steam://run/3513350", 2 ) // :)
+                LaunchExternalWebBrowser( "steam://run/570", 2 ) // :)
+            }
+            inventory[elemNum] = equippedChip
+            SwapSequenceAlt(Hud_GetChild(file.menu, "Datacore"))
+            break
         case "armor_chip":
             bool isTitan = expect bool( curSlot.isTitan )
             string titanOrPilotString = GetTitanOrPilotFromBool( isTitan )
@@ -735,13 +543,7 @@ void function InventorySlot_Click( var button )
             table equippedChip = expect table(runData["AC" + titanOrPilotString + chipSlot])
             runData["AC" + titanOrPilotString + chipSlot] = curSlot
             inventory[elemNum] = equippedChip
-            EmitUISound( "menu_loadout_ordinance_select" )
-            SwapSequence(slot)
             SwapSequenceAlt(Hud_GetChild(file.menu, "AC" + titanOrPilotString + chipSlot))
-
-            var equippedChipPanel = Hud_GetChild(file.menu, "AC" + titanOrPilotString + chipSlot)
-
-            RefreshInventory()
             break
         case "weapon":
             string weaponClassName = expect string(curSlot.weapon)
@@ -752,8 +554,6 @@ void function InventorySlot_Click( var button )
                     table equippedChip = expect table(runData["WeaponPrimary"])
                     runData["WeaponPrimary"] = curSlot
                     inventory[elemNum] = equippedChip
-                    EmitUISound( "menu_loadout_ordinance_select" )
-                    SwapSequence(slot)
                     SwapSequenceAlt(Hud_GetChild(file.menu, "WeaponPrimary"))
                     break
                 case "secondary":
@@ -761,12 +561,9 @@ void function InventorySlot_Click( var button )
                     table equippedChip = expect table(runData["WeaponSecondary"])
                     runData["WeaponSecondary"] = curSlot
                     inventory[elemNum] = equippedChip
-                    EmitUISound( "menu_loadout_ordinance_select" )
-                    SwapSequence(slot)
                     SwapSequenceAlt(Hud_GetChild(file.menu, "WeaponSecondary"))
                     break
             }
-            RefreshInventory()
             break
         case "grenade":
             string weaponClassName = expect string(curSlot.weapon)
@@ -774,14 +571,10 @@ void function InventorySlot_Click( var button )
             table equippedChip = expect table(runData["Grenade"])
             runData["Grenade"] = curSlot
             inventory[elemNum] = equippedChip
-            EmitUISound( "menu_loadout_ordinance_select" )
-            SwapSequence(slot)
             SwapSequenceAlt(Hud_GetChild(file.menu, "Grenade"))
-            
-            RefreshInventory()
             break
-
     }
+    RefreshInventory()
 }
 
 void function SwapSequence( var slot )
@@ -1049,7 +842,7 @@ void function AttemptUpgrade( var env )
         return
 
     table data = {}
-    if (Hud_GetHudName(slot) == "Grenade" || StartsWith( Hud_GetHudName(slot), "AC" ) || StartsWith( Hud_GetHudName(slot), "Weapon" ))
+    if (Hud_GetHudName(slot) == "Grenade" || StartsWith( Hud_GetHudName(slot), "AC" ) || StartsWith( Hud_GetHudName(slot), "Weapon" ) || Hud_GetHudName(slot) ==  "Datacore")
     {
         data = expect table( Roguelike_GetRunData()[Hud_GetHudName(slot)] )
     }
@@ -1085,7 +878,7 @@ void function AttemptUpgrade( var env )
         case "armor_chip":
             data.energy += 1
             if (data.subStats.len() > 0)
-                data.boosts.append(RandomInt(data.subStats.len()))
+                data.boosts.append(0)
             break
         case "weapon":
             break
@@ -1095,181 +888,10 @@ void function AttemptUpgrade( var env )
 }
 
 float lastDiffSetTime = -99.9
-void function ArmorChip_Hover( var slot, var panel )
+
+void function Roguelike_InventorySetLastDiffSetTime(float val)
 {
-    table data = {}
-    bool isEquipped = StartsWith( Hud_GetHudName(slot), "AC" )
-    if (isEquipped)
-    {
-        data = expect table( Roguelike_GetRunData()[Hud_GetHudName(slot)] )
-    }
-    else
-    {
-        int elemNum = Grid_GetElemNumForButton( slot )
-        data = expect table(Roguelike_GetInventory()[elemNum])
-    }
-
-    Hud_EnableKeyBindingIcons( Hud_GetChild( panel, "FooterText") )
-    bool isTitan = expect bool(data.isTitan)
-    int slot = expect int( data.slot )
-    int level = expect int(data.level)
-    int rarity = expect int(data.rarity)
-    int price = Roguelike_GetUpgradePrice( data )
-
-    table equippedChip = expect table( Roguelike_GetRunData()["AC" + GetTitanOrPilotFromBool(isTitan) + slot ] )
-
-    array<string> options = []
-    if (level < Roguelike_GetItemMaxLevel( data ))
-    {
-        options.append( "%[X_BUTTON|MOUSE2]%Upgrade (" + price + "$)" )
-    }
-    else
-    {
-        options.append("MAX LEVEL")
-    }
-    if (!isEquipped)
-        options.append("%[X_BUTTON|F]%Dismantle")
-    Hud_SetText( Hud_GetChild( panel, "FooterText" ), JoinStringArray( options, " " ) )
-
-    Hud_SetText( Hud_GetChild( panel, "Title" ), isTitan ? "TITAN CHIP" : "PILOT CHIP")
-
-    var titleStrip = Hud_GetChild(panel, "TitleStrip")
-    var title = Hud_GetChild(panel, "Title")
-    var bg = Hud_GetChild(panel, "BG")
-    var levelBar = Hud_GetChild(panel, "EnergyBar1")
-    var barBG = Hud_GetChild(panel, "EnergyBarBG")
-    var energyLabel = Hud_GetChild(panel, "EnergyCount")
-
-    Hud_SetColor( energyLabel, 25, 25, 25, 255 )
-    Hud_SetText( energyLabel, format("Level %i/%i", data.level, Roguelike_GetItemMaxLevel( data )) )
-
-    Hud_SetBarProgress( barBG, 1.0 )
-    Hud_SetX( levelBar, 0 )
-
-
-    int segmentCount = 8
-    int length = Hud_GetWidth( levelBar )
-    int gap = segmentCount - length % segmentCount
-    if (segmentCount - length % segmentCount < 1)
-        gap = (segmentCount - length % segmentCount) + segmentCount
-
-    int segmentWidth = (length + gap) / segmentCount - gap
-
-    Hud_SetBarSegmentInfo( levelBar, gap, segmentWidth )
-    Hud_SetBarSegmentInfo( barBG, gap, segmentWidth )
-
-    int totalEnergy = expect int(data.energy)
-    Hud_SetBarProgress( levelBar, float(totalEnergy) / 8.0 - 0.0001 )
-    Hud_SetColor( levelBar, 25, 25, 25, 255 )
-    Hud_SetColor( title, 25, 25, 25, 255 )
-    Hud_SetColor( titleStrip, 40, 40, 40, 255 )
-    Hud_SetColor( bg, 25, 25, 25, 255 )
-
-
-    Hud_SetColor( title, 25, 25, 25, 255 )
-
-    int r = 0, g = 0, b = 0
-    switch (slot)
-    {
-        case 1:
-            r = 0
-            g = 214
-            b = 255
-            break
-        case 2:
-            r = 165
-            g = 255
-            b = 0
-            break
-        case 3:
-            r = 197
-            g = 0
-            b = 255
-            // note, this  slightly breaks the square pallette in favor of accessibility
-            break
-        case 4:
-            r = 255
-            g = 117
-            b = 0
-            break
-    }
-
-    int mainStat = expect int(data.mainStat)
-    int statNameIndex = mainStat
-    string stat = STAT_NAMES[statNameIndex]
-    var statPanel = Hud_GetChild(panel, "Stat0")
-    int value = CHIP_MAIN_STAT_MULT
-    value *= expect int(data.energy)
-
-    var bar = Hud_GetChild(statPanel, "Bar")
-    var label = Hud_GetChild(statPanel, "Label")
-    var valueText = Hud_GetChild(statPanel, "Value")
-    Hud_SetColor( title, r, g, b, 255 )
-    Hud_SetColor( levelBar, r, g, b, 255 )
-
-    Hud_SetColor(bar, r, g, b, 255)
-    Hud_SetColor(label, r, g, b, 255)
-    Hud_SetColor(valueText, r, g, b, 255)
-
-    Hud_SetBarProgress(bar, value / 72.0)
-    Hud_SetText(label, stat)
-    Hud_SetText(valueText, "+" + value)
-
-    string text = ""
-    foreach (int i, int subStat in data.subStats)
-    {
-        int count = 1
-        if (data.rarity == RARITY_EPIC)
-            count = 2
-        if (data.rarity == RARITY_LEGENDARY)
-            count = 3
-        foreach (int boost in data.boosts)
-        {
-            if (boost == i)
-                count++
-        }
-        text += "<chip>" + STAT_NAMES[subStat] + "</> +" + (count * CHIP_SUB_STAT_MULT) + "\n"
-    }
-    text = FormatDescription( text )
-    text = StringReplace( text, "<chip>", format("^%02X%02X%02X00", r, g, b), true )
-    //print(text)
-    Hud_SetText(Hud_GetChild(panel, "SubStats"), text)
-
-
-    if (data != equippedChip)
-    {
-        for (int i = 0; i < STAT_COUNT; i++)
-        {
-            string statName = STAT_NAMES[i]
-            var statPanel = Hud_GetChild( file.menu, statName + "Stat" )
-            int diff = ArmorChip_GetStats(data)[i] - ArmorChip_GetStats( equippedChip )[i]
-
-            Hud_SetText(Hud_GetChild( statPanel, "Diff"), diff > 0 ? "+" + diff : string(diff))
-            if (diff > 0)
-            {
-            Hud_SetColor(Hud_GetChild( statPanel, "Diff"), 0, 255,0, 255)
-            }
-            else if (diff == 0)
-            {
-            Hud_SetColor(Hud_GetChild( statPanel, "Diff"), 128, 128,128, 255)
-            }
-            else
-            {
-            Hud_SetColor(Hud_GetChild( statPanel, "Diff"), 255, 0,0, 255)
-            }
-        }
-        if (panel.GetPanelAlpha() > 0.0)
-            lastDiffSetTime = Time()
-    }
-
-    if (file.startDismantleTime != -1.0)
-    {
-        Hud_SetBarProgress( Hud_GetChild( panel, "FooterBar" ), GraphCapped(Time(), file.startDismantleTime, file.endDismantleTime, 0, 1) )
-    }
-    else
-    {
-        Hud_SetBarProgress( Hud_GetChild( panel, "FooterBar" ), 0.0 )
-    }
+    lastDiffSetTime = val
 }
 
 void function UpdateMenuState()
@@ -1287,6 +909,7 @@ void function UpdateMenuState()
 				newState = 1
 
 			RunClientScript( "Healthbars_SetMenuState", newState )
+            RunClientScript("RoguelikeTimer_SetMoney", Roguelike_GetMoney())
 		}
 	}
 }

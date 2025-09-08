@@ -99,22 +99,20 @@ void function OnBossTitanDoomed( entity titan, var damageInfo )
 
 void function OnBossTitanCoreMitigation( entity titan, var damageInfo )
 {
-	return
+	entity attacker = DamageInfo_GetAttacker( damageInfo )
 	int damageSourceID = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 	switch ( damageSourceID )
 	{
 		case eDamageSourceId.mp_titancore_salvo_core:
-			DamageInfo_ScaleDamage( damageInfo, BOSS_TITAN_CORE_DAMAGE_SCALER_LOW )
-			return
 
-		// case eDamageSourceId.mp_titancore_laser_cannon: laser core handles this in mp_titanweapon_lasercannon.nut
+		case eDamageSourceId.mp_titancore_laser_cannon:
 		case eDamageSourceId.mp_titancore_flame_wave:
 		case eDamageSourceId.mp_titancore_flame_wave_secondary:
 		case eDamageSourceId.mp_titancore_shift_core:
 		case eDamageSourceId.mp_titanweapon_flightcore_rockets:
 		case eDamageSourceId.mp_titancore_amp_core:
-		case damagedef_nuclear_core:
-			DamageInfo_ScaleDamage( damageInfo, BOSS_TITAN_CORE_DAMAGE_SCALER )
+			if (Roguelike_HasDatacorePerk( attacker, "core_dmg" ))
+				DamageInfo_AddDamageBonus( damageInfo, 0.2 )
 			return
 	}
 
@@ -122,8 +120,7 @@ void function OnBossTitanCoreMitigation( entity titan, var damageInfo )
 	array<string> weaponMods = GetWeaponModsFromDamageInfo( damageInfo )
 	if ( weaponMods.contains( "Smart_Core" ) )
 	{
-		DamageInfo_ScaleDamage( damageInfo, BOSS_TITAN_CORE_DAMAGE_SCALER )
-		// DamageInfo_ScaleDamage( damageInfo, BOSS_TITAN_CORE_DAMAGE_SCALER_LOW )
+		DamageInfo_AddDamageBonus( damageInfo, 0.2 )
 		return
 	}
 }

@@ -57,10 +57,13 @@ void function Elites_Generate( entity npc )
 {
     int levelsComplete = GetConVarInt("roguelike_levels_completed")
     float chance = 1.0 / GraphCapped( levelsComplete, 0, 5, 10, 5 )
-    if (RandomFloat(1) > chance)
+    vector origin = npc.GetOrigin()
+    int posSeed = int((origin.x + origin.y + origin.z) * 12341)
+    PRandom rand = NewPRandom(Roguelike_GetLevelSeed() + posSeed)
+    if (PRandomFloat(rand, 0, 1) > chance)
         return
 
-    delaythread(0.001) void function() : (npc)
+    delaythread(0.001) void function() : (rand, npc)
     {
         if (!IsValid(npc))
             return
@@ -71,9 +74,9 @@ void function Elites_Generate( entity npc )
         if (IsMercTitan( npc )) // NO BOSSES!!!
             return
         if (!npc.IsTitan() && !IsSuperSpectre(npc))
-            thread file.elitePilotFuncs.getrandom()( npc )
+            thread file.elitePilotFuncs[PRandomInt( rand, file.elitePilotFuncs.len() )]( npc )
         else
-            thread file.eliteTitanFuncs.getrandom()( npc )
+            thread file.eliteTitanFuncs[PRandomInt( rand, file.eliteTitanFuncs.len() )]( npc )
     }()
 }
 
@@ -107,7 +110,7 @@ void function Elite_Enraged( entity npc )
         wait 0.19
         
         entity player = npc.GetEnemy()
-        npc.TakeOffhandWeapon(0)
+        //npc.TakeOffhandWeapon(0)
         if (IsAlive(npc))
         {
             if (IsValid(player) && player != lastPlayer && !IsTurret(npc))
@@ -126,6 +129,7 @@ void function Elite_Enraged( entity npc )
         if (!IsValid(player) || Distance2D( npc.GetOrigin(), player.GetOrigin() ) > 300)
             continue
         
+        npc.ClearInvulnerable()
         if(npc.IsTitan())
             AutoTitan_SelfDestruct( npc )
         else
@@ -354,7 +358,7 @@ void function Elite_Invulnerable( entity npc )
 
             Highlight_SetEnemyHighlight( npc, "elite_invulnerable_on" )
 
-            while (IsAlive( ent ) && Distance( npc.GetOrigin(), ent.GetOrigin() ) < maxDist)
+            while (IsAlive( ent ) && Distance( npc.GetOrigin(), ent.GetOrigin() ) < maxDist && ent.GetTeam() == npc.GetTeam())
             {
                 // Control point sets the end position of the effect
                 entity cpEnd = CreateEntity( "info_placement_helper" )

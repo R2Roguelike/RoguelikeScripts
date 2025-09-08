@@ -38,10 +38,17 @@ void function Hover_Init()
     file.preHoverCallbacks[HOVER_SIMPLE] <- void function( var panel ) : (){
         Hud_SetColor( Hud_GetChild(panel, "TitleStrip"), 40, 40, 40, 255 )
         Hud_SetColor( Hud_GetChild(panel, "BG"), 25,25,25, 255 )
+        
+        Hud_EnableKeyBindingIcons( Hud_GetChild(panel, "FooterText"))
+        Hud_SetText( Hud_GetChild(panel, "FooterText"), "" )
     }
 
     file.postHoverCallbacks[HOVER_SIMPLE] <- void function( var panel ) : (){
-        Hud_SetHeight( panel, ContentScaledYAsInt( 64 + 16 ) + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
+        bool visibleFooter = (Hud_GetUTF8Text(Hud_GetChild(panel, "FooterText")) != "")
+        int offset = visibleFooter ? 32 : 0
+        Hud_SetHeight( Hud_GetChild(panel, "BG"), ContentScaledYAsInt( 64 + 16 + offset ) + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
+        Hud_SetHeight( panel, ContentScaledYAsInt( 64 + 16 + offset ) + Hud_GetHeight(Hud_GetChild(panel, "Description")) )
+        Hud_SetY( Hud_GetChild(panel, "Footer"), visibleFooter ? 0 : 1999 )
     }
 
     file.preHoverCallbacks[HOVER_ARMOR_CHIP] <- void function (var panel) : (){

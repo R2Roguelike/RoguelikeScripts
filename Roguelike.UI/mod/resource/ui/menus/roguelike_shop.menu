@@ -1,0 +1,254 @@
+resource/ui/menus/run_setup.menu
+{
+    menu
+	{
+		ControlName Frame
+		xpos 0
+		ypos 0
+		zpos 3
+		wide f0
+		tall f0
+		autoResize 0
+		visible 1
+		enabled 1
+		pinCorner 0
+		PaintBackgroundType 0
+		infocus_bgcolor_override "0 0 0 0"
+		outoffocus_bgcolor_override "0 0 0 0"
+
+        Screen
+        {
+            ControlName				RuiButton
+            wide					%100
+            tall					%100
+            tabPosition             0
+            visible					1
+            scaleImage				1
+            fillColor				"0 0 0 0"
+            drawColor				"0 0 0 0"
+            labelText 				""
+        }
+
+        Vignette
+        {
+            ControlName			ImagePanel
+            InheritProperties	MenuVignette
+        }
+
+        ButtonRowAnchor
+        {
+            ControlName	Label
+            labelText	""
+
+            xpos	120
+            ypos	160
+        }
+
+        FooterButtons
+        {
+            ControlName				CNestedPanel
+            InheritProperties       FooterButtons
+        }
+
+        Title
+        {
+            ControlName				Label
+            xpos					0
+            ypos				    -160
+            wide					74
+            tall					27
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            auto_tall_tocontents	1
+            labelText				"SHOP :)"
+            fgcolor_override		"225 225 225 255"
+            textAlignment			center
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					GothicExpanded_56
+
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	TOP
+            pin_to_sibling_corner	TOP
+        }
+
+        ModSlot2
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/mod_slot.res"
+            xpos			0
+            ypos			-32
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	BOTTOM
+            pin_to_sibling_corner	CENTER
+
+            zpos			1
+        }
+        ModSlot1
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/mod_slot.res"
+            xpos			8
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ModSlot2
+            pin_corner_to_sibling	RIGHT
+            pin_to_sibling_corner	LEFT
+
+            zpos			1
+        }
+        ModSlot0
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/mod_slot.res"
+            xpos			8
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ModSlot1
+            pin_corner_to_sibling	RIGHT
+            pin_to_sibling_corner	LEFT
+
+            zpos			1
+        }
+        ModSlot3
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/mod_slot.res"
+            xpos			8
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ModSlot2
+            pin_corner_to_sibling	LEFT
+            pin_to_sibling_corner	RIGHT
+
+            zpos			1
+        }
+        ModSlot4
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/mod_slot.res"
+            xpos			8
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ModSlot3
+            pin_corner_to_sibling	LEFT
+            pin_to_sibling_corner	RIGHT
+
+            zpos			1
+        }
+
+        LootSlot2
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            xpos			0
+            ypos			32
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	TOP
+            pin_to_sibling_corner	CENTER
+
+            zpos			1
+        }
+        LootSlot1
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            xpos			8
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			LootSlot2
+            pin_corner_to_sibling	RIGHT
+            pin_to_sibling_corner	LEFT
+
+            zpos			1
+        }
+        LootSlot0
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            xpos			8
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			LootSlot1
+            pin_corner_to_sibling	RIGHT
+            pin_to_sibling_corner	LEFT
+
+            zpos			1
+        }
+        LootSlot3
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            xpos			8
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			LootSlot2
+            pin_corner_to_sibling	LEFT
+            pin_to_sibling_corner	RIGHT
+
+            zpos			1
+        }
+        LootSlot4
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            xpos			8
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			LootSlot3
+            pin_corner_to_sibling	LEFT
+            pin_to_sibling_corner	RIGHT
+
+            zpos			1
+        }
+        
+		GridPanel
+		{
+			ControlName				CNestedPanel
+			xpos					0
+            ypos                    -24
+			wide					608
+			tall					168
+			visible					1
+			tabPosition				1
+			zpos					20
+			controlSettingsFile		"Resource/UI/menus/panels/inventory_grid.res"
+            pin_to_sibling			Screen
+            pin_corner_to_sibling	BOTTOM
+            pin_to_sibling_corner	BOTTOM
+		}
+    }
+}

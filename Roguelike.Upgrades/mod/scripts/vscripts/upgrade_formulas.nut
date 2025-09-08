@@ -17,7 +17,7 @@ float function Roguelike_GetPilotSpeedBonus( int speed )
 
 float function Roguelike_GetTitanDamageMultiplier( int armor )
 {
-    return Graph(75.0 / (75.0 + armor), 1, 0, 1, 1 - 1.75 * 0.3)
+    return 250.0 / (250.0 + armor)
 }
 
 float function Roguelike_GetTitanDamageResist( int armor )
@@ -29,7 +29,8 @@ float function Roguelike_GetTitanDamageResist( int armor )
 int function Roguelike_GetBatteryHealingMultiplier( int armor )
 {
     int base = 800
-    base += 8 * armor
+    base += 8 * minint(armor, 40)
+    base += 8 * maxint(armor - 40, 0)
     return base
 }
 
@@ -37,7 +38,7 @@ int function Roguelike_GetBatteryHealingMultiplier( int armor )
 float function Roguelike_GetDashCooldownMultiplier( int energy )
 {
     //return Graph( energy, 0, 150, 1.2, 0.1 )
-    return 1.2 * pow(0.3, energy / 100.0) // +20% cd when low, -90% when max
+    return 1.0 * pow(0.6, energy / 100.0) // +20% cd when low, -90% when max
 }
 
 float function Roguelike_BaseCritRate( int energy )
@@ -57,6 +58,11 @@ float function Roguelike_GetPilotCooldownReduction( int power )
     return 1.25 * pow(0.4, power / 100.0) // +50% cd when low, -40% when max
 }
 
+float function Roguelike_GetPilotCloakDuration( int power )
+{
+    return 1.0 + 0.01 * power // +50% cd when low, -40% when max
+}
+
 float function Roguelike_GetGrenadeDamageBoost( int power )
 {
     // +233%
@@ -66,6 +72,19 @@ float function Roguelike_GetGrenadeDamageBoost( int power )
 float function Roguelike_GetTitanCoreGain( int power )
 {
     return 0.5 + 0.0025 * power // -20% when low
+}
+
+float function Roguelike_GetTitanCooldownReduction( int power )
+{
+    float base = 1.5
+    base *= pow(0.8, (power) / 40.0)
+    return base // -20% when low
+}
+
+float function Roguelike_GetTitanReloadSpeedBonus( int power )
+{
+    float base = 1.0 + 0.004 * power
+    return base // -20% when low
 }
 
 // bitwise OR of two bits corresponding to titan loadouts
@@ -90,6 +109,11 @@ int function Roguelike_GetUpgradePrice( table item )
     return price
 }
 
+int function Roguelike_GetPurchasePrice( table item )
+{
+    return SHOP_LOOT_PRICE
+}
+
 int function Roguelike_GetItemMaxLevel( table item )
 {
     switch (item.type)
@@ -98,7 +122,6 @@ int function Roguelike_GetItemMaxLevel( table item )
             return MAX_CHIP_LEVEL
         case "weapon":
         case "grenade":
-            int rarity = expect int(item.rarity)
             return 3
     }
 

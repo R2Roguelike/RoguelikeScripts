@@ -31,7 +31,7 @@ void function Northstar_RegisterMods()
         RoguelikeMod mod = NewMod("railgun_hp")
         mod.name = "Bloodshot"
         mod.abbreviation = "Bs"
-        mod.description = "On Crit: Railgun deals up to <cyan>+30% damage</> relative to your <red>missing Health</>."
+        mod.description = "Railgun deals up to <cyan>+30% damage</> relative to your <red>missing Health</>."
         mod.cost = 2
         mod.chip = TITAN_CHIP_WEAPON
     }
@@ -63,7 +63,7 @@ void function Northstar_RegisterMods()
         RoguelikeMod mod = NewMod("crit_charge")
         mod.name = "CritCharge"
         mod.abbreviation = "CC"
-        mod.description = "When Fully Charged Shots Crit: Your railgun instantly recharges. <red>+100% Charge Time. This drawback persists for 10s after disequipping the mod.</>"
+        mod.description = "When Fully Charged Shots Crit: Your railgun instantly recharges."
         mod.cost = 2
         mod.chip = TITAN_CHIP_WEAPON
     }
@@ -79,7 +79,15 @@ void function Northstar_RegisterMods()
         RoguelikeMod mod = NewMod("railgun_trauma")
         mod.name = "Post-Railgun Trauma"
         mod.abbreviation = "PRT"
-        mod.description = "Fully charged Railgun shots <cyan>get +50% Projectile Speed</>, and leave the enemy <cyan>Traumatized</>, reducing their damage output by 25%."
+        mod.description = "Fully charged Railgun shots <cyan>get +50% Projectile Speed</>, and leave the enemy <cyan>Traumatized</>, reducing their damage output by 50%."
+        mod.cost = 1
+        mod.chip = TITAN_CHIP_UTILITY
+    }
+    {
+        RoguelikeMod mod = NewMod("pierce_dmg")
+        mod.name = "Penetration"
+        mod.abbreviation = "PEN"
+        mod.description = "."
         mod.cost = 1
         mod.chip = TITAN_CHIP_UTILITY
     }

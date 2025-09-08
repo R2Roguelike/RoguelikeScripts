@@ -53,12 +53,13 @@ void function EntitiesDidLoad()
         legendaryChest.SetUsePrompts( "me do nothing come back later", "me do nothing come back later" )
     }
 
-    for (int i = 0; i < 60;)
+    PRandom rand = NewPRandom(Roguelike_GetLevelSeed())
+    for (int i = 0; i < 100;)
     {
-        vector rand = <RandomFloatRange(-30000, 30000), RandomFloatRange(-30000, 30000),RandomFloatRange(-30000, 30000)>
+        vector pos = <PRandomFloat(rand, -30000, 30000), PRandomFloat(rand, -30000, 30000), PRandomFloat(rand, -30000, 30000)>
         //                                                           vvv lowering this makes func more likely
         //
-        TraceResults tr = TraceHull( rand, <rand.x, rand.y, rand.z - TRACE_DIST>, < -HULL_EXTENTS / 2, -HULL_EXTENTS / 2, 0>, < HULL_EXTENTS / 2, HULL_EXTENTS / 2, 90>, [], TRACE_MASK_PLAYERSOLID, TRACE_COLLISION_GROUP_PLAYER )
+        TraceResults tr = TraceHull( pos, <pos.x, pos.y, pos.z - TRACE_DIST>, < -HULL_EXTENTS / 2, -HULL_EXTENTS / 2, 0>, < HULL_EXTENTS / 2, HULL_EXTENTS / 2, 90>, [], TRACE_MASK_PLAYERSOLID, TRACE_COLLISION_GROUP_PLAYER )
         if (!IsValid(tr.hitEnt))
         {
             failedToNoTrace++
@@ -100,27 +101,47 @@ void function EntitiesDidLoad()
         if (invalidLocation)
             continue
 
-        entity prop = CreatePropDynamic( $"models/containers/pelican_case_large.mdl", navPoint + <0,0,1>, <0,RandomFloatRange(-180, 180),0>, SOLID_VPHYSICS )
+        bool isShop = PRandomInt(rand, 0, 5) == 1
+
+        // to help with determinism, dont use the PRandom func here, since its pretty much only visual anyways
+        asset model = isShop ?  $"models/beacon/beacon_crane_monitor.mdl" : $"models/containers/pelican_case_large.mdl" 
+        vector offset = isShop ? <0,0,64> : <0,0,1>
+        entity prop = CreatePropDynamic( model, navPoint + offset, <0,RandomFloatRange(-180, 180),0>, SOLID_VPHYSICS )
         Highlight_SetNeutralHighlight( prop, "roguelike_chest" )
         prop.Solid()
         prop.SetUsable( )
+        prop.s.seed <- PRandomInt(rand)
         prop.SetUsableRadius( 200 )
-        prop.SetUsePrompts( "Hold %use% to open chest", "Press %use% to open chest" )
+        if (isShop)
+            prop.SetUsePrompts( "Hold %use% to open the shop", "Press %use% to open the shop" )
+        else
+            prop.SetUsePrompts( "Hold %use% to open chest", "Press %use% to open chest" )
         //prop.SetParent(tr.hitEnt)
         //DispatchSpawn( prop )
          printt("<", navPoint.x, ",", navPoint.y, ",", navPoint.z, ">")
 
-        thread void function() : (prop)
+        thread void function() : (prop, isShop)
         {
-            var playerActivator = prop.WaitSignal("OnPlayerUse").player
-            expect entity( playerActivator )
-            print("bruhu")
-            Highlight_ClearNeutralHighlight( prop )
-            prop.SetModel( $"models/containers/pelican_case_large_open.mdl" )
-            prop.UnsetUsable()
-            EmitSoundOnEntity( playerActivator, "UI_PostGame_FDSlideStop" )
-            EmitSoundOnEntity( playerActivator, "UI_PostGame_CoinPlace" )
-            Remote_CallFunction_UI( playerActivator, "Roguelike_GenerateLoot" )
+            while (true)
+            {
+                var playerActivator = prop.WaitSignal("OnPlayerUse").player
+                expect entity( playerActivator )    
+                
+                if (isShop)
+                {
+                    Remote_CallFunction_UI( playerActivator, "Roguelike_OpenShopMenu", expect int(prop.s.seed) )
+                }
+                else
+                {
+                    Highlight_ClearNeutralHighlight( prop )
+                    prop.SetModel( $"models/containers/pelican_case_large_open.mdl" )
+                    prop.UnsetUsable()
+                    EmitSoundOnEntity( playerActivator, "UI_PostGame_FDSlideStop" )
+                    EmitSoundOnEntity( playerActivator, "UI_PostGame_CoinPlace" )
+                    Remote_CallFunction_UI( playerActivator, "Roguelike_GenerateLoot", expect int(prop.s.seed) )
+                    return
+                }
+            }
         }()
         i++
     }

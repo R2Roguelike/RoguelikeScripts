@@ -26,6 +26,7 @@ void function MpTitanWeaponTrackerRockets_Init()
 	#endif
 	#if SERVER
 	AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_tracker_rockets, TrackerRocketsDamage )
+	AddDamageCallbackSourceID( eDamageSourceId.mp_titancore_salvo_core, SalvoCoreDamage )
 	#endif
 }
 
@@ -37,7 +38,7 @@ void function TrackerRocketsDamage( entity ent, var damageInfo )
 
 	if ((DamageInfo_GetDamageFlags( damageInfo ) & DAMAGEFLAG_CLONE) != 0)
 	{
-		DamageInfo_ScaleDamage( damageInfo, 0.33 )
+		DamageInfo_ScaleDamage( damageInfo, 0.2 )
 	}
 	if (IsValid(weapon)) // was hitscan, basically
 	{
@@ -48,15 +49,35 @@ void function TrackerRocketsDamage( entity ent, var damageInfo )
 	}
 }
 
+void function SalvoCoreDamage( entity ent, var damageInfo )
+{
+	entity attacker = DamageInfo_GetAttacker( damageInfo)
+	entity weapon = DamageInfo_GetWeapon( damageInfo )
+
+	float cur = RSE_Get( ent, RoguelikeEffect.salvo_locks )
+	if (cur <= 0.0 && Roguelike_HasMod( attacker, "salvo_locks" ))
+	{
+		ApplyTrackerMark( attacker, ent )
+		RSE_Apply( ent, RoguelikeEffect.salvo_locks, 1.0, 0.26, 0.26 )
+	}
+}
+
 void function ToneHack( entity target, entity player )
 {
-	target.Signal("HackEnd") 
-	target.EndSignal( "HackEnd" )
+	player.Signal("HackEnd") 
+	player.EndSignal( "HackEnd" )
 	target.EndSignal( "OnDeath" )
 	target.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
 	player.EndSignal( "OnDestroy" )
 	int oldTeam = target.GetTeam()
+
+	if (!target.IsTitan())
+		return
+
+	// no hacking bosses :)
+	if (IsMercTitan( target ))
+		return
 
 	SetTeam( target, player.GetTeam() )
 	target.s.hacker <- player
@@ -71,6 +92,7 @@ void function ToneHack( entity target, entity player )
 		}
 		if (IsValid(target) && "hacker" in target.s)
 		{
+			RSE_Stop( target, RoguelikeEffect.tone_expose )
 			SetTeam(target, oldTeam)
 			delete target.s.hacker
 		}
@@ -105,6 +127,7 @@ var function OnWeaponPrimaryAttack_titanweapon_tracker_rockets( entity weapon, W
 
 	if (owner.IsPlayer())
 	{
+		PlayerUsedOffhand( owner, weapon )
 		weapon.s.hack <- true
 		weapon.FireWeaponBullet( attackParams.pos, attackParams.dir, 1, weapon.GetWeaponDamageFlags() )
 		weapon.SetWeaponBurstFireCount(1)
@@ -177,7 +200,8 @@ function MissileThink( weapon, missile )
 
 bool function OnWeaponAttemptOffhandSwitch_titanweapon_tracker_rockets( entity weapon )
 {
-	return true
+	if (weapon.GetWeaponOwner().IsPlayer())
+		return true
 	var allTargets = []
 	if ( weapon.SmartAmmo_IsEnabled() )
 	{
@@ -230,54 +254,73 @@ void function DelayedDisableToneLockOnNotification(entity target, int statusID)
 
 }
 #if SERVER
-void function AutoFireMissiles( entity ordnance, entity target, entity owner )
+void function AutoFireMissiles( entity ordnance, entity target, entity owner, bool delockAfterUse = true )
 {
 	owner.EndSignal("OnDestroy")
 	target.EndSignal("OnDestroy")
 	EmitSoundOnEntityOnlyToPlayer( owner, owner, "weapon_trackingrockets_fire_1p" )
 
 	int rocketCount = 5
-	array<string> rocketMods = ["crit_marks", "barrage_cd", "you_fucking_bitch", "dual_fire", "40mm_restore"]
+	array<string> rocketMods = ["crit_marks", "barrage_cd", "you_fucking_bitch", "dual_fire", "hacked_battery", "red_sonar", "wall_locks"]
 	foreach (string mod in rocketMods)
 	{
 		if (Roguelike_HasMod( owner, mod ))
 			rocketCount++
 	}
-	
+
+	if (Roguelike_HasMod( owner, "barrage_cd" ))
+	{
+		entity sonar = Roguelike_FindWeapon( owner, "mp_titanability_sonar_pulse" )
+		if (IsValid(sonar))
+		{
+			int ammo = sonar.GetWeaponPrimaryClipCount()
+			int maxAmmo = sonar.GetWeaponPrimaryClipCountMax()
+			sonar.SetWeaponPrimaryClipCount( minint(int(sonar.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_rate)) + ammo, maxAmmo) )
+		}
+	}
+
 	float duration = 1.5 - 0.05 * rocketCount
 
 	for (int i = 0; i < rocketCount; i++)
 	{
 		{
 			entity missile = ordnance.FireWeaponMissile( owner.EyePosition(), AnglesToForward( owner.EyeAngles() ), 1800.0, ordnance.GetWeaponDamageFlags(), ordnance.GetWeaponDamageFlags(), false, false )
-			missile.InitMissileForRandomDriftFromWeaponSettings(owner.EyePosition(), AnglesToForward( owner.EyeAngles() ))
-			missile.SetSpeed(SmartAmmo_GetMissileSpeed(ordnance))
-			missile.SetHomingSpeeds(300, 300)
-			missile.SetMissileTarget( target, <0,0,0> )
+			if (missile != null)
+			{
+				missile.InitMissileForRandomDriftFromWeaponSettings(owner.EyePosition(), AnglesToForward( owner.EyeAngles() ))
+				missile.SetSpeed(SmartAmmo_GetMissileSpeed(ordnance))
+				missile.SetHomingSpeeds(300, 300)
+				missile.SetMissileTarget( target, <0,0,0> )
+			}
 		}
 		if (Roguelike_HasMod( owner, "dual_fire" ) && "hackedTitan" in owner.s)
 		{
 			entity hackedTitan = expect entity(owner.s.hackedTitan)
 			entity missile = ordnance.FireWeaponMissile( owner.EyePosition(), AnglesToForward( owner.EyeAngles() ), 1800.0, ordnance.GetWeaponDamageFlags(), ordnance.GetWeaponDamageFlags(), false, false )
-			missile.InitMissileForRandomDriftFromWeaponSettings(owner.EyePosition(), AnglesToForward( owner.EyeAngles() ))
-			missile.SetSpeed(SmartAmmo_GetMissileSpeed(ordnance))
-			missile.SetHomingSpeeds(500, 500)
-			missile.SetOrigin(hackedTitan.GetOrigin() + <0,0,hackedTitan.GetBoundingMaxs().z>)
-			missile.SetMissileTarget( target, <0,0,0> )
+			if (missile != null)
+			{
+				missile.InitMissileForRandomDriftFromWeaponSettings(owner.EyePosition(), AnglesToForward( owner.EyeAngles() ))
+				missile.SetSpeed(SmartAmmo_GetMissileSpeed(ordnance))
+				missile.SetHomingSpeeds(500, 500)
+				missile.SetOrigin(hackedTitan.GetOrigin() + <0,0,hackedTitan.GetBoundingMaxs().z>)
+				missile.SetMissileTarget( target, <0,0,0> )
+				missile.SetOwner( hackedTitan )
+			}
 		}
 		wait 0.046
 	}
 
-	array<string> durationMods = ["routine_exposure", "clone_lockons_generic", "hit_locks", "salvo_lock", "rockets_crits", "hack_dmg", "40mm_fire_rate"]
+	array<string> durationMods = ["routine_exposure", "clone_lockons_generic", "hit_locks", "salvo_locks", "rockets_crits", "hack_dmg", "40mm_fire_rate"]
 	foreach (string mod in durationMods)
 	{
 		if (Roguelike_HasMod( owner, mod ))
-			duration -= 0.1
+			duration -= 0.2
 	}
 
 	if (duration > 0)
 		wait duration - 0.01
 	
-	ordnance.SmartAmmo_UntrackEntity( target )
+	if (delockAfterUse && IsValid(target))
+		ordnance.SmartAmmo_UntrackEntity( target )
 }
 #endif

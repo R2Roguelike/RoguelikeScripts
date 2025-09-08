@@ -650,6 +650,8 @@ void function ElevatorUp( entity player )
 {
 	FlagSet( "ElevatorUp" )
 
+	Roguelike_PauseTimer()
+
 	entity topEnt = GetEntByScriptName( "ElevatorUpPos" )
 	entity mover = GetEntByScriptName( "ElevatorMover" )
 	mover.ChangeNPCPathsOnMove( true )
@@ -682,6 +684,8 @@ void function ElevatorUp( entity player )
 	Remote_CallFunction_NonReplay( player, "ServerCallback_ElevatorRumble", 3 )
 
 	TransitionNPCPathsForEntity( clip, topEnt.GetOrigin(), true )
+
+	Roguelike_UnpauseTimer()
 
 	if (GetSpDifficulty() <= DIFFICULTY_EASY)
 		file.sarahTitan.SetOrigin( < -7415, 3496, 1920 > )
@@ -1152,6 +1156,8 @@ void function RunwayFriendlies()
 
 void function StartPoint_OLALaunch( entity player )
 {
+	Roguelike_PauseTimer()
+	
 	waitthread ArkSequence( player )
 
 	StopMusicTrack( "music_tday_09_downthestep" )

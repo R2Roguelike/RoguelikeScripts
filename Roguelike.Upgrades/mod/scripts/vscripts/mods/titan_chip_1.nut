@@ -46,13 +46,6 @@ void function TitanChip1_RegisterMods()
         mod.description = "Healing from batteries increased by 35%."
         mod.cost = 2
     }
-    {
-        RoguelikeMod mod = NewMod("second_wind")
-        mod.name = "Second Wind"
-        mod.abbreviation = "SW"
-        mod.description = "Titan kills while doomed undoom you. <red>Battery healing reduced by 50%.</>"
-        mod.cost = 4
-    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)

@@ -72,6 +72,13 @@
 			}
 		},
 		{
+			"Path": "ui/menu_roguelike_shop.nut",
+			"RunOn": "UI",
+			"UICallback":{
+				"Before": "RoguelikeShop_Init"
+			}
+		},
+		{
 			"Path": "ui/menu_limited_loadout_choice.nut",
 			"RunOn": "UI",
 			"UICallback":{
@@ -85,6 +92,10 @@
 		{
 			"Path": "ui/run_modifier_panel.nut",
 			"RunOn": "UI"
+		},
+		{
+			"Path": "splitmix32.nut",
+			"RunOn": "CLIENT || UI || SERVER"
 		}
 	],
 

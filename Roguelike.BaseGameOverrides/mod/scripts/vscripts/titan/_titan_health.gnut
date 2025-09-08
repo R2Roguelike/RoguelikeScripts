@@ -75,6 +75,9 @@ void function UndoomTitan( entity titan, int numSegments )
 	soul.DisableDoomed()
 	int maxHealth
 	int segmentHealth = GetSegmentHealthForTitan( titan )
+	int restoreHealth = segmentHealth * numSegments
+	if (titan.IsPlayer())
+		restoreHealth = Roguelike_GetBatteryHealingMultiplier( Roguelike_GetStat( titan, STAT_ARMOR ) ) * numSegments
 	if ( titan.IsNPC() )
 	{
 		maxHealth = int( GetPlayerSettingsFieldForClassName_Health( settings ) )
@@ -88,7 +91,7 @@ void function UndoomTitan( entity titan, int numSegments )
 		maxHealth = int( titan.GetPlayerModHealth() )
 	}
 	titan.SetMaxHealth( maxHealth )
-	titan.SetHealth( segmentHealth * numSegments )
+	titan.SetHealth( restoreHealth )
 	SetSoulBatteryCount( soul, numSegments )
 
 	titan.Signal( "TitanUnDoomed" )
@@ -835,6 +838,9 @@ float function GetShieldRegenDelay( entity soul )
 		delay = regenDelay - 1.0
 	else
 		delay = regenDelay
+
+	if (Roguelike_HasDatacorePerk( soul.GetTitan(), "shield"))
+		delay *= 0.5
 
 	if ( SoulHasPassive( soul, ePassives.PAS_SHIELD_BOOST ) )
 		delay = 2.0

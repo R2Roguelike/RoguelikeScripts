@@ -14,7 +14,7 @@ void function Ion_RegisterMods()
         RoguelikeMod mod = NewMod("orbital_strike")
         mod.name = "From the Heavens"
         mod.abbreviation = "FrH"
-        mod.description = "<cyan>+10% max energy.</>\n\n<cyan>Discharging</> an enemy with Laser Core will summon an <red>Orbital Strike</>."
+        mod.description = "<cyan>+10% max energy.</>\n\nHitting an enemy with Laser Core will summon an <red>Orbital Strike</>."
         mod.cost = 3
         mod.chip = TITAN_CHIP_CORE
     }
@@ -30,7 +30,7 @@ void function Ion_RegisterMods()
         RoguelikeMod mod = NewMod("laser_disorder")
         mod.name = "Chargeback"
         mod.abbreviation = "Cb"
-        mod.description = "<cyan>+10% base Discharge DMG.</>\n\nLaser Shot's energy is refunded if it triggers a discharge."
+        mod.description = "<cyan>+25% base Discharge DMG.</>\n\nLaser Shot's energy is refunded if it triggers a discharge."
         mod.cost = 1
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -46,7 +46,7 @@ void function Ion_RegisterMods()
         RoguelikeMod mod = NewMod("discharge_battery")
         mod.name = "Disorder Battery"
         mod.abbreviation = "DBt"
-        mod.description = "<cyan>+10% base Discharge DMG.</>\n\nIf an enemy is killed by a <red>Disorder</>, <green>spawn an additional battery</>."
+        mod.description = "<cyan>+25% base Discharge DMG.</>\n\nIf an enemy is killed by a <red>Disorder</>, <green>spawn an additional battery</>."
         mod.cost = 2
         mod.chip = TITAN_CHIP_CHASSIS
     }
@@ -54,7 +54,7 @@ void function Ion_RegisterMods()
         RoguelikeMod mod = NewMod("discharge_crit")
         mod.name = "CritOrder"
         mod.abbreviation = "CO"
-        mod.description = "<cyan>+10% base Discharge DMG.</>\n\n<charge>Discharges</> and <red>Disorders</> can critically hit."
+        mod.description = "<cyan>+25% base Discharge DMG.</>\n\n<charge>Discharges</> and <red>Disorders</> can critically hit."
         mod.cost = 2
         mod.chip = TITAN_CHIP_ABILITIES
     }

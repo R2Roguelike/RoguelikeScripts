@@ -143,8 +143,9 @@ void function SmartCoreThink( entity weapon, float coreDuration )
 
 void function GiveSmartCoreMod( entity player )
 {
-	array<entity> weapons = GetPrimaryWeapons( player )
-	entity weapon = player.GetActiveWeapon()
+	entity weapon = Roguelike_FindWeapon( player, "mp_titanweapon_predator_cannon")
+	if (!IsValid(weapon))
+		return
 	array<string> mods = weapon.GetMods()
 	mods.append( "Smart_Core" )
 	weapon.SetMods( mods )
@@ -152,13 +153,9 @@ void function GiveSmartCoreMod( entity player )
 
 void function TakeSmartCoreMod( entity player )
 {
-	array<entity> weapons = GetPrimaryWeapons( player )
-
-	//When a player disconnects
-	if ( weapons.len() == 0 )
+	entity weapon = Roguelike_FindWeapon( player, "mp_titanweapon_predator_cannon")
+	if (!IsValid(weapon))
 		return
-
-	entity weapon = player.GetActiveWeapon()
 	array<string> mods = weapon.GetMods()
 	mods.fastremovebyvalue( "Smart_Core" )
 	weapon.SetMods( mods )

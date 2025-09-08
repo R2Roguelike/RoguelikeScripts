@@ -296,9 +296,6 @@ function RemoteFunctions_Init()
 	Remote_RegisterFunction( "ServerCallback_ShowNextSpawnMessage" )
 	Remote_RegisterFunction( "ServerCallback_HideNextSpawnMessage" )
 
-	Remote_RegisterFunction( "ServerCallback_AnnounceWinner" )
-	Remote_RegisterFunction( "ServerCallback_AnnounceRoundWinner" )
-
 	Remote_RegisterFunction( "ServerCallback_GuidedMissileDestroyed" )
 	Remote_RegisterFunction( "ServerCallback_DoClientSideCinematicMPMoment" ) // hard to say if this is safe as fire and forget
 	Remote_RegisterFunction( "ServerCallback_SetAssistInformation" )
@@ -779,8 +776,8 @@ function RemoteFunctions_Init()
 
 	Remote_RegisterFunction( "ServerCallback_GetObjectiveReminderOnLoad" )
 	Remote_RegisterFunction( "ServerCallback_ClearObjectiveReminderOnLoad" )
-	Remote_RegisterFunction( "ScriptCallback_Beacon_FreeTrialOverMessage" )
 
+	Remote_RegisterFunction("Roguelike_OpenShopMenu")
 	Remote_RegisterFunction( "Roguelike_GenerateLoot" )
 	Remote_RegisterFunction( "ServerCallback_RSE_Apply" )
 	Remote_RegisterFunction( "ServerCallback_Roguelike_AddMoney" )
@@ -802,8 +799,19 @@ function RemoteFunctions_Init()
 
 	RegisterServerVar( "startPointIndex", 0 )
 	RegisterServerVar( "startTime", 0.0 )
+	RegisterServerVar( "timerValue", 0.0 )
+	RegisterServerVar( "isTimerPaused", false )
 	RegisterServerVar( "roguelikeKills", 0 )
 
+	// bnr
+	// a1
+	// a3
+	// enc2
+	// b2
+	// b3
+	// tbf
+	// ark
+	// fold
 	#if CLIENT
 			Cl_EarnMeter_RegisterNetworkFunctions()
 			ClRodeoTitan_RegisterNetworkFunctions()

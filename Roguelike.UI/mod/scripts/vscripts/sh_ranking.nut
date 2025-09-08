@@ -58,6 +58,8 @@ array<int> function GetTimeForMaxRank(string map)
             return [180, 300]
         case "sp_boomtown":
             return [420, 540]
+        case "sp_beacon":
+            return [900, 1200]
         case "sp_boomtown_end":
             return [240, 360]
         case "sp_timeshift_spoke02":

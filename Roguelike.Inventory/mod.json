@@ -42,6 +42,11 @@
 			"DefaultValue": ""
 		},
 		{
+			"Name": "player_datacore",
+			"Flags": "USERINFO | CHEAT",
+			"DefaultValue": ""
+		},
+		{
 			"Name": "player_weapons",
 			"Flags": "USERINFO | CHEAT",
 			"DefaultValue": ""

@@ -68,6 +68,19 @@
 			}
 		},
 		{
+			"Path": "mods/datacore_perks.nut",
+			"RunOn": "CLIENT || UI || SERVER",
+			"UICallback":{
+				"Before": "DatacorePerks_Init"
+			},
+			"ServerCallback":{
+				"Before": "DatacorePerks_Init"
+			},
+			"ClientCallback":{
+				"Before": "DatacorePerks_Init"
+			}
+		},
+		{
 			"Path": "upgrade_formulas.nut",
 			"RunOn": "UI || SERVER || CLIENT"
 		},

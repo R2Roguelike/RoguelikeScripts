@@ -99,8 +99,10 @@ void function PrecacheJack()
 		"npc_titan_stryder_leadwall",
 		"npc_titan_stryder_sniper"]
 
-	if (RandomFloat(1.0) < 0.1 && GetMapName() != "sp_skyway_v1") // should remove the latter when i finally test fold weapon with force titan
-		SetConVarString("roguelike_force_titan", validTitans.getrandom())
+	PRandom rand = NewPRandom(Roguelike_GetLevelSeed())
+
+	if (PRandomFloat(rand, 0, 1.0) < 0.1 && GetMapName() != "sp_skyway_v1") // should remove the latter when i finally test fold weapon with force titan
+		SetConVarString("roguelike_force_titan", validTitans[PRandomInt(rand, validTitans.len())])
 	else
 		SetConVarString("roguelike_force_titan", "")
 		

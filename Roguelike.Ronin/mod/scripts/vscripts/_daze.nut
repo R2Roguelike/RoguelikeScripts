@@ -35,6 +35,10 @@ void function OnPlayerDodge( entity player )
         if (IsValid(offensive))
             RestoreCooldown( offensive, 0.1 )
     }
+    if (Roguelike_HasDatacorePerk( player, "dash+" ))
+    {
+        RSE_Apply( player, RoguelikeEffect.dash_plus, 1.0, 2.0, 2.0 )
+    }
     file.lastDodgeTime = Time()
 
     Remote_CallFunction_Replay( player, "ServerCallback_FlashCockpitInvulnerable" )

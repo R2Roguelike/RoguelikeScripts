@@ -33,6 +33,11 @@
 			"DefaultValue": "0"
 		},
 		{
+			"Name": "roguelike_run_seed",
+			"Flags": "CHEAT",
+			"DefaultValue": "0"
+		},
+		{
 			"Name": "meta_helmets_0",
 			"Flags": "CHEAT",
 			"DefaultValue": "0"

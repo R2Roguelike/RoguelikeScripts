@@ -80,7 +80,7 @@ void function Healthbars_Think()
         }
         else if (!player.IsTitan())
         {
-            Hud_SetVisible( HudElement("CrosshairBar"), true )
+            Hud_SetVisible( HudElement("CrosshairBar"), Roguelike_GetRunModifier("vanilla_movement") == 0 )
             float speed = player.GetDodgePower()
             float maxDashPower = 20.0
             if (Roguelike_HasMod( player, "double_dash" ))

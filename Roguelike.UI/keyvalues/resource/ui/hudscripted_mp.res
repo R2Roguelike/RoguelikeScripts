@@ -66,6 +66,29 @@ Resource/UI/HudScripted_mp.res
 		pin_to_sibling_corner		CENTER
 	}
 
+    Velocity
+    {
+		ControlName			Label
+		xpos				-20
+		ypos				-100
+
+		visible				1
+		zpos				200
+        wide                1280
+		tall				24
+		labelText			"<0,0,0>"
+		allCaps				0
+		font				JetBrainsMono_18
+		auto_wide_tocontents	0
+        auto_tall_tocontents    1
+		textAlignment		west
+		fgcolor_override 	"255 255 255 255"
+
+		pin_to_sibling				Screen
+		pin_corner_to_sibling		TOP_LEFT
+		pin_to_sibling_corner		TOP_LEFT
+    }
+
     ItemAcquired
     {
 		ControlName			Label

@@ -67,8 +67,8 @@ FWeaponData
 	{
 		"damage_near_value"   						"300"
 		"damage_far_value"							"300"
-		"damage_near_value_titanarmor"				"250"
-		"damage_far_value_titanarmor" 				"250"
+		"damage_near_value_titanarmor"				"150"
+		"damage_far_value_titanarmor" 				"150"
 		"npc_explosion_damage"						"100"
 		"explosion_damage"							"150"
 		"explosion_damage_heavy_armor"				"200"

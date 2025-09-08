@@ -226,7 +226,21 @@ void function SPButton_Click( var button, int elemNum )
 
 void function Roguelike_ContinueRun()
 {
+	table runData = Roguelike_GetRunData()
+	if (runData.startPointIndex != -1)
+	{
+		int startPointIndex = expect int(runData.startPointIndex)
+		string map = expect string(runData.map)
+
+		
+		ExecuteLoadingClientCommands_SetStartPoint( map, startPointIndex )
+
+		ClientCommand( "map " + map )
+	}
+	else
+	{
 	LoadLastCheckpoint()
+	}
 }
 
 void function Roguelike_StartNewRunMenu()

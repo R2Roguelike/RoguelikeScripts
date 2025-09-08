@@ -1,5 +1,9 @@
 "pilot_base"
 {
+	"global"
+	{
+		friction					100
+	}
 	"crouch"
 	{
 		speed						120

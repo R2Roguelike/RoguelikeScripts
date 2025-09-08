@@ -609,6 +609,10 @@ void function SpawnTitanBatteryOnDeath( entity titan, var damageInfo )
 
 			if (titan.IsTitan())
 				numBatt += 1
+			if ( "hacker" in titan.s && Roguelike_HasMod( player, "hacked_battery" ) )
+			{
+				numBatt += 1
+			}
 			if ( RoguelikeScorch_IsPerfectDish( player, titan, damageInfo ))
 			{
 				numBatt += 1

@@ -3,6 +3,7 @@ global function AddLevelEndMenu
 global function ClientCallback_LevelEnded
 global function LevelEnd_ResetTolls
 global function Roguelike_UnlockMods
+global function Roguelike_UnlockMod
 global function Roguelike_BackupRun
 
 struct {
@@ -86,6 +87,8 @@ void function MenuAnimation()
     int prevEnemyDEF = expect int(runData.enemyDEF)
     int enemyHPGained = ENEMY_HP_PER_LEVEL
     int enemyDEFGained = ENEMY_DEF_PER_LEVEL
+    float prevCoreGain = 500.0 / (500.0 + prevEnemyDEF)
+    float coreGain = 500.0 / (500.0 + prevEnemyDEF + enemyDEFGained)
 
     switch (GetConVarInt("sp_difficulty"))
     {
@@ -109,8 +112,8 @@ void function MenuAnimation()
     Roguelike_UnlockMods( modsUnlocked )
 
     NSSaveJSONFile( "run_backup.json", runData )
-    Hud_SetText(Hud_GetChild(file.menu, "EnemyDEF"), string( prevEnemyDEF ))
-    Hud_SetText(Hud_GetChild(file.menu, "EnemyPower"), "+" + string( prevEnemyBonusHP ))
+    Hud_SetText(Hud_GetChild(file.menu, "EnemyDEF"), format( "-%.0f%%", (1.0 - prevCoreGain) * 100.0 ) )
+    Hud_SetText(Hud_GetChild(file.menu, "EnemyHP"), "+" + string( prevEnemyDEF / 5 ) + "%") // / 500 * 100
 
     Hud_SetBarProgress(Hud_GetChild(file.menu, "KillsBar"), 0.0)
     Hud_SetText(Hud_GetChild(file.menu, "KillsRank"), "")
@@ -137,11 +140,11 @@ void function MenuAnimation()
     wait 0.2
 
     EmitUISound( "UI_PostGame_CoinPlace" )
-    Hud_SetText(Hud_GetChild(file.menu, "EnemyDEF"), string( prevEnemyDEF + enemyDEFGained ))
+    Hud_SetText(Hud_GetChild(file.menu, "EnemyDEF"), format( "-%.0f%%", (1.0 - coreGain) * 100.0 ) )
 
     wait 0.2
 
-    Hud_SetText(Hud_GetChild(file.menu, "EnemyPower"), "+" + string( prevEnemyBonusHP + enemyHPGained ))
+    Hud_SetText(Hud_GetChild(file.menu, "EnemyHP"), "+" + string( (prevEnemyDEF + enemyDEFGained) / 5 ) + "%")
 
     wait 0.2
 
@@ -163,6 +166,8 @@ void function Roguelike_BackupRun( int startPoint )
     table runData = Roguelike_GetRunData()
     runData.map <- GetActiveLevel()
     runData.startPointIndex <- startPoint
+    runData.timestamp <- GetUnixTimestamp()
+    runData.version <- RUNDATA_VERSION
     NSSaveJSONFile( "run_backup.json", runData )
 
     Roguelike_WriteSaveToDisk()
@@ -178,18 +183,34 @@ void function Roguelike_UnlockMods( int count )
 
 void function Roguelike_UnlockModsForSection( int count, bool isTitan )
 {
+    PRandom rand = NewPRandom(Roguelike_GetLevelSeed() + 17377)
     table runData = Roguelike_GetRunData()
-    array lockedMods = expect array(isTitan ? runData.lockedTitanMods : runData.lockedPilotMods)
+    array lockedMods = GetAllLockedMods(false)
+
     count = minint( count, lockedMods.len() )
-    for (int i = 1; i <= count; i++)
+
+    for (int i = 1; i <= count;)
     {
-        string mod = expect string(lockedMods.getrandom())
-        RoguelikeMod modStruct = GetModByName(mod)
-        printt(modStruct.name)
-        lockedMods.fastremovebyvalue(mod)
-        runData.unlockedMods.append(mod)
-        runData.newMods.append(mod)
+        int val = PRandomInt(rand, lockedMods.len())
+        RoguelikeMod mod = GetModByName(lockedMods[val])
+        if (!IsModAvailable(mod))
+            continue
+        if (Roguelike_IsModUnlocked(mod))
+            continue
+
+        Roguelike_UnlockMod( mod )
+        i++
     }
+}
+
+void function Roguelike_UnlockMod( RoguelikeMod mod )
+{
+    string uniqueName = mod.uniqueName
+    table runData = Roguelike_GetRunData()
+    array lockedMods = expect array(mod.isTitan ? runData.lockedTitanMods : runData.lockedPilotMods)
+    lockedMods.fastremovebyvalue(uniqueName)
+    runData.unlockedMods.append(uniqueName)
+    runData.newMods.append(uniqueName)
 }
 
 void function ClientCallback_LevelEnded( string nextMap, int startPointIndex, int kills, float time )
@@ -217,12 +238,6 @@ void function ClientCallback_LevelEnded( string nextMap, int startPointIndex, in
             nextMap = route > 0 ? "sp_beacon_spoke0" : "sp_beacon"
             startPointIndex = route > 0 ? 0 : 2
         }
-        // replace beacon 3 w/ trial by fire, unless on long routes, then go as normal
-        if (nextMap == "sp_beacon" && startPointIndex == 2 && route == 0)
-        {
-            nextMap = "sp_tday"
-            startPointIndex = 0
-        }
         // replace beacon 3 w/ trial by fire
         if (nextMap == "sp_skyway_v1")
         {
@@ -236,7 +251,7 @@ void function ClientCallback_LevelEnded( string nextMap, int startPointIndex, in
     file.time = time
     
     AdvanceMenu( file.menu )
-    if (GetActiveLevel() == "sp_boomtown_end")
+    if (GetActiveLevel() == "sp_boomtown_start")
     {
         AdvanceMenu( GetMenu("LimitedLoadoutChoice"))
     }

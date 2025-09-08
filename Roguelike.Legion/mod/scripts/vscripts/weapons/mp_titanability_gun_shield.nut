@@ -186,7 +186,8 @@ void function Sv_CreateGunShield( entity titan, entity weapon, entity shieldWeap
 				vortexWeapon.SetWeaponUtilityEntity( null )
 			}
 
-			delete titan.s.gunShieldActive
+			if ("gunShieldActive" in titan.s)
+				delete titan.s.gunShieldActive
 
 			if ( IsValid( shieldWallFX ) )
 				EffectStop( shieldWallFX )

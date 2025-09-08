@@ -72,6 +72,14 @@ void function RunModifiers_Init()
         mod.baseCost = 2
         mod.costPerLevel = 3
     }
+    {
+        RoguelikeRunModifier mod = NewMod("vanilla_movement")
+        mod.name = "Vanilla Movement"
+        mod.description = "Enables vanilla movement."
+        mod.options = ["NO", "YES"]
+        mod.baseCost = 0
+        mod.costPerLevel = 0
+    }
 }
 
 RoguelikeRunModifier function NewMod(string uniqueName)

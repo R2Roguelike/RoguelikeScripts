@@ -1,0 +1,14 @@
+"Basic"
+{
+    $basetexture "vgui/spinner"
+    $translucent		"1"
+    $frame              0
+	"$vertexcolor" 1
+	"$vertexalpha" 1
+	"$no_fullbright" 1
+    $nolod          1
+    $ignorez        1
+    "Proxies"
+    {
+    }
+}

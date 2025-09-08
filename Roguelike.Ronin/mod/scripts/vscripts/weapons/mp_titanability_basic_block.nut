@@ -205,8 +205,14 @@ float function HandleBlockingAndCalcDamageScaleForHit( entity blockingEnt, var d
 {
 	if ( blockingEnt.IsTitan() )
 	{
+		float blockDMGReduction = TITAN_BLOCK_DAMAGE_REDUCTION
+
+		if ( blockingEnt.IsPlayer() && PlayerHasPassive( blockingEnt, ePassives.PAS_SHIFT_CORE ) )
+			blockDMGReduction = SWORD_CORE_BLOCK_DAMAGE_REDUCTION
+
 		if ("blockStartTime" in blockingEnt.s && blockingEnt.IsPlayer() && Roguelike_HasMod( blockingEnt, "reflective_sword" ))
 		{
+			blockDMGReduction = 1.0
 			if (RSE_Get( blockingEnt, RoguelikeEffect.ronin_block_buff ) < 1.0)
 			{
 				int originalDamage = int( DamageInfo_GetDamage( damageInfo ) + 0.5 )
@@ -217,17 +223,21 @@ float function HandleBlockingAndCalcDamageScaleForHit( entity blockingEnt, var d
 				RSE_Apply( blockingEnt, RoguelikeEffect.ronin_block_buff, intensity, 5.0 + intensity * 8.0, intensity * 8.0 )
 				return 0.0
 			}
-			else
-				return 1.0
+		}
+		if ("blockStartTime" in blockingEnt.s && blockingEnt.IsPlayer() && Roguelike_HasMod( blockingEnt, "perfect_sword" ))
+		{
+			if (Time() - blockingEnt.s.blockStartTime < 1.0 && RSE_Get( blockingEnt, RoguelikeEffect.ronin_perfect_block ) <= 0.0)
+			{
+				RSE_Apply( blockingEnt, RoguelikeEffect.ronin_perfect_block, 1.0, 1.0, 1.0 )
+				SetShotgunBuff( blockingEnt, GetShotgunBuff( blockingEnt ) + 3 )
+				return 0.0
+			}
 		}
 		bool shouldPassThroughDamage = (( DamageInfo_GetCustomDamageType( damageInfo ) & (DF_RODEO | DF_MELEE | DF_DOOMED_HEALTH_LOSS) ) > 0)
 		if ( shouldPassThroughDamage )
 			return 1.0
 
-		if ( blockingEnt.IsPlayer() && PlayerHasPassive( blockingEnt, ePassives.PAS_SHIFT_CORE ) )
-			return SWORD_CORE_BLOCK_DAMAGE_REDUCTION
-
-		return TITAN_BLOCK_DAMAGE_REDUCTION
+		return blockDMGReduction
 	}
 
 	entity weapon = blockingEnt.GetActiveWeapon()

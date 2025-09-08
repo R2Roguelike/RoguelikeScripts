@@ -46,6 +46,26 @@ Scheme
 				antialias 		1
 			}
 		}
+		JetBrainsMonoBold_27_Italic
+		{
+			isproportional only
+			1
+			{
+				name			JetBrainsMonoBoldItalic
+				tall			27
+				antialias 		1
+			}
+		}
+		JetBrainsMonoBold_80_Italic
+		{
+			isproportional only
+			1
+			{
+				name			JetBrainsMonoBoldItalic
+				tall			80
+				antialias 		1
+			}
+		}
 
 		JetBrainsMonoBold_100
 		{
@@ -267,6 +287,16 @@ Scheme
 			1
 			{
 				name			JetBrainsMono
+				tall			18
+				antialias 		1
+			}
+		}
+		JetBrainsMono_18_Italic
+		{
+			isproportional only
+			1
+			{
+				name			JetBrainsMonoItalic
 				tall			18
 				antialias 		1
 			}

@@ -19,6 +19,10 @@
 			"RunOn": "UI"
 		},
 		{
+			"Path": "ui_datacore.nut",
+			"RunOn": "UI"
+		},
+		{
 			"Path": "run_manager.nut",
 			"RunOn": "UI",
 			"UICallback": {

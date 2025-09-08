@@ -157,7 +157,14 @@ void function InventoryRefreshed( entity player )
         else if (IsAlive(player))
             player.SetHealth( player.GetMaxHealth() * healthFrac )
 
+        if (Roguelike_GetRunModifier("vanilla_movement") != 0)
+        {
+            player.SetMoveSpeedScale(1.0)
+        }
+        else
+        {
         player.SetMoveSpeedScale(1.0 + Roguelike_GetPilotSpeedBonus( speed ))
+        }
 
         if (Roguelike_HasMod( player, "ground_friction" ))
         {
@@ -425,6 +432,46 @@ void function TitanProcs( entity victim, entity player, var damageInfo, entity p
     int scriptDamageFlags = DamageInfo_GetCustomDamageType( damageInfo )
     int damageSourceID = DamageInfo_GetDamageSourceIdentifier( damageInfo )
     entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
+
+    if (Roguelike_HasDatacorePerk( player, "polarity" ))
+    {
+        if (RSE_Get(player, RoguelikeEffect.polarity_blue) > 0)
+        {
+            float cur = RSE_Get(player, RoguelikeEffect.polarity_blue) + 1.0
+            if (cur >= 10.0)
+            {
+                RSE_Apply( player, RoguelikeEffect.polarity_red, 1 )
+                RSE_Stop( player, RoguelikeEffect.polarity_blue )
+            }
+            else
+            {
+                RSE_Apply( player, RoguelikeEffect.polarity_blue, cur )
+            }
+        }
+        else if (RSE_Get(player, RoguelikeEffect.polarity_red) > 0)
+        {
+            DamageInfo_AddDamageBonus( damageInfo, 0.25 )
+            float cur = RSE_Get(player, RoguelikeEffect.polarity_red) + 1.0
+            if (cur >= 10.0)
+            {
+                RSE_Apply( player, RoguelikeEffect.polarity_blue, 1 )
+                RSE_Stop( player, RoguelikeEffect.polarity_red )
+            }
+            else
+            {
+                RSE_Apply( player, RoguelikeEffect.polarity_red, cur )
+            }
+        }
+        else
+        {
+            RSE_Apply(player, RoguelikeEffect.polarity_blue, 1.0 )
+        }
+    }
+    else
+    {
+        RSE_Stop( player, RoguelikeEffect.polarity_blue )
+        RSE_Stop( player, RoguelikeEffect.polarity_red )
+    }
 
     if (Roguelike_HasMod( player, "shock_bullets" ) && RandomFloat(1.0) < 0.3 && !inflictor.e.procs.contains("shock_bullets") && victim.IsTitan())
     {

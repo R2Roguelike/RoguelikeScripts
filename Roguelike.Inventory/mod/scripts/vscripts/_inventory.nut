@@ -5,6 +5,9 @@ global function Roguelike_HasMod
 global function AddCallback_InventoryRefreshed
 global function Roguelike_GetStat
 global function Roguelike_RefreshInventory
+global function Roguelike_HasDatacorePerk
+global function Roguelike_PauseTimer
+global function Roguelike_UnpauseTimer
 global function CC_Fuck
 
 struct {
@@ -37,6 +40,22 @@ void function OnClientConnected( entity player )
 
     delaythread(0.1) void function() : (player) { wait 0.001; SetServerVar( "startTime", Time() ); RefreshInventory( player ) }()
 
+}
+
+void function Roguelike_PauseTimer()
+{
+    if (GetServerVar("isTimerPaused"))
+        throw "timer already paused"
+
+    SetServerVar("timerValue", Time() - GetServerVar("startTime") )
+    SetServerVar("isTimerPaused", true)
+}
+void function Roguelike_UnpauseTimer()
+{
+    if (!GetServerVar("isTimerPaused"))
+        throw "timer already unpaused"
+    SetServerVar("startTime", Time() - GetServerVar("timerValue") )
+    SetServerVar("isTimerPaused", false)
 }
 
 void function Roguelike_RefreshInventory( entity player )
@@ -90,11 +109,13 @@ void function RefreshInventory( entity player )
     string weaponPerks = GetConVarString("player_weapon_perks")
     string weaponMods = GetConVarString("player_weapon_mods")
     string stats = GetConVarString("player_stats")
+    string datacore = GetConVarString("player_datacore")
 
     array<string> modsList = split( mods, " " )
     array<string> statsList = split( stats, " " )
     // weapon mod1,mod2,mod3 weapon2 mod1,mod2,mod3
     array<string> weaponsList = split( weapons, " " )
+    array<string> datacoreList = split( datacore, " " )
 
     array< array<string> > weaponModsList = [ ]
     weaponModsList.append([])
@@ -108,6 +129,10 @@ void function RefreshInventory( entity player )
 
     player.s.mods <- []
     player.s.stats <- []
+    if (datacoreList.len() > 1)
+        player.s.datacorePerk <- datacoreList[1]
+    else
+        player.s.datacorePerk <- ""
 
     if (!player.IsTitan())
     {
@@ -214,6 +239,15 @@ void function RefreshInventory( entity player )
 
     if (!player.IsTitan() && player.GetPlayerSettings() != "spectator")
     {
+        if (Roguelike_GetRunModifier("vanilla_movement"))
+        {
+            array<string> mods = player.GetPlayerSettingsMods()
+            if (!mods.contains("vanilla"))
+                mods.append("vanilla")
+            player.SetPlayerSettingsWithMods(player.GetPlayerSettings(), mods)
+            player.SetPlayerSettingPosMods(PLAYERPOSE_STANDING, ["vanilla"])
+            player.SetPlayerSettingPosMods(PLAYERPOSE_CROUCHING, ["vanilla"])
+        }
         switch (Roguelike_GetRunModifier("unwalkable"))
         {
             case 1:
@@ -441,5 +475,14 @@ bool function Roguelike_HasMod( entity player, string modName )
 
 int function Roguelike_GetStat( entity player, int stat )
 {
+    if (player.s.stats.len() < 8)
+        return 0
     return minint(expect int(player.s.stats[stat]), STAT_CAP)
+}
+
+bool function Roguelike_HasDatacorePerk( entity player, string perk )
+{
+    if ("datacorePerk" in player.s)
+        return player.s.datacorePerk == perk
+    return false
 }

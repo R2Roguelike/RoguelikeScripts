@@ -33,14 +33,20 @@ global table<int, string> effectDisplayNames = {
     [ RoguelikeEffect.kill_self_dmg ] = "Deal with Death",
     [ RoguelikeEffect.physical_spread ] = "Impending Impact",
     [ RoguelikeEffect.gun_shield_shield ] = "Shields to Shields",
+    [ RoguelikeEffect.polarity_blue ] = "Blue Polarity",
+    [ RoguelikeEffect.polarity_red ] = "Red Polarity",
+    [ RoguelikeEffect.swap ] = "Divided",
+    [ RoguelikeEffect.dash_plus ] = "Dash+",
 }
 
 global table<int, bool> effectDisplayPercentage = {
-    [ RoguelikeEffect.ronin_block_buff ] = true
+    [ RoguelikeEffect.ronin_block_buff ] = true,
 }
 global table<int, bool> effectDisplayStacks = {
     [ RoguelikeEffect.overcrit ] = true,
-    [ RoguelikeEffect.kill_self_dmg ] = true
+    [ RoguelikeEffect.kill_self_dmg ] = true,
+    [ RoguelikeEffect.polarity_blue ] = true,
+    [ RoguelikeEffect.polarity_red ] = true,
 }
 
 #if SERVER

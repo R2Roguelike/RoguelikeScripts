@@ -28,6 +28,11 @@
 				dodgePowerDrain		33
                 powerRegenRate		8.25
 			}
+			dashes_low
+			{
+				dodgePowerDrain		100
+                powerRegenRate		25
+			}
 
 			segment_sacrifice_1
 			{

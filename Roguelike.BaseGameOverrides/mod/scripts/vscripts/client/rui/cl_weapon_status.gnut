@@ -32,8 +32,10 @@ void function ClWeaponStatus_Init()
 	RegisterSignal( "EndTrackOffhandWeaponSlot" )
 }
 
-void function ClWeaponStatus_RefreshWeaponStatus( entity player )
+void function ClWeaponStatus_RefreshWeaponStatus( entity player = null )
 {
+	if (player == null)
+		player = GetLocalViewPlayer()
 	if ( !IsValid( player ) )
 		return
 

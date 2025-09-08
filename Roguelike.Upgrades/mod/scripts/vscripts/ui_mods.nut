@@ -6,6 +6,7 @@ struct {
     array<RoguelikeMod> mods
     array<RoguelikeRunModifier> modifiers
     array<RoguelikeWeaponPerk> perks
+    array<RoguelikeDatacorePerk> datacorePerks
 } file
 
 void function Mods_Init()
@@ -117,6 +118,16 @@ RoguelikeWeaponPerk function Roguelike_NewWeaponPerk( string uniqueName )
     return perk
 }
 
+RoguelikeDatacorePerk function Roguelike_NewDatacorePerk( string uniqueName )
+{
+    RoguelikeDatacorePerk perk
+    perk.uniqueName = uniqueName
+    perk.index = file.datacorePerks.len()
+    file.datacorePerks.append(perk)
+
+    return perk
+}
+
 
 #if UI
 array<RoguelikeMod> function GetModsForChipSlot( int chipSlot, bool isTitan, bool includeLocked = false )
@@ -124,7 +135,7 @@ array<RoguelikeMod> function GetModsForChipSlot( int chipSlot, bool isTitan, boo
     array<RoguelikeMod> mods
     foreach (RoguelikeMod mod in file.mods)
     {
-        bool unlocked = includeLocked || Roguelike_IsModUnlocked( mod )
+        bool unlocked = includeLocked || Roguelike_IsModUnlocked( mod ) || GetConVarBool("roguelike_unlock_all")
         if (Roguelike_IsModCompatibleWithSlot( mod, chipSlot, isTitan ) && unlocked)
             mods.append(mod)
     }
@@ -174,9 +185,6 @@ bool function Roguelike_IsModUnlocked( RoguelikeMod mod )
     if (mod.unlockedByDefault)
         return true
 
-    if (GetConVarBool("roguelike_unlock_all"))
-        return true
-
     return expect bool( Roguelike_GetRunData().unlockedMods.contains(mod.uniqueName) )
 }
 #endif
@@ -186,6 +194,11 @@ RoguelikeMod function GetModForIndex( var index )
     expect int( index )
 
     return file.mods[index]
+}
+
+int function GetModCount()
+{
+    return file.mods.len()
 }
 
 RoguelikeRunModifier function GetRunModifierDataByName( var name )
@@ -212,6 +225,36 @@ RoguelikeWeaponPerk function GetWeaponPerkDataByName( var name )
     string error = "Could not find modifier of name \"" + name + "\""
     throw error
     unreachable
+}
+
+RoguelikeDatacorePerk function GetDatacorePerkDataByName( var name )
+{
+    foreach (RoguelikeDatacorePerk mod in file.datacorePerks)
+    {
+        if (mod.uniqueName == name)
+            return mod
+    }
+
+    string error = "Could not find datacore perk of name \"" + name + "\""
+    throw error
+    unreachable
+}
+
+array<RoguelikeDatacorePerk> function Roguelike_GetDatacorePerks(int maxSlot = -1)
+{
+    if (maxSlot == -1)
+        return file.datacorePerks
+
+    array<RoguelikeDatacorePerk> result = []
+    foreach (RoguelikeDatacorePerk mod in file.datacorePerks)
+    {
+        if (mod.slot <= maxSlot)
+        {
+            result.append(mod)
+        }
+    }
+
+    return result
 }
 
 array<RoguelikeWeaponPerk> function Roguelike_GetWeaponPerksForSlotAndWeapon( int slot, string weapon = "" )
@@ -242,8 +285,43 @@ RoguelikeMod function GetModByName( var name )
     unreachable
 }
 
+#if UI
+// empty arrays/tables are lost on load - these functions make sure the returned value is never null.
+array function GetLockedPilotModsLeft()
+{
+    table runData = Roguelike_GetRunData()
+    if (!("lockedPilotMods" in runData))
+        runData.lockedPilotMods <- []
+    return expect array(runData.lockedPilotMods)
+}
+
+array function GetLockedTitanModsLeft()
+{
+    table runData = Roguelike_GetRunData()
+    if (!("lockedTitanMods" in runData))
+        runData.lockedTitanMods <- []
+    return expect array(runData.lockedTitanMods)
+}
+
+table function GetShopRerollTable()
+{
+    table runData = Roguelike_GetRunData()
+    if (!("shopRerolls" in runData))
+        runData.shopRerolls <- {}
+    return expect table(runData.shopRerolls)
+}
+
+table function GetShopPurchasedTable()
+{
+    table runData = Roguelike_GetRunData()
+    if (!("shopPurchased" in runData))
+        runData.shopPurchased <- {}
+    return expect table(runData.shopPurchased)
+}
+#endif
+
 // is not typed array cuz this is for storing in runData
-array function GetAllLockedMods()
+array function GetAllLockedMods(bool loadoutCheck = true)
 {
     array result
     array<string> loadouts = Roguelike_GetTitanLoadouts()
@@ -258,11 +336,28 @@ array function GetAllLockedMods()
                 break;
             }
         }
-        if (!mod.unlockedByDefault && isModAvailable)
+        if (!loadoutCheck || (!mod.unlockedByDefault && isModAvailable))
             result.append(mod.uniqueName)
     }
     printt("total pool of", result.len(), "mods")
     return result
+}
+bool function IsModAvailable(RoguelikeMod mod)
+{
+    array<string> loadouts = Roguelike_GetTitanLoadouts()
+
+    bool isModAvailable = mod.loadouts.len() == 0
+
+    foreach (string loadout in mod.loadouts)
+    {
+        if (loadouts.contains(loadout))
+        {
+            isModAvailable = true
+            break;
+        }
+    }
+
+    return !mod.unlockedByDefault && isModAvailable
 }
 array function GetAllLockedPilotMods()
 {
@@ -317,7 +412,7 @@ int function GetModChipSlotFlags(RoguelikeMod mod)
     if (mod.isTitan)
         loadout = Roguelike_GetTitanLoadouts()
     else
-        loadout = ["mp_weapon_frag_grenade", "mp_ability_cloak"]
+        loadout = ["mp_ability_cloak"]
 
     int result = 0;
     for (int i = 0; i < loadout.len(); i++)

@@ -111,7 +111,7 @@ void function CheckPoint_FromData( CheckPointData checkPointData )
 	array<entity> safeLocations = checkPointData.safeLocations
 	bool functionref( entity ) ornull additionalCheck = checkPointData.additionalCheck
 
-	if ( !Flag( "SaveGame_Enabled" ) ) // no saves in roguelike
+	if ( !Flag( "SaveGame_Enabled" ) || GetMapName() == "sp_tday" ) // no saves in trial by fire, crashes due to buffer overflow
 	{
 		printt( "SAVEGAME: failed: Saves are disabled" )
 		return
@@ -403,7 +403,7 @@ void function CodeCallback_OnSavedSaveGame( bool saved )
 	// tell clients about the save
 	foreach ( player in GetPlayerArray() )
 	{
-		ServerToClientStringCommand( player, "run_backup 0" )
+		ServerToClientStringCommand( player, "run_backup -1" )
 		Remote_CallFunction_UI( player, "ServerCallback_ClearObjectiveReminderOnLoad" ) // dont need objective reminder again on load
 	}
 

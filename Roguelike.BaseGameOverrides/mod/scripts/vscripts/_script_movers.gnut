@@ -1609,8 +1609,6 @@ void function FanPusherThink( entity fanPusher )
 				// TO RESPAWN: why
 				float dt = 0.01666667 / 2.0 // old behavior
 				// fix for player not getting lifted off the ground when in lifter fans
-				if (ent.IsPlayer() && ent.IsOnGround() && lifterFan)
-					dt = 0.01666667
 				vector velocity = ent.GetVelocity()
 
 				// Apply push to the velocity
@@ -1631,6 +1629,11 @@ void function FanPusherThink( entity fanPusher )
 
 				// Apply new force to ent
 				ent.SetVelocity( velocity )
+				if (lifterFan && ent.IsOnGround())
+				{
+					ent.SetGroundEntity(null) // gottem
+					ent.SetVelocity(<velocity.x, velocity.y, 200>) // gottem
+				}
 
 				// Hack for drones. You can't set velocity on them yet so I'm doing this for now to test the gameplay
 				if ( ent.GetClassName() == "npc_drone" )

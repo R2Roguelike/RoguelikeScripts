@@ -16,6 +16,7 @@ global function Roguelike_GiveSmartPistolSkyway
 global function Roguelike_GetSaveData
 global function Roguelike_WriteSaveToDisk
 global function Roguelike_IsSaveLoaded
+global function Roguelike_GenerateItem
 
 const array<string> SAVE_CONVARS = [
     "meta_helmets_0",
@@ -99,8 +100,11 @@ void function LoadSaveData()
 
             AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
 
-            file.runData = t
-            file.isRunActive = true
+            if ("version" in t && expect int(t.version) == RUNDATA_VERSION)
+            {
+                file.runData = t
+                file.isRunActive = true
+            }
             UpdateSPButtons()
         }
     )
@@ -115,8 +119,13 @@ void function RunEnded()
     ClientCommand("disconnect")
 }
 
-void function Roguelike_StartNewRun()
+void function Roguelike_StartNewRun(int seed = -1)
 {
+    if (seed == -1)
+    {
+        seed = RandomInt(2147483647)
+    }
+    PRandom rand = NewPRandom(seed)
     table runData = {
         inventory = [],
         length = "short",
@@ -132,6 +141,8 @@ void function Roguelike_StartNewRun()
     // 3+ of the same armor chip slot in a row, and to
     // gurantee the player gets a preferred chip slot
     // eventually.
+    SetConVarInt("roguelike_run_seed", seed)
+    runData.seed <- seed
     runData.chipSlotOrder <- [1,2,3,4,5,6,7,8]
     runData.chipSlotOrder.randomize()
     runData.chipSlotIndex <- 0
@@ -156,6 +167,7 @@ void function Roguelike_StartNewRun()
     SetConVarString("memory_titan_settings", "")
     runData.runHeat <- GetConVarInt("roguelike_run_heat")
 
+    runData.shopRerolls <- {}
     runData.lockedPilotMods <- GetAllLockedPilotMods()
     runData.lockedTitanMods <- GetAllLockedTitanMods()
     Roguelike_UnlockMods( 10 ) // have the player start with some amount of mods
@@ -169,19 +181,20 @@ void function Roguelike_StartNewRun()
         }
     }
 
-    runData.ACPilot1 <- ArmorChip_ForceSlot( 1, false )
-    runData.ACPilot2 <- ArmorChip_ForceSlot( 2, false )
-    runData.ACPilot3 <- ArmorChip_ForceSlot( 3, false )
-    runData.ACPilot4 <- ArmorChip_ForceSlot( 4, false )
+    runData.ACPilot1 <- ArmorChip_ForceSlot( rand, 1, false )
+    runData.ACPilot2 <- ArmorChip_ForceSlot( rand, 2, false )
+    runData.ACPilot3 <- ArmorChip_ForceSlot( rand, 3, false )
+    runData.ACPilot4 <- ArmorChip_ForceSlot( rand, 4, false )
 
-    runData.ACTitan1 <- ArmorChip_ForceSlot( 1, true )
-    runData.ACTitan2 <- ArmorChip_ForceSlot( 2, true )
-    runData.ACTitan3 <- ArmorChip_ForceSlot( 3, true )
-    runData.ACTitan4 <- ArmorChip_ForceSlot( 4, true )
+    runData.ACTitan1 <- ArmorChip_ForceSlot( rand, 1, true )
+    runData.ACTitan2 <- ArmorChip_ForceSlot( rand, 2, true )
+    runData.ACTitan3 <- ArmorChip_ForceSlot( rand, 3, true )
+    runData.ACTitan4 <- ArmorChip_ForceSlot( rand, 4, true )
 
-    runData.WeaponPrimary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_vinson", RARITY_COMMON, "primary" )
-    runData.WeaponSecondary <- RoguelikeWeapon_CreateWeapon( "mp_weapon_epg", RARITY_COMMON, "special" )
-    runData.Grenade <- RoguelikeGrenade_CreateWeapon( "mp_weapon_frag_grenade", RARITY_COMMON )
+    runData.Datacore <- RoguelikeDatacore_CreateDatacore( rand, RARITY_COMMON )
+    runData.WeaponPrimary <- RoguelikeWeapon_CreateWeapon( rand, "mp_weapon_vinson", RARITY_COMMON, "primary" )
+    runData.WeaponSecondary <- RoguelikeWeapon_CreateWeapon( rand, "mp_weapon_epg", RARITY_COMMON, "special" )
+    runData.Grenade <- RoguelikeGrenade_CreateWeapon( rand, "mp_weapon_frag_grenade", RARITY_COMMON )
 
     Roguelike_ForceRefreshInventory()
 
@@ -205,6 +218,7 @@ void function Roguelike_ApplyRunDataToConVars()
     SetConVarInt("roguelike_run_heat", expect int(runData.runHeat))
     SetConVarBool("roguelike_stat_balance", expect bool(runData.balanced))
     SetConVarInt("sp_difficulty", expect int(runData.difficulty))
+    SetConVarInt("roguelike_run_seed", expect int(runData.seed))
 
     // server doesnt care about mod order since it only uses this
     // userinfo convar to check which mods to apply
@@ -246,6 +260,8 @@ void function Roguelike_ApplyRunDataToConVars()
 
         switch (rarity)
         {
+            case RARITY_COMMON:
+                break
             case RARITY_UNCOMMON:
                 perks.append("uncommon")
                 break
@@ -256,6 +272,9 @@ void function Roguelike_ApplyRunDataToConVars()
                 perks.append("epic")
                 break
             case RARITY_LEGENDARY:
+                perks.append("legendary")
+                break
+            default:
                 perks.append("legendary")
                 break
         }
@@ -280,6 +299,8 @@ void function Roguelike_ApplyRunDataToConVars()
     array<string> ordnancePerks = ["level_" + expect int(ordnanceSlot.level)]
     switch (ordnanceSlot.rarity)
     {
+        case RARITY_COMMON:
+            break
         case RARITY_UNCOMMON:
             ordnancePerks.append("uncommon")
             break
@@ -292,7 +313,12 @@ void function Roguelike_ApplyRunDataToConVars()
         case RARITY_LEGENDARY:
             ordnancePerks.append("legendary")
             break
+        default:
+            ordnancePerks.append("legendary")
+            break
     }
+    table datacore = expect table(runData["Datacore"])
+    SetConVarString( "player_datacore", format("%i %s", datacore.dashes, datacore.perk1))
     SetConVarString( "player_ordnance_perks", JoinStringArray( ordnancePerks, " " ))
     SetConVarString( "player_ordnance", expect string(ordnanceSlot.weapon))
 }
@@ -313,30 +339,15 @@ void function Roguelike_AddToInventory( table item )
         RunClientScript( "Roguelike_ItemGained" )
 }
 
-void function Roguelike_GenerateLoot()
+void function Roguelike_GenerateLoot(int seed = 0)
 {
-    print("GENERATING LOOT")
-    int r = RandomInt(9)
+    if (seed == 0)
+        seed = RandomInt(2000000000)
+    PRandom rand = NewPRandom(seed)
 
-    table item = {}
-    switch (r)
-    {
-        case 0:
-        case 1: // 22.2% weapon
-            item = RoguelikeWeapon_Generate()
-            break
-        case 2: // 11.1% grenade
-            item = RoguelikeGrenade_Generate()
-            break
-        case 3: // 66.7% armor chip
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-            item = ArmorChip_Generate()
-            break
-    }
+    table item = Roguelike_GenerateItem(rand, false)
+    foreach (string k, var v in item)
+        printt(k,v)
     file.runData.inventory.append(item)
 
     Roguelike_ForceRefreshInventory()
@@ -345,10 +356,38 @@ void function Roguelike_GenerateLoot()
         RunClientScript( "Roguelike_ItemGained" )
 }
 
+table function Roguelike_GenerateItem(PRandom rand, bool isShop)
+{
+    switch (PRandomInt(rand, 10))
+    {
+        case 0:
+        case 1: // 22.2% weapon
+            return RoguelikeWeapon_Generate(rand)
+            break
+        case 2: // 11.1% grenade
+            return RoguelikeGrenade_Generate(rand)
+            break
+        case 3: // 22.2% datacore
+        case 4:
+            return RoguelikeDatacore_Generate(rand)
+            break
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        default:
+            return ArmorChip_Generate(rand, isShop)
+            break
+    }
+    unreachable
+}
+
 void function Roguelike_GiveSmartPistolSkyway()
 {
     printt("skyway smart pistol")
-    table item = RoguelikeWeapon_GenerateSmartPistol()
+    PRandom rand = NewPRandom(Roguelike_GetRunSeed())
+    table item = RoguelikeWeapon_GenerateSmartPistol(rand)
 
     table oldWeapon = expect table(file.runData["WeaponPrimary"])
 
@@ -406,6 +445,7 @@ void function Roguelike_AddMoney( int amt )
         return
 
     file.runData.money += amt
+    RunClientScript( "RoguelikeTimer_SetMoney", file.runData.money )
 }
 
 void function Roguelike_TakeMoney( int amt )
@@ -414,6 +454,7 @@ void function Roguelike_TakeMoney( int amt )
         return
 
     file.runData.money -= amt
+    RunClientScript( "RoguelikeTimer_SetMoney", file.runData.money )
 }
 
 table function Roguelike_GetRunData()

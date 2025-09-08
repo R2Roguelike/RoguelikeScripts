@@ -202,12 +202,7 @@ void function ApplyTrackerMark( entity owner, entity hitEnt, bool isCloneDamage 
 
 	if ( owner.IsProjectile() )
 		return
-
-	if (isCloneDamage)
-	{
-		// something something
-		return
-	}
+	
 	entity trackerRockets = owner.GetOffhandWeapon( OFFHAND_ORDNANCE )
 	if ( !IsValid( trackerRockets ) )
 		return

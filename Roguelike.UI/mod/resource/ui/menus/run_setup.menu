@@ -54,7 +54,7 @@ resource/ui/menus/run_setup.menu
         {
             ControlName				Label
             xpos					0
-            ypos				    -50
+            ypos				    -120
             wide					74
             tall					27
             visible					1
@@ -147,7 +147,7 @@ resource/ui/menus/run_setup.menu
             drawColor	"0 0 0 135"
             scaleImage			1
 
-            wide				512
+            wide				424
             tall			    568 
 
             "xpos"			"-8"
@@ -185,7 +185,7 @@ resource/ui/menus/run_setup.menu
             ControlName				Label
             xpos					0
             ypos				    4
-            wide					496
+            wide					408
             tall					400
             visible					1
             enabled					1
@@ -543,6 +543,22 @@ menace to society."
             visible			1
             scaleImage		1
             pin_to_sibling			Modifiers5
+            pin_to_sibling_corner	BOTTOM_LEFT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
+        Modifiers7
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/run_modifier.res"
+            xpos            0
+            ypos			0
+            wide		     400
+            tall			48
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Modifiers6
             pin_to_sibling_corner	BOTTOM_LEFT
             pin_corner_to_sibling	TOP_LEFT
 

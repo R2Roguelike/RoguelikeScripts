@@ -68,6 +68,7 @@ void function InitRoguelikeRunSetupMenu()
     RunModifier_Init( Hud_GetChild( file.menu, "Modifiers4" ), "crit_or_nothing")
     RunModifier_Init( Hud_GetChild( file.menu, "Modifiers5" ), "defense")
     RunModifier_Init( Hud_GetChild( file.menu, "Modifiers6" ), "time_requirement")
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers7" ), "vanilla_movement")
     for (int i = 0; i < 8; i++)
     {
         button = Hud_GetChild( file.menu, "LoadoutButton" + i )

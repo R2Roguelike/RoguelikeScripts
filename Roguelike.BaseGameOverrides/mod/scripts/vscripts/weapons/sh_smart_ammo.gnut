@@ -95,11 +95,8 @@ int function SmartAmmo_FireWeapon( entity weapon, WeaponPrimaryAttackParams atta
 
 	if ( !weapon.SmartAmmo_IsEnabled() )
 	{
-		if ( !SmartAmmo_GetAllowUnlockedFiring( weapon ) )
-		{
-			SmartAmmo_SetWeaponFireFailedTime( weapon )
-			return 0
-		}
+		SmartAmmo_SetWeaponFireFailedTime( weapon )
+		return 0
 	}
 
 	#if CLIENT

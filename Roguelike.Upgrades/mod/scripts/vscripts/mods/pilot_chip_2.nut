@@ -52,6 +52,13 @@ void function PilotChip2_RegisterMods()
         mod.description = "You can dash twice."
         mod.cost = 1
     }
+    {
+        RoguelikeMod mod = NewMod("morality")
+        mod.name = "MRVN Robber"
+        mod.abbreviation = "MRV"
+        mod.description = "MRVN kills as a pilot reward double the cash."
+        mod.cost = 1
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)

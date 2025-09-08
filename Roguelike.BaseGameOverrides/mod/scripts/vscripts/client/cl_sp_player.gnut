@@ -245,12 +245,12 @@ void function Player_AddClient( entity player )
 
 void function Pressed_Sprint( entity player )
 {
-	if (!player.IsTitan())
+	if (!player.IsTitan() && Roguelike_GetRunModifier("vanilla_movement") == 0)
 		player.ClientCommand( "+dodge" )
 }
 void function Released_Sprint( entity player )
 {
-	if (!player.IsTitan())
+	if (!player.IsTitan() && Roguelike_GetRunModifier("vanilla_movement") == 0)
 		player.ClientCommand( "-dodge" )
 }
 

@@ -1146,7 +1146,7 @@ void function CollectibleThink( Collectible collectible )
 
 	// Show message on HUD
 	Remote_CallFunction_NonReplay( player, "ServerCallback_CollectibleFoundMessage", numCollectiblesFound, maxCollectibles )
-	ServerToClientStringCommand( player, "run_backup 0" ) // save data now
+	ServerToClientStringCommand( player, "run_backup -1" ) // save data now
 
 	CollectiblePickupRumble( player )
 

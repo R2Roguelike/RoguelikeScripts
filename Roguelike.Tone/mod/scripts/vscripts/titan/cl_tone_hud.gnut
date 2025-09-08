@@ -9,8 +9,8 @@ struct TrackerInfo
 	var rui
 }
 
-entity trackedWeapon = null;
-bool toneHudActive = false;
+global entity toneTrackedWeapon = null;
+global bool toneHudActive = false;
 
 void function CL_ToneHUD_Init()
 {
@@ -20,8 +20,8 @@ void function CL_ToneHUD_Init()
 void function ServerCallback_Tone_SetTrackedWeapon( int eHandle )
 {
 	if (eHandle == -1)
-		trackedWeapon = null
-	trackedWeapon = GetEntityFromEncodedEHandle( eHandle )
+		toneTrackedWeapon = null
+	toneTrackedWeapon = GetEntityFromEncodedEHandle( eHandle )
 }
 
 bool function Tone_ShouldCreateTrackerHud( entity player )
@@ -29,7 +29,11 @@ bool function Tone_ShouldCreateTrackerHud( entity player )
 	if ( !IsAlive( player ) )
 		return false
 
-	entity ordnance = trackedWeapon
+	if ( !IsValid( toneTrackedWeapon ) /* || !trackerRockets.SmartAmmo_IsEnabled() */ )
+	{
+		toneTrackedWeapon = Roguelike_FindWeapon( player, "mp_titanweapon_tracker_rockets" )
+	}
+	entity ordnance = toneTrackedWeapon
 	if ( !IsValid( ordnance ) )
 		return false
 
@@ -57,7 +61,7 @@ void function Tone_HudThink( entity player )
 	function() : ( trackerInfoArray )
 		{
 			toneHudActive = false
-			trackedWeapon = null
+			toneTrackedWeapon = null
 			for ( int i = trackerInfoArray.len() - 1; i >= 0; i-- )
 			{
 				RuiDestroyIfAlive( trackerInfoArray[i].rui )
@@ -71,10 +75,10 @@ void function Tone_HudThink( entity player )
 	array<entity> visEntities
 	while ( true )
 	{
-		entity trackerRockets = trackedWeapon
+		entity trackerRockets = toneTrackedWeapon
 		if ( !IsValid( trackerRockets ) /* || !trackerRockets.SmartAmmo_IsEnabled() */ )
 		{
-			trackerRockets = Roguelike_FindWeapon( player, "mp_titanweapon_tracker_rockets")
+			toneTrackedWeapon = Roguelike_FindWeapon( player, "mp_titanweapon_tracker_rockets" )
 			WaitFrame()
 			continue
 		}
