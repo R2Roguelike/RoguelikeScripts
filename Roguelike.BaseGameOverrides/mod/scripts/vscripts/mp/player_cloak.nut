@@ -153,6 +153,11 @@ void function HandleCloakEnd( entity player )
 			if ( !IsCloaked( player ) )
 				return
 
+			if ("cloakSpeedStatusEffectID" in player.s)
+			{
+				StatusEffect_Stop( player, expect int(player.s.cloakSpeedStatusEffectID) )
+			}
+		
 			if ( !IsAlive( player ) || !player.IsHuman() )
 			{
 				DisableCloak( player )

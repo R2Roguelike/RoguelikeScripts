@@ -261,7 +261,7 @@ void function RestorePlayerWeapons( entity player )
 	{
 		entity titan = soul.GetTitan()
 
-		entity meleeWeapon = titan.GetOffhandWeapon( OFFHAND_MELEE )
+		entity meleeWeapon = Roguelike_FindWeapon( titan, "melee_titan_sword"  )
 		if ( IsValid( meleeWeapon ) )
 		{
 			meleeWeapon.RemoveMod( "super_charged" )

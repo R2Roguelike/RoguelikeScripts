@@ -1,5 +1,6 @@
 untyped
 global function RunModifier_Init
+global function RunModifierPanel_ParseConvar
 
 table<var, void functionref( var )> callbacks
 table<var, string > modifiers
@@ -14,7 +15,8 @@ void function RunModifier_Init( var panel, string modifier )
     var label2 = Hud_GetChild( panel, "Label2" )
     var value = Hud_GetChild( panel, "Value" )
     modifiers[panel] <- modifier
-    states[modifier] <- 0
+    if (!(modifier in states))
+        states[modifier] <- 0
     panel.s.state <- 0
     Hud_SetText( label, mod.name )
     
@@ -26,6 +28,17 @@ void function RunModifier_Init( var panel, string modifier )
     Hud_AddEventHandler( button2, UIE_CLICK, OnClick2 )
 
     UpdateValueLabel( panel )
+}
+
+void function RunModifierPanel_ParseConvar()
+{
+    array<string> convar = split( GetConVarString("roguelike_run_modifiers"), " " )
+    for (int i = 0; i < convar.len(); i+=2)
+    {
+        string modifier = convar[i]
+        int value = int(convar[i + 1])
+        states[modifier] <- value
+    }
 }
 
 void function OnClick( var button )

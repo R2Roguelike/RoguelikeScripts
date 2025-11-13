@@ -22,8 +22,19 @@ array<vector> function GetLegendaryChestLocation()
     {
         case "sp_crashsite":
             return [< -2880, -5530, 206 >, <0,10,0>]
+        case "sp_boomtown_start":
+            return [< 5130, -12239, 9662 >, <0, 45-90, 0> ]
         case "sp_sewers1":
             return [<13050, -13000, -120>, <0,165-90,-15>]
+        case "sp_timeshift_spoke02":
+            return [< 6527, 3104, 11853>, <0, 42-90, 0> ]
+        case "sp_beacon":
+            return [< -5729, -3150, 2560>, <0, 0-90, 0> ]
+        case "sp_tday":
+            return [< -5029, -11696, 424.5>, <0, 24-90, 0> ]
+        case "sp_skyway_v1":
+            return [< 9905, 15692, 6236 >, <0, -138-90, 0> ]
+
     }
 
     return []
@@ -42,15 +53,65 @@ void function EntitiesDidLoad()
 
     entity worldspawn = GetEnt( "worldspawn" )
 
+    int unlockBit = -1
+    switch (GetMapName())
+    {
+        case "sp_sewers1":
+            unlockBit = 0
+            break
+        case "sp_boomtown_start":
+            unlockBit = 1
+            break
+        case "sp_beacon":
+            unlockBit = 2
+            break
+        case "sp_tday":
+            unlockBit = 3
+            break
+        case "sp_timeshift_spoke02":
+            unlockBit = 4
+            break
+        case "sp_crashsite":
+        case "sp_skyway_v1":
+            unlockBit = 5
+            break
+    }
+    bool alreadyUnlocked = (GetConVarInt("roguelike_loadouts_unlocked") & (1 << unlockBit)) != 0
+
     array<vector> loc = GetLegendaryChestLocation()
-    if (loc.len() == 2)
+    if (GetMapName() == "sp_beacon")
+    {
+        vector c = loc[0]
+        for (int i = 0; i < 30; i++)
+        {
+            entity chest = CreatePropDynamic( $"models/containers/pelican_case_large.mdl", c, <0, (32 + 521 * i) % 360.0, 0>, SOLID_VPHYSICS )
+            c = <c.x, c.y, c.z + 30>
+        }
+        loc[0] = c
+    }
+    if (loc.len() == 2 && !alreadyUnlocked)
     {
         entity legendaryChest = CreatePropDynamic( $"models/containers/pelican_case_large.mdl", loc[0], loc[1], SOLID_VPHYSICS )
         Highlight_SetNeutralHighlight( legendaryChest, "roguelike_legendary_chest" )
         legendaryChest.Solid()
         legendaryChest.SetUsable()
         legendaryChest.SetUsableRadius( 200 )
-        legendaryChest.SetUsePrompts( "me do nothing come back later", "me do nothing come back later" )
+        if (unlockBit == -1)
+            legendaryChest.SetUsePrompts( "me do nothing come back later", "me do nothing come back later" )
+        else
+        {
+            legendaryChest.SetUsePrompts( "Hold %use% Unlock Loadout", "Press %use% Unlock Loadout" )
+            thread void function() : (legendaryChest, unlockBit)
+            {
+                int times = 0
+
+                var playerActivator = legendaryChest.WaitSignal("OnPlayerUse").player
+                expect entity( playerActivator )    
+
+                Remote_CallFunction_NonReplay( playerActivator, "ServerCallback_Roguelike_UnlockLoadout", unlockBit )
+                legendaryChest.UnsetUsable()
+            }()
+        }
     }
 
     PRandom rand = NewPRandom(Roguelike_GetLevelSeed())
@@ -122,10 +183,17 @@ void function EntitiesDidLoad()
 
         thread void function() : (prop, isShop)
         {
+            int times = 0
             while (true)
             {
                 var playerActivator = prop.WaitSignal("OnPlayerUse").player
                 expect entity( playerActivator )    
+
+                if (times == 0 && Roguelike_HasMod( playerActivator, "treasure_chests"))
+                {
+                    AddKillsAndMoney(playerActivator, 0, 50)
+                }
+                times++
                 
                 if (isShop)
                 {

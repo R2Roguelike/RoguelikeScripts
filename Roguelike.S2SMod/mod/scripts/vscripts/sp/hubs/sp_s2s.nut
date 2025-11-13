@@ -574,11 +574,6 @@ void function EOF( entity player )
 {
 	bool loadNextLevel = true
 
-	#if DEV
-		if ( GetBugReproNum() != 0 )
-			loadNextLevel = false
-	#endif
-
 	if ( loadNextLevel )
 		PickStartPoint_NoFadeOut_NoPilotWeaponCarryover( "sp_skyway_v1", "Level Start" )
 	else
@@ -12614,10 +12609,7 @@ void function RoninScorchFlyingFight( entity viper, entity player )
 	FlagEnd( "ViperFakeDead")
 	player.EndSignal("OnDeath")
 
-	array<string> loadouts = Roguelike_GetTitanLoadouts()
-
-	if (!loadouts.contains(PRIMARY_RONIN) || !loadouts.contains(PRIMARY_SCORCH))
-		return
+	return
 
 	OnThreadEnd( void function() : (player)
 	{
@@ -13966,6 +13958,9 @@ void function ViperOnDamaged( entity ent, var damageInfo )
 
 	float frac = ( ent.GetHealth().tofloat() - calcDamage ) / ent.GetMaxHealth().tofloat()
 
+	array<string> loadouts = Roguelike_GetTitanLoadouts()
+	bool isScorchRonin = loadouts.contains(PRIMARY_RONIN) && loadouts.contains(PRIMARY_SCORCH)
+
 	//make sure this entity NEVER dies
 	if ( calcDamage >= ent.GetHealth() )
 	{
@@ -13979,7 +13974,7 @@ void function ViperOnDamaged( entity ent, var damageInfo )
 		}
 	}
 	//go into stage 2
-	else if ( !Flag( "DeckViperStage2" ) && frac <= 0.6 )
+	else if ( !Flag( "DeckViperStage2" ) && !isScorchRonin && frac <= 0.6 )
 	{
 		FlagSet( "DeckViperStage2" )
 		ent.GetTitanSoul().SetShieldHealthMax( 1200 )

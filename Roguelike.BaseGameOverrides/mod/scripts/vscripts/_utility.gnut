@@ -1530,7 +1530,7 @@ entity function CreatePropDynamicLightweight( asset model, vector ornull origin 
 //-----------------------------------------------------------
 // CreatePropScript( model ) - create a generic prop_script with default properties
 //------------------------------------------------------------
-entity function CreatePropScript( asset model, vector ornull origin = null, vector ornull angles = null, int solidType = 0, float fadeDist = -1 )
+entity function CreatePropScript( asset model, vector ornull origin = null, vector ornull angles = null, int solidType = 0, float fadeDist = -1, float modelScale = 1.0 )
 {
 	entity prop_script = CreateEntity( "prop_script" )
 	prop_script.SetValueForModelKey( model )
@@ -1538,6 +1538,7 @@ entity function CreatePropScript( asset model, vector ornull origin = null, vect
 	prop_script.kv.renderamt = 255
 	prop_script.kv.rendercolor = "255 255 255"
 	prop_script.kv.solid = solidType // 0 = no collision, 2 = bounding box, 6 = use vPhysics, 8 = hitboxes only
+	prop_script.kv.modelscale = modelScale
 	if ( origin )
 	{
 		// hack: Setting origin twice. SetOrigin needs to happen before DispatchSpawn, otherwise the prop may not touch triggers
@@ -3743,7 +3744,7 @@ float function ShieldModifyDamage( entity ent, var damageInfo )
 	float damage = DamageInfo_GetDamage( damageInfo )
 
 	int damageSourceIdentifier = DamageInfo_GetDamageSourceIdentifier( damageInfo )
-	ShieldDamageModifier damageModifier = GetShieldDamageModifier( damageInfo )
+	ShieldDamageModifier damageModifier = GetShieldDamageModifier( damageInfo, ent )
 	damage *= damageModifier.damageScale
 
 	float healthFrac = GetHealthFrac( victim )
@@ -3800,7 +3801,7 @@ float function ShieldModifyDamage( entity ent, var damageInfo )
 
 	if ( newShieldHealth < 0 )
 	{
-		DamageInfo_SetDamage( damageInfo, fabs( newShieldHealth ) + permanentDamage )
+		DamageInfo_SetDamage( damageInfo, fabs( newShieldHealth / damageModifier.damageScale ) + permanentDamage )
 	}
 	else
 	{
@@ -3833,7 +3834,13 @@ float function ShieldModifyDamage( entity ent, var damageInfo )
 	return actualShieldDamage
 }
 
-ShieldDamageModifier function GetShieldDamageModifier( var damageInfo )
+array<void functionref( ShieldDamageModifier, var, entity )> shieldDMGModifierCallbacks
+void function AddCallback_ShieldDamageModifier( void functionref( ShieldDamageModifier, var, entity ) callback )
+{
+	shieldDMGModifierCallbacks.append(callback)
+}
+
+ShieldDamageModifier function GetShieldDamageModifier( var damageInfo, entity ent = null )
 {
 	ShieldDamageModifier damageModifier
 
@@ -3863,11 +3870,11 @@ ShieldDamageModifier function GetShieldDamageModifier( var damageInfo )
 			damageModifier.damageScale *= 1.5
 	}
 	*/
+
+	foreach (void functionref( ShieldDamageModifier, var, entity ) callback in shieldDMGModifierCallbacks)
+		callback( damageModifier, damageInfo, ent )
+
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
-	if ( IsValid(attacker) && GetEliteType(attacker) == "enraged" )
-	{
-		damageModifier.damageScale *= 5.0
-	}
 	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_ELECTRICAL )
 	{
 		int damageSourceIdentifier = DamageInfo_GetDamageSourceIdentifier( damageInfo )

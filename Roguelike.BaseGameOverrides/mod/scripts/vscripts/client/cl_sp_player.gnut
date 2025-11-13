@@ -245,11 +245,13 @@ void function Player_AddClient( entity player )
 
 void function Pressed_Sprint( entity player )
 {
+	printt("shit")
 	if (!player.IsTitan() && Roguelike_GetRunModifier("vanilla_movement") == 0)
 		player.ClientCommand( "+dodge" )
 }
 void function Released_Sprint( entity player )
 {
+	print("unshit")
 	if (!player.IsTitan() && Roguelike_GetRunModifier("vanilla_movement") == 0)
 		player.ClientCommand( "-dodge" )
 }
@@ -379,7 +381,7 @@ function Pressed_SwapLoadouts( entity player )
 
 function Pressed_TitanLoadoutSelect( entity player )
 {
-	RunUIScript( "OpenInventoryMenu" )
+	RunUIScript( "OpenInventoryMenu", player.IsTitan() )
 }
 
 
@@ -1158,9 +1160,14 @@ function ServerCallback_OnEntityKilled( attackerEHandle, victimEHandle, scriptDa
 	entity localClientPlayer = GetLocalClientPlayer()
 
 	if ( !IsValid( victim ) )
+	{
+		RunUIScript("RunStats_EnemyKilled", false )
 		return
+	}
 
 	Signal( victim, "OnDeath" )
+
+	RunUIScript("RunStats_EnemyKilled", IsSuperSpectre( victim ) || victim.IsTitan() )
 
 	if ( damageSourceId == eDamageSourceId.indoor_inferno )
 	{

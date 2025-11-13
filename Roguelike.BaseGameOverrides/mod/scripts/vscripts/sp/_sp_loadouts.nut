@@ -816,13 +816,10 @@ TitanLoadoutDef function GetTitanLoadoutForCurrentMap()
 	TitanLevelLoadoutDefaults levelDef = GetTitanLevelLoadoutDefaultsForMapname( mapName )
 	Assert( GetTitanLoadoutForPrimary( levelDef.primaryWeaponName ) != null, "Level loadout tried to specify '" + levelDef.primaryWeaponName + "' for BT, but that weapon is not in titan_properties.csv" )
 
-	int bitIndex = GetTitanLoadoutIndex( levelDef.primaryWeaponName )
-
 	// fall back to xo16 if not unlocked yet
-	if ( !IsBTLoadoutUnlocked( bitIndex ) )
-		levelDef.primaryWeaponName = "mp_titanweapon_xo16_shorty"
+	levelDef.primaryWeaponName = Roguelike_GetTitanLoadouts()[0]
 
-	result = expect TitanLoadoutDef( GetTitanLoadoutForPrimary( levelDef.primaryWeaponName ) )
+	result.primary = Roguelike_GetTitanLoadouts()[0]
 	result.setFile = levelDef.setFile
 	result.name = mapName
 	result.titanExecution = levelDef.titanExecution

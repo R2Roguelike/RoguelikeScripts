@@ -80,6 +80,7 @@ global struct ClientPlayerStruct
 	float ejectPressTime
 	int ejectPressCount
 	bool playerScriptsInitialized
+	array<entity> storedAbilities
 
 	int smartCoreKills = 0
 

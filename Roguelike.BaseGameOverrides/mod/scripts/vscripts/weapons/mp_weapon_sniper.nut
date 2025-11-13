@@ -107,7 +107,7 @@ void function OnProjectileCollision_weapon_sniper( entity projectile, vector pos
 {
 	#if SERVER
 		entity sourceWeapon = Roguelike_FindWeapon( projectile.GetOwner(), projectile.ProjectileGetWeaponClassName() )
-		if (Roguelike_GetWeaponPerks( sourceWeapon ).contains("firestar-launcher"))
+		if (IsValid(sourceWeapon) && Roguelike_GetWeaponPerks( sourceWeapon ).contains("firestar-launcher"))
 		{
 			table collisionParams =
 			{

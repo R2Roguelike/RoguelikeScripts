@@ -1,12 +1,13 @@
 untyped
 global function Cl_DamageIndicator_Init
 global function PlayerDidDamageText
+global function ModTriggeredTag
 // ()
 const vector INCOMING_DAMAGE_TEXT_BEGIN_POS = <0.63, 0.5 - 0.3, 0>
 float OUTGOING_DAMAGE_TEXT_STACKING_FADE_TIME = 0.5
 float OUTGOING_DAMAGE_TEXT_STACKING_DURATION = 1.3
 float OUTGOING_DAMAGE_TEXT_STACKING_STAY_TIME = 1.0
-float OUTGOING_DAMAGE_TEXT_SMALL_FADE_TIME = 1.5
+float OUTGOING_DAMAGE_TEXT_SMALL_FADE_TIME = 2.0
 
 float INCOMING_DAMAGE_TEXT_STACKING_FADE_TIME = 0.5
 float INCOMING_DAMAGE_TEXT_STACKING_DURATION = 1.3
@@ -34,9 +35,15 @@ table<entity, OutgoingDamageData> damageIndicators
 void function Cl_DamageIndicator_Init()
 {
 	screenSize = GetScreenSize()
-	#if MP
-		//ClPilotSpeedometer_Init()
-	#endif
+	//#if MP
+		ClPilotSpeedometerCopy_Init()
+	//#endif
+
+	effectDisplayConditions[ RoguelikeEffect.mag_size_inf ] <- bool function( entity player) : ()
+    {
+        return !player.IsTitan()
+    }
+	AddServerToClientStringCommandCallback( "mod_activated", ModActivatedCallback )
     float right = (screenSize[1] / 9.0) * 16.0 / 5
 	float down = screenSize[1] / 5
 	float xOffset = (screenSize[0] - right) / 2
@@ -96,7 +103,7 @@ void function Cl_DamageIndicator_Init()
 			}
 
 			entity railgun = Roguelike_FindWeapon( player, PRIMARY_NORTHSTAR )
-			if (IsValid(railgun) && player.GetActiveWeapon() != railgun)
+			if (IsValid(railgun) && (player.GetActiveWeapon() != railgun || player.GetZoomFrac() <= 0))
 			{
 				int level = railgun.GetWeaponChargeLevel()
 				if (level > lastChargeLevel)
@@ -129,6 +136,9 @@ void function Cl_DamageIndicator_Init()
 			{
 				if (instance.endTime <= Time())
 					continue
+				if (instance.effect in effectDisplayConditions && !effectDisplayConditions[instance.effect](GetLocalViewPlayer()))
+					continue
+
 				float timeLeft = instance.endTime - Time()
 				if (instance.effect in effectDisplayNames)
 				{
@@ -136,8 +146,8 @@ void function Cl_DamageIndicator_Init()
 					{
 						var rui = RuiCreate( $"ui/cockpit_console_text_top_left.rpak", clGlobal.topoCockpitHud, RUI_DRAW_COCKPIT, 0)
 						RuiSetInt( rui, "maxLines", 1 );
-						RuiSetInt( rui, "lineNum", ruis.len() );
-						RuiSetFloat2( rui, "msgPos", <0.05, 0.52, 0> )
+						RuiSetInt( rui, "lineNum", 0 );
+						RuiSetFloat2( rui, "msgPos", <0.05, 0.52 + i * 0.019, 0> )
 						RuiSetString( rui, "msgText",  "0:10 `1effect\n`00:05 `1my god" )
 						RuiSetFloat3( rui, "msgColor", <1.0, 1.0, 1.0> )
 						RuiSetFloat( rui, "msgFontSize", 32.0)
@@ -145,6 +155,7 @@ void function Cl_DamageIndicator_Init()
 						RuiSetFloat( rui, "thicken", 0.2 )
 						ruis.append(rui)
 					}
+					RuiSetFloat2( ruis[i], "msgPos", <0.05, 0.52 + i * 0.019, 0> )
 					if (instance.effect == RoguelikeEffect.polarity_blue)
 					{
 						RuiSetFloat3( ruis[i], "msgColor", <0.0, 0.0, 1.0> )
@@ -182,10 +193,9 @@ void function Cl_DamageIndicator_Init()
 					i++
 				}
 			}
-			for (; i < ruis.len();)
+			for (; i < ruis.len(); i++)
 			{
-				RuiDestroyIfAlive( ruis[i] )
-				ruis.remove(i)
+				RuiSetFloat2( ruis[i], "msgPos", <1.05, 0.52 + i * 0.019, 0> )
 			}
 		}
 	}()
@@ -227,7 +237,7 @@ void function CreateStackingDamageFlyout( entity s, float damage, bool isCrit, v
 	delete damageIndicators[s]
 }
 
-void function AddSmallDamageTextFlyout(float damage, bool isCrit, vector msgPos, int damageFlags)
+void function AddSmallDamageTextFlyout(entity victim, float damage, bool isCrit, vector msgPos, int damageFlags)
 {
 	entity player = GetLocalClientPlayer()
 	var rui = RuiCreate( $"ui/cockpit_console_text_center.rpak", aspectRatioFixTopo, RUI_DRAW_HUD, 0)
@@ -238,7 +248,12 @@ void function AddSmallDamageTextFlyout(float damage, bool isCrit, vector msgPos,
 	string prefix = ""
 	string suffix = ""
 	float duration = OUTGOING_DAMAGE_TEXT_SMALL_FADE_TIME
-	vector color = isCrit ? <1.0, 0.75, 0.0> : <1.0, 1.0, 1.0>
+	vector color = isCrit ? <1.0, 1.0, 0.3> : <1.0, 0.9, 0.1>
+	bool isBurn = max(RSE_Get( victim, RoguelikeEffect.burn ), RSE_Get( victim, RoguelikeEffect.burn_flame_core)) > 0
+	isBurn = isBurn && (!(bool(damageFlags & DAMAGEFLAG_FIRE)) || Roguelike_HasMod( GetLocalClientPlayer(), "burn_dmg" ))
+	
+	if (isBurn)
+		color = <color.x, color.y-0.4, color.z>
 
 	if (damageFlags & DAMAGEFLAG_DISORDER)
 	{
@@ -263,13 +278,26 @@ void function AddSmallDamageTextFlyout(float damage, bool isCrit, vector msgPos,
 		color = <0.0, 0.5, 1.0>
 		if (isCrit)
 			color += <0.2, 0.2, 0.0>
+		if (isBurn)
+			color += <0.5, -0.25, -0.25>
 	}
 	if (damageFlags & DAMAGEFLAG_FIRE)
 	{
-		color = <1.0, 0.5, 0.0>
+		color = <1.0, 0.333, 0.0>
 		if (isCrit)
 			color += <0.0, 0.2, 0.2>
+		if (isBurn)
+			color -= <0.0, 0.333, 0>
 	}
+	if (damageFlags & DAMAGEFLAG_GREEN)
+	{
+		color = <0.0, 1.0, 0.333>
+		if (isCrit)
+			color += <0.2, 0.0, 0.2>
+		if (isBurn)
+			color += <0.5, -0.333, -0.2>
+	}
+	color = <clamp(color.x, 0, 1), clamp(color.y, 0, 1), clamp(color.z, 0, 1)>
 	if (isCrit)
 		suffix += "!!"
 	duration += GraphCapped(damage, 200.0, 1000.0, 0.0, 1.0)
@@ -306,17 +334,6 @@ vector function WorldToScreenPos( vector position )
     return result
 }
 
-string function RecursiveCommas(int n, bool recursed = false)
-{
-    int rest = n % 1000; //"last 3 digits"
-    n /= 1000;
-
-    if (n > 0) {
-        return RecursiveCommas(n) + "," + format( "%03i", rest ); //printing "begining"
-    }
-
-    return rest.tostring(); //first chunk of the number
-}
 void function PlayerDidDamageText( float damage, vector damagePosition, entity victim, bool isCrit, bool isIneffective, int damageFlags, entity weapon )
 {
 	if (!GetConVarBool("comp_hud_damage_indicator")) return
@@ -328,6 +345,7 @@ void function PlayerDidDamageText( float damage, vector damagePosition, entity v
 	//if (victim.IsTitan() || IsSuperSpectre(victim))
 	//	scalar = 500.0 / (500 + entDEF)
 
+	bool isBigEnemy = IsSuperSpectre( victim ) || victim.IsTitan()
 	damage /= scalar
 
 	if (victim.GetOwner() == player)
@@ -337,14 +355,19 @@ void function PlayerDidDamageText( float damage, vector damagePosition, entity v
 		damagePosition = victim.GetWorldSpaceCenter()
 
 	//damagePosition = victim.GetOrigin() + <0,0,victim.GetBoundingMaxs().z>
-	if (victim.IsTitan())
+	if (isBigEnemy)
+	{
 		damagePosition += <RandomFloatRange(-24, 24), RandomFloatRange(-24, 24), RandomFloatRange(-24, 24) + 12>
+	}
 	else
+	{
 		damagePosition += <RandomFloatRange(-6, 6), RandomFloatRange(-6, 6), RandomFloatRange(-6, 6) + 12>
+	}
+	RunUIScript( "RunStats_DamageDealt", damage, isBigEnemy )
 	//damage /= scalar
 	//damage *= 1.0 + entDEF * 0.003333
 
-	thread AddSmallDamageTextFlyout( damage, isCrit, damagePosition, damageFlags )
+	thread AddSmallDamageTextFlyout( victim, damage, isCrit, damagePosition, damageFlags )
 
 	if (victim in damageIndicators)
 	{
@@ -358,4 +381,52 @@ void function PlayerDidDamageText( float damage, vector damagePosition, entity v
 	{
 	//	thread CreateStackingDamageFlyout( victim, damage, isCrit, msgPos )
 	}
+}
+
+void function ModActivatedCallback( array<string> args )
+{
+	float b = float(args.pop())
+	float g = float(args.pop())
+	float r = float(args.pop())
+	float duration = float(args.pop())
+	string display = JoinStringArray( args, " " )
+	thread ModTriggeredTag( display, <r,g,b>, duration )
+}
+
+array<var> queue
+void function ModTriggeredTag( string displayString, vector color, float duration = 5.0 )
+{
+	var rui = RuiCreate( $"ui/cockpit_console_text_top_left.rpak", clGlobal.topoCockpitHud, RUI_DRAW_COCKPIT, 1)
+	RuiSetInt( rui, "maxLines", 1 );
+	RuiSetInt( rui, "lineNum", 0 );
+	RuiSetFloat2( rui, "msgPos", <0.55, 0.55, 0> )
+	RuiSetString( rui, "msgText", displayString )
+	RuiSetFloat3( rui, "msgColor", <color.x, color.y, color.z> )
+	RuiSetFloat( rui, "msgFontSize", 36.0)
+	RuiSetFloat( rui, "msgAlpha", 1.0 )
+	RuiSetFloat( rui, "thicken", 0.1 )
+
+	queue.append(rui)
+
+	float startTime = Time()
+	int pos = queue.find(rui)
+	vector curPos = <0.55, 0.56 + 0.03 * pos, 0>
+	while (Time() < startTime + duration)
+	{
+		float dt = Time()
+		wait 0.001
+		dt = Time() - dt
+		float timeUntilEnd = startTime + duration - Time()
+		float alpha = GraphCapped( timeUntilEnd, 0.5, 0, 1, 0 )
+		alpha *= GraphCapped( Time() - startTime, 0, 0.2, 0, 1 )
+
+		pos = queue.find(rui)
+		RuiSetFloat( rui, "msgAlpha", alpha )
+		vector targetPos = <0.55, 0.5 + 0.03 * pos, 0>
+		curPos = <0.55, max(curPos.y - 0.4 * dt, 0.485 + 0.03 * pos), 0>
+		RuiSetFloat2( rui, "msgPos", curPos )
+	}
+
+	RuiDestroyIfAlive( rui )
+	queue.removebyvalue( rui )
 }

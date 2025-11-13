@@ -91,6 +91,11 @@ void function CodeCallback_DamageEntity( entity ent, var damageInfo )
 	if (verboseDamagePrintouts)
 		printt( "CodeCallback_DamageEntity() top:", DamageInfo_GetDamage( damageInfo ) )
 
+	
+	string damageSourceIdStr = DamageSourceIDToString(DamageInfo_GetDamageSourceIdentifier(damageInfo))
+	printt(Roguelike_GetWeaponElement( damageSourceIdStr ))
+	DamageInfo_AddDamageFlags( damageInfo, Roguelike_GetWeaponElement( damageSourceIdStr ) )
+
 	if ( DamageInfo_GetDamageSourceIdentifier( damageInfo ) == damagedef_titan_step )
 		HandleFootstepDamage( ent, damageInfo )
 

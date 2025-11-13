@@ -780,7 +780,9 @@ function RemoteFunctions_Init()
 	Remote_RegisterFunction("Roguelike_OpenShopMenu")
 	Remote_RegisterFunction( "Roguelike_GenerateLoot" )
 	Remote_RegisterFunction( "ServerCallback_RSE_Apply" )
+	Remote_RegisterFunction( "ServerCallback_Roguelike_SetTimerVisible" )
 	Remote_RegisterFunction( "ServerCallback_Roguelike_AddMoney" )
+	Remote_RegisterFunction( "ServerCallback_Roguelike_UnlockLoadout")
 	Remote_RegisterFunction( "ServerCallback_Tone_SetTrackedWeapon" )
 
 	RegisterNetworkedVariable( "rewardState", SNDC_PLAYER_GLOBAL, SNVT_INT, 0 )
@@ -801,6 +803,7 @@ function RemoteFunctions_Init()
 	RegisterServerVar( "startTime", 0.0 )
 	RegisterServerVar( "timerValue", 0.0 )
 	RegisterServerVar( "isTimerPaused", false )
+	RegisterServerVar( "timerVisible", false )
 	RegisterServerVar( "roguelikeKills", 0 )
 
 	// bnr

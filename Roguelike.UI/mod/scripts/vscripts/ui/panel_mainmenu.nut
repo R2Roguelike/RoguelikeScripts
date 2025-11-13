@@ -15,6 +15,7 @@ struct
 	array<void functionref()> spButtonFuncs
 	var mpButton
 	var fdButton
+	var missionSelectButton
 	void functionref() mpButtonActivateFunc = null
 	var buttonData
 	array<var> menuButtons
@@ -71,14 +72,14 @@ void function InitMainMenuPanel()
 	file.spButtonFuncs.append( DoNothing() )
 	Hud_AddEventHandler( file.spButtons[buttonIndex], UIE_CLICK, RunSPButton2 )
 	buttonIndex++
-	UpdateSPButtons()
 
 	headerIndex++
 	buttonIndex = 0
-	AddComboButtonHeader( comboStruct, headerIndex, "ANOMALIES" )
-	var b = AddComboButton( comboStruct, headerIndex, buttonIndex++, "Coming" )
-	//Hud_AddEventHandler( b, UIE_CLICK, ActivateControlsMenu )
+	AddComboButtonHeader( comboStruct, headerIndex, "MORE" )
+	file.missionSelectButton = AddComboButton( comboStruct, headerIndex, buttonIndex++, "#MENU_MISSION_SELECT" )
+	Hud_AddEventHandler( file.missionSelectButton, UIE_CLICK, void function(var b) : () { if (HasStartedGameEver()) { LaunchSPMissionSelect(); } } )
 	var c = AddComboButton( comboStruct, headerIndex, buttonIndex++, "Soon!" )
+	UpdateSPButtons()
 	//Hud_AddEventHandler( c, UIE_CLICK, AdvanceMenuEventHandler( GetMenu( "AudioMenu" ) ) )
 
 	headerIndex++
@@ -590,10 +591,12 @@ void function UpdateSPButtons()
 	AddSPButton( buttonIndex, Roguelike_StartNewRunMenu, "New Run" )
 	buttonIndex++
 
+	Hud_SetLocked( file.missionSelectButton, !HasStartedGameEver() )
 	if ( HasStartedGameEver() )
 	{
-		AddSPButton( buttonIndex, LaunchSPMissionSelect, "#MENU_MISSION_SELECT" )
-		buttonIndex++
+
+		//AddSPButton( buttonIndex, LaunchSPMissionSelect, "#MENU_MISSION_SELECT" )
+		//buttonIndex++
 	}
 
 }
@@ -739,17 +742,25 @@ void function UpdateWhatsNewData()
 	RuiSetString( file.whatsNew, "line3Text", file.promoData.newInfo_Title3 )
 
 	bool isVisible = true
-	if ( file.promoData.newInfo_Title1 == "" && file.promoData.newInfo_Title2 == "" && file.promoData.newInfo_Title3 == "" )
-		isVisible = false
 
 	RuiSetBool( file.whatsNew, "isVisible", isVisible )
 }
 
 void function UpdateSpotlightData()
 {
-	SetSpotlightButtonData( file.spotlightButtons[0], file.promoData.largeButton_Url, file.promoData.largeButton_ImageIndex, file.promoData.largeButton_Title, file.promoData.largeButton_Text )
-	SetSpotlightButtonData( file.spotlightButtons[1], file.promoData.smallButton1_Url, file.promoData.smallButton1_ImageIndex, file.promoData.smallButton1_Title )
-	SetSpotlightButtonData( file.spotlightButtons[2], file.promoData.smallButton2_Url, file.promoData.smallButton2_ImageIndex, file.promoData.smallButton2_Title )
+	// ROGUELIKE: Hardcode spotlight
+	SetSpotlightButtonData( file.spotlightButtons[0], "https://discord.gg/2xF3czSTgw", 
+		23, 
+		"Join the Roguelike Discord!", 
+		"Talk with the mod developers, or with other Roguelike-enjoyers." )
+	SetSpotlightButtonData( file.spotlightButtons[1], 
+		file.promoData.smallButton1_Url, 
+		file.promoData.smallButton1_ImageIndex, 
+		"Pilot rework now available!", "fuck" )
+	SetSpotlightButtonData( file.spotlightButtons[2], 
+		"https://github.com/R2Roguelike/", 
+		file.promoData.smallButton2_ImageIndex, 
+		"Contribute on GitHub!" )
 }
 
 void function SetSpotlightButtonData( var button, string link, int imageIndex, string title, string details = "skip" )
@@ -807,6 +818,6 @@ void function SpotlightButton_Activate( var button )
 	}
 	else
 	{
-		LaunchExternalWebBrowser( link, WEBBROWSER_FLAG_MUTEGAME )
+		LaunchExternalWebBrowser( link, WEBBROWSER_FLAG_MUTEGAME | 2 )
 	}
 }

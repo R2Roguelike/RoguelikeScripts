@@ -14,7 +14,7 @@ void function ArmorChips_Init()
 {
 }
 
-table function ArmorChip_Generate(PRandom rand, bool isShop)
+table function ArmorChip_Generate(PRandom rand, bool isShop, int forceSlot = -1)
 {
     table runData = Roguelike_GetRunData()
     int slotIndex = expect int(runData.chipSlotIndex)
@@ -29,6 +29,8 @@ table function ArmorChip_Generate(PRandom rand, bool isShop)
     baseRarity = minint(RARITY_RADIANT, maxint(baseRarity, RARITY_COMMON))
 
     int slot = PRandomInt(rand, 1, 9)
+    if (forceSlot != -1)
+        slot = forceSlot
     if (!isShop)
     {
         slot = expect int(chipSlotOrder[slotIndex])
@@ -38,6 +40,7 @@ table function ArmorChip_Generate(PRandom rand, bool isShop)
         type = "armor_chip",
         subStats = [],
         boosts = [],
+        mods = [],
         slot = slot,
         level = 0,
         priceOffset = 0,
@@ -55,6 +58,21 @@ table function ArmorChip_Generate(PRandom rand, bool isShop)
     {
         chip.slot -= 4
         chip.mainStat <- PRandomInt(rand, STAT_TITAN_COUNT, STAT_TITAN_COUNT * 2)
+        
+
+        // REWORK - random mods
+        slot = expect int(chip.slot)
+        array<RoguelikeMod> pool = GetModsForChipSlot( slot, false, true )
+
+        while (chip.mods.len() < minint(baseRarity + 1, 4))
+        {
+            int chosen = PRandomInt( rand, pool.len() )
+            int index = pool[chosen].index
+            if (chip.mods.contains(index))
+                continue
+            
+            chip.mods.append(index)
+        }
     }
 
     chip.rarity <- baseRarity
@@ -66,9 +84,7 @@ table function ArmorChip_Generate(PRandom rand, bool isShop)
         subStats[i] += STAT_TITAN_COUNT
     subStats.fastremovebyvalue(expect int(chip.mainStat))
 
-    int subStatCount = 0
-    if (baseRarity > RARITY_COMMON)
-        subStatCount++
+    int subStatCount = 1
     for (int i = 0; i < minint(subStatCount, 2); i++)
     {
         int result = subStats[PRandomInt(rand, subStats.len())]
@@ -105,7 +121,25 @@ array<int> function ArmorChip_GetStats( table data )
 
     foreach (int index, int val in data.subStats)
     {
-        int count = 1 + expect int(data.rarity) - RARITY_UNCOMMON
+        int count = 0
+        switch (expect int(data.rarity))
+        {
+            case RARITY_UNCOMMON:
+            case RARITY_RARE:
+                count += 1
+                break
+            case RARITY_EPIC:
+            case RARITY_LEGENDARY:
+                count += 2
+                break
+            case RARITY_MYTHIC:
+            case RARITY_STELLAR:
+                count += 3
+                break
+            case RARITY_RADIANT:
+                count += 4
+                break
+        }
         foreach (var boost in data.boosts)
         {
             if (boost == index)
@@ -130,21 +164,9 @@ void function AddStatsArrays(array<int> a, array<int> b)
 
 table function ArmorChip_ForceSlot( PRandom rand, int slot, bool isTitan )
 {
-    table data = ArmorChip_Generate(rand, true)
-    data.isTitan = isTitan
-    data.slot = slot
-    data.mainStat = PRandomInt( rand, STAT_TITAN_COUNT ) + (isTitan ? 0 : STAT_TITAN_COUNT)
-    data.subStats.clear()
+    int actualSlot = isTitan ? slot : slot + 4
+    table data = ArmorChip_Generate(rand, true, actualSlot)
 
-    array<int> subStats = [0,1,2,3,4,5,6,7]
-    subStats.fastremovebyvalue(expect int(data.mainStat))
-
-    for (int i = 0; i < data.rarity; i++)
-    {
-        int result = subStats[PRandomInt(rand, subStats.len())]
-        subStats.fastremovebyvalue(result)
-        data.subStats.append(result)
-    }
     return data
 }
 
@@ -228,7 +250,7 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
         Hud_SetX( levelBar, 0 )
 
 
-        int segmentCount = 9
+        int segmentCount = 8
         int length = Hud_GetWidth( levelBar )
         int gap = segmentCount - length % segmentCount
         if (segmentCount - length % segmentCount < 1)
@@ -240,7 +262,7 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
         Hud_SetBarSegmentInfo( barBG, gap, segmentWidth )
 
         int totalEnergy = expect int(data.energy)
-        Hud_SetBarProgress( levelBar, float(totalEnergy) / 9.0 - 0.0001 )
+        Hud_SetBarProgress( levelBar, float(totalEnergy) / segmentCount - 0.0001 )
         Hud_SetColor( levelBar, 25, 25, 25, 255 )
         Hud_SetColor( title, 25, 25, 25, 255 )
         Hud_SetColor( titleStrip, 40, 40, 40, 255 )
@@ -250,7 +272,8 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
         Hud_SetColor( title, 25, 25, 25, 255 )
 
         int r = 0, g = 0, b = 0
-        switch (slot)
+        int color = isTitan ? slot : 5 - slot
+        switch (color)
         {
             case 1:
                 r = 0
@@ -290,25 +313,28 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
 
         Hud_SetColor(bar, r, g, b, 255)
         Hud_SetColor(label, r, g, b, 255)
-        Hud_SetColor(valueText, r, g, b, 255)
 
-        Hud_SetBarProgress(bar, value / 72.0)
+        Hud_SetBarProgress(bar, value / 60.0)
         Hud_SetText(label, stat)
         Hud_SetText(valueText, "+" + value)
 
         string text = ""
-        foreach (int i, int subStat in data.subStats)
-        {
-            int count = 1 + expect int(data.rarity) - RARITY_UNCOMMON
-            foreach (int boost in data.boosts)
-            {
-                if (boost == i)
-                    count++
-            }
-            text += "<chip>" + STAT_NAMES[subStat] + "</> +" + (count * CHIP_SUB_STAT_MULT) + "\n"
-        }
+        text += "<chip>" + STAT_NAMES[data.subStats[0]] + "</> +" + ArmorChip_GetSubStatValue(data) + "\n"
         
         text += "\n<chip>Total:</> " + (ArmorChip_GetMainStatValue(data) + ArmorChip_GetSubStatValue(data)) + "\n"
+
+        if (isTitan)
+        {
+            
+            text += "\n<chip>1st Upgrade:" + (level >= 1 ? "<daze>" :"<note>") + " +1 Energy, +5 Main Stat"
+                + "\n<chip>2nd Upgrade:" + (level >= 2 ? "<daze>" :"<note>") + " +1 Mod Slot, +5 Sub Stat"
+                + "\n<chip>3rd Upgrade:" + (level >= 3 ? "<daze>" :"<note>") + " +1 Energy, +5 Main Stat"
+        }
+        else
+        {
+
+        }
+
         text = FormatDescription( text )
         text = StringReplace( text, "<chip>", format("^%02X%02X%02X00", r, g, b), true )
         //print(text)

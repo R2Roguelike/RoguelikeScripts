@@ -26,9 +26,22 @@ void function __core()
      #endif
 }
 
+void function __die()
+{
+    #if SERVER
+     GetPlayerArray()[0].Die()
+     #endif
+}
+
 entity function __offhand(int slot)
 {
     return __p().GetOffhandWeapon(slot)
+}
+
+void function __cooldown(int slot)
+{
+    entity offhand = __p().GetOffhandWeapon(slot)
+    print(offhand.GetWeaponSettingInt(eWeaponVar.ammo_per_shot) / offhand.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_rate))
 }
 
 #if SERVER

@@ -62,11 +62,6 @@ void function LaserLite_DamagedTarget( entity target, var damageInfo )
 
 
 	float cur = RSE_Get( target, RoguelikeEffect.ion_charge )
-	if (cur > 0.99)
-	{
-		IonDischarge( target, attacker, damageInfo )
-	}
-
 }
 
 #endif

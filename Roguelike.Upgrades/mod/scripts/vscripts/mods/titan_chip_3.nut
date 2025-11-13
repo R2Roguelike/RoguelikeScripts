@@ -7,6 +7,7 @@ void function TitanChip3_RegisterMods()
         mod.name = "Ammo++"
         mod.abbreviation = "A++"
         mod.description = "+100% mag size <note>(up to 50)</> for all weapons."
+        mod.shortdesc = "Mag size increased for all weapons."
         mod.cost = 2
     }
     {
@@ -14,6 +15,7 @@ void function TitanChip3_RegisterMods()
         mod.name = "Shield Core"
         mod.abbreviation = "SC"
         mod.description = "On Core use: Replenish your shields instantly."
+        mod.shortdesc = "On Core use: Replenish your shields instantly."
         mod.cost = 1
     }
     {
@@ -21,6 +23,7 @@ void function TitanChip3_RegisterMods()
         mod.name = "Overcrit"
         mod.abbreviation = "Oc"
         mod.description = "When hitting with your primary, increase Crit Rate by 0.5% for 3s. Stacks up to 20 times, repeated triggers reset the duration."
+        mod.shortdesc = "Weapon hits increase <cyan>Crit Rate."
         mod.cost = 1
     }
     {
@@ -28,6 +31,7 @@ void function TitanChip3_RegisterMods()
         mod.name = "Fast Loader"
         mod.abbreviation = "FL"
         mod.description = "-35% Reload Time."
+        mod.shortdesc = "Reload time reduced."
         mod.cost = 2
     }
 }

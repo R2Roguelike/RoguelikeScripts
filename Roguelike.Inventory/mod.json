@@ -85,6 +85,11 @@
 			"Name": "roguelike_stat_balance",
 			"Flags": "CHEAT",
 			"DefaultValue": "0"
+		},
+		{
+			"Name": "roguelike_loadouts_unlocked",
+			"Flags": "CHEAT",
+			"DefaultValue": "0"
 		}
 	]
 }

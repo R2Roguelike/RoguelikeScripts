@@ -18,6 +18,8 @@ global function Roguelike_FindWeaponForDamageInfo
 global function Roguelike_GetAlternateOffhand
 global function Roguelike_FindWeapon
 global function Roguelike_GetDamageInfoElement
+global function Roguelike_RegisterStatusEffect
+global function ModWeaponVars_Debug
 
 // doing overrides last
 global const int WEAPON_VAR_PRIORITY_OVERRIDE = 0
@@ -73,7 +75,8 @@ struct
 void function ModWeaponVars_ScaleDamage( entity weapon, float scalar )
 {
     const array<int> DAMAGE_VARS = [eWeaponVar.damage_near_value, eWeaponVar.damage_far_value, eWeaponVar.damage_near_value_titanarmor,
-                                    eWeaponVar.damage_far_value_titanarmor, eWeaponVar.damage_very_far_value, eWeaponVar.explosion_damage]
+                                    eWeaponVar.damage_far_value_titanarmor, eWeaponVar.damage_very_far_value, eWeaponVar.explosion_damage,
+                                    eWeaponVar.explosion_damage_heavy_armor]
 
     foreach (int weaponVar in DAMAGE_VARS)
     {
@@ -169,6 +172,9 @@ void function CodeCallback_ApplyModWeaponVars( entity weapon )
 
     if (weapon.GetWeaponOwner() != GetLocalClientPlayer())
         return
+
+    //if (!IsFirstTimePredicted())
+    //    return
     #endif
 
     // its not ready yet :(
@@ -177,24 +183,26 @@ void function CodeCallback_ApplyModWeaponVars( entity weapon )
 
     if (!("lastPrint" in weapon.s))
         weapon.s.lastPrint <- 0.0
-    float lastPrint = expect float(weapon.s.lastPrint)
-    lastPrint = 999999.9 // comment for modweaponvars debugging
+    //lastPrint = -90.0 // comment for modweaponvars debugging
     foreach (CallbackArray arr in file.weaponVarCallbacks)
     {
-        if (Time() - lastPrint > 1.0)
-            printt("PRIORITY ", arr.priority)
         foreach (void functionref( entity ) callback in arr.callbacks)
         {
-            if (Time() - lastPrint > 1.0)
-                print( callback)
             callback( weapon )
         }
     }
-    if (Time() - lastPrint > 1.0)
+}
+
+void function ModWeaponVars_Debug()
+{
+    foreach (CallbackArray arr in file.weaponVarCallbacks)
     {
-        lastPrint = Time()
+        printt("PRIORITY", arr.priority)
+        foreach (void functionref( entity ) callback in arr.callbacks)
+        {
+            print( callback )
+        }
     }
-    weapon.s.lastPrint = lastPrint
 }
 
 #if CLIENT
@@ -249,7 +257,7 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
             }
             if (Roguelike_HasDatacorePerk( player, "swap" ))
             {
-                RSE_Apply( player, RoguelikeEffect.swap, 1.0, 5.0, 0.0 )
+                RSE_Apply( player, RoguelikeEffect.swap, 1.0, Roguelike_GetDatacoreValue( player ), 0.0 )
             }
             Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetActiveWeapon() )
             player.s.lastActiveWeapon <- player.GetActiveWeapon().GetWeaponClassName()
@@ -262,9 +270,9 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
 
             if (IsValid(railgun))
             {
-                if (!("railgunEndChargeTime" in railgun.s) || lastPrimary.GetWeaponClassName() == PRIMARY_NORTHSTAR)
+                if (!("railgunEndChargeTime" in railgun.s) || (lastPrimary.GetWeaponClassName() == PRIMARY_NORTHSTAR && player.GetZoomFrac() > 0))
                 {
-                    float chargeTime = railgun.GetWeaponSettingFloat( eWeaponVar.charge_time ) // base 5.0, scales with charge time
+                    float chargeTime = railgun.GetWeaponSettingFloat( eWeaponVar.charge_time ) * 2.0 // x2 charge time
 
                     railgun.s.railgunEndChargeTime <- Time() + chargeTime * (1.0 - railgun.GetWeaponChargeFraction())
                     railgun.s.railgunStartChargeTime <- Time()
@@ -276,7 +284,7 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
                     float end = expect float(railgun.s.railgunEndChargeTime)
                     float frac = expect float(railgun.s.railgunStartChargeFrac)
 
-                    //railgun.SetWeaponChargeFraction(Graph(Time(), start, end, frac, 1.0))
+                    railgun.SetWeaponChargeFraction(Graph(Time(), start, end, frac, 1.0))
                     railgun.SetWeaponChargeFractionForced(Graph(Time(), start, end, frac, 1.0))
                 }
             }
@@ -295,21 +303,22 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
         ModWeaponVars_CalculateWeaponMods( weapon )
     foreach (entity weapon in player.GetOffhandWeapons())
         ModWeaponVars_CalculateWeaponMods( weapon )
-    if ("storedAbilities" in player.s && player.IsTitan())
-        foreach (var weapon in player.s.storedAbilities)
+    if (player.p.storedAbilities.len() > 0 && player.IsTitan())
+        foreach (entity weapon in player.p.storedAbilities)
         {
             if (weapon != null && IsValid(weapon))
             {
-                expect entity(weapon)
                 ModWeaponVars_CalculateWeaponMods( weapon )
             }
         }
 }
 
-void function Roguelike_ModifyTitanLoadout( entity player, TitanLoadoutDef loadout )
+void function Roguelike_ModifyTitanLoadout( entity player, RoguelikeLoadout loadout )
 {
     if (Roguelike_HasMod( player, "always_sword" ))
         loadout.melee = "melee_titan_sword"
+	if (loadout.utility == "mp_titanability_smoke")
+		loadout.utility = "mp_titanability_rearm"
 }
 
 void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity primary )
@@ -330,16 +339,15 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
 
     printt(primary.GetWeaponClassName())
 
-    TitanLoadoutDef ornull titanLoadout = GetTitanLoadoutForPrimary( primaryClassName )
+    RoguelikeLoadout ornull titanLoadout = Roguelike_GetLoadoutFromWeapon( primaryClassName )
     if ( titanLoadout == null )
         return
-    expect TitanLoadoutDef( titanLoadout )
+    expect RoguelikeLoadout( titanLoadout )
+    titanLoadout = clone titanLoadout // it may be modified, avoid lasting changed
 
     Roguelike_ModifyTitanLoadout( titan, titanLoadout )
 
     // we already have this loadout equipped...
-    if ("currentLoadout" in titan.s && titan.s.currentLoadout == primaryClassName)
-        return
 
     //table<int,float> cooldowns = GetWeaponCooldownsForTitanLoadoutSwitch( titan )
 
@@ -347,10 +355,10 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
 
 	StatusEffect_StopAll( titan, eStatusEffect.cockpitColor )
     //ReplaceTitanLoadoutWhereDifferent( titan, titanLoadout )
-    if ((!("storedAbilities" in titan.s) || titan.s.storedAbilities[0] == null))
+    if ((titan.p.storedAbilities.len() <= 0 || titan.p.storedAbilities[0] == null))
     {
         print("STORE EM")
-        titan.s.storedAbilities <- [null, null, null, null, null, null]
+        titan.p.storedAbilities = [null, null, null, null, null, null]
         for ( int i = 0; i < OFFHAND_COUNT; i++ )
         {
             if (i == OFFHAND_INVENTORY) // ignore equipment
@@ -373,15 +381,15 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
             }
 
             // maintain offhand index
-            titan.s.storedAbilities[i] = offhandWeapon
+            titan.p.storedAbilities[i] = offhandWeapon
         }
         printt("new offhands")
         titan.GiveOffhandWeapon( titanLoadout.melee, OFFHAND_MELEE )
-        titan.GiveOffhandWeapon( titanLoadout.ordnance, OFFHAND_ORDNANCE )
-        titan.GiveOffhandWeapon( titanLoadout.special, OFFHAND_SPECIAL )
-        titan.GiveOffhandWeapon( titanLoadout.antirodeo, OFFHAND_TITAN_CENTER )
+        titan.GiveOffhandWeapon( titanLoadout.offensive, OFFHAND_ORDNANCE )
+        titan.GiveOffhandWeapon( titanLoadout.defensive, OFFHAND_SPECIAL )
+        titan.GiveOffhandWeapon( titanLoadout.utility, OFFHAND_TITAN_CENTER )
         if (!IsTitanCoreFiring( titan ))
-            titan.GiveOffhandWeapon( titanLoadout.coreAbility, OFFHAND_EQUIPMENT )
+            titan.GiveOffhandWeapon( titanLoadout.core, OFFHAND_EQUIPMENT )
         foreach (entity offhand in titan.GetOffhandWeapons())
         {
             ModWeaponVars_CalculateWeaponMods( offhand )
@@ -410,11 +418,13 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
                     offhandWeapon.s.exploitFix <- Time()
             }
 
-            if (titan.s.storedAbilities[i] != null)
+            if (titan.p.storedAbilities[i] != null)
             {
-                entity newOffhand = expect entity( titan.s.storedAbilities[i] )
+                entity newOffhand = titan.p.storedAbilities[i]
                 if (!IsValid(newOffhand) || newOffhand.GetWeaponClassName() != GetOffhandWeaponBySlot( titanLoadout, i ))
                 {
+                    if (IsValid(newOffhand))
+                        newOffhand.Destroy() // fixes more mem leaks ig
                     printt("new offhand", i)
                     titan.GiveOffhandWeapon( GetOffhandWeaponBySlot( titanLoadout, i ), i )
                     newOffhand = titan.GetOffhandWeapon(i)
@@ -426,9 +436,12 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
                     if (newOffhand.IsChargeWeapon())
                         newOffhand.SetWeaponChargeFractionForced(0.0)
                 }
-                if ("storedWeaponOwner" in newOffhand.s)
-                    delete newOffhand.s.storedWeaponOwner
-                titan.GiveExistingOffhandWeapon( newOffhand, i )
+                else
+                {
+                    if ("storedWeaponOwner" in newOffhand.s)
+                        delete newOffhand.s.storedWeaponOwner
+                    titan.GiveExistingOffhandWeapon( newOffhand, i )
+                }
 
                 if ("exploitFix" in newOffhand.s)
                 {
@@ -443,7 +456,7 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
                 }
             }
             // maintain offhand index
-            titan.s.storedAbilities[i] = offhandWeapon
+            titan.p.storedAbilities[i] = offhandWeapon
         }
     }
 
@@ -497,20 +510,20 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
     }
 }
 
-string function GetOffhandWeaponBySlot( TitanLoadoutDef titanLoadout, int offhandSlot)
+string function GetOffhandWeaponBySlot( RoguelikeLoadout titanLoadout, int offhandSlot)
 {
     switch (offhandSlot)
     {
         case OFFHAND_ORDNANCE:
-            return titanLoadout.ordnance
+            return titanLoadout.offensive
         case OFFHAND_SPECIAL:
-            return titanLoadout.special
+            return titanLoadout.defensive
         case OFFHAND_MELEE:
             return titanLoadout.melee
         case OFFHAND_TITAN_CENTER:
-            return titanLoadout.antirodeo
+            return titanLoadout.utility
         case OFFHAND_EQUIPMENT:
-            return titanLoadout.coreAbility
+            return titanLoadout.core
     }
 
     return ""
@@ -567,9 +580,10 @@ entity function Roguelike_FindWeaponForDamageInfo( var damageInfo )
     if (!IsValid(attacker) || !attacker.IsPlayer())
         return null
 
-    entity weapon = DamageInfo_GetWeapon( damageInfo )
-    if (IsValid(weapon))
-        return weapon
+    // procs may reuse the weapon as an inflictor, dont rely on that
+    //entity weapon = DamageInfo_GetWeapon( damageInfo )
+    //if (IsValid(weapon))
+    //    return weapon
 
     // melee uses the player as the inflictor and provides no weapon
     int damageType = DamageInfo_GetCustomDamageType( damageInfo )
@@ -581,8 +595,8 @@ entity function Roguelike_FindWeaponForDamageInfo( var damageInfo )
     if (!IsValid(inflictor))
         return null
 
-    if (inflictor.GetClassName() == "weaponx")
-        return inflictor
+    //if (inflictor.GetClassName() == "weaponx")
+   //     return inflictor
 
     if (inflictor.IsProjectile())
     {
@@ -606,16 +620,18 @@ entity function Roguelike_GetAlternateOffhand( entity player, int index )
     if (!("storedAbilities" in player.s))
         return null
 
-    if (!IsValid(player.s.storedAbilities[index]))
+    if (!IsValid(player.p.storedAbilities[index]))
     {
         return null
     }
 
-    return expect entity(player.s.storedAbilities[index])
+    return player.p.storedAbilities[index]
 }
 
 entity function Roguelike_FindWeapon( entity player, string weapon )
 {
+    if (!IsValid(player))
+        return
     array<entity> currentOffhandWeapons = player.GetOffhandWeapons()
     currentOffhandWeapons.extend(player.GetMainWeapons())
 
@@ -631,12 +647,12 @@ entity function Roguelike_FindWeapon( entity player, string weapon )
     if (!("storedAbilities" in player.s))
         return null
 
-    foreach (var w in player.s.storedAbilities)
+    foreach (entity w in player.p.storedAbilities)
     {
         if (w == null || !IsValid(w))
             continue
         if (w.GetWeaponClassName() == weapon)
-            return expect entity(w)
+            return w
     }
 
     return null
@@ -655,12 +671,12 @@ entity function Roguelike_GetOffhandWeaponByName( entity player, string weapon )
     if (!("storedAbilities" in player.s))
         return null
 
-    foreach (var w in player.s.storedAbilities)
+    foreach (entity w in player.p.storedAbilities)
     {
         if (w == null || !IsValid(w))
             continue
         if (w.GetWeaponClassName() == weapon)
-            return expect entity(w)
+            return w
     }
 
     return null
@@ -673,6 +689,11 @@ void function ScaleCooldown( entity weapon, float scalar )
 
     switch (weapon.GetWeaponInfoFileKeyField("cooldown_type"))
     {
+        case "shield":
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.ammo_per_shot, scalar )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.ammo_min_to_fire, scalar )
+            break
+
         case "ammo":
         case "ammo_instant":
         case "ammo_deployed":
@@ -707,4 +728,12 @@ int function Roguelike_GetDamageInfoElement( var damageInfo )
         return RoguelikeElement.fire
 
     return RoguelikeElement.physical
+}
+
+void function Roguelike_RegisterStatusEffect( string uniqueName )
+{
+	table t = expect table( getconsttable()["RoguelikeEffect"] )
+    int count = expect int(t.count)
+    t[uniqueName] <- count
+    t["count"] <- count + 1
 }

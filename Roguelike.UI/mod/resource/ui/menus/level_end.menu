@@ -325,7 +325,7 @@ resource/ui/menus/level_end.menu
 
             visible				1
             zpos				200
-            wide                256
+            wide                512
             tall				24
             labelText			"150"
             allCaps				1
@@ -369,7 +369,7 @@ resource/ui/menus/level_end.menu
 
             visible				1
             zpos				200
-            wide                256
+            wide                512
             tall				24
             labelText			"100"
             allCaps				1

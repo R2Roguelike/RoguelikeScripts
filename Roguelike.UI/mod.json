@@ -47,6 +47,17 @@
 			}
 		},
 		{
+			"Path": "ui/menu_run_end.nut",
+			"RunOn": "UI",
+			"UICallback": {
+				"Before": "AddRunEndMenu"
+			}
+		},
+		{
+			"Path": "run_stats.nut",
+			"RunOn": "UI"
+		},
+		{
 			"Path": "ui/hovers.nut",
 			"RunOn": "UI",
 			"UICallback": {

@@ -5,18 +5,19 @@ global function FormatDescription
 global function GetModDescriptionSuffix
 global function Roguelike_GetStat
 global function Roguelike_ForceRefreshInventory
-global function GetTitanDescription
 global function Roguelike_InventorySetLastDiffSetTime
 global function GetDismantleFrac
 global function AttemptDismantle
 global function StopDismantle
+global function Roguelike_PulseElem
 
 struct {
     var menu
+    bool isTitanMode = false
+    float slideFrac = 0.0
     string nextMap = ""
     int startPointIndex = 0
     int kills = 69
-    float time = 370
     GridMenuData gridData
     bool isOpen = true
     array<var> modSlots
@@ -46,8 +47,8 @@ void function InitInventoryMenu()
     AddMenuEventHandler( file.menu, eUIEvent.MENU_OPEN, OnOpen )
     AddMenuEventHandler( file.menu, eUIEvent.MENU_CLOSE, OnClose )
 
-	file.gridData.columns = 7
-	file.gridData.rows = 2
+	file.gridData.columns = 2
+	file.gridData.rows = 7
 	file.gridData.numElements = 16
 	file.gridData.pageType = eGridPageType.HORIZONTAL
 	file.gridData.tileWidth = ContentScaledXAsInt( 80 )
@@ -74,7 +75,7 @@ void function InitInventoryMenu()
     AddHover( Hud_GetChild(file.menu, "Grenade"), RoguelikeGrenade_GetHoverFunc( file.menu, false, true, true ), HOVER_WEAPON )
     AddHover( Hud_GetChild(file.menu, "Datacore"), RoguelikeDatacore_GetHoverFunc( file.menu, false, true, true ), HOVER_WEAPON )
 
-    AddHover( Hud_GetChild( file.menu, "BalanceSymbol" ), void function( var symbol, var panel ) : (){
+    /*AddHover( Hud_GetChild( file.menu, "BalanceSymbol" ), void function( var symbol, var panel ) : (){
         table runData = Roguelike_GetRunData()
         if (runData.balanced)
         {
@@ -90,7 +91,7 @@ void function InitInventoryMenu()
             bool tooMuchTitan = file.totalTitan > file.totalPilot
             Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription(format("You lack balance in your perspective...\n\n%i titan | %i pilot", file.totalTitan, file.totalPilot)) )
         }
-    }, HOVER_SIMPLE )
+    }, HOVER_SIMPLE )*/
 
     RegisterButtonPressedCallback( BUTTON_X, AttemptUpgrade )
     RegisterButtonPressedCallback( MOUSE_RIGHT, AttemptUpgrade )
@@ -99,15 +100,15 @@ void function InitInventoryMenu()
     RegisterButtonPressedCallback( BUTTON_Y, AttemptDismantle )
     RegisterButtonReleasedCallback( BUTTON_Y, StopDismantle )
 
+
     array<var> modButtons = GetElementsByClassname( file.menu, "ModSlot" )
 
     // HELP TEXT
     for (int i = 1; i < 5; i++)
     {
-        AddHover( Hud_GetChild(file.menu, "AC" + i + "_PilotHelp"), ModHelp_Hover, HOVER_SIMPLE )
+        //AddHover( Hud_GetChild(file.menu, "AC" + i + "_PilotHelp"), ModHelp_Hover, HOVER_SIMPLE )
         AddHover( Hud_GetChild(file.menu, "AC" + i + "_TitanHelp"), ModHelp_Hover, HOVER_SIMPLE )
     }
-    AddHover( Hud_GetChild(file.menu, "TitanPassive"), ModHelp_Hover, HOVER_SIMPLE )
 
     // STAT IMAGES
     for (int i = 0; i < STAT_COUNT; i++)
@@ -153,7 +154,66 @@ void function InitInventoryMenu()
             }
         }
     }()
+    thread void function() : ()
+    {
+        var switchButton = Hud_GetChild( file.menu, "InventorySwitch" )
+        var inventory = Hud_GetChild( file.menu, "Inventory" )
+        Hud_AddEventHandler( Hud_GetChild( switchButton, "Button" ), UIE_CLICK, SwitchInventoryMode )
+        float frac = 0.0
+        const int SLIDE_AMOUNT = 640
+
+        while( 1 )
+        {
+            float dt = Time()
+            wait 0
+            dt = Time() - dt
+
+            file.slideFrac = clamp( file.slideFrac + (file.isTitanMode ? -4.0 * dt : 4.0 * dt), 0, 1 )
+
+            Hud_SetX( inventory, GraphCapped( QuadEaseInOut( file.slideFrac ), 0, 1, ContentScaledXAsInt(640), ContentScaledXAsInt(-640) ))
+
+            bool isFocused = GetFocus() == Hud_GetChild(switchButton, "Button")
+            float prevFrac = frac
+            frac = GraphCapped( isFocused ? frac + 5.0 * dt : frac - 5.0 * dt, 0, 1, 0, 1 )
+            if (prevFrac == frac)
+            {
+                Hud_SetEnabled( Hud_GetChild( switchButton, "Button" ), true )
+            }
+
+            vector color = VectorLerp( <127, 127, 127>, <255,255,255>, file.isTitanMode ? 1.0 : frac )
+            vector pilotColor = VectorLerp( <127, 127, 127>, <255,176,0>, file.isTitanMode ? frac : 1.0 )
+
+            var textLeft = Hud_GetChild( switchButton, "TextLeft" )
+            var textRight = Hud_GetChild( switchButton, "TextRight" )
+            var barLeft = Hud_GetChild( switchButton, "BarLeft" )
+            var barRight = Hud_GetChild( switchButton, "BarRight" )
+            Hud_SetColor(textLeft, color.x, color.y, color.z, 255 )
+            Hud_SetColor(barLeft, color.x, color.y, color.z, 255 )
+            Hud_SetHeight( barLeft, ContentScaledYAsInt(file.isTitanMode ? 200 : GraphCapped( QuadEaseInOut(frac), 0, 1, 100, 150 ) ) )
+            Hud_SetHeight( barRight, ContentScaledYAsInt(file.isTitanMode ? GraphCapped( QuadEaseInOut(frac), 0, 1, 100, 150 ) : 200 ) )
+            Hud_SetColor(textRight, pilotColor.x, pilotColor.y, pilotColor.z, 255 )
+            Hud_SetColor(barRight, pilotColor.x, pilotColor.y, pilotColor.z, 255 )
+        }
+    }()
 }
+
+void function SwitchInventoryMode( var b )
+{
+    print("switch")
+    file.isTitanMode = !file.isTitanMode
+    Hud_SetFocused( Hud_GetChild( file.menu, "GridPanel" ))
+    Hud_SetEnabled( b, false )
+}
+
+float function QuadEaseInOut( float frac )
+{
+	frac /= 0.5;
+	if (frac < 1)
+		return 0.5 * frac * frac
+	frac--
+	return -0.5 * ( frac * ( frac - 2 ) - 1 )
+}
+
 
 float function GetDismantleFrac()
 {
@@ -217,15 +277,15 @@ void function Stat_Hover( var statPanel, var panel )
     {
         case STAT_ARMOR:
             description = format("Reduces Titan damage taken, and increases healing from batteries.\n\n"
-                + "Titan damage reduced by <cyan>%.1f%%</>.\n"
-                + "Battery healing increased by <cyan>%.1f%%</>.",
+                + "Titan damage reduced by <cyan>%.1f%%.</>\n"
+                + "Battery healing increased by <cyan>%.1f%%.</>",
                 Roguelike_GetTitanDamageResist(statValue) * 100.0,
                 Roguelike_GetBatteryHealingMultiplier(statValue) / 8.0 - 100.0
             )
             break
         case STAT_ENERGY:
             description = format("Decreases Titan Dash cooldown, and increases Crit Rate.\n\n" +
-                "Titan Dash cooldown decreased by <cyan>%.1f%%</>.\n" +
+                "Titan Dash cooldown decreased by <cyan>%.1f%%.</>\n" +
                 "Base Crit Rate: <cyan>%.1f%%</>",
                 (1.0 - Roguelike_GetDashCooldownMultiplier( statValue ) / 1.0) * 100.0,
                 Roguelike_BaseCritRate( statValue ) * 100.0
@@ -233,7 +293,7 @@ void function Stat_Hover( var statPanel, var panel )
             break
         case STAT_POWER:
             description = format("Reduces Titan ability cooldowns, and increases Crit DMG.\n\n" +
-                "Titan core gain increased by about <cyan>%.1f%%</>.\n" +
+                "Titan core gain increased by about <cyan>%.1f%%.</>\n" +
                 "Base Crit DMG: <cyan>%.1f%%</>",
                 (Roguelike_GetTitanCoreGain(statValue) / 0.5 - 1.0) * 100.0,
                 Roguelike_BaseCritDMG( statValue ) * 100.0
@@ -241,22 +301,22 @@ void function Stat_Hover( var statPanel, var panel )
             break
         case STAT_COOLING:
             description = format("Reduces Titan ability cooldowns, and increases reload speed.\n\n"
-                + "Titan cooldowns reduced by <cyan>%.1f%%</>.\n"
-                + "Reload speed increased by <cyan>%.1f%%</>.",
+                + "Titan cooldowns reduced by <cyan>%.1f%%.</>\n"
+                + "Reload speed increased by <cyan>%.1f%%.</>",
                 (1.0 - Roguelike_GetTitanCooldownReduction(statValue) / 1.5) * 100.0,
                 (Roguelike_GetTitanReloadSpeedBonus(statValue) - 1.0) * 100.0
             )
             break
         case STAT_TEMPER:
             description = format("Reduces Grenade cooldown, and increases Grenade damage.\n\n" +
-                "Grenade cooldown reduced by about <cyan>%.1f%%</>.\nGrenade damage <note>(except self-damage)</> increased by <cyan>%.0f%%</>",
+                "Grenade cooldown reduced by about <cyan>%.1f%%.</>\nGrenade damage <note>(except self-damage)</> increased by <cyan>%.0f%%</>",
                 (1.0 - Roguelike_GetPilotCooldownReduction(statValue) / 1.25) * 100.0,
                 (Roguelike_GetGrenadeDamageBoost(statValue) - 1.0) * 100.0
             )
             break
         case STAT_VISION:
             description = format("Reduces Cloak cooldown, and increases Cloak duration.\n\n" +
-                "Cloak cooldown reduced by about <cyan>%.1f%%</>.\nCloak duration increased by <cyan>%.0f%%</>",
+                "Cloak cooldown reduced by about <cyan>%.1f%%.</>\nCloak duration increased by <cyan>%.0f%%</>",
                 (1.0 - Roguelike_GetPilotCooldownReduction(statValue) / 1.25) * 100.0,
                 (Roguelike_GetPilotCloakDuration(statValue) - 1.0) * 100.0
             )
@@ -268,7 +328,7 @@ void function Stat_Hover( var statPanel, var panel )
                 break
             }
             description = format("Increases Pilot movement speed.\n\n" +
-                "Pilot movement speed increased by <cyan>%.1f%%</>.",
+                "Pilot movement speed increased by <cyan>%.1f%%.</>",
                 Roguelike_GetPilotSpeedBonus(statValue) * 100.0
             )
             break
@@ -276,7 +336,7 @@ void function Stat_Hover( var statPanel, var panel )
             float multiplier = 1.0 + Roguelike_GetPilotHealthBonus(statValue)
             float selfDMGMult = Roguelike_GetPilotSelfDamageMult(statValue)
             description = format("Increases Pilot max health. Decreases Self Damage.\n\n" +
-                "Max health increased to <cyan>%i</>.\nSelf Damage decreased by <cyan>%.1f%%</>",
+                "Max health increased to <cyan>%i.</>\nSelf Damage decreased by <cyan>%.1f%%</>",
                 int(multiplier * 100.0),
                 (1.0 - selfDMGMult) * 100.0
             )
@@ -330,52 +390,34 @@ void function RefreshInventory()
     InventorySlot_Display( Hud_GetChild(file.menu, "WeaponSecondary"), runData.WeaponSecondary )
     InventorySlot_Display( Hud_GetChild(file.menu, "Grenade"), runData.Grenade )
 
-    //Hud_SetText( Hud_GetChild(file.menu, "AC3_TitanHelp"), GetTitanNameFromWeapon(Roguelike_GetTitanLoadouts()[0]) )
-    //Hud_SetText( Hud_GetChild(file.menu, "AC4_TitanHelp"), GetTitanNameFromWeapon(Roguelike_GetTitanLoadouts()[1]) )
-
     bool hasTitanLoadoutPassive = GetTitanLoadoutPassiveData()[0] != "No Passive"
-    Hud_SetVisible( Hud_GetChild(file.menu, "TitanPassive"), hasTitanLoadoutPassive )
 
-    for (int i = 1; i < 5; i++)
+    for (int i = 1; i <= 4; i++)
     {
-        int totalEnergyUsed = GetTotalEnergyUsed( i, false )
-        int energyAvailable = expect int(runData["ACPilot" + i].energy)
-        for (int j = 0; j < MOD_SLOTS && totalEnergyUsed > energyAvailable; j++)
-        {
-            string modIndex = FormatModIndex(i, false, j)
-            RoguelikeMod mod = GetModForIndex(runData[modIndex])
+        Hud_SetBarProgress( Hud_GetChild(Hud_GetChild(file.menu, "AC" + i + "_TitanEnergy"), "EnergyBar"), 1.0 )
+        Hud_SetBarProgress( Hud_GetChild(Hud_GetChild(file.menu, "AC" + i + "_TitanEnergy"), "EnergyBarBG"), 1.0 )
 
-            if (mod.isSwappable)
-            {
-                printt("SETTING EMPTY")
-                runData[modIndex] <- GetModByName("empty").index
-            }
+        int totalEnergyUsed = GetTotalEnergyUsed( i, true )
+        int energyAvailable = expect int(runData["ACTitan" + i].energy)
 
-            totalEnergyUsed = GetTotalEnergyUsed( i, false )
-        }
-        totalEnergyUsed = GetTotalEnergyUsed( i, false )
-
-        Hud_SetText(Hud_GetChild(file.menu, format("AC%i_PilotEnergy", i)), format("%i/%i", totalEnergyUsed, runData["ACPilot" + i].energy))
-
-        totalEnergyUsed = GetTotalEnergyUsed( i, true )
-        energyAvailable = expect int(runData["ACTitan" + i].energy)
-
-        for (int j = 0; j < MOD_SLOTS && totalEnergyUsed > energyAvailable; j++)
+        // TITAN
+        for (int j = 0; j < MOD_SLOTS; j++)
         {
             string modIndex = FormatModIndex(i, true, j)
             RoguelikeMod mod = GetModForIndex(runData[modIndex])
 
-            if (mod.isSwappable)
+            if ((mod.isSwappable && totalEnergyUsed > energyAvailable) || IsSlotLocked( i, true, j ))
             {
-                printt("SETTING EMPTY")
                 runData[modIndex] <- GetModByName("empty").index
             }
 
             totalEnergyUsed = GetTotalEnergyUsed( i, true )
         }
+        Hud_SetHeight( Hud_GetChild(Hud_GetChild(file.menu, "AC" + i + "_TitanEnergy"), "EnergyBarBG"), (energyAvailable - 1) * (ContentScaledYAsInt(16) + ContentScaledYAsInt(4)) + ContentScaledYAsInt(16) )
+        Hud_SetHeight( Hud_GetChild(Hud_GetChild(file.menu, "AC" + i + "_TitanEnergy"), "EnergyBar"), (totalEnergyUsed - 1) * (ContentScaledYAsInt(16) + ContentScaledYAsInt(4)) + ContentScaledYAsInt(16) )
         totalEnergyUsed = GetTotalEnergyUsed( i, true )
 
-        Hud_SetText(Hud_GetChild(file.menu, format("AC%i_TitanEnergy", i)), format("%i/%i", totalEnergyUsed, runData["ACTitan" + i].energy))
+        // REWORK - PILOT no longer has energy
     }
 
     array<var> modButtons = GetElementsByClassname( file.menu, "ModSlot" )
@@ -385,30 +427,65 @@ void function RefreshInventory()
         string modIndex = expect string(modSlot.s.data)
         if (runData[modIndex] != "")
         {
-            ModSlot_DisplayMod( modSlot, GetModForIndex(runData[modIndex]) )
-            int chipIndex = int( modIndex.slice( 2, 3 ) )
             bool isTitanMod = modIndex.find("Titan") != null
+            int chipIndex = int( modIndex.slice( 2, 3 ) )
+            int slotIndex = int( modIndex.slice( modIndex.len() - 1, modIndex.len() ) )
+            var slotParent = Hud_GetParent( modSlot )
+            var nameLabel = Hud_GetChild( slotParent, "Mod" + slotIndex + "Name" )
+            var descLabel = Hud_GetChild( slotParent, "Mod" + slotIndex + "Desc" )
+
+            RoguelikeMod mod = GetModForIndex(runData[modIndex])
+            if (!isTitanMod)
+            {
+                table chip = expect table(runData["ACPilot" + chipIndex])
+                
+                if (chip.mods.len() > slotIndex)
+                    mod = GetModForIndex(chip.mods[slotIndex])
+                else
+                    mod = GetModForIndex(0)
+            }
+
+            ModSlot_DisplayMod( modSlot, isTitanMod, mod )
             array<RoguelikeMod> slotMods = GetModsForChipSlot( chipIndex, isTitanMod )
             bool notification = false
             foreach (RoguelikeMod newMod in slotMods)
             {
-                if (runData.newMods.contains(newMod.uniqueName))
+                if (runData.newMods.contains(newMod.uniqueName) && !isTitanMod)
                 {
                     notification = true
                     break
                 }
             }
-            if (notification)
-                Hud_SetColor( Hud_GetChild(modSlot, "BG"), 255,128,32, 135 )
+
+            
+            if (isTitanMod)
+            {
+                Hud_SetVisible( modSlot, !IsSlotLocked( chipIndex, isTitanMod, slotIndex ) )
+                Hud_SetVisible( nameLabel, !IsSlotLocked( chipIndex, isTitanMod, slotIndex ) )
+                Hud_SetVisible( descLabel, !IsSlotLocked( chipIndex, isTitanMod, slotIndex ) )
+            }
             else
-                Hud_SetColor( Hud_GetChild(modSlot, "BG"), 0,0,0, 135 )
+            {
+                Hud_SetVisible( modSlot, mod.index != 0 )
+                Hud_SetVisible( nameLabel, mod.index != 0 )
+                Hud_SetVisible( descLabel, mod.index != 0 )
+            }
+
+            nameLabel.SetColor( GetModColor(mod) )
+            descLabel.SetColor( GetModColor(mod) )
+            Hud_SetText( nameLabel, mod.name )
+            string shortdesc = FormatDescription( mod.shortdesc )
+            if (!isTitanMod)
+                shortdesc = AlignStringWithMonoFontEast( shortdesc )
+            Hud_SetText( descLabel, FormatDescription( shortdesc ) )
+            Hud_SetColor(Hud_GetChild(modSlot, "Overlay"), 255, 255, 0, 0 )
+            Hud_SetVisible(Hud_GetChild(modSlot, "Overlay"), notification)
+            Signal( Hud_GetChild(modSlot, "Overlay"), "ElemFlash" ) // stop flashing
+            thread Roguelike_PulseElem( file.menu, Hud_GetChild(modSlot, "Overlay"), (slotIndex) * 0.1 + (chipIndex % 2 == 0 ? 0.4 : 0.0) )
 
             AddHover( modSlot, ModSlot_Hover, HOVER_SIMPLE )
         }
     }
-    
-    Roguelike_GetRunData().memoryHP = GetConVarString("memory_titan_hp")
-    Roguelike_GetRunData().memorySettings = GetConVarString("memory_titan_settings")
 
     string statsConVar = ""
 
@@ -451,14 +528,6 @@ void function RefreshInventory()
     statsConVar = JoinIntArray( stats, " " )
 
     runData.balanced = file.totalPilot == file.totalTitan
-    if (runData.balanced)
-    {
-        Hud_SetColor(Hud_GetChild( file.menu, "BalanceSymbol" ), 255,122, 244, 255 )
-    }
-    else
-    {
-        Hud_SetColor(Hud_GetChild( file.menu, "BalanceSymbol" ), 64, 64, 64, 255 )
-    }
     Roguelike_ApplyRunDataToConVars()
     // HACK: should be moved to Roguelike_ApplyRunDataToConVars
     SetConVarString( "player_stats", strip( statsConVar ) )
@@ -528,10 +597,7 @@ void function InventorySlot_Click( var button )
             runData["Datacore"] = curSlot
             if (curSlot.perk1 == "unlocalized")
             {
-                LaunchExternalWebBrowser( "steam://run/2357570", 2 ) // :)
-                //LaunchExternalWebBrowser( "steam://run/730", 2 ) // :)
-                LaunchExternalWebBrowser( "steam://run/3513350", 2 ) // :)
-                LaunchExternalWebBrowser( "steam://run/570", 2 ) // :)
+                LaunchExternalWebBrowser( "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 2 ) // :)
             }
             inventory[elemNum] = equippedChip
             SwapSequenceAlt(Hud_GetChild(file.menu, "Datacore"))
@@ -681,57 +747,6 @@ string function GetTitanRole(string weapon)
     return "INVALID"
 }
 
-string function GetTitanDescription(string weapon)
-{
-    switch (weapon)
-    {
-        case "mp_titanweapon_xo16_shorty":
-            return "<note>Ol' Reliable... with a twist.</>\n \nExpedition's E-Smoke is replaced with <daze>Rearm</>." +
-                "\n<daze>Rearm</> <cyan>resets all cooldowns<note> (except itself) <cyan>for both loadouts</>.\n \n" +
-                "Expedition's status effect is <weak>Weak</>.\n" +
-                "<weak>Weak</> is applied with <daze>Expedition's missiles</>.\n" +
-                "<weak>Weak</> reduces outgoing damage by 25%, and increases <cyan>incoming weapon and melee damage</> by 35%.\n"
-
-        case "mp_titanweapon_sticky_40mm":
-            return "<note>Watch your Tone, Pilot.</>\n\nTone's Status is <"
-
-        case "mp_titanweapon_meteor": // scorch
-            return "<note>Set the world ablaze.</>\n\nScorch's status effect is <burn>Burn</>." +
-                "\n<burn>Burn</> is inflicted by using <daze>anything in Scorch's kit</>,\n" +
-                "and increases <cyan>all <red>NON<cyan>-fire damage</>.\n\n"
-
-        case "mp_titanweapon_rocketeer_rocketstream":
-            return "Brute"
-
-        case "mp_titanweapon_particle_accelerator":
-            return "<note>We're all connected. Except me and the enemy team.</>\n\n" +
-                   "Ion's status effect is <charge>Charge</>.\n" +
-                   "Charge is inflicted by Ion's <daze>Pylons</> or <daze>primary</>.\n\n" +
-                   "When <charge>Charge</> is at max, damage with <cyan>Laser Shot</>, <cyan>Pylons</>, or <cyan>Laser Core</> " +
-                   "will trigger a <charge>Discharge</>, dealing massive damage.\n" +
-                   "If <daze>the other loadout</> also inflicted it's status effect, <red>Disorder</> will be triggered instead, removing the effect and <cyan>increasing damage further</>."
-
-        case "mp_titanweapon_leadwall": // ronin
-            return "<note>No need for a shield if you've got a giant sword...</>\n \nRonin's status effect is <daze>Daze</>." +
-                "\n\n<daze>Daze</> is inflicted with <cyan>Arc Wave</>.\n" +
-                "Gain <overload>Overload</> stacks from <cyan>Sword hits against Dazed enemies</> or through <cyan>Arc Wave against Dazed enemies</>.\n" +
-                "\n<overload>Overload</> stacks are consumed when you <daze>fire your shotgun</> for a <red>high base damage increase</>."
-
-        case "mp_titanweapon_sniper":
-            return "<note>Yeah i got railgunned. Railgunned by ur mom!!!1!</>\n\n" +
-                   "Northstar's Railgun does <red>not</> crit randomly, but instead <cyan>crits when hitting the enemy's weak spot</>.\n\n" +
-                   "Northstar's status effect is <fulm>Fulminate</>.\n\n" +
-                   "<fulm>Fulminate</> is dealt with any source of damage, and <cyan>increases the Crit DMG of your next Railgun crit by up to 45%</>."
-
-        case "mp_titanweapon_predator_cannon":
-            return "<note>The answer... is a gun. And if that don't work? Use more gun.</>\n \n" +
-            "Legion's status effect is <punc>Puncture</>.\n\n" +
-            "<punc>Puncture</> is inflicted with <daze>Power Shot</>.\n"+
-            "While a target is <punc>Punctured</>, <cyan>Crit Rate</> against it is increased by 25%."
-    }
-    return "INVALID"
-}
-
 void function ModHelp_Hover( var label, var panel )
 {
     string hudName = Hud_GetHudName(label)
@@ -774,27 +789,35 @@ void function ModHelp_Hover( var label, var panel )
             title = "Ability Mods"
             description = "These mods focus on improving your abilities."
             break
-        case "TitanPassive":
-            array<string> passiveData = GetTitanLoadoutPassiveData()
-            title = passiveData[0]
-            description = passiveData[1]
     }
 
     Hud_SetText( Hud_GetChild(panel, "Title"), title)
     Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription(description) )
 }
 
-void function OpenInventoryMenu()
+void function OpenInventoryMenu( bool isTitan )
 {
-	AdvanceMenu( file.menu )
+    file.isTitanMode = isTitan
+    file.slideFrac = isTitan ? 0.0 : 1.0
+
+    if (uiGlobal.activeMenu == null) // bruh
+	    AdvanceMenu( file.menu )
 }
 
 void function ModSlot_Hover( var slot, var panel )
 {
     string modIndex = expect string(slot.s.data)
+    bool isTitanMod = modIndex.find("Titan") != null
+    int chipIndex = int( modIndex.slice( 2, 3 ) )
+    int slotIndex = int( modIndex.slice( modIndex.len() - 1, modIndex.len() ) )
     table runData = Roguelike_GetRunData()
 
     RoguelikeMod mod = GetModForIndex(runData[modIndex])
+    if (!isTitanMod)
+    {
+        var chip = runData["ACPilot" + chipIndex]
+        mod = GetModForIndex( chip.mods[slotIndex] )
+    }
 
     Hud_SetText( Hud_GetChild(panel, "Title"), mod.name)
     Hud_SetText( Hud_GetChild(panel, "Description"), format("Energy Cost: ^FF800000%i^FFFFFFFF\n\n%s", mod.cost, FormatDescription(mod.description)) )
@@ -827,6 +850,11 @@ void function ModSlot_Click( var button )
 {
     var slot = Hud_GetParent( button )
 
+    string data = expect string( slot.s.data )
+    bool isTitan = data.find("Titan") != null
+    if (!isTitan)
+        return // REWORK - pilot mods are random
+
     ModSelect_SetContext( expect string( slot.s.data ), Hud_GetAbsX( slot ), Hud_GetAbsY( slot ) )
 
     OpenSubmenu( GetMenu("ModSelect"), false )
@@ -842,7 +870,7 @@ void function AttemptUpgrade( var env )
         return
 
     table data = {}
-    if (Hud_GetHudName(slot) == "Grenade" || StartsWith( Hud_GetHudName(slot), "AC" ) || StartsWith( Hud_GetHudName(slot), "Weapon" ) || Hud_GetHudName(slot) ==  "Datacore")
+    if (Hud_GetHudName(slot) in Roguelike_GetRunData())
     {
         data = expect table( Roguelike_GetRunData()[Hud_GetHudName(slot)] )
     }
@@ -876,9 +904,12 @@ void function AttemptUpgrade( var env )
     switch (data.type)
     {
         case "armor_chip":
-            data.energy += 1
-            if (data.subStats.len() > 0)
+            if (data.level == 2 && data.subStats.len() > 0)
                 data.boosts.append(0)
+            else
+            {
+                data.energy += 1
+            }
             break
         case "weapon":
             break
@@ -946,4 +977,24 @@ int function Roguelike_GetStat( int stat )
 int function Roguelike_GetStatRaw( int stat )
 {
     return int( split( GetConVarString("player_stats"), " " )[stat] )
+}
+
+void function Roguelike_PulseElem( var menu, var element, float delay = 0, int startAlpha = 255, int endAlpha = 0, float rate = 2.0 )
+{
+	EndSignal( menu, "StopMenuAnimation" )
+
+	Assert( element != null )
+
+	Signal( element, "ElemFlash" )
+	EndSignal( element, "ElemFlash" )
+
+	local duration = rate
+    wait delay
+	Hud_SetAlpha( element, startAlpha )
+	while ( true )
+	{
+		Hud_FadeOverTime( element, endAlpha, duration * 0.5, INTERPOLATOR_LINEAR )
+		wait duration
+        Hud_SetAlpha( element, startAlpha )
+	}
 }

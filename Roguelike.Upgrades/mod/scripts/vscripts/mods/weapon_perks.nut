@@ -174,6 +174,12 @@ void function WeaponPerks_Init()
         mod.allowedWeapons = ROGUELIKE_MOVEMENT_TOOLS
     }
     {
+        RoguelikeWeaponPerk mod = NewMod("cash_bonus")
+        mod.name = "Debt Collector"
+        mod.description = "Enemy kills grant additional cash."
+        mod.slot = PERK_SLOT_PERK
+    }
+    {
         RoguelikeWeaponPerk mod = NewMod("load_other_weapon_on_kill")
         mod.name = "Sidearm"
         mod.description = "On kill, reload your other weapon."
@@ -183,7 +189,7 @@ void function WeaponPerks_Init()
     {
         RoguelikeWeaponPerk mod = NewMod("rush")
         mod.name = "Rush"
-        mod.description = "Kills with this weapon grant <cyan>+40% movement speed for 8s</>."
+        mod.description = "Kills with this weapon grant <cyan>+40% movement speed for 8s.</>"
         mod.slot = PERK_SLOT_PERK
     }
     {
@@ -214,7 +220,7 @@ void function WeaponPerks_Init()
     }
     {
         RoguelikeWeaponPerk mod = NewMod("eva_choke")
-        mod.name = ""
+        mod.name = "Choke"
         mod.description = "Spread +100%, Range +50%."
         mod.slot = PERK_SLOT_PERK
         mod.allowedWeapons = ["mp_weapon_shotgun"]
@@ -252,7 +258,7 @@ void function WeaponPerks_Init()
     {
         RoguelikeWeaponPerk mod = NewMod("doom_shotgun")
         mod.name = "Super Shotgun"
-        mod.description = "+100% DMG, Reloads after every shot. No self-damage, <red>no shotgun launching</>."
+        mod.description = "+100% DMG, Reloads after every shot. No self-damage, <red>no shotgun launching.</>"
         mod.slot = PERK_SLOT_PERK
         mod.allowedWeapons = ["mp_weapon_mastiff"]
         #if SERVER || CLIENT
@@ -351,29 +357,33 @@ void function WeaponPerks_Init()
         #if SERVER || CLIENT
         mod.mwvCallback = void function( entity weapon, entity owner, int weaponLevel ) : (mod)
         {
+            ModWeaponVars_AddToVar( weapon, eWeaponVar.ammo_clip_size, weapon.GetWeaponSettingInt(eWeaponVar.ammo_per_shot) )
         }
         #endif
     }
     {
         RoguelikeWeaponPerk mod = NewMod("extra_cd")
         mod.name = "Cooldown++"
-        mod.description = "-10% cooldown."
+        mod.description = "-25% cooldown."
         mod.slot = PERK_SLOT_GRENADE
         #if SERVER || CLIENT
         mod.mwvCallback = void function( entity weapon, entity owner, int weaponLevel ) : (mod)
         {
+            ScaleCooldown( weapon, 0.75 )
         }
         #endif
     }
     {
         RoguelikeWeaponPerk mod = NewMod("impact_nade")
         mod.name = "Impact Frag"
-        mod.description = "Detonates on impact."
+        mod.description = "Detonates on impact. -50% DMG."
         mod.slot = PERK_SLOT_GRENADE
         mod.allowedWeapons = ["mp_weapon_frag_grenade"]
         #if SERVER || CLIENT
         mod.mwvCallback = void function( entity weapon, entity owner, int weaponLevel ) : (mod)
         {
+            ModWeaponVars_SetFloat( weapon, eWeaponVar.grenade_fuse_time, 0.0 )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_damage, 0.5 )
         }
         #endif
     }
@@ -383,6 +393,21 @@ void function WeaponPerks_Init()
         mod.description = "-50% DMG, +25% knockback."
         mod.slot = PERK_SLOT_GRENADE
         mod.allowedWeapons = ["mp_weapon_frag_grenade", "mp_weapon_satchel"]
+        #if SERVER || CLIENT
+        mod.mwvCallback = void function( entity weapon, entity owner, int weaponLevel ) : (mod)
+        {
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_damage, 0.5 )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.impulse_force, 1.25 )
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.impulse_force_explosions, 1.25 )
+        }
+        #endif
+    }
+    {
+        RoguelikeWeaponPerk mod = NewMod("multi-star")
+        mod.name = "Multi-Star"
+        mod.description = "Throw 3 stars at once for each charge."
+        mod.slot = PERK_SLOT_GRENADE
+        mod.allowedWeapons = ["mp_weapon_thermite_grenade", "mp_weapon_grenade_gravity"]
         #if SERVER || CLIENT
         mod.mwvCallback = void function( entity weapon, entity owner, int weaponLevel ) : (mod)
         {

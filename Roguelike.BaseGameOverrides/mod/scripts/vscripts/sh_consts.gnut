@@ -1068,8 +1068,8 @@ global const TITAN_DOOMED_REGEN_DELAY					= 0.5
 global const TITAN_DOOMED_REGEN_AMOUNT					= 0.0025
 
 #if SP
-global const TITAN_SHIELD_REGEN_DELAY					= 3.0
-global const TITAN_SHIELD_REGEN_TIME					= 3.0
+global const TITAN_SHIELD_REGEN_DELAY					= 3.0 // unused
+global const TITAN_SHIELD_REGEN_TIME					= 4.0
 #else
 global const TITAN_SHIELD_REGEN_DELAY					= 6.0
 global const TITAN_SHIELD_REGEN_TIME					= 6.0

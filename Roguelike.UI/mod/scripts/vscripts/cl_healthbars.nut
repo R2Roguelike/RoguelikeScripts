@@ -1,6 +1,7 @@
 untyped
 global function Healthbars_Init
 global function Healthbars_SetMenuState
+global function AddCallback_DisplaySignatureStatusEffect
 
 const int HEALTHBAR_INSTANCES = 7
 const array<int> INVULNERABLE_BAR_COLOR = [200, 150, 50, 255]
@@ -13,9 +14,15 @@ struct {
     array<entity> healthbarEntities = [ null, null, null, null, null, null, null, null ]
     array<entity> eliteHealthbarEntities = [ null, null, null, null, null, null, null, null ]
     array<entity> titanHealthbarEntities = [ null, null, null, null, null, null, null, null ]
+    table<string, void functionref( var, var, var, entity, entity )> signatureStatusEffects
     int healthbarIndex = 0
     int titanHealthbarIndex = 0
 } file
+
+void function AddCallback_DisplaySignatureStatusEffect( string loadout, void functionref( var, var, var, entity, entity ) callback )
+{
+    file.signatureStatusEffects[loadout] <- callback
+}
 
 void function Healthbars_Init()
 {
@@ -72,21 +79,22 @@ void function Healthbars_Think()
 
         entity lastPrimary = player.GetLatestPrimaryWeapon()
         bool isUsingRonin = IsValid(lastPrimary) && lastPrimary.GetWeaponClassName() == PRIMARY_RONIN
+        bool visible = player.GetCinematicEventFlags() == 0 && !clGlobal.isMenuOpen
         if (player.IsTitan() && isUsingRonin)
         {
-            bool hasMod = Roguelike_HasMod( player, "reflective_sword" )
+            bool hasMod = visible && Roguelike_HasMod( player, "reflective_sword" )
             Hud_SetVisible( HudElement("CrosshairBar"), hasMod )
             Hud_SetBarProgress( HudElement("CrosshairBar"), GraphCapped(RSE_Get( player, RoguelikeEffect.ronin_block_buff ), 0, 1, 0.370, 0.625) )
         }
         else if (!player.IsTitan())
         {
-            Hud_SetVisible( HudElement("CrosshairBar"), Roguelike_GetRunModifier("vanilla_movement") == 0 )
+            Hud_SetVisible( HudElement("CrosshairBar"), visible && Roguelike_GetRunModifier("vanilla_movement") == 0 )
             float speed = player.GetDodgePower()
-            float maxDashPower = 20.0
+            float dodgePowerDrain = 100.0
             if (Roguelike_HasMod( player, "double_dash" ))
-                maxDashPower = 40.0
-            Hud_SetBarProgress( HudElement("CrosshairBar"), GraphCapped(speed, 0, maxDashPower, 0.370, 0.625))
-            if (speed >= 19.99)
+                dodgePowerDrain = 50.0
+            Hud_SetBarProgress( HudElement("CrosshairBar"), GraphCapped(speed, 0, 100.0, 0.370, 0.625))
+            if (speed >= dodgePowerDrain)
                 Hud_SetColor( HudElement("CrosshairBar"), 0, 255, 255, 255 )
             else
                 Hud_SetColor( HudElement("CrosshairBar"), 144, 144, 144, 255 )
@@ -305,7 +313,7 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
             }
         }
         float segments = ent.GetMaxHealth() / healthPerSegment
-        int width = int(segments) * 21
+        int width = int(segments) * 16
         if (ent.GetMaxHealth() % healthPerSegment == 0)
             width -= 1
         else width += int((segments % 1.0) * 20)
@@ -438,9 +446,14 @@ void function TitanHealthBar( var healthbarsPanel, entity ent )
                         Hud_SetColor( statusEffectText, 32, 200, 32, 255 )
                         break
                     default:
-                        Hud_SetVisible( statusEffectBar, false )
-                        Hud_SetVisible( statusEffectText, false )
-                        Hud_SetVisible( statusEffectIcon, false )
+                        if (titanLoadout in file.signatureStatusEffects)
+                            file.signatureStatusEffects[titanLoadout]( statusEffectBar, statusEffectText, statusEffectIcon, ent, player )
+                        else
+                        {
+                            Hud_SetVisible( statusEffectBar, false )
+                            Hud_SetVisible( statusEffectText, false )
+                            Hud_SetVisible( statusEffectIcon, false )
+                        }
                         break
                 }
             }
@@ -479,11 +492,13 @@ void function Healthbars_SetMenuState( int state )
         case 0:
             clGlobal.isMenuOpen = false
             Hud_SetVisible(HudElement("Healthbars"), true)
+            Hud_SetVisible(HudElement("CrosshairBar"), true)
             break
         case 1:
         case 2:
             clGlobal.isMenuOpen = true
             Hud_SetVisible(HudElement("Healthbars"), false)
+            Hud_SetVisible(HudElement("CrosshairBar"), false)
             break
     }
 }

@@ -1,11 +1,14 @@
 global function LimitedLoadoutChoice_Init
+global function Roguelike_SetLoadouts
 
 struct
 {
     var menu
     array<string> selectedLoadouts = []
-    array<string> choices = []
+    array<RoguelikeLoadout> choices = []
     int choice = -1
+    int option1 = -1
+    int option2 = -1
 } file
 
 void function LimitedLoadoutChoice_Init()
@@ -43,20 +46,30 @@ void function ConfirmClick(var b)
 
     table runData = Roguelike_GetRunData()
     array<string> loadouts = Roguelike_GetTitanLoadouts()
-    loadouts.append(file.choices[file.choice])
+    loadouts.append(file.choices[file.choice].primary)
     SetConVarString("roguelike_titan_loadout", JoinStringArray( loadouts, " " ) )
     runData.loadouts = GetConVarString("roguelike_titan_loadout")
     CloseActiveMenu(true)
 }
+
+void function Roguelike_SetLoadouts( array<string> loadouts )
+{
+    table runData = Roguelike_GetRunData()
+    SetConVarString("roguelike_titan_loadout", JoinStringArray( loadouts, " " ) )
+    runData.loadouts = GetConVarString("roguelike_titan_loadout")
+
+    Roguelike_ForceRefreshInventory()
+}
+
 void function Choice1Click(var b)
 {
-    file.choice = 0
+    file.choice = file.option1
     VGUIButtonLoadout_SetState( Hud_GetChild( file.menu, "Choice1" ), eVGUIButtonLoadoutState.Selected )
     VGUIButtonLoadout_SetState( Hud_GetChild( file.menu, "Choice2" ), eVGUIButtonLoadoutState.None )
 }
 void function Choice2Click(var b)
 {
-    file.choice = 1
+    file.choice = file.option2
     VGUIButtonLoadout_SetState( Hud_GetChild( file.menu, "Choice1" ), eVGUIButtonLoadoutState.None )
     VGUIButtonLoadout_SetState( Hud_GetChild( file.menu, "Choice2" ), eVGUIButtonLoadoutState.Selected )
 }
@@ -71,25 +84,29 @@ void function OnMenuOpen()
     file.selectedLoadouts = Roguelike_GetTitanLoadouts()
     
     file.choices.clear()
-    foreach (string loadout in VALID_LOADOUTS)
+    foreach (RoguelikeLoadout loadout in VALID_LOADOUTS)
     {
-        if (LOCKED_LOADOUTS.contains(loadout))
+        if (LOCKED_LOADOUTS.contains(loadout.primary) || (loadout.primary == "mp_titanweapon_archon_arc_cannon" && !Roguelike_IsLoadoutUnlocked( loadout )))
             continue
-        if (file.selectedLoadouts.contains(loadout))
+        if (file.selectedLoadouts.contains(loadout.primary))
             continue
 
         file.choices.append(loadout)
     }
 
-    foreach (string c in file.choices)
-        printt(c)
-    file.choices.randomize()
+    foreach (RoguelikeLoadout c in file.choices)
+        printt(c.primary)
+
+    PRandom rand = NewPRandom( Roguelike_GetRunSeed() + 0x312 )
+    file.option1 = PRandomInt( rand, file.choices.len() )
+    while (file.option2 == -1 || file.option2 == file.option1)
+        file.option2 = PRandomInt( rand, file.choices.len() )
 
     file.choice = -1
-    VGUIButtonLoadout_SetText( Hud_GetChild( file.menu, "Choice1" ), GetTitanNameFromWeapon( file.choices[0] ) )
+    VGUIButtonLoadout_SetText( Hud_GetChild( file.menu, "Choice1" ), file.choices[file.option1].name )
     VGUIButtonLoadout_SetState( Hud_GetChild( file.menu, "Choice1" ), eVGUIButtonLoadoutState.None )
-    VGUIButtonLoadout_SetDescriptionText( Hud_GetChild( file.menu, "Choice1" ), FormatDescription(GetTitanDescription( file.choices[0] )) )
-    VGUIButtonLoadout_SetText( Hud_GetChild( file.menu, "Choice2" ), GetTitanNameFromWeapon( file.choices[1] ) )
-    VGUIButtonLoadout_SetDescriptionText( Hud_GetChild( file.menu, "Choice2" ), FormatDescription(GetTitanDescription( file.choices[1] )) )
+    VGUIButtonLoadout_SetDescriptionText( Hud_GetChild( file.menu, "Choice1" ), FormatDescription(file.choices[file.option1].description) )
+    VGUIButtonLoadout_SetText( Hud_GetChild( file.menu, "Choice2" ), file.choices[file.option2].name )
+    VGUIButtonLoadout_SetDescriptionText( Hud_GetChild( file.menu, "Choice2" ), FormatDescription(file.choices[file.option2].description) )
     VGUIButtonLoadout_SetState( Hud_GetChild( file.menu, "Choice2" ), eVGUIButtonLoadoutState.None )
 }

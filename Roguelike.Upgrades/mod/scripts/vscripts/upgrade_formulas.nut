@@ -17,7 +17,10 @@ float function Roguelike_GetPilotSpeedBonus( int speed )
 
 float function Roguelike_GetTitanDamageMultiplier( int armor )
 {
-    return 250.0 / (250.0 + armor)
+    float base = 250
+    base += 1 * min(armor, 50)
+    base += 0.25 * max(armor - 50, 0)
+    return 200.0 / (200.0 + armor)
 }
 
 float function Roguelike_GetTitanDamageResist( int armor )
@@ -29,8 +32,8 @@ float function Roguelike_GetTitanDamageResist( int armor )
 int function Roguelike_GetBatteryHealingMultiplier( int armor )
 {
     int base = 800
-    base += 8 * minint(armor, 40)
-    base += 8 * maxint(armor - 40, 0)
+    base += 4 * minint(armor, 100)
+    base += 2 * maxint(armor - 100, 0)
     return base
 }
 
@@ -38,7 +41,7 @@ int function Roguelike_GetBatteryHealingMultiplier( int armor )
 float function Roguelike_GetDashCooldownMultiplier( int energy )
 {
     //return Graph( energy, 0, 150, 1.2, 0.1 )
-    return 1.0 * pow(0.6, energy / 100.0) // +20% cd when low, -90% when max
+    return 1.0 * pow(0.5, energy / 100.0) // +20% cd when low, -90% when max
 }
 
 float function Roguelike_BaseCritRate( int energy )
@@ -55,12 +58,12 @@ float function Roguelike_BaseCritDMG( int energy )
 
 float function Roguelike_GetPilotCooldownReduction( int power )
 {
-    return 1.25 * pow(0.4, power / 100.0) // +50% cd when low, -40% when max
+    return 1.25 * pow(0.5, power / 100.0) // +50% cd when low, -40% when max
 }
 
 float function Roguelike_GetPilotCloakDuration( int power )
 {
-    return 1.0 + 0.01 * power // +50% cd when low, -40% when max
+    return 1.0 + 0.005 * power // +50% cd when low, -40% when max
 }
 
 float function Roguelike_GetGrenadeDamageBoost( int power )
@@ -71,13 +74,13 @@ float function Roguelike_GetGrenadeDamageBoost( int power )
 
 float function Roguelike_GetTitanCoreGain( int power )
 {
-    return 0.5 + 0.0025 * power // -20% when low
+    return 0.5 + 0.01 * power // -20% when low
 }
 
 float function Roguelike_GetTitanCooldownReduction( int power )
 {
     float base = 1.5
-    base *= pow(0.8, (power) / 40.0)
+    base *= pow(0.666, (power) / 50.0)
     return base // -20% when low
 }
 
@@ -85,15 +88,6 @@ float function Roguelike_GetTitanReloadSpeedBonus( int power )
 {
     float base = 1.0 + 0.004 * power
     return base // -20% when low
-}
-
-// bitwise OR of two bits corresponding to titan loadouts
-// used for knowing which combination of loadouts we're using, regardless of order
-// e.g. scorch + ronin = 0x4 | 0x10 = 0x14
-int function GetTitanLoadoutFlags()
-{
-    array<string> titanLoadouts = Roguelike_GetTitanLoadouts()
-    return TITAN_BITS[titanLoadouts[0]] | TITAN_BITS[titanLoadouts[1]]
 }
 
 bool function Roguelike_HasTitanLoadout(string weapon)
@@ -109,9 +103,16 @@ int function Roguelike_GetUpgradePrice( table item )
     return price
 }
 
+int function Roguelike_GetTitanMaxHealth()
+{
+    int base = 12500
+
+    return base
+}
+
 int function Roguelike_GetPurchasePrice( table item )
 {
-    return SHOP_LOOT_PRICE
+    return SHOP_LOOT_PRICE + SHOP_LOOT_PRICE_PERRARITY * expect int(item.rarity)
 }
 
 int function Roguelike_GetItemMaxLevel( table item )
@@ -146,6 +147,21 @@ array function GetTitanTextColor(string primary)
     return [255, 255, 255, 255]
 }
 
+array function GetModColor( RoguelikeMod mod )
+{
+    if (mod.colorTag != "")
+        return GetTitanColor( mod.colorTag )
+    
+    if (mod.loadouts.len() == 1 && mod.isTitan)
+    {
+        RoguelikeLoadout ornull loadout = Roguelike_GetLoadoutFromWeapon( mod.loadouts[0] )
+        expect RoguelikeLoadout( loadout )
+        return loadout.color
+    }
+
+    return [255,255,255,255]
+}
+
 // first element is name, 2nd element is description
 array function GetTitanColor(string primary)
 {
@@ -165,9 +181,11 @@ array function GetTitanColor(string primary)
             return [64, 255, 255, 255]
         case "mp_titanweapon_sticky_40mm":
             return [32, 200, 32, 255]
+        case "empty":
+            return [127, 127, 127, 255]
     }
 
-    return [40,40,40,255]
+    return [255,255,255,255]
 }
 
 // first element is name, 2nd element is description
@@ -175,5 +193,4 @@ array<string> function GetTitanLoadoutPassiveData()
 {
     return ["No Passive", "No passive is active for this loadout combination."]
 }
-
 

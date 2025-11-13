@@ -571,7 +571,7 @@ bool function TryVortexAbsorb( entity vortexSphere, entity attacker, vector orig
 	local impactData = Vortex_CreateImpactEventData( vortexWeapon, attacker, origin, damageSourceID, weaponName, impactType )
 
 	VortexDrainedByImpact( vortexWeapon, weapon, projectile, damageType )
-	Vortex_NotifyAttackerDidDamage( expect entity( impactData.attacker ), owner, impactData.origin )
+	Vortex_NotifyAttackerDidDamage( expect entity( impactData.attacker ), owner, impactData.origin, damageSourceID )
 
 	if ( impactData.refireBehavior == VORTEX_REFIRE_ABSORB )
 		return true
@@ -1339,7 +1339,7 @@ int function GetHitscanBulletImpactCount( entity vortexWeapon )
 #endif // SERVER
 
 // // lets the damage callback communicate to the attacker that he hit a vortex shield
-function Vortex_NotifyAttackerDidDamage( entity attacker, entity vortexOwner, hitPos )
+function Vortex_NotifyAttackerDidDamage( entity attacker, entity vortexOwner, hitPos, int damageSourceID )
 {
 	if ( !IsValid( attacker ) || !attacker.IsPlayer() )
 		return
@@ -1348,6 +1348,11 @@ function Vortex_NotifyAttackerDidDamage( entity attacker, entity vortexOwner, hi
 		return
 
 	Assert( hitPos )
+
+	int flags = DAMAGEFLAG_VICTIM_HAS_VORTEX
+	
+	string damageSourceIdStr = DamageSourceIDToString(damageSourceID)
+	flags = flags | Roguelike_GetWeaponElement( damageSourceIdStr )
 
 	attacker.NotifyDidDamage( vortexOwner, 0, hitPos, 0, 0, DAMAGEFLAG_VICTIM_HAS_VORTEX, 0, null, 0 )
 }
@@ -1797,14 +1802,18 @@ bool function CodeCallback_OnVortexHitProjectile( entity weapon, entity vortexSp
 		damage = HandleWeakToPilotWeapons( vortexSphere, projectile.ProjectileGetWeaponClassName(), damage )
 		damage = damage + CalculateTitanSniperExtraDamage( projectile, vortexSphere )
 
-		if (Roguelike_HasMod( attacker, "anti_shield" ))
+		if (IsValid(attacker) && Roguelike_HasMod( attacker, "anti_shield" ))
 			damage *= 5
 
 		if ( takesDamage )
 		{
 			VortexSphereDrainHealthForDamage( vortexSphere, damage )
+
+			string damageSourceIdStr = DamageSourceIDToString(projectile.ProjectileGetDamageSourceID())
+			int flags = Roguelike_GetWeaponElement( damageSourceIdStr )
+
 			if ( IsValid( attacker ) && attacker.IsPlayer() )
-				attacker.NotifyDidDamage( vortexSphere, 0, contactPos, 0, damage, DF_NO_HITBEEP, 0, null, 0 )
+				attacker.NotifyDidDamage( vortexSphere, 0, contactPos, 0, damage, DF_NO_HITBEEP | flags, 0, null, 0 )
 		}
 
 		var impact_sound_3p = projectile.ProjectileGetWeaponInfoFileKeyField( "vortex_impact_sound_3p" )

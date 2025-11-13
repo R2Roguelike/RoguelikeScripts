@@ -181,14 +181,14 @@ void function AddBurn( entity ent, entity attacker, float amount )
 
     entity canister = Roguelike_GetOffhandWeaponByName( attacker, "mp_titanability_slow_trap" )
     entity wall = Roguelike_GetOffhandWeaponByName( attacker, "mp_titanweapon_flame_wall" )
-    if (IsValid(canister) && Roguelike_HasMod(attacker, "gas_recycle"))
+    if (IsValid(wall) && Roguelike_HasMod(attacker, "gas_recycle"))
     {
-        entity otherUtility = Roguelike_GetAlternateOffhand( attacker, OFFHAND_TITAN_CENTER )
+        entity otherUtility = Roguelike_GetAlternateOffhand( attacker, OFFHAND_RIGHT )
         if (IsValid( otherUtility ))
-            RestoreCooldown( otherUtility, 0.003 )
+            RestoreCooldown( otherUtility, 0.004 )
 
-        if (canister != null)
-            RestoreCooldown( canister, 0.003 )
+        if (wall != null)
+            RestoreCooldown( wall, 0.004 )
     }
 
     float cur = RSE_Get( ent, RoguelikeEffect.burn )

@@ -24,6 +24,7 @@ void function MpTitanWeaponpredatorcannon_Init()
 	PrecacheParticleSystem( SPIN_EFFECT_3P )
 
     AddCallback_ApplyModWeaponVars( WEAPON_VAR_PRIORITY_OVERRIDE, PredatorCannon_ApplyModWeaponVars )
+    AddCallback_ApplyModWeaponVars( WEAPON_VAR_PRIORITY_MULT + 1, PredatorCannon_MagSizeBonuses )
     AddCallback_ApplyModWeaponVars( WEAPON_VAR_PRIORITY_OVERRIDE, PowerShot_ApplyModWeaponVars )
 
 	#if SERVER
@@ -41,8 +42,8 @@ void function PowerShot_ApplyModWeaponVars( entity weapon )
 	if (!IsValid(owner) || !owner.IsPlayer())
 		return
 
-	array<string> bonusChargeMods = ["swap_load", "stat_belt", "mag_dump", "ready_up",
-									"charge_power", "power_shield", "support_puncture"]
+	array<string> bonusChargeMods = ["swap_load", "stat_belt", "mag_dump",
+									"charge_power", "shield_threat", "support_puncture"]
 
 	int extraCharges = 0
 	foreach (string mod in bonusChargeMods)
@@ -57,6 +58,21 @@ void function PowerShot_ApplyModWeaponVars( entity weapon )
 	int charges = weapon.GetWeaponSettingInt( eWeaponVar.ammo_clip_size ) / ammo_per_shot
 	if (Roguelike_HasMod( owner, "charge_power" ))
 		ScaleCooldown( weapon, 10.0 / (9 + charges))
+}
+
+void function PredatorCannon_MagSizeBonuses( entity weapon )
+{
+	if (weapon.GetWeaponClassName() != "mp_titanweapon_predator_cannon")
+		return
+	entity owner = weapon.GetWeaponOwner()
+	if (!IsValid(owner) || !owner.IsPlayer())
+		return
+
+	int mag = weapon.GetWeaponSettingInt(eWeaponVar.ammo_clip_size)
+
+	if (Roguelike_HasMod( owner, "ready_up" ))
+		foreach (int weaponVar in RELOAD_TIME_VARS)
+			ModWeaponVars_ScaleVar( weapon, weaponVar, 100.0 / (mag) )
 }
 
 void function PredatorCannon_ApplyModWeaponVars( entity weapon )
@@ -74,19 +90,19 @@ void function PredatorCannon_ApplyModWeaponVars( entity weapon )
 	bool PowerShot = CloseRangePowerShot || LongRangePowerShot
 	bool LongRangeAmmo = weapon.HasMod("LongRangeAmmo")
 
-	array<string> magSizeMods = ["focus_crystal", "shotgun_mode", "marksman_mode", "consumption", "mag_cap", "puncture_crit_dmg", "gun_shield_shield",
+	array<string> magSizeMods = ["focus_crystal", "shotgun_mode", "marksman_mode", "consumption", "mag_cap", "puncture_crit_dmg", "gun_shield_shield", "ready_up",
 								"long_range_ammo"]
 	int bonusMag = 0
 	foreach (string mod in magSizeMods)
 	{
 		if (Roguelike_HasMod( owner, mod ))
-			bonusMag += 20
+			bonusMag += 25
 	}
 
 	if (Roguelike_HasMod(owner, "stat_belt"))
 	{
 		int energy = Roguelike_GetStat( owner, STAT_ENERGY )
-		bonusMag += minint(energy, 20) + maxint((energy - 20) / 2, 0)
+		bonusMag += minint(energy, 30) + maxint((energy - 30) / 2, 0)
 	}
 
 	ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_clip_size, 100 + bonusMag )
@@ -460,14 +476,14 @@ void function Roguelike_PredatorCannon_DamagedTarget( entity ent, var damageInfo
 	if (IsValid(weapon))
 	{
 		mods = weapon.GetMods()
-		bullets = weapon.GetWeaponPrimaryClipCount()
+		bullets = weapon.GetWeaponPrimaryClipCountMax()
 		overcap = weapon.GetWeaponSettingInt( eWeaponVar.custom_int_3 )
 	}
 	if (IsValid(inflictor) && inflictor.IsProjectile())
 	{
 		mods = inflictor.ProjectileGetMods()
 		if ("bullets" in inflictor.s)
-			bullets = expect int(inflictor.s.bullets)
+			bullets = inflictor.GetProjectileWeaponSettingInt( eWeaponVar.ammo_clip_size )
 		overcap = inflictor.GetProjectileWeaponSettingInt( eWeaponVar.custom_int_3 )
 	}
 	isPowerShot = mods.contains("LongRangePowerShot") || mods.contains("CloseRangePowerShot")

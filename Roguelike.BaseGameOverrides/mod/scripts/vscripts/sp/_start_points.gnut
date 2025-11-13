@@ -164,10 +164,14 @@ void function StartPoints_EntitiesDidLoad()
 		waitthread startPoint.setup( player )
 	}
 
+	SetServerVar( "timerVisible", true )
 	for ( int i = startIndex; i < file.startPointsArray.len(); i++ )
 	{
 		StartPoint startPoint = file.startPointsArray[ i ]
 		SetCurrentStartPoint( startPoint.startPointEnum )
+
+		if (DISABLE_SAVE_MAPS.contains(GetMapName()))
+		ServerToClientStringCommand( player, "run_backup " + i ) // save data now
 
 		waitthread startPoint.main( player )
 	}

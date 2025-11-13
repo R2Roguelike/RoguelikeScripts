@@ -27,8 +27,15 @@ void function SaveGame_LoadWithStartPointFallback( int detent = DETENT_FORCE_DIS
 	string saveName = GetSaveName()
 	string mapName = SaveGame_GetMapName( saveName )
 	int startPointIndex = SaveGame_GetStartPoint( saveName )
+	bool loadSave = SaveGame_GetVersion( saveName ) == SAVEGAME_VERSION
+	#if SERVER && SP
+	loadSave = loadSave && (!DISABLE_SAVE_MAPS.contains(mapName) || mapName != GetMapName())
+	#endif
+	#if UI
+	loadSave = loadSave && (!DISABLE_SAVE_MAPS.contains(mapName) || mapName != GetActiveLevel())
+	#endif
 
-	if ( SaveGame_GetVersion( saveName ) == SAVEGAME_VERSION )
+	if ( loadSave )
 	{
 		// normal level load
 		array<string> clientCommands = GetLoadingClientCommands( mapName, startPointIndex, detent, coopersLog )
@@ -43,7 +50,11 @@ void function SaveGame_LoadWithStartPointFallback( int detent = DETENT_FORCE_DIS
 			Dev_CommandLineRemoveParm( STARTPOINT_DEV_STRING )
 	}
 
-	startPointIndex = GetStartPointToLastGameplayLegalStartPoint( mapName, startPointIndex )
+	#if UI
+	table runData = Roguelike_GetRunData()
+	mapName = expect string(runData.map)
+	startPointIndex = expect int(runData.startPointIndex)
+	#endif
 	ExecuteLoadingClientCommands_SetStartPoint( mapName, startPointIndex, detent, coopersLog )
 
 	#if UI

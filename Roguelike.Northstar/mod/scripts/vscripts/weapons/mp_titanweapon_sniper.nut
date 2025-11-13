@@ -86,19 +86,34 @@ void function OnHit_TitanWeaponSniper_Internal( entity victim, var damageInfo )
 		}
 
 
-		if ((DamageInfo_GetCustomDamageType( damageInfo ) & DF_CRITICAL) > 0)
+		if ((DamageInfo_GetCustomDamageType( damageInfo ) & DF_CRITICAL) > 0) // apply disorder instead of 
 		{
 			DamageInfo_AddCritDMG( damageInfo, 0.35 * RSE_Get( victim, RoguelikeEffect.northstar_fulminate ))
-			RSE_Stop( victim, RoguelikeEffect.northstar_fulminate )
+			if (RSE_Get( victim, RoguelikeEffect.ion_charge ) < 0.99) // let disorders happen!
+				RSE_Stop( victim, RoguelikeEffect.northstar_fulminate )
 		}
 	}
 
 
 	//Check to see if damage has been see to zero so we don't override it.
-	if ( damage > 0 && extraDamage > 0 )
+	if ( damage > 0 )
 	{
 		damage += f_extraDamage
-		DamageInfo_SetDamage( damageInfo, damage )
+
+		if (Roguelike_HasMod( attacker, "pierce_dmg" ) && IsValid(attacker.GetTitanSoul()))
+		{
+			damage += 0.25 * attacker.GetTitanSoul().GetShieldHealthMax() // in b4 this goes kind of insane?????????????
+		}
+
+        array<string> dmgMods = ["cluster_core", "big_finish", "railgun_hp", "tether_crit", "crit_charge"]
+        int count = 0;
+        foreach (string mod in dmgMods)
+        {
+            if (Roguelike_HasMod( attacker, mod ))
+                count++
+        }
+
+		DamageInfo_SetDamage( damageInfo, damage * (1 + 0.05 * count) )
 	}
 
 	if (IsValid(attacker) && Roguelike_HasMod( attacker, "railgun_hp" ))
@@ -206,6 +221,12 @@ function FireSniper( entity weapon, WeaponPrimaryAttackParams attackParams, bool
 		if ( !playerFired )
 			shouldCreateProjectile = false
 	#endif
+	
+	float bgChargeTime = weapon.GetWeaponSettingFloat( eWeaponVar.charge_time ) * 2.0 // x2 charge time
+
+	weapon.s.railgunEndChargeTime <- (Time() + bgChargeTime * 1.0) + 1.0
+	weapon.s.railgunStartChargeTime <- Time() + 1.0
+	weapon.s.railgunStartChargeFrac <- weapon.GetWeaponChargeFraction()
 
 	if ( !shouldCreateProjectile )
 		return 1

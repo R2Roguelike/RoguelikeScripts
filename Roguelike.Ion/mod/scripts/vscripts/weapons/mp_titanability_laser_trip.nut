@@ -21,7 +21,7 @@ const asset LASER_TRIP_MODEL = $"models/weapons/titan_trip_wire/titan_trip_wire.
 const asset LASER_TRIP_FX_ALL = $"P_wpn_lasertrip_base"
 const asset LASER_TRIP_FX_FRIENDLY = $"wpn_grenade_frag_blue_icon"
 const asset LASER_TRIP_EXPLODE_FX = $"P_impact_exp_XLG_metal"
-const float LASER_TRIP_HEALTH = 300.0
+const float LASER_TRIP_HEALTH = 1500.0
 const float LASER_TRIP_INNER_RADIUS = 400.0
 const float LASER_TRIP_OUTER_RADIUS = 400.0
 const float LASER_TRIP_DAMAGE = 200.0
@@ -31,7 +31,7 @@ const float LASER_TRIP_BIGZAP_RANGE = 1500.0
 
 const float LASER_TRIP_LIFETIME = 12.0
 const float LASER_TRIP_BUILD_TIME = 1.0
-const int LASER_TRIP_MAX = 9
+const int LASER_TRIP_MAX = 3
 
 const float LASER_TRIP_DEPLOY_POWER = 900.0
 const float LASER_TRIP_DEPLOY_SIDE_POWER = 1200.0
@@ -131,14 +131,22 @@ var function OnWeaponPrimaryAttack_titanweapon_laser_trip( entity weapon, Weapon
 
 	dir.z = min( dir.z, -0.2 )
 
-	attackParams.dir = dir - right
-	deployables.append( ThrowDeployable( weapon, attackParams, LASER_TRIP_DEPLOY_SIDE_POWER, OnLaserPylonPlanted ) )
+	if (Roguelike_HasMod( owner, "pylon_charge"))
+	{
+		attackParams.dir = dir
+		deployables.append( ThrowDeployable( weapon, attackParams, LASER_TRIP_DEPLOY_POWER, OnLaserPylonPlanted ) )
+	}
+	else
+	{
+		attackParams.dir = dir - right
+		deployables.append( ThrowDeployable( weapon, attackParams, LASER_TRIP_DEPLOY_SIDE_POWER, OnLaserPylonPlanted ) )
 
-	attackParams.dir = dir
-	deployables.append( ThrowDeployable( weapon, attackParams, LASER_TRIP_DEPLOY_POWER, OnLaserPylonPlanted ) )
+		attackParams.dir = dir
+		deployables.append( ThrowDeployable( weapon, attackParams, LASER_TRIP_DEPLOY_POWER, OnLaserPylonPlanted ) )
 
-	attackParams.dir = dir + right
-	deployables.append( ThrowDeployable( weapon, attackParams, LASER_TRIP_DEPLOY_SIDE_POWER, OnLaserPylonPlanted ) )
+		attackParams.dir = dir + right
+		deployables.append( ThrowDeployable( weapon, attackParams, LASER_TRIP_DEPLOY_SIDE_POWER, OnLaserPylonPlanted ) )
+	}
 
 	#if SERVER
 	foreach ( i, deployable in deployables )
@@ -187,25 +195,32 @@ function DeployLaserPylon( entity projectile )
 
 	int team = owner.GetTeam()
 	array<entity> pylons = GetScriptManagedEntArray( owner.e.laserPylonArrayIdx )
-	if ( pylons.len() >= LASER_TRIP_MAX )
+	int maxPylons = LASER_TRIP_MAX
+	if (Roguelike_HasMod( owner, "pylon_charge"))
+		maxPylons = 1
+	
+	if ( pylons.len() >= maxPylons )
 	{
 		pylons.sort( SortBySpawnTime )
 		pylons[0].Destroy()
 	}
 
-	entity tower = CreatePropScript( LASER_TRIP_MODEL, origin, angles, SOLID_VPHYSICS )
+	entity tower = CreatePropScript( LASER_TRIP_MODEL, origin, angles, SOLID_VPHYSICS, -1 )
 	tower.kv.collisionGroup = TRACE_COLLISION_GROUP_BLOCK_WEAPONS
-	tower.EnableAttackableByAI( 20, 0, AI_AP_FLAG_NONE )
 	SetTargetName( tower, "Laser Tripwire Base" )
+	tower.EnableAttackableByAI( 20, 0, AI_AP_FLAG_NONE )
 	tower.SetMaxHealth( LASER_TRIP_HEALTH )
 	tower.SetHealth( LASER_TRIP_HEALTH )
-	tower.SetTakeDamageType( DAMAGE_YES )
+	tower.SetTakeDamageType( DAMAGE_NO )
 	tower.SetDamageNotifications( true )
 	tower.SetDeathNotifications( true )
 	tower.SetOwner( owner.GetTitanSoul() )
 	tower.SetArmorType( ARMOR_TYPE_HEAVY )
 	tower.SetTitle( "Laser Tripwire" )
 	tower.EndSignal( "OnDestroy" )
+	tower.NotSolid() // doesnt take
+	if (Roguelike_HasMod( owner, "pylon_charge"))
+		tower.kv.ModelScale = 2.0
 	EmitSoundOnEntity( tower, "Wpn_LaserTripMine_Land" )
 	tower.e.noOwnerFriendlyFire = true
 
@@ -394,7 +409,108 @@ function DeployLaserPylon( entity projectile )
 	if ( !IsNPCTitan( owner ) )
 		owner.EndSignal( "OnDeath" )
 
-	wait LASER_TRIP_LIFETIME
+	if (!owner.IsPlayer())
+	{
+		wait LASER_TRIP_LIFETIME
+		return
+	}
+	thread Ion_LaserTurret( tower, pylon, owner )
+	// roguelike - turret pylons
+	while (true)
+	{
+		if (Roguelike_HasMod( owner, "pylon_charge"))
+			wait 0.049
+		else
+			wait 0.249
+		
+		if (DistanceSqr(owner.GetOrigin(), pylon.GetOrigin()) < 500 * 500)
+		{
+			entity soul = owner.GetTitanSoul()
+			if (IsValid(soul))
+			{
+				if (Roguelike_HasMod( owner, "repair_turret"))
+					soul.SetShieldHealth(minint(soul.GetShieldHealthMax(), soul.GetShieldHealth() + 20)) // * 12 for restoration speed (currently 240/s)
+				if (Roguelike_HasMod( owner, "repair_turret"))
+					RSE_Apply( owner, RoguelikeEffect.buff_turret, 1.0, 1.0, 1.0 ) // * 12 for restoration speed (currently 240/s)
+			}
+		}
+
+		if (!("turretTarget" in owner.s))
+			continue
+
+		entity target = expect entity(owner.s.turretTarget)
+
+		if (!IsValid(target) || !IsAlive(target))
+			continue
+		if (DistanceSqr(target.GetOrigin(), pylon.GetOrigin()) > 4000 * 4000)
+			continue
+		
+		entity primary = Roguelike_FindWeapon( owner, "mp_titanweapon_particle_accelerator" )
+		if (!IsValid(primary))
+			continue
+
+		vector pos = tower.GetWorldSpaceCenter() + <0,0,48>
+		vector targetPos = target.IsTitan() ? target.GetAttachmentOrigin(target.LookupAttachment( "exp_torso_main" )) : target.GetWorldSpaceCenter()
+		vector dir = LeadPosition( pos, targetPos, target.GetVelocity(), 8000.0 )
+		int damageType = damageTypes.largeCaliber | DF_STOPS_TITAN_REGEN
+		entity bolt = primary.FireWeaponBolt( owner.EyePosition(), dir, 8000.0, damageType, damageType, false, 0 )
+		bolt.SetOrigin(pos)
+		bolt.s.turretBolt <- true
+
+	}
+}
+
+void function Ion_LaserTurret( entity tower, entity pylon, entity owner )
+{
+	tower.EndSignal("OnDestroy")
+	pylon.EndSignal("OnDestroy")
+	owner.EndSignal("OnDeath")
+
+	while (true)
+	{
+		table results = owner.WaitSignal( "OnPrimaryAttack" )
+		entity weapon = expect entity(results.activator)
+		
+		if (weapon.GetInventoryIndex() != 0 || !weapon.IsWeaponOffhand())
+			continue
+		
+		if (!Roguelike_HasMod( owner, "laser_turret" ))
+			continue
+		
+		if (!("turretTarget" in owner.s))
+			continue
+
+
+		entity target = expect entity(owner.s.turretTarget)
+	
+		if (!IsValid(target) || !IsAlive(target))
+			continue
+		if (DistanceSqr(target.GetOrigin(), pylon.GetOrigin()) > 4000 * 4000)
+			continue
+
+		entity primary = Roguelike_FindWeapon( owner, "mp_titanweapon_particle_accelerator" )
+		if (!IsValid(primary))
+			continue
+
+		vector pos = tower.GetWorldSpaceCenter() + <0,0,48>
+		//vector targetPos = target.IsTitan() ? target.GetAttachmentOrigin(target.LookupAttachment( "exp_torso_main" )) : target.GetWorldSpaceCenter()
+		//vector dir = Normalize(targetPos - pos)
+		for (int i = 0; i < 5; i++)
+		{
+			EmitSoundOnEntity( pylon, "ShoulderRocket_Paint_Fire_3P" )
+			entity missile = primary.FireWeaponMissile( pos, <0,0,1>, 1250, damageTypes.explosive, damageTypes.explosive, false, false )
+			missile.SetWeaponClassName("mp_titanweapon_shoulder_rockets") // THIS IS A MISSILE!
+        	missile.proj.damageScale = 100.0 / missile.GetProjectileWeaponSettingInt(eWeaponVar.damage_near_value_titanarmor)
+			if (Roguelike_HasMod( owner, "pylon_charge"))
+				missile.proj.damageScale *= 3 // big turret, big damage!
+			missile.e.procs.append("laser_turret")
+
+			missile.SetMissileTarget( target, <0,0,0> )
+			missile.SetHomingSpeeds(250, 250)
+
+			wait 0.09 // 0.05s delay between fire
+		}
+	}
 }
 
 void function StopLaserSoundAtPosition( entity pylon, vector position )
@@ -430,7 +546,7 @@ void function LaserPylonSetThink( entity pylon1, entity pylon2, int ownerTeam )
 			if ( OBBIntersectsOBB( laserOBBOrigin, laserOOBAngles, laserOOBMins, laserOOBMaxs, enemy.GetOrigin(), <0.0,0.0,0.0>, enemy.GetBoundingMins(), enemy.GetBoundingMaxs(), 0.0 ) )
 			{
 				//ExplodeAllStickies( enemy, pylon1.GetOwner() )
-				pylon1.Destroy()
+				//pylon1.Destroy()
 			}
 		}
 
@@ -442,6 +558,9 @@ void function OnPylonBodyDamaged( entity pylonBody, var damageInfo )
 {
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
 	int attackerTeam = attacker.GetTeam()
+
+	if (IsTitanCrushDamage( damageInfo ))
+		DamageInfo_ScaleDamage( damageInfo, 0 ) // no >:(
 
 	if ( pylonBody.GetTeam() != attacker.GetTeam() && DamageInfo_GetDamageSourceIdentifier( damageInfo ) != eDamageSourceId.mp_titanability_laser_trip )
 	{
@@ -481,9 +600,5 @@ void function LaserTrip_DamagedPlayerOrNPC( entity ent, var damageInfo )
 	float cur = RSE_Get( ent, RoguelikeEffect.ion_charge )
 	cur += 0.25
 	RSE_Apply( ent, RoguelikeEffect.ion_charge, min(cur, 1.0) )
-	if (cur > 0.99 || Roguelike_HasMod( attacker, "pylon_charge" ))
-	{
-		IonDischarge( ent, attacker, damageInfo )
-	}
 }
 #endif

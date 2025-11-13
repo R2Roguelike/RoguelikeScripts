@@ -41,7 +41,7 @@ void function OnPlayerDodge( entity player )
     }
     file.lastDodgeTime = Time()
 
-    Remote_CallFunction_Replay( player, "ServerCallback_FlashCockpitInvulnerable" )
+    Remote_CallFunction_Replay( player, "ServerCallback_FlashCockpitInvulnerable", -0.7 )
 }
 
 float function GetLastDodgeTime()
@@ -67,7 +67,7 @@ void function ShotgunDamage( entity ent, var damageInfo )
 
         if (("buffed" in inflictor.s))
         {
-            DamageInfo_ScaleDamage( damageInfo, 2.666667 )
+            DamageInfo_ScaleDamage( damageInfo, 2 )
         }
 
         //AddDaze( ent, attacker, dazeToAdd )
@@ -127,15 +127,16 @@ void function SwordCoreDamage( entity ent, var damageInfo )
     {
         float damageBonus = 0.0
 
-        int daze = GetShotgunBuff( ent )
+        int daze = GetShotgunBuff( attacker )
 
         if (daze > 0 && Roguelike_HasMod( attacker, "overdaze" ))
         {
             DamageInfo_AddDamageBonus( damageInfo, 0.5 )
             daze--
         }
-
+        
         SetShotgunBuff( attacker, daze )
+
 
         DamageInfo_AddDamageBonus( damageInfo, damageBonus )
     }
@@ -156,7 +157,17 @@ void function SetShotgunBuff( entity ent, int amt )
     int maxStacks = MAX_SHOTGUN_BUFF_STACKS
     if (ent.IsPlayer() && Roguelike_HasMod( ent, "overdaze" ))
         maxStacks = 99
-    RSE_Apply( ent, RoguelikeEffect.ronin_overload, RoundToNearestInt(min(amt, maxStacks)) )
+    
+    int curStacks = GetShotgunBuff( ent )
+    amt = minint(amt, maxStacks)
+
+    if (amt > curStacks)
+    {
+        string displayText = format("+%i Overload Shots!", amt - curStacks)
+        if (ent.IsPlayer())
+            ServerToClientStringCommand( ent, format("mod_activated +%i Overload Shots! 5 0 0.5 1", amt - curStacks) )
+    }
+    RSE_Apply( ent, RoguelikeEffect.ronin_overload, RoundToNearestInt(amt) )
 }
 
 void function AddDaze( entity ent, entity attacker, int amount )

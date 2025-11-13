@@ -41,21 +41,20 @@ resource/ui/menus/panels/inventory_slot.res
 
 	SlotLabel
 	{
-        ControlName				Label
+        ControlName				ImagePanel
         xpos					0
         ypos				    0
-        wide					74
-        tall					64
+        wide					30
+        tall					30
         visible					1
         enabled					1
-        auto_wide_tocontents	1
+        auto_wide_tocontents	0
+		scaleImage				1
         //auto_tall_tocontents	1
-        labelText				"3"
-        fgcolor_override		"25 25 25 255"
+        drawColor		"25 25 25 255"
         textAlignment			center
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMonoBold_36
 
         pin_to_sibling			Icon
         pin_corner_to_sibling	CENTER

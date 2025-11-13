@@ -12,6 +12,7 @@ global function Roguelike_TakeMoney
 global function Roguelike_ApplyRunDataToConVars
 global function RunEnded
 global function __SetPower
+global function __SecondLoadout
 global function Roguelike_GiveSmartPistolSkyway
 global function Roguelike_GetSaveData
 global function Roguelike_WriteSaveToDisk
@@ -34,7 +35,9 @@ const array<string> SAVE_CONVARS = [
     "meta_helmets_12",
     "meta_helmets_13",
     "meta_helmets_14",
-    "roguelike_titan_loadout"
+    "roguelike_titan_loadout",
+    "roguelike_loadouts_unlocked",
+    "roguelike_run_modifiers"
 ]
 
 struct {
@@ -69,7 +72,7 @@ void function LoadSaveData()
                 printt("Save loaded successfully")
                 file.isSaveLoaded = true
             },
-            void function() : ()
+            void function(var err) : ()
             {
                 while (uiGlobal.menuStack.len() == 0)
                     wait 0.001
@@ -77,10 +80,12 @@ void function LoadSaveData()
                 dialogData.header = "SAVE LOAD FAILED"
                 dialogData.image = $"ui/menu/common/dialog_error"
                 dialogData.forceChoice = true
-                dialogData.message = "Loading save data failed. Would you like to try again or give up?"
+                dialogData.message = "Loading save data failed! (" + err + ")"
+                printt("DIALOG")
 
                 AddDialogButton( dialogData, "Retry", LoadSaveData )
-                AddDialogButton( dialogData, "Quit", QuitGame )
+                AddDialogButton( dialogData, "Delete save file (PERMANENT DATA LOSS!)" )
+                AddDialogButton( dialogData, "Quit Game", QuitGame )
 
                 AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
 
@@ -103,6 +108,8 @@ void function LoadSaveData()
             if ("version" in t && expect int(t.version) == RUNDATA_VERSION)
             {
                 file.runData = t
+                if (!("chipSlotIndex" in file.runData))
+                    file.runData.chipSlotIndex <- 0 // why does this happen???
                 file.isRunActive = true
             }
             UpdateSPButtons()
@@ -114,9 +121,12 @@ void function RunEnded()
 {
     // reset run
     NSDeleteFile( "run_backup.json" )
+    
+    RunEnd_SetRunData( file.runData )
     file.isRunActive = false
     file.runData = {}
-    ClientCommand("disconnect")
+    AdvanceMenu(GetMenu("RunEndMenu"))
+    //ClientCommand("disconnect")
 }
 
 void function Roguelike_StartNewRun(int seed = -1)
@@ -136,6 +146,16 @@ void function Roguelike_StartNewRun(int seed = -1)
     file.runData = runData
     file.isRunActive = true
 
+    // run stats
+    runData.damageDealtPilot <- 0.0
+    runData.damageDealtTitan <- 0.0
+    runData.titansKilled <- 0
+    runData.gruntsKilled <- 0
+    runData.itemsObtained <- 0
+    runData.modsUnlocked <- 0
+    runData.titanHp <- 12500
+    runData.titanSettings <- ""
+    runData.titanMaxHp <- 12500
 
     // these arrays are to prevent the player from getting
     // 3+ of the same armor chip slot in a row, and to
@@ -161,16 +181,14 @@ void function Roguelike_StartNewRun(int seed = -1)
         SetConVarString( "roguelike_titan_loadout", Roguelike_GetTitanLoadouts()[0])
     runData.loadouts <- GetConVarString("roguelike_titan_loadout")
     runData.runModifiers <- GetConVarString("roguelike_run_modifiers")
-    runData.memoryHP <- "-1"
-    runData.memorySettings <- ""
     SetConVarInt("memory_titan_hp", -1)
     SetConVarString("memory_titan_settings", "")
     runData.runHeat <- GetConVarInt("roguelike_run_heat")
 
     runData.shopRerolls <- {}
-    runData.lockedPilotMods <- GetAllLockedPilotMods()
+    //runData.lockedPilotMods <- GetAllLockedPilotMods()
     runData.lockedTitanMods <- GetAllLockedTitanMods()
-    Roguelike_UnlockMods( 10 ) // have the player start with some amount of mods
+    Roguelike_UnlockMods( 4 ) // have the player start with some amount of mods
 
     for (int i = 1; i <= 4; i++)
     {
@@ -190,6 +208,9 @@ void function Roguelike_StartNewRun(int seed = -1)
     runData.ACTitan2 <- ArmorChip_ForceSlot( rand, 2, true )
     runData.ACTitan3 <- ArmorChip_ForceSlot( rand, 3, true )
     runData.ACTitan4 <- ArmorChip_ForceSlot( rand, 4, true )
+    
+    runData.loadout1Damage <- 0
+    runData.loadout2Damage <- 0
 
     runData.Datacore <- RoguelikeDatacore_CreateDatacore( rand, RARITY_COMMON )
     runData.WeaponPrimary <- RoguelikeWeapon_CreateWeapon( rand, "mp_weapon_vinson", RARITY_COMMON, "primary" )
@@ -213,12 +234,16 @@ void function Roguelike_ApplyRunDataToConVars()
     SetConVarInt("power_enemy_def", expect int(runData.enemyDEF))
     SetConVarString("roguelike_titan_loadout", expect string(runData.loadouts))
     SetConVarString("roguelike_run_modifiers", expect string(runData.runModifiers))
-    SetConVarString("memory_titan_hp", expect string(runData.memoryHP))
-    SetConVarString("memory_titan_settings", expect string(runData.memorySettings))
     SetConVarInt("roguelike_run_heat", expect int(runData.runHeat))
-    SetConVarBool("roguelike_stat_balance", expect bool(runData.balanced))
+    //SetConVarBool("roguelike_stat_balance", expect bool(runData.balanced))
     SetConVarInt("sp_difficulty", expect int(runData.difficulty))
     SetConVarInt("roguelike_run_seed", expect int(runData.seed))
+    if ("titanHp" in runData)
+        SetConVarInt("memory_titan_hp", expect int(runData.titanHp))
+    if ("titanSettings" in runData)
+        SetConVarString("memory_titan_settings", expect string(runData.titanSettings))
+    if ("titanMaxHp" in runData)
+        SetConVarInt("memory_titan_max_hp", expect int(runData.titanMaxHp))
 
     // server doesnt care about mod order since it only uses this
     // userinfo convar to check which mods to apply
@@ -235,8 +260,9 @@ void function Roguelike_ApplyRunDataToConVars()
     {
         for (int j = 0; j < MOD_SLOTS; j++)
         {
-            if (runData["AC" + i + "_PilotMod" + j] != 0)
-                modIndexList.append(string(runData["AC" + i + "_PilotMod" + j]))
+            var pilotChip = runData["ACPilot" + i]
+            if (pilotChip.mods.len() > j && pilotChip.mods[j] != 0)
+                modIndexList.append(string(pilotChip.mods[j]))
             if (runData["AC" + i + "_TitanMod" + j] != 0)
                 modIndexList.append(string(runData["AC" + i + "_TitanMod" + j]))
         }
@@ -297,6 +323,7 @@ void function Roguelike_ApplyRunDataToConVars()
 
     var ordnanceSlot = runData["Grenade"]
     array<string> ordnancePerks = ["level_" + expect int(ordnanceSlot.level)]
+    ordnancePerks.append(expect string(ordnanceSlot.perk1))
     switch (ordnanceSlot.rarity)
     {
         case RARITY_COMMON:
@@ -317,9 +344,14 @@ void function Roguelike_ApplyRunDataToConVars()
             ordnancePerks.append("legendary")
             break
     }
+
     table datacore = expect table(runData["Datacore"])
-    SetConVarString( "player_datacore", format("%i %s", datacore.dashes, datacore.perk1))
-    SetConVarString( "player_ordnance_perks", JoinStringArray( ordnancePerks, " " ))
+
+    RoguelikeDatacorePerk datacorePerk = GetDatacorePerkDataByName( expect string(datacore.perk1) )
+    float datacoreValue = datacorePerk.baseValue + datacorePerk.valuePerLevel * expect int(datacore.rarity)
+
+    SetConVarString( "player_datacore", format("%i %s %f", datacore.dashes, datacore.perk1, datacoreValue))
+    SetConVarString( "player_ordnance_perks", JoinStringArray( ordnancePerks, "," ))
     SetConVarString( "player_ordnance", expect string(ordnanceSlot.weapon))
 }
 
@@ -349,6 +381,7 @@ void function Roguelike_GenerateLoot(int seed = 0)
     foreach (string k, var v in item)
         printt(k,v)
     file.runData.inventory.append(item)
+    RunStats_ItemObtained()
 
     Roguelike_ForceRefreshInventory()
 
@@ -418,10 +451,24 @@ void function __SetPower( int levelsCompleted )
             break
     }
     runData.enemyBonusHP <- enemyHPGained * levelsCompleted
-    runData.enemyDEF <- enemyDEFGained * levelsCompleted
+    runData.enemyDEF <- enemyDEFGained * levelsCompleted + GetDEFFromIncreasePerLevel(levelsCompleted)
     runData.levelsCompleted = levelsCompleted
 
     Roguelike_ApplyRunDataToConVars()
+}
+
+int function GetDEFFromIncreasePerLevel( int levelsCompleted )
+{
+    int result = 0
+    for (int i = 1; i <= levelsCompleted; i++)
+    {
+        result += 25 * levelsCompleted
+    }
+    return result
+}
+void function __SecondLoadout()
+{
+    AdvanceMenu(GetMenu("LimitedLoadoutChoice"))
 }
 
 array function Roguelike_GetInventory()

@@ -111,7 +111,7 @@ void function CheckPoint_FromData( CheckPointData checkPointData )
 	array<entity> safeLocations = checkPointData.safeLocations
 	bool functionref( entity ) ornull additionalCheck = checkPointData.additionalCheck
 
-	if ( !Flag( "SaveGame_Enabled" ) || GetMapName() == "sp_tday" ) // no saves in trial by fire, crashes due to buffer overflow
+	if ( !Flag( "SaveGame_Enabled" ) || DISABLE_SAVE_MAPS.contains(GetMapName())) // no saves in trial by fire, crashes due to buffer overflow
 	{
 		printt( "SAVEGAME: failed: Saves are disabled" )
 		return
@@ -520,6 +520,7 @@ void function ReloadForMissionFailure_Thread( float extraDelay )
 {
 	FlagClear( "SaveGame_Enabled" ) // no more saving, you have lost
 	FlagSet( "MissionFailed" )
+	level.ui.roguelikePlayerDead = true // god i hope people dont hate me
 
 	Signal( file.signalDummy, "StopSearchingForSafeSave" )
 

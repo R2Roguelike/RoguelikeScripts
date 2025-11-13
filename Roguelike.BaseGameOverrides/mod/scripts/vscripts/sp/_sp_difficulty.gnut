@@ -86,19 +86,20 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 	entity sourceWeapon = null
 	if (attacker.IsPlayer())
 		sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
-	if (attacker.IsPlayer() && !attacker.IsTitan())
+	if (attacker.IsPlayer() && !attacker.IsTitan() && Roguelike_HasMod( attacker, "dash_on_kill" ))
 	{
-		float maxDashPower = 20.0
+		float dodgePowerDrain = 100.0
 		if (Roguelike_HasMod( attacker, "double_dash" ))
-			maxDashPower = 40.0
+			dodgePowerDrain = 50.0
 
-		attacker.Server_SetDodgePower( min( attacker.GetDodgePower() + 20.0, maxDashPower ) )
+		attacker.Server_SetDodgePower( min( attacker.GetDodgePower() + dodgePowerDrain, 100.0 ) )
 	}
+	int cashReward = 0
+	int killReward = 0
+	int cashBonus = 0
 	if ("attackedByPlayer" in ent.s)
 	{
 		entity player = GetFirstPlayer()
-		int cashReward = 0
-		int killReward = 0
 		if (ent.IsTitan())
 		{
 			cashReward = 50
@@ -113,12 +114,20 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 		{
 			cashReward = 10
 			killReward = 2
-			if (ent.GetClassName() == "npc_marvin" && Roguelike_HasMod( player, "morality" ) && !player.IsTitan())
+			if (ent.GetClassName() == "npc_marvin" && Roguelike_HasMod( player, "morality" ))
 			{
-				cashReward *= 2
+				cashReward *= 3
 			}
 		}
-		AddKillsAndMoney( player, killReward, cashReward )
+		if (Roguelike_HasMod( attacker, "physical_spread" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.physical
+			&& IsValid(sourceWeapon))
+		{
+			cashBonus += 50
+		}
+		if (Roguelike_GetWeaponPerks( sourceWeapon ).contains("cash_bonus"))
+		{
+			cashBonus += 50
+		}
 	}
 
 	if (!attacker.IsPlayer())
@@ -146,7 +155,11 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 		}
 		if (Roguelike_GetWeaponPerks( sourceWeapon ).contains("kill_self_dmg"))
 		{
-			RSE_Apply( attacker, RoguelikeEffect.kill_self_dmg, RSE_Get( attacker, RoguelikeEffect.kill_self_dmg ) + 1.0, 8.0, 0.0)
+			RSE_Apply( attacker, RoguelikeEffect.kill_self_dmg, RSE_Get( attacker, RoguelikeEffect.kill_self_dmg ) + 1.0, 15.0, 0.0)
+		}
+		if (Roguelike_HasMod( attacker, "mag_size_inf" ) )
+		{
+			RSE_Apply( attacker, RoguelikeEffect.mag_size_inf, RSE_Get( attacker, RoguelikeEffect.mag_size_inf ) + 1.0 )
 		}
 		if (Roguelike_GetWeaponPerks( sourceWeapon ).contains("heal_clip"))
 		{
@@ -209,25 +222,29 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 		MessageToPlayer( attacker, eEventNotifications.Rodeo_TitanPickedUpBattery, null, false )
 	}
 
-	if (Roguelike_HasMod( attacker, "physical_dmg" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.physical
-		&& IsValid(sourceWeapon) && !sourceWeapon.IsWeaponOffhand())
+	if (Roguelike_HasMod( attacker, "physical_gain" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.physical
+		&& IsValid(sourceWeapon))
 	{
-		float duration = min(max(RSE_GetEffectEndTime( attacker, RoguelikeEffect.physical_dmg ), 2.0), 10.0)
-		RSE_Apply( attacker, RoguelikeEffect.physical_dmg, 1.0, duration, 0.0 )
+		RSE_Apply( attacker, RoguelikeEffect.physical_spread, 1.0, 20.0, 0.0 )
+		RSE_Apply( attacker, RoguelikeEffect.physical_dmg, 1.0, 10.0, 0.0 )
 	}
-	if (Roguelike_HasMod( attacker, "energy_load" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.electric
-		&& IsValid(sourceWeapon) && !sourceWeapon.IsWeaponOffhand())
+	if (Roguelike_HasMod( attacker, "energy_gain" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.electric
+		&& IsValid(sourceWeapon))
 	{
 		int ammoToAdd = maxint(sourceWeapon.GetWeaponPrimaryClipCountMax() / 5, 1)
 		sourceWeapon.SetWeaponPrimaryClipCount( min(sourceWeapon.GetWeaponPrimaryClipCount() + ammoToAdd, sourceWeapon.GetWeaponPrimaryClipCountMax()) )
+		
+		RSE_Apply( attacker, RoguelikeEffect.electric_dmg, 1.0, 10.0, 0.0 )
 	}
-	if (Roguelike_HasMod( attacker, "fire_heal" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.electric
-		&& IsValid(sourceWeapon) && !sourceWeapon.IsWeaponOffhand())
+	if (Roguelike_HasMod( attacker, "fire_gain" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.fire
+		&& IsValid(sourceWeapon))
 	{
 		HealPlayer( attacker, 15 )
+		
+		RSE_Apply( attacker, RoguelikeEffect.fire_dmg, 1.0, 10.0, 0.0 )
 	}
 	if (Roguelike_HasMod( attacker, "fire_spread" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.fire
-		&& IsValid(sourceWeapon) && !sourceWeapon.IsWeaponOffhand())
+		&& IsValid(sourceWeapon))
 	{
 		vector origin = ent.GetWorldSpaceCenter()
 		thread void function() : (attacker, sourceWeapon, origin)
@@ -251,8 +268,8 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 			}
 		}()
 	}
-	if (Roguelike_HasMod( attacker, "shock_spread" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.electric
-		&& IsValid(sourceWeapon) && !sourceWeapon.IsWeaponOffhand())
+	if (Roguelike_HasMod( attacker, "energy_spread" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.electric
+		&& IsValid(sourceWeapon))
 	{
 		vector origin = ent.GetWorldSpaceCenter()
 		RadiusDamage(
@@ -268,11 +285,6 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 			0,										// explosionForce
 			DF_EXPLOSION,							// scriptDamageFlags
 			eDamageSourceId.molotov )			// scriptDamageSourceIdentifier
-	}
-	if (Roguelike_HasMod( attacker, "physical_spread" ) && !attacker.IsTitan() && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.physical
-		&& IsValid(sourceWeapon) && !sourceWeapon.IsWeaponOffhand())
-	{
-		RSE_Apply( attacker, RoguelikeEffect.physical_spread, 1.0, 20.0, 0.0 )
 	}
 	if (Roguelike_HasMod( attacker, "grenade_cd" ) && !attacker.IsTitan())
 	{
@@ -298,6 +310,20 @@ void function NPCKilled( entity ent, entity attacker, var damageInfo )
 		tactical.SetWeaponPrimaryClipCount( minint(tactical.GetWeaponPrimaryClipCount() + int(1.5 * regenRate), tactical.GetWeaponPrimaryClipCountMax()) )
 		}
 	}
+
+	switch (Roguelike_GetRunModifier("cash_gain"))
+	{
+		case 1:
+			cashReward = (cashReward * 9) / 10
+			break
+		case 2:
+			cashReward = (cashReward * 8) / 10
+			break
+		case 3:
+			cashReward = (cashReward * 7) / 10
+			break
+	}
+	AddKillsAndMoney( GetFirstPlayer(), killReward, cashReward * (100 + cashBonus) / 100 )
 }
 
 void function AddKillsAndMoney( entity attacker, int kills, int money )
@@ -368,7 +394,16 @@ void function SpPlayer_OnDamaged( entity player, var damageInfo )
 
 	if (player.uncloakOnDamage)
 	{
-		DisableCloakForever( player, 0.5 )
+		DisableCloak( player, 0.5 )
+		
+		entity weapon = player.GetOffhandWeapon(OFFHAND_LEFT)
+		if ( IsValid( weapon ) && weapon.GetWeaponClassName() == "mp_ability_cloak" )
+		{
+			player.TakeOffhandWeapon( OFFHAND_LEFT )
+			player.GiveOffhandWeapon( "mp_ability_cloak", OFFHAND_LEFT )
+			weapon = player.GetOffhandWeapon( OFFHAND_LEFT )
+			weapon.SetWeaponPrimaryClipCountAbsolute( 0 )
+		}
 	}
 
 	if ( attacker == player )
@@ -377,14 +412,20 @@ void function SpPlayer_OnDamaged( entity player, var damageInfo )
 	const array<string> badTriggers = ["trigger_hurt", "trigger_quickdeath", "worldspawn"]
 	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 
-	if (Time() - GetLastDodgeTime() < 0.5 )
+	if (attacker.GetClassName() == "trigger_hurt")
+		printt(attacker.GetOrigin())
+
+	if (Time() - GetLastDodgeTime() < 0.35 )
 	{
+		if (attacker.IsTitan())
+			ServerToClientStringCommand( player, "mod_activated Dodge! 2 1 1 1" )
 		DamageInfo_SetDamage( damageInfo, 0 )
 		return
 	}
 
 	if ( Roguelike_HasMod( player, "speed_shield" ) && !player.IsTitan() && Length2D(player.GetVelocity()) > 546 )
 	{
+		ServerToClientStringCommand( player, "mod_activated Speed-Based Shield! 2 1 1 1" )
 		DamageInfo_SetDamage( damageInfo, 0 )
 		return
 	}
@@ -434,7 +475,7 @@ void function SpPlayer_OnDamaged( entity player, var damageInfo )
 		DamageInfo_ScaleDamage( damageInfo, Roguelike_GetTitanDamageMultiplier( armor ) )
 
 		if (attacker.IsTitan() && IsMercTitan(attacker))
-			DamageInfo_ScaleDamage( damageInfo, 1.5 )
+			DamageInfo_ScaleDamage( damageInfo, 1.25 )
 
 		ScaleDamageToPlayerByDifficulty( damageInfo )
 
@@ -686,6 +727,14 @@ void function UpdateMercTitanHealthForDifficulty( entity npc )
 	if (VERBOSE_HEALTH_PRINTOUTS)
 		printt("Health Multiplier:", multiplier)
 	float flatBonus = GetConVarFloat("power_enemy_hp")
+	switch (Roguelike_GetRunModifier("enemy_hp"))
+	{
+		case 2:
+			flatBonus += 1500
+		case 1:
+			flatBonus += 1500
+			break
+	}
 	switch (GetSpDifficulty())
 	{
 		case DIFFICULTY_EASY:

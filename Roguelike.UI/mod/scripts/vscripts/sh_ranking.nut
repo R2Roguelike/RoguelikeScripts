@@ -7,7 +7,7 @@ array<int> function GetKillsForMaxRank(string map)
         case "sp_training":
             return [15,9]
         case "sp_tday":
-            return [400,300]
+            return [1000,600]
         case "sp_timeshift_spoke02":
             return [40,30]
         case "sp_hub_timeshift":
@@ -19,7 +19,7 @@ array<int> function GetKillsForMaxRank(string map)
         case "sp_beacon_spoke0":
             return [50, 30]
         case "sp_sewers1":
-            return [300, 200]
+            return [350, 250]
         case "sp_crashsite":
             return [225, 150]
     }
@@ -73,7 +73,7 @@ array<int> function GetTimeForMaxRank(string map)
         case "sp_s2s":
             return [720, 1200]
         case "sp_skyway_v1":
-            return [720, 1200]
+            return [360, 480, 600]
     }
 
     //     [S,A,B,C]

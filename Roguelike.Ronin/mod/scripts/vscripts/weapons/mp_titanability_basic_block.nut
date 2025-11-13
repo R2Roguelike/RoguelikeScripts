@@ -110,12 +110,20 @@ void function OnDeactivate( entity weapon, int blockType )
 		third_fx = SWORD_GLOW
 	}
 
+	if (Roguelike_HasMod( weapon.GetWeaponOwner(), "perfect_sword" ))
+	{
+		if (InPrediction() && weapon.ShouldPredictProjectiles() && RSE_Get( weapon.GetWeaponOwner(), RoguelikeEffect.ronin_perfect_block ) <= 0)
+			weapon.SetWeaponChargeFractionForced(1.0)
+		#if SERVER
+		RSE_Stop( weapon.GetWeaponOwner(), RoguelikeEffect.ronin_perfect_block )
+		#endif
+	}
 	weapon.StopWeaponEffect( first_fx, third_fx )
 }
 
 bool function OnAttemptOffhandSwitch( entity weapon, int blockType )
 {
-	bool allowSwitch = weapon.GetWeaponChargeFraction() < 0.9
+	bool allowSwitch = weapon.GetWeaponChargeFraction() < 0.1
 	return allowSwitch
 }
 
@@ -226,10 +234,23 @@ float function HandleBlockingAndCalcDamageScaleForHit( entity blockingEnt, var d
 		}
 		if ("blockStartTime" in blockingEnt.s && blockingEnt.IsPlayer() && Roguelike_HasMod( blockingEnt, "perfect_sword" ))
 		{
-			if (Time() - blockingEnt.s.blockStartTime < 1.0 && RSE_Get( blockingEnt, RoguelikeEffect.ronin_perfect_block ) <= 0.0)
+			if (Time() - blockingEnt.s.blockStartTime < 0.35 && RSE_Get( blockingEnt, RoguelikeEffect.ronin_perfect_block ) <= 0.0)
 			{
-				RSE_Apply( blockingEnt, RoguelikeEffect.ronin_perfect_block, 1.0, 1.0, 1.0 )
+				RSE_Apply( blockingEnt, RoguelikeEffect.ronin_perfect_block, 1.0 )
 				SetShotgunBuff( blockingEnt, GetShotgunBuff( blockingEnt ) + 3 )
+    			Remote_CallFunction_Replay( blockingEnt, "ServerCallback_FlashCockpitInvulnerable", -0.7 )
+				ServerToClientStringCommand( blockingEnt, "mod_activated Perfect Sword! 5 1 1 1" )
+				return 0.0
+			}
+			if (RSE_Get( blockingEnt, RoguelikeEffect.ronin_perfect_block) > 0)
+			{
+    			Remote_CallFunction_Replay( blockingEnt, "ServerCallback_FlashCockpitInvulnerable", -0.7 )
+				DamageInfo_SetDamage( damageInfo, 0 )
+				entity projectile = DamageInfo_GetInflictor( damageInfo )
+				if (projectile.IsProjectile())
+				{
+					ReflectProjectile( blockingEnt, projectile, DamageInfo_GetAttacker( damageInfo ) )
+				}
 				return 0.0
 			}
 		}
@@ -302,6 +323,36 @@ float function HandleBlockingAndCalcDamageScaleForHit( entity blockingEnt, var d
 	return resultDamageScale
 }
 
+void function ReflectProjectile( entity blockingEnt, entity projectile, entity attacker )
+{
+	entity weapon = blockingEnt.GetActiveWeapon()
+
+	switch (projectile.ProjectileGetWeaponInfoFileKeyField("vortex_refire_behavior"))
+	{
+		case VORTEX_REFIRE_EXPLOSIVE_ROUND:
+			int damageType = damageTypes.explosive | DF_VORTEX_REFIRE
+			entity bolt = weapon.FireWeaponBolt( blockingEnt.EyePosition(), weapon.GetAttackDirection(), 8000.0, damageType, damageType, PROJECTILE_NOT_PREDICTED, 0 )
+			if ( bolt )
+			{
+				bolt.kv.gravity = 0.3
+
+				bolt.SetWeaponClassName( projectile.ProjectileGetWeaponClassName() )  // causes the projectile to use its normal trail FX
+			}
+			break
+		case VORTEX_REFIRE_ROCKET:
+			int damageType = damageTypes.explosive | DF_VORTEX_REFIRE
+			entity bolt = weapon.FireWeaponMissile( blockingEnt.EyePosition(), weapon.GetAttackDirection(), 2000.0, damageType, damageType, false, false )
+			if ( bolt )
+			{
+				bolt.SetMissileTarget( attacker, <0,0,0> )
+				bolt.SetHomingSpeeds( 250, 250 )
+				bolt.kv.gravity = 0.3
+
+				bolt.SetWeaponClassName( projectile.ProjectileGetWeaponClassName() )  // causes the projectile to use its normal trail FX
+			}
+			break
+	}
+}
 
 const float TITAN_BLOCK_ANGLE = 150
 const float PILOT_BLOCK_ANGLE = 150

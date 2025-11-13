@@ -1,6 +1,7 @@
 untyped
 global function ModSelect_Init
 global function ModSelect_SetContext
+global function __SetMod
 
 struct {
     var menu
@@ -28,8 +29,8 @@ void function InitRoguelikeModSelectMenu()
 	file.gridData.rows = 4
 	file.gridData.numElements = 20
 	file.gridData.pageType = eGridPageType.HORIZONTAL
-	file.gridData.tileWidth = ContentScaledXAsInt( 80 )
-	file.gridData.tileHeight = ContentScaledYAsInt( 80 )
+	file.gridData.tileWidth = ContentScaledXAsInt( 64 )
+	file.gridData.tileHeight = ContentScaledYAsInt( 64 )
 	file.gridData.paddingVert = int( ContentScaledX( 8 ) )
 	file.gridData.paddingHorz = int( ContentScaledX( 8 ) )
 	file.gridData.initCallback = Slot_Init
@@ -50,22 +51,34 @@ void function OnModSelectMenuOpen()
     Grid_InitPage( file.menu, file.gridData )
 
     var frame = Hud_GetChild( file.menu, "ButtonFrame" )
-    Hud_SetY( frame, file.y + ContentScaledYAsInt( 88 ) )
-    if (file.isTitanMod)
+    if (file.chipIndex % 2 == 0)
     {
-        Hud_SetX( frame, file.x + ContentScaledXAsInt( 88 - 448 ) )
+        Hud_SetY( frame, file.y - ContentScaledYAsInt( 368 ) )
     }
-    else // has to be a pilot mod instead
+    else
+    {
+        Hud_SetY( frame, file.y + ContentScaledYAsInt( 80 ) )
+    }
+    if (file.isTitanMod)
     {
         Hud_SetX( frame, file.x - ContentScaledXAsInt( 8 ) )
     }
+    else // has to be a pilot mod instead
+    {
+        Hud_SetX( frame, file.x + ContentScaledXAsInt( 88 - 448 ) )
+    }
+}
+
+void function __SetMod( int chip, int slot, string modName )
+{
+    Roguelike_GetRunData()["ACPilot" + chip].mods[slot] = GetModByName(modName).index
 }
 
 void function ModSelect_SetContext( string modSlot, int x, int y )
 {
     table runData = Roguelike_GetRunData()
     file.chipIndex = int( modSlot.slice( 2, 3 ) )
-    printt(modSlot)
+    
     file.isTitanMod = modSlot.find("Titan") != null
     file.modIndex = int( modSlot.slice( modSlot.len() - 1, modSlot.len() ) )
     int maxEnergy = 0
@@ -76,6 +89,7 @@ void function ModSelect_SetContext( string modSlot, int x, int y )
     else
     {
         maxEnergy = expect int(runData["ACPilot" + file.chipIndex].energy)
+        file.chipIndex = 1
     }
     int usedEnergy = GetTotalEnergyUsed(file.chipIndex, file.isTitanMod)
 
@@ -113,21 +127,29 @@ bool function Slot_Init( var slot, int elemNum )
     if (elemNum < file.modChoices.len())
     {
         AddHover( slot, ModSlot_Hover, HOVER_SIMPLE )
-        ModSlot_DisplayMod( slot, file.modChoices[elemNum] )
+        ModSlot_DisplayMod( slot, file.isTitanMod, file.modChoices[elemNum] )
+        bool showOverlay = false
+        bool pulsate = false
         if (runData.newMods.contains(file.modChoices[elemNum].uniqueName))
         {
-            Hud_SetColor( Hud_GetChild(slot, "BG"), 255,128,32, 135 )
-        }
-        else
-        {
-            Hud_SetColor( Hud_GetChild(slot, "BG"), 0,0,0, 135 )
+            Hud_SetColor( Hud_GetChild(slot, "Overlay"), 255,255,0, 0 )
+            showOverlay = true
+            pulsate = true
         }
         if (file.modChoices[elemNum].cost > file.maxUsableEnergy || file.usedMods.contains(file.modChoices[elemNum]))
-            Hud_SetVisible(Hud_GetChild(slot, "Overlay"), true)
+        {
+            Hud_SetColor( Hud_GetChild(slot, "FloppyDisk"), 255,0,0, 255 )
+        }
+        
+        Hud_SetVisible(Hud_GetChild(slot, "Overlay"), showOverlay)
+        Signal( Hud_GetChild(slot, "Overlay"), "ElemFlash" ) // stop flashing
+        if (pulsate)
+            thread Roguelike_PulseElem( file.menu, Hud_GetChild(slot, "Overlay"), elemNum * 0.05, 255, 0, 0.5 )
     }
     else
     {
-        ModSlot_DisplayMod( slot, null )
+        ModSlot_DisplayMod( slot, file.isTitanMod, null )
+	    Signal( Hud_GetChild(slot, "Overlay"), "ElemFlash" )
     }
     return true
 }
@@ -140,6 +162,17 @@ void function ModSlot_Hover( var slot, var panel )
     if (runData.newMods.contains(mod.uniqueName))
     {
         runData.newMods.removebyvalue(mod.uniqueName)
+
+        Signal( Hud_GetChild(slot, "Overlay"), "ElemFlash" ) // stop flashing
+        if (mod.cost > file.maxUsableEnergy)
+        {
+            Hud_SetColor( Hud_GetChild(slot, "Overlay"), 255,0,0, 255 )
+            Hud_SetVisible(Hud_GetChild(slot, "FloppyDisk"), false)
+        }
+        else
+        {
+            Hud_SetVisible(Hud_GetChild(slot, "Overlay"), false)
+        }
         Hud_SetColor( Hud_GetChild(slot, "BG"), 0,0,0, 135 )
     }
 

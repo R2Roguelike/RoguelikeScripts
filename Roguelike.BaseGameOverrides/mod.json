@@ -13,6 +13,10 @@
 		{
 			"Path": "weapons/mp_titanability_nuclear_explosion.nut",
 			"RunOn": "SERVER || CLIENT"
+		},
+		{
+			"Path": "client/cl_pilot_speedometer_copy.gnut",
+			"RunOn": "CLIENT"
 		}
 	],
 

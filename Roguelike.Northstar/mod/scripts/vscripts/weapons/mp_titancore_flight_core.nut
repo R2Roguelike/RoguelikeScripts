@@ -83,9 +83,9 @@ void function PROTO_FlightCore( entity titan, float flightTime )
 		titan.ForceStand()
 
 
+	otherLoadoutWeapon = "mp_titanweapon_sniper"
 	if (HasWeapon( titan, "mp_titanweapon_sniper" ))
 	{
-		otherLoadoutWeapon = "mp_titanweapon_sniper"
 		titan.TakeWeaponNow( "mp_titanweapon_sniper" )
 	}
 
@@ -99,7 +99,7 @@ void function PROTO_FlightCore( entity titan, float flightTime )
 					if ( HasWeapon( titan, "mp_titanweapon_flightcore_rockets" ) )
 					{
 						printt("woah")
-						EnableWeapons( titan, weaponArray )
+						EnableWeapons( titan, [] )
 						titan.TakeWeaponNow( "mp_titanweapon_flightcore_rockets" )
 					}
 				}
@@ -107,7 +107,7 @@ void function PROTO_FlightCore( entity titan, float flightTime )
 				titan.ClearParent()
 				titan.UnforceStand()
 				printt("woah")
-				if (IsAlive( titan ))
+				if (IsAlive( titan ) && otherLoadoutWeapon != "")
 				{
 					titan.GiveWeapon(otherLoadoutWeapon)
 					titan.SetActiveWeaponByName("mp_titanweapon_sniper")

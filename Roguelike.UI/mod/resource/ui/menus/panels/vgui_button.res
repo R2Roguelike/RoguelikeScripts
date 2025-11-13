@@ -44,7 +44,7 @@ resource/ui/menus/panels/vgui_button.res
 		visible				1
 		wide                256
 		tall				64
-		labelText			">> CONTINUE >>"
+		labelText			""
 		allCaps				1
 		font				JetBrainsMono_36
 		auto_wide_tocontents	0
@@ -94,6 +94,26 @@ resource/ui/menus/panels/vgui_button.res
 		pin_to_sibling_corner		CENTER
 	}
 
+	Icon
+	{
+		ControlName			ImagePanel
+
+		image			"ui/ArrowButton"
+		xpos				0
+		ypos				0
+		scaleImage			1
+
+		visible				1
+		wide                32
+		tall				32
+		textAlignment		center
+        drawColor	"255 255 255 0"
+
+		pin_to_sibling				BG
+		pin_corner_to_sibling		CENTER
+		pin_to_sibling_corner		CENTER
+	}
+
 	Value
 	{
 		ControlName			Label
@@ -124,6 +144,7 @@ resource/ui/menus/panels/vgui_button.res
 		tall				%100
 		visible					1
 		enabled					1
+		zpos					200
 		scaleImage				1
 		labelText				""
 		rui						""

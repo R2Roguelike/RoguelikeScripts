@@ -2,10 +2,10 @@ globalize_all_functions
 
 table< int, void functionref( string ) > pendingCallbacks
 table< int, void functionref( table ) > pendingJSONCallbacks
-table< int, void functionref() > failedCallbacks
+table< int, void functionref( var ) > failedCallbacks
 
 
-void function NSLoadFile( string file, void functionref( string ) onSuccess, void functionref() onFailure = null )
+void function NSLoadFile( string file, void functionref( string ) onSuccess, void functionref( var ) onFailure = null )
 {
     int handle = NS_InternalLoadFile( file )
 
@@ -14,7 +14,7 @@ void function NSLoadFile( string file, void functionref( string ) onSuccess, voi
         failedCallbacks[handle] <- onFailure
 }
 
-void function NSLoadJSONFile( string file, void functionref( table ) onSuccess, void functionref() onFailure = null )
+void function NSLoadJSONFile( string file, void functionref( table ) onSuccess, void functionref( var ) onFailure = null )
 {
     int handle = NS_InternalLoadFile( file )
 
@@ -28,6 +28,7 @@ void function NSHandleLoadResult( int handle, bool success, string result )
     bool hasFailedCallback = handle in failedCallbacks
     bool isJSONRequest = handle in pendingJSONCallbacks
     bool isValid = isJSONRequest || handle in pendingCallbacks
+    var err
 
     if (!isValid)
         throw "Invalid IO callback handle"
@@ -43,7 +44,7 @@ void function NSHandleLoadResult( int handle, bool success, string result )
             }
             catch (ex)
             {
-                print(ex)
+                err = ex
                 // parsing failed, setting 'success' to false, since we
                 // consider this a failure.
                 success = false
@@ -58,7 +59,7 @@ void function NSHandleLoadResult( int handle, bool success, string result )
     if (!success)
     {
         if (hasFailedCallback)
-            failedCallbacks[handle]()
+            failedCallbacks[handle](err)
         else
         {
             if (isJSONRequest)

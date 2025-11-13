@@ -6,6 +6,6 @@ WeaponData
         "charge_cooldown_time"          "20"
         "charge_cooldown_delay"          "1"
     }
-    "npc_rest_time_between_bursts_min"          "5"
-    "npc_rest_time_between_bursts_max"          "6"
+    "npc_rest_time_between_bursts_min"          "7"
+    "npc_rest_time_between_bursts_max"          "8"
 }

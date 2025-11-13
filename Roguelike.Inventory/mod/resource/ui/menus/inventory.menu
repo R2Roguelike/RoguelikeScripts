@@ -57,9 +57,10 @@ resource/ui/menus/inventory.menu
         {
             ControlName		ImagePanel
             image           "vgui/hud/white"
-            wide			1500
-            tall		    850
-            ypos            140
+            xpos            -640
+            wide			2800
+            tall		    900
+            ypos            40
             visible			1
             scaleImage		1
             fillColor		"0 0 0 0"
@@ -69,28 +70,21 @@ resource/ui/menus/inventory.menu
             pin_to_sibling_corner	CENTER
         }
 
-        Title
-        {
-            ControlName				Label
-            xpos					0
-            ypos				    -140
-            wide					74
-            tall					27
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"INVENTORY"
-            fgcolor_override		"225 225 225 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					GothicExpanded_56
-
-            pin_to_sibling			Screen
+		InventorySwitch
+		{
+			ControlName				CNestedPanel
+			xpos					0
+            ypos                    24
+			wide					512
+			tall					256
+			visible					1
+			tabPosition				1
+			zpos					20
+			controlSettingsFile		"Resource/UI/menus/panels/inventory_switch.res"
+            pin_to_sibling			Inventory
             pin_corner_to_sibling	TOP
             pin_to_sibling_corner	TOP
-        }
+		}
 
 		FooterButtons
 		{
@@ -104,8 +98,8 @@ resource/ui/menus/inventory.menu
 			ControlName				CNestedPanel
 			xpos					0
             ypos                    -24
-			wide					608
-			tall					168
+			wide					168
+			tall					608
 			visible					1
 			tabPosition				1
 			zpos					20
@@ -119,23 +113,6 @@ resource/ui/menus/inventory.menu
         // AC1 //
         /////////
 
-        ACPilot1
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
-            xpos			4
-            ypos			0
-            wide			 80
-            tall			 80
-            visible			1
-            scaleImage		1
-            pin_to_sibling			Inventory
-            pin_corner_to_sibling	TOP_LEFT
-            pin_to_sibling_corner	TOP
-
-            zpos			1
-        }
-
         ACTitan1
         {
             ControlName			CNestedPanel
@@ -147,54 +124,49 @@ resource/ui/menus/inventory.menu
             visible			1
             scaleImage		1
             pin_to_sibling			Inventory
-            pin_corner_to_sibling	TOP_RIGHT
-            pin_to_sibling_corner	TOP
+            pin_corner_to_sibling	TOP_LEFT
+            pin_to_sibling_corner	TOP_LEFT
 
             zpos			1
         }
-        AC1_PilotMods
+        
+        AC1_TitanMods
         {
             ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/mod_set.res"
+            controlSettingsFile	"resource/ui/menus/panels/mod_set_titan.res"
             classname "ModSet"
             xpos            8
-            ypos			0
-            wide		     344
-            tall			 80
+            ypos			-8
+            wide		     480
+            tall			 304
             visible			1
             scaleImage		1
-            pin_to_sibling			ACPilot1
+            pin_to_sibling			ACTitan1
             pin_corner_to_sibling	TOP_LEFT
             pin_to_sibling_corner	TOP_RIGHT
 
             zpos			1
         }
-        AC1_PilotEnergy
+        AC1_TitanEnergy
         {
-            ControlName				Label
-            xpos					0
-            ypos				    0
-            wide					74
-            tall					27
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"0/0"
-            fgcolor_override		"255 176 0 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_20
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/energy_bar_titan.res"
+            xpos            0
+            ypos			4
+            wide		     24
+            tall			 400
+            visible			1
+            scaleImage		1
+            zpos			1
 
-            pin_to_sibling			AC1_PilotMods
-            pin_corner_to_sibling	BOTTOM_LEFT
-            pin_to_sibling_corner	TOP_LEFT
+            pin_to_sibling			ACTitan1
+            pin_corner_to_sibling	TOP_RIGHT
+            pin_to_sibling_corner	BOTTOM_RIGHT
         }
-        AC1_PilotHelp
+        AC1_TitanHelp
         {
             ControlName				Label
-            xpos					16
+            xpos					-1
             ypos				    0
             wide					74
             tall					 80
@@ -202,83 +174,57 @@ resource/ui/menus/inventory.menu
             enabled					1
             auto_wide_tocontents	1
             //auto_tall_tocontents	1
-            labelText				"Survival"
-            fgcolor_override		"255 176 0 255"
-            textAlignment			center
+            labelText				"Chassis Chip"
+            fgcolor_override		"255 255 255 255"
+            textAlignment			south-west
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
             font					GothicExpanded_36
 
-            pin_to_sibling			AC1_PilotMods
-            pin_corner_to_sibling	LEFT
-            pin_to_sibling_corner	RIGHT
+            pin_to_sibling			ACTitan1
+            pin_corner_to_sibling	BOTTOM_LEFT
+            pin_to_sibling_corner	TOP_LEFT
         }
-        PilotLabel
-        {
-            ControlName				Label
-            xpos					0
-            ypos				    0
-            wide					74
-            tall					 80
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"PILOT"
-            fgcolor_override		"255 176 0 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					GothicExpanded_36
-
-            pin_to_sibling			AC1_PilotMods
-            pin_corner_to_sibling	BOTTOM_RIGHT
-            pin_to_sibling_corner	TOP_RIGHT
-        }
-
-        AC1_TitanMods
+        
+        ACPilot1
         {
             ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/mod_set.res"
-            classname "ModSet"
-            xpos            8
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            //xpos			-338
             ypos			0
-            wide		     344
+            wide			 80
             tall			 80
             visible			1
             scaleImage		1
-            pin_to_sibling			ACTitan1
+            pin_to_sibling			Inventory
+            pin_corner_to_sibling	TOP_RIGHT
+            pin_to_sibling_corner	TOP_RIGHT
+
+            zpos			1
+        }
+        
+        AC1_PilotMods
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/mod_set_pilot.res"
+            classname "ModSet"
+            xpos            8
+            ypos			-8
+            wide		     480
+            tall			 304
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ACPilot1
             pin_corner_to_sibling	TOP_RIGHT
             pin_to_sibling_corner	TOP_LEFT
 
             zpos			1
         }
-        AC1_TitanEnergy
-        {
-            ControlName				Label
-            xpos					0
-            ypos				    0
-            wide					74
-            tall					27
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"0/0"
-            fgcolor_override		"255 255 255 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_20
 
-            pin_to_sibling			AC1_TitanMods
-            pin_corner_to_sibling	BOTTOM_RIGHT
-            pin_to_sibling_corner	TOP_RIGHT
-        }
-        AC1_TitanHelp
+        AC1_PilotHelp
         {
             ControlName				Label
-            xpos					16
+            xpos					-1
             ypos				    0
             wide					74
             tall					 80
@@ -286,50 +232,102 @@ resource/ui/menus/inventory.menu
             enabled					1
             auto_wide_tocontents	1
             //auto_tall_tocontents	1
-            labelText				"Chassis"
-            fgcolor_override		"255 255 255 255"
-            textAlignment			center
+            labelText				"Survival Chip"
+            fgcolor_override		"255 176 0 255"
+            textAlignment			south-east
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
             font					GothicExpanded_36
 
-            pin_to_sibling			AC1_TitanMods
-            pin_corner_to_sibling	RIGHT
-            pin_to_sibling_corner	LEFT
-        }
-        TitanLabel
-        {
-            ControlName				Label
-            xpos					0
-            ypos				    0
-            wide					74
-            tall					 80
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"TITAN"
-            fgcolor_override		"255 255 255 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					GothicExpanded_36
-
-            pin_to_sibling			AC1_TitanMods
-            pin_corner_to_sibling	BOTTOM_LEFT
-            pin_to_sibling_corner	TOP_LEFT
+            pin_to_sibling			ACPilot1
+            pin_corner_to_sibling	BOTTOM_RIGHT
+            pin_to_sibling_corner	TOP_RIGHT
         }
 
         /////////
         // AC2 //
         /////////
 
-        ACPilot2
+        ACTitan2
         {
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
             xpos			0
-            ypos			32
+            ypos			300
+
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ACTitan1
+            pin_corner_to_sibling	TOP_LEFT
+            pin_to_sibling_corner	BOTTOM_LEFT
+
+            zpos			1
+        }
+
+        AC2_TitanMods
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/mod_set_titan.res"
+            classname "ModSet"
+            xpos            8
+            ypos			-8
+            wide		     480
+            tall			 304
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ACTitan2
+            pin_corner_to_sibling	TOP_LEFT
+            pin_to_sibling_corner	TOP_RIGHT
+
+            zpos			1
+        }
+        AC2_TitanEnergy
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/energy_bar_titan.res"
+            xpos            0
+            ypos			4
+            wide		     24
+            tall			 400
+            visible			1
+            scaleImage		1
+            zpos			1
+
+            pin_to_sibling			ACTitan2
+            pin_corner_to_sibling	TOP_RIGHT
+            pin_to_sibling_corner	BOTTOM_RIGHT
+        }
+        AC2_TitanHelp
+        {
+            ControlName				Label
+            xpos					-1
+            ypos				    0
+            wide					74
+            tall					 80
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            //auto_tall_tocontents	1
+            labelText				"Utility Chip"
+            fgcolor_override		"255 255 255 255"
+            textAlignment			south-west
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					GothicExpanded_36
+
+            pin_to_sibling			ACTitan2
+            pin_corner_to_sibling	BOTTOM_LEFT
+            pin_to_sibling_corner	TOP_LEFT
+        }
+
+        ACPilot2
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            //xpos			-338
+            ypos			300
             wide			 80
             tall			 80
             visible			1
@@ -340,127 +338,29 @@ resource/ui/menus/inventory.menu
 
             zpos			1
         }
-        ACTitan2
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
-            xpos			0
-            ypos			32
-            wide			 80
-            tall			 80
-            visible			1
-            scaleImage		1
-            pin_to_sibling			ACTitan1
-            pin_corner_to_sibling	TOP_RIGHT
-            pin_to_sibling_corner	BOTTOM_RIGHT
-
-            zpos			1
-        }
+        
         AC2_PilotMods
         {
             ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/mod_set.res"
+            controlSettingsFile	"resource/ui/menus/panels/mod_set_pilot.res"
             classname "ModSet"
             xpos            8
-            ypos			0
-            wide		     344
-            tall			 80
+            ypos			-8
+            wide		     480
+            tall			 304
             visible			1
             scaleImage		1
             pin_to_sibling			ACPilot2
-            pin_corner_to_sibling	TOP_LEFT
-            pin_to_sibling_corner	TOP_RIGHT
-
-            zpos			1
-        }
-        AC2_PilotEnergy
-        {
-            ControlName				Label
-            xpos					0
-            ypos				    0
-            wide					74
-            tall					27
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"0/0"
-            fgcolor_override		"255 176 0 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_20
-
-            pin_to_sibling			AC2_PilotMods
-            pin_corner_to_sibling	BOTTOM_LEFT
-            pin_to_sibling_corner	TOP_LEFT
-        }
-        AC2_PilotHelp
-        {
-            ControlName				Label
-            xpos					16
-            ypos				    0
-            wide					74
-            tall					 80
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            //auto_tall_tocontents	1
-            labelText				"Utility"
-            fgcolor_override		"255 176 0 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					GothicExpanded_36
-
-            pin_to_sibling			AC2_PilotMods
-            pin_corner_to_sibling	LEFT
-            pin_to_sibling_corner	RIGHT
-        }
-
-        AC2_TitanMods
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/mod_set.res"
-            classname "ModSet"
-            xpos            8
-            ypos			0
-            wide		     344
-            tall			 80
-            visible			1
-            scaleImage		1
-            pin_to_sibling			ACTitan2
             pin_corner_to_sibling	TOP_RIGHT
             pin_to_sibling_corner	TOP_LEFT
 
             zpos			1
         }
-        AC2_TitanEnergy
-        {
-            ControlName				Label
-            xpos					0
-            ypos				    0
-            wide					74
-            tall					27
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"0/0"
-            fgcolor_override		"255 255 255 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_20
 
-            pin_to_sibling			AC2_TitanMods
-            pin_corner_to_sibling	BOTTOM_RIGHT
-            pin_to_sibling_corner	TOP_RIGHT
-        }
-        AC2_TitanHelp
+        AC2_PilotHelp
         {
             ControlName				Label
-            xpos					16
+            xpos					-1
             ypos				    0
             wide					74
             tall					 80
@@ -468,159 +368,75 @@ resource/ui/menus/inventory.menu
             enabled					1
             auto_wide_tocontents	1
             //auto_tall_tocontents	1
-            labelText				"Utility"
-            fgcolor_override		"255 255 255 255"
-            textAlignment			center
+            labelText				"Utility Chip"
+            fgcolor_override		"255 176 0 255"
+            textAlignment			south-east
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
             font					GothicExpanded_36
 
-            pin_to_sibling			AC2_TitanMods
-            pin_corner_to_sibling	RIGHT
-            pin_to_sibling_corner	LEFT
+            pin_to_sibling			ACPilot2
+            pin_corner_to_sibling	BOTTOM_RIGHT
+            pin_to_sibling_corner	TOP_RIGHT
         }
 
         /////////
         // AC3 //
         /////////
 
-        ACPilot3
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
-            xpos			0
-            ypos			32
-            wide			 80
-            tall			 80
-            visible			1
-            scaleImage		1
-            pin_to_sibling			ACPilot2
-            pin_corner_to_sibling	TOP_RIGHT
-            pin_to_sibling_corner	BOTTOM_RIGHT
-
-            zpos			1
-        }
         ACTitan3
         {
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
-            xpos			0
-            ypos			32
+            xpos			480
+            ypos			0
             wide			 80
             tall			 80
             visible			1
             scaleImage		1
-            pin_to_sibling			ACTitan2
-            pin_corner_to_sibling	TOP_RIGHT
-            pin_to_sibling_corner	BOTTOM_RIGHT
-
-            zpos			1
-        }
-        AC3_PilotMods
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/mod_set.res"
-            classname "ModSet"
-            xpos            8
-            ypos			0
-            wide			 344
-            tall			 80
-            visible			1
-            scaleImage		1
-            pin_to_sibling			ACPilot3
+            pin_to_sibling			ACTitan1
             pin_corner_to_sibling	TOP_LEFT
             pin_to_sibling_corner	TOP_RIGHT
 
             zpos			1
         }
-        AC3_PilotEnergy
-        {
-            ControlName				Label
-            xpos					0
-            ypos				    0
-            wide					74
-            tall					27
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"0/0"
-            fgcolor_override		"255 176 0 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_20
-
-            pin_to_sibling			AC3_PilotMods
-            pin_corner_to_sibling	BOTTOM_LEFT
-            pin_to_sibling_corner	TOP_LEFT
-        }
-        AC3_PilotHelp
-        {
-            ControlName				Label
-            xpos					16
-            ypos				    0
-            wide					74
-            tall					 80
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            //auto_tall_tocontents	1
-            labelText				"Weaponry"
-            fgcolor_override		"255 176 0 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					GothicExpanded_36
-
-            pin_to_sibling			AC3_PilotMods
-            pin_corner_to_sibling	LEFT
-            pin_to_sibling_corner	RIGHT
-        }
-
         AC3_TitanMods
         {
             ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/mod_set.res"
+            controlSettingsFile	"resource/ui/menus/panels/mod_set_titan.res"
             classname "ModSet"
             xpos            8
-            ypos			0
-            wide		     344
-            tall			 80
+            ypos			-8
+            wide		     480
+            tall			 304
             visible			1
             scaleImage		1
             pin_to_sibling			ACTitan3
-            pin_corner_to_sibling	TOP_RIGHT
-            pin_to_sibling_corner	TOP_LEFT
+            pin_corner_to_sibling	TOP_LEFT
+            pin_to_sibling_corner	TOP_RIGHT
 
             zpos			1
         }
         AC3_TitanEnergy
         {
-            ControlName				Label
-            xpos					0
-            ypos				    0
-            wide					74
-            tall					27
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"0/0"
-            fgcolor_override		"255 255 255 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_20
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/energy_bar_titan.res"
+            xpos            0
+            ypos			4
+            wide		     24
+            tall			 400
+            visible			1
+            scaleImage		1
+            zpos			1
 
-            pin_to_sibling			AC3_TitanMods
-            pin_corner_to_sibling	BOTTOM_RIGHT
-            pin_to_sibling_corner	TOP_RIGHT
+            pin_to_sibling			ACTitan3
+            pin_corner_to_sibling	TOP_RIGHT
+            pin_to_sibling_corner	BOTTOM_RIGHT
         }
         AC3_TitanHelp
         {
             ControlName				Label
-            xpos					16
+            xpos					-1
             ypos				    0
             wide					74
             tall					 80
@@ -628,28 +444,159 @@ resource/ui/menus/inventory.menu
             enabled					1
             auto_wide_tocontents	1
             //auto_tall_tocontents	1
-            labelText				"Weapon/Core"
+            labelText				"Weapon/Core Chip"
             fgcolor_override		"255 255 255 255"
-            textAlignment			center
+            textAlignment			south-west
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
             font					GothicExpanded_36
 
-            pin_to_sibling			AC3_TitanMods
-            pin_corner_to_sibling	RIGHT
-            pin_to_sibling_corner	LEFT
+            pin_to_sibling			ACTitan3
+            pin_corner_to_sibling	BOTTOM_LEFT
+            pin_to_sibling_corner	TOP_LEFT
+        }
+
+        ACPilot3
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            xpos			480
+            ypos			0
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ACPilot1
+            pin_corner_to_sibling	TOP_RIGHT
+            pin_to_sibling_corner	TOP_LEFT
+
+            zpos			1
+        }
+        
+        AC3_PilotMods
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/mod_set_pilot.res"
+            classname "ModSet"
+            xpos            8
+            ypos			-8
+            wide		     480
+            tall			 304
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ACPilot3
+            pin_corner_to_sibling	TOP_RIGHT
+            pin_to_sibling_corner	TOP_LEFT
+
+            zpos			1
+        }
+
+        AC3_PilotHelp
+        {
+            ControlName				Label
+            xpos					-1
+            ypos				    0
+            wide					74
+            tall					 80
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            //auto_tall_tocontents	1
+            labelText				"Weapons Chip"
+            fgcolor_override		"255 176 0 255"
+            textAlignment			south-east
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					GothicExpanded_36
+
+            pin_to_sibling			ACPilot3
+            pin_corner_to_sibling	BOTTOM_RIGHT
+            pin_to_sibling_corner	TOP_RIGHT
         }
 
         /////////
         // AC4 //
         /////////
 
+        ACTitan4
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            xpos			0
+            ypos			300
+
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ACTitan3
+            pin_corner_to_sibling	TOP_LEFT
+            pin_to_sibling_corner	BOTTOM_LEFT
+
+            zpos			1
+        }
+
+        AC4_TitanMods
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/mod_set_titan.res"
+            classname "ModSet"
+            xpos            8
+            ypos			-8
+            wide		     480
+            tall			 304
+            visible			1
+            scaleImage		1
+            pin_to_sibling			ACTitan4
+            pin_corner_to_sibling	TOP_LEFT
+            pin_to_sibling_corner	TOP_RIGHT
+
+            zpos			1
+        }
+        AC4_TitanEnergy
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/energy_bar_titan.res"
+            xpos            0
+            ypos			4
+            wide		     24
+            tall			 400
+            visible			1
+            scaleImage		1
+            zpos			1
+
+            pin_to_sibling			ACTitan4
+            pin_corner_to_sibling	TOP_RIGHT
+            pin_to_sibling_corner	BOTTOM_RIGHT
+        }
+        AC4_TitanHelp
+        {
+            ControlName				Label
+            xpos					-1
+            ypos				    0
+            wide					74
+            tall					 80
+            visible					1
+            enabled					1
+            auto_wide_tocontents	1
+            //auto_tall_tocontents	1
+            labelText				"Abilties Chip"
+            fgcolor_override		"255 255 255 255"
+            textAlignment			south-west
+            //fgcolor_override 		"255 255 255 255"
+            //bgcolor_override 		"0 0 0 200"
+            font					GothicExpanded_36
+
+            pin_to_sibling			ACTitan4
+            pin_corner_to_sibling	BOTTOM_LEFT
+            pin_to_sibling_corner	TOP_LEFT
+        }
         ACPilot4
         {
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
             xpos			0
-            ypos			32
+            ypos			300
             wide			 80
             tall			 80
             visible			1
@@ -660,127 +607,29 @@ resource/ui/menus/inventory.menu
 
             zpos			1
         }
-        ACTitan4
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
-            xpos			0
-            ypos			32
-            wide			 80
-            tall			 80
-            visible			1
-            scaleImage		1
-            pin_to_sibling			ACTitan3
-            pin_corner_to_sibling	TOP_RIGHT
-            pin_to_sibling_corner	BOTTOM_RIGHT
-
-            zpos			1
-        }
+        
         AC4_PilotMods
         {
             ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/mod_set.res"
+            controlSettingsFile	"resource/ui/menus/panels/mod_set_pilot.res"
             classname "ModSet"
             xpos            8
-            ypos			0
-            wide		     344
-            tall			 80
+            ypos			-8
+            wide		     480
+            tall			 304
             visible			1
             scaleImage		1
             pin_to_sibling			ACPilot4
-            pin_corner_to_sibling	TOP_LEFT
-            pin_to_sibling_corner	TOP_RIGHT
-
-            zpos			1
-        }
-        AC4_PilotEnergy
-        {
-            ControlName				Label
-            xpos					0
-            ypos				    0
-            wide					74
-            tall					27
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"0/0"
-            fgcolor_override		"255 176 0 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_20
-
-            pin_to_sibling			AC4_PilotMods
-            pin_corner_to_sibling	BOTTOM_LEFT
-            pin_to_sibling_corner	TOP_LEFT
-        }
-        AC4_PilotHelp
-        {
-            ControlName				Label
-            xpos					16
-            ypos				    0
-            wide					74
-            tall					 80
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            //auto_tall_tocontents	1
-            labelText				"Abilities"
-            fgcolor_override		"255 176 0 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					GothicExpanded_36
-
-            pin_to_sibling			AC4_PilotMods
-            pin_corner_to_sibling	LEFT
-            pin_to_sibling_corner	RIGHT
-        }
-
-        AC4_TitanMods
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/mod_set.res"
-            classname "ModSet"
-            xpos            8
-            ypos			0
-            wide		     344
-            tall			 80
-            visible			1
-            scaleImage		1
-            pin_to_sibling			ACTitan4
             pin_corner_to_sibling	TOP_RIGHT
             pin_to_sibling_corner	TOP_LEFT
 
             zpos			1
         }
-        AC4_TitanEnergy
-        {
-            ControlName				Label
-            xpos					0
-            ypos				    0
-            wide					74
-            tall					27
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            auto_tall_tocontents	1
-            labelText				"0/0"
-            fgcolor_override		"255 255 255 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_20
 
-            pin_to_sibling			AC4_TitanMods
-            pin_corner_to_sibling	BOTTOM_RIGHT
-            pin_to_sibling_corner	TOP_RIGHT
-        }
-        AC4_TitanHelp
+        AC4_PilotHelp
         {
             ControlName				Label
-            xpos					16
+            xpos					-1
             ypos				    0
             wide					74
             tall					 80
@@ -788,61 +637,23 @@ resource/ui/menus/inventory.menu
             enabled					1
             auto_wide_tocontents	1
             //auto_tall_tocontents	1
-            labelText				"Abilties"
-            fgcolor_override		"255 255 255 255"
-            textAlignment			center
+            labelText				"Abilities Chip"
+            fgcolor_override		"255 176 0 255"
+            textAlignment			south-east
             //fgcolor_override 		"255 255 255 255"
             //bgcolor_override 		"0 0 0 200"
             font					GothicExpanded_36
 
-            pin_to_sibling			AC4_TitanMods
-            pin_corner_to_sibling	RIGHT
-            pin_to_sibling_corner	LEFT
-        }
-        TitanPassive
-        {
-            ControlName				Label
-            xpos					128
-            ypos				    -64
-            wide					74
-            tall					 80
-            visible					1
-            enabled					1
-            auto_wide_tocontents	1
-            //auto_tall_tocontents	1
-            labelText				"Passive"
-            fgcolor_override		"128 128 128 255"
-            textAlignment			center
-            //fgcolor_override 		"255 255 255 255"
-            //bgcolor_override 		"0 0 0 200"
-            font					JetBrainsMonoBold_36
-
-            pin_to_sibling			AC4_TitanMods
-            pin_corner_to_sibling	RIGHT
-            pin_to_sibling_corner	LEFT
-        }
-
-        BalanceSymbol
-        {
-            ControlName		ImagePanel
-            image           "ui/circle_hex"
-            wide			 80
-            tall		     80
-            ypos            16
-            xpos            -44
-            visible			1
-            scaleImage		1
-            drawColor		"128 128 128 255"
             pin_to_sibling			ACPilot4
-            pin_corner_to_sibling	TOP
-            pin_to_sibling_corner	BOTTOM
+            pin_corner_to_sibling	BOTTOM_RIGHT
+            pin_to_sibling_corner	TOP_RIGHT
         }
 
         Datacore
         {
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
-            xpos			72
+            xpos			32
             ypos			0
             wide			 80
             tall			 80
@@ -851,22 +662,6 @@ resource/ui/menus/inventory.menu
             pin_to_sibling			GridPanel
             pin_corner_to_sibling	RIGHT
             pin_to_sibling_corner	LEFT
-
-            zpos			1
-        }
-        WeaponPrimary
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
-            xpos			72
-            ypos			0
-            wide			 80
-            tall			 80
-            visible			1
-            scaleImage		1
-            pin_to_sibling			GridPanel
-            pin_corner_to_sibling	LEFT
-            pin_to_sibling_corner	RIGHT
 
             zpos			1
         }
@@ -874,15 +669,31 @@ resource/ui/menus/inventory.menu
         {
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
-            xpos			8
+            xpos			32
             ypos			0
             wide			 80
             tall			 80
             visible			1
             scaleImage		1
-            pin_to_sibling			WeaponPrimary
+            pin_to_sibling			GridPanel
             pin_corner_to_sibling	LEFT
             pin_to_sibling_corner	RIGHT
+
+            zpos			1
+        }
+        WeaponPrimary
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
+            xpos			0
+            ypos			8
+            wide			 80
+            tall			 80
+            visible			1
+            scaleImage		1
+            pin_to_sibling			WeaponSecondary
+            pin_corner_to_sibling	BOTTOM_LEFT
+            pin_to_sibling_corner	TOP_LEFT
 
             zpos			1
         }
@@ -890,15 +701,15 @@ resource/ui/menus/inventory.menu
         {
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/inventory_slot.res"
-            xpos			8
-            ypos			0
+            xpos			0
+            ypos			8
             wide			 80
             tall			 80
             visible			1
             scaleImage		1
             pin_to_sibling			WeaponSecondary
-            pin_corner_to_sibling	LEFT
-            pin_to_sibling_corner	RIGHT
+            pin_corner_to_sibling	TOP_LEFT
+            pin_to_sibling_corner	BOTTOM_LEFT
 
             zpos			1
         }
@@ -911,6 +722,38 @@ resource/ui/menus/inventory.menu
         //  Y88888P     dP    88     88     dP     Y88888P
 
 
+        PowerStat
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/stat.res"
+            xpos            128
+            ypos			0
+            wide		     80
+            tall			128
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Inventory
+            pin_to_sibling_corner	LEFT
+            pin_corner_to_sibling	TOP_LEFT
+
+            zpos			1
+        }
+        EnergyStat
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/stat.res"
+            xpos            0
+            ypos			8
+            wide		     80
+            tall			128
+            visible			1
+            scaleImage		1
+            pin_to_sibling			PowerStat
+            pin_to_sibling_corner	TOP_RIGHT
+            pin_corner_to_sibling	BOTTOM_RIGHT
+
+            zpos			1
+        }
         ArmorStat
         {
             ControlName			CNestedPanel
@@ -921,41 +764,9 @@ resource/ui/menus/inventory.menu
             tall			128
             visible			1
             scaleImage		1
-            pin_to_sibling			AC4_TitanMods
-            pin_to_sibling_corner	BOTTOM_LEFT
-            pin_corner_to_sibling	TOP_LEFT
-
-            zpos			1
-        }
-        EnergyStat
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/stat.res"
-            xpos            8
-            ypos			0
-            wide		     80
-            tall			128
-            visible			1
-            scaleImage		1
-            pin_to_sibling			ArmorStat
-            pin_to_sibling_corner	TOP_RIGHT
-            pin_corner_to_sibling	TOP_LEFT
-
-            zpos			1
-        }
-        PowerStat
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/stat.res"
-            xpos            8
-            ypos			0
-            wide		     80
-            tall			128
-            visible			1
-            scaleImage		1
             pin_to_sibling			EnergyStat
             pin_to_sibling_corner	TOP_RIGHT
-            pin_corner_to_sibling	TOP_LEFT
+            pin_corner_to_sibling	BOTTOM_RIGHT
 
             zpos			1
         }
@@ -963,19 +774,51 @@ resource/ui/menus/inventory.menu
         {
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/stat.res"
-            xpos            8
-            ypos			0
+            xpos            0
+            ypos			8
             wide		     80
             tall			128
             visible			1
             scaleImage		1
             pin_to_sibling			PowerStat
-            pin_to_sibling_corner	TOP_RIGHT
-            pin_corner_to_sibling	TOP_LEFT
+            pin_to_sibling_corner	BOTTOM_RIGHT
+            pin_corner_to_sibling	TOP_RIGHT
 
             zpos			1
         }
 
+        TemperStat
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/stat.res"
+            xpos            128
+            ypos			0
+            wide		     80
+            tall			128
+            visible			1
+            scaleImage		1
+            pin_to_sibling			Inventory
+            pin_to_sibling_corner	RIGHT
+            pin_corner_to_sibling	TOP_RIGHT
+
+            zpos			1
+        }
+        SpeedStat
+        {
+            ControlName			CNestedPanel
+            controlSettingsFile	"resource/ui/menus/panels/stat.res"
+            xpos            0
+            ypos			8
+            wide		     80
+            tall			128
+            visible			1
+            scaleImage		1
+            pin_to_sibling			TemperStat
+            pin_to_sibling_corner	TOP_RIGHT
+            pin_corner_to_sibling	BOTTOM_RIGHT
+
+            zpos			1
+        }
         EnduranceStat
         {
             ControlName			CNestedPanel
@@ -986,41 +829,9 @@ resource/ui/menus/inventory.menu
             tall			128
             visible			1
             scaleImage		1
-            pin_to_sibling			AC4_PilotMods
-            pin_to_sibling_corner	BOTTOM_RIGHT
-            pin_corner_to_sibling	TOP_RIGHT
-
-            zpos			1
-        }
-        SpeedStat
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/stat.res"
-            xpos            8
-            ypos			0
-            wide		     80
-            tall			128
-            visible			1
-            scaleImage		1
-            pin_to_sibling			EnduranceStat
-            pin_to_sibling_corner	TOP_LEFT
-            pin_corner_to_sibling	TOP_RIGHT
-
-            zpos			1
-        }
-        TemperStat
-        {
-            ControlName			CNestedPanel
-            controlSettingsFile	"resource/ui/menus/panels/stat.res"
-            xpos            8
-            ypos			0
-            wide		     80
-            tall			128
-            visible			1
-            scaleImage		1
             pin_to_sibling			SpeedStat
-            pin_to_sibling_corner	TOP_LEFT
-            pin_corner_to_sibling	TOP_RIGHT
+            pin_to_sibling_corner	TOP_RIGHT
+            pin_corner_to_sibling	BOTTOM_RIGHT
 
             zpos			1
         }
@@ -1028,14 +839,14 @@ resource/ui/menus/inventory.menu
         {
             ControlName			CNestedPanel
             controlSettingsFile	"resource/ui/menus/panels/stat.res"
-            xpos            8
-            ypos			0
+            xpos            0
+            ypos			8
             wide		     80
             tall			128
             visible			1
             scaleImage		1
             pin_to_sibling			TemperStat
-            pin_to_sibling_corner	TOP_LEFT
+            pin_to_sibling_corner	BOTTOM_RIGHT
             pin_corner_to_sibling	TOP_RIGHT
 
             zpos			1

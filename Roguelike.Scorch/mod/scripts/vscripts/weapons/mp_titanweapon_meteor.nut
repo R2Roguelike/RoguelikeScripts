@@ -13,7 +13,7 @@ global function OnWeaponNpcPrimaryAttack_Meteor
 global function CreatePhysicsThermiteTrail
 global function Scorch_SelfDamageReduction
 global function GetMeteorRadiusDamage
-global const PLAYER_METEOR_DAMAGE_TICK = 30.0
+global const PLAYER_METEOR_DAMAGE_TICK = 25.0
 global const PLAYER_METEOR_DAMAGE_TICK_PILOT = 20.0
 
 global const NPC_METEOR_DAMAGE_TICK = 50.0
@@ -201,6 +201,8 @@ function Proto_MeteorCreatesThermite( entity projectile, entity hitEnt = null )
 
 	base.SetAngles( AnglesCompose( angles, <90,0,0> ) )
 
+	base.e.procs.extend(projectile.e.procs)
+
 	if ( hitEnt != null && hitEnt.IsWorld() )
 		base.StopPhysics()
 
@@ -229,6 +231,7 @@ function Proto_MeteorCreatesThermite( entity projectile, entity hitEnt = null )
 		vector up = AnglesToUp( trailAngles )
 		vector v = velocity + forward * fireSpeed + up * fireSpeed
 		entity prop = CreatePhysicsThermiteTrail( origin, owner, inflictor, projectile, v, RandomFloatRange( thermiteLifetimeMin, thermiteLifetimeMax ), METEOR_FX_TRAIL, eDamageSourceId.mp_titanweapon_meteor_thermite )
+		prop.e.procs.extend(projectile.e.procs)
 
 		trailAngles = VectorToAngles( v )
 		prop.SetAngles( trailAngles )

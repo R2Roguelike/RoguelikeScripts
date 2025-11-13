@@ -2854,6 +2854,16 @@ array<entity> function GetPlayerWeapons( entity player, array<string> excludeNam
 {
 	array<entity> weapons = player.GetMainWeapons()
 	weapons.extend( player.GetOffhandWeapons() )
+	if (player.IsPlayer())
+	{
+		foreach (entity w in player.p.storedAbilities)
+		{
+			if (IsValid(w))
+			{
+				weapons.append(w)
+			}
+		}
+	}
 
 	for ( int idx = weapons.len() - 1; idx > 0; idx-- )
 	{

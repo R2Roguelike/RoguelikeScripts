@@ -36,6 +36,7 @@ void function ClWeaponStatus_RefreshWeaponStatus( entity player = null )
 {
 	if (player == null)
 		player = GetLocalViewPlayer()
+
 	if ( !IsValid( player ) )
 		return
 
@@ -287,6 +288,15 @@ void function UpdateOffhandRuis( entity player )
 void function InitWeaponStatusRuis( entity player )
 {
 	player.Signal( "EndTrackOffhandWeaponSlot" )
+
+	if (!player.IsTitan())
+	{
+		float dodgePowerDrain = 100.0
+		if (Roguelike_HasMod( player, "double_dash" ))
+			dodgePowerDrain = 50.0
+
+		Roguelike_Player_SetDodgeDrain( player, dodgePowerDrain )
+	}
 
 	UpdateOffhandRuis( player )
 
@@ -559,6 +569,20 @@ void function InitOffhandRui( var rui, entity player, entity weapon )
 			RuiSetFloat( rui, "refillRate", weapon.GetWeaponSettingFloat( eWeaponVar.regen_ammo_refill_rate ) )
 			break
 
+		case "shield":
+			int ammoClipSize = player.GetTitanSoul().GetShieldHealthMax()
+			int ammoPerShot = weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )
+			int ammoMinToFire = weapon.GetWeaponSettingInt( eWeaponVar.ammo_min_to_fire )
+
+			RuiSetFloat( rui, "minFireFrac", float (  ammoMinToFire ) / float ( ammoClipSize ) )
+			RuiSetInt( rui, "segments", ammoClipSize / ammoPerShot )
+
+			RuiTrackFloat( rui, "chargeFrac", player.GetTitanSoul(), RUI_TRACK_SHIELD_FRACTION )
+			RuiSetFloat( rui, "readyFrac", 0.0 )
+
+			RuiSetFloat( rui, "refillRate", weapon.GetWeaponSettingFloat( eWeaponVar.regen_ammo_refill_rate ) )
+			break
+		
 		case "ammo_swordblock":
 			RuiTrackFloat( rui, "chargeFrac", weapon, RUI_TRACK_WEAPON_STOCKPILE_REGEN_FRAC )
 			RuiSetFloat( rui, "readyFrac", 0.0 )

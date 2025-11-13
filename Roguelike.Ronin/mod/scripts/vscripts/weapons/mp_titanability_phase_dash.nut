@@ -38,6 +38,7 @@ var function OnWeaponPrimaryAttack_titanability_phase_dash( entity weapon, Weapo
 						{
 							weapon.SetWeaponPrimaryClipCount(weapon.GetWeaponPrimaryClipCountMax())
 						}
+						ServerToClientStringCommand( player, "mod_activated Phase Ammo! 5 1 1 1" )
 					}
 				#elseif CLIENT
 					float xAxis = InputGetAxis( ANALOG_LEFT_X )

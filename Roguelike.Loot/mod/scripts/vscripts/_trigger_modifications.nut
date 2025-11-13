@@ -44,6 +44,43 @@ void function Roguelike_ModifyTrigger( entity trigger )
         case "sp_sewers1":
             ModifyQuickDeathTriggers_sp_sewers1( trigger )
             break
+        case "sp_beacon":
+            ModifyQuickDeathTriggers_sp_beacon( trigger )
+            break
+        case "sp_tday":
+            ModifyQuickDeathTriggers_sp_tday( trigger )
+            break
+    }
+}
+
+void function ModifyQuickDeathTriggers_sp_tday( entity trigger )
+{
+    if (trigger.GetClassName() != "trigger_out_of_bounds")
+        return
+
+    if (Distance(trigger.GetOrigin(), < -8200.38, -11008, 7895.5>) < 50.0)
+    {
+        printt("found one bois")
+        trigger.Destroy()
+    }
+}
+
+void function ModifyQuickDeathTriggers_sp_beacon( entity trigger )
+{
+    if (trigger.GetClassName() != "trigger_hurt")
+        return
+
+    // hardcoded because we arent going to recompile the maps
+	array<vector> triggerOriginList = [
+		< -2304, -6688, 160>,
+		< -3696, -6048, 448>,
+		< -2720, -5776, 160>
+	]
+
+    printt(fabs(trigger.GetOrigin().z - 2450))
+    if (fabs(trigger.GetOrigin().z - 2450) < 5.0)
+    {
+        trigger.Destroy()
     }
 }
 

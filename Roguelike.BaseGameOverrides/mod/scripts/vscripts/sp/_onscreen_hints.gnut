@@ -52,6 +52,10 @@ void function OnscreenHints_Init()
 	#endif
 
 	RegisterOnscreenHint( "loadout_pickup_needs_embark", "#HUD_SP_BT_LOADOUT_TITAN_REQUIRED_HINT" )
+	RegisterOnscreenHint( "roguelike_swap_hint", "Press %[weaponCycle|weaponSelectPrimary1]% to swap weapons." )
+	RegisterOnscreenHint( "roguelike_swap_hint_2", "Press %weaponCycle% again to swap back.", "Press %weaponSelectPrimary0% to swap back." )
+	RegisterOnscreenHint( "roguelike_swap_hint_3", "... Good luck!" )
+	RegisterOnscreenHint( "roguelike_dash_hint", "... Good luck!" )
 }
 
 // ===========================
@@ -265,10 +269,7 @@ void function ScriptCallback_UpdateOnscreenHint()
 	if( file.onscreenHintRUI == null )
 		return
 
-	if ( IsPickupFlyoutValid() || IsWeaponFlyoutVisible() )
-		RuiSetBool( file.onscreenHintRUI, "weaponFlyoutOnscreen", true )
-	else
-		RuiSetBool( file.onscreenHintRUI, "weaponFlyoutOnscreen", false )
+	RuiSetBool( file.onscreenHintRUI, "weaponFlyoutOnscreen", true )
 }
 
 void function ScriptCallback_ClearOnscreenHint()

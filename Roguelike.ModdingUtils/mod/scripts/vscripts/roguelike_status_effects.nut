@@ -37,6 +37,11 @@ global table<int, string> effectDisplayNames = {
     [ RoguelikeEffect.polarity_red ] = "Red Polarity",
     [ RoguelikeEffect.swap ] = "Divided",
     [ RoguelikeEffect.dash_plus ] = "Dash+",
+    [ RoguelikeEffect.buff_turret ] = "Turret Buff",
+    [ RoguelikeEffect.mag_size_inf ] = "Blood Mag"
+}
+
+global table<int, bool functionref( entity )> effectDisplayConditions = {
 }
 
 global table<int, bool> effectDisplayPercentage = {
@@ -47,6 +52,7 @@ global table<int, bool> effectDisplayStacks = {
     [ RoguelikeEffect.kill_self_dmg ] = true,
     [ RoguelikeEffect.polarity_blue ] = true,
     [ RoguelikeEffect.polarity_red ] = true,
+    [ RoguelikeEffect.mag_size_inf ] = true,
 }
 
 #if SERVER

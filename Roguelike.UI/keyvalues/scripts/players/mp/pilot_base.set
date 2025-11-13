@@ -6,20 +6,20 @@
         ui_targetinfo               "" [$mp]
         ui_targetinfo               "" [$sp]
         superjumpLimit      2
-
-        sprint              0
         dodge               1
-		dodgeDuration		0.1
-        dodgeAnimDuration	0.5
-        dodgeInterval		0.35
+		dodgeDuration		0.0
+        dodgeAnimDuration	0.0
+        dodgeInterval		0.0
         dodgeSpeed			500
-        dodgeStopSpeed		200
+        dodgeStopSpeed		300
         dodgeHeight			20
         dodgeHeightMax		20
-        dodgePowerDrain		20
-        powerregenrate 		0
-        dodgePowerDelay		0.2
+        dodgePowerDrain		100
+        powerregenrate 		6.7
+        dodgePowerDelay		0.0
         dodgeKeepSpeedFrac 	0.0
+
+        sprint              1
         ClassMods
         {
 			vanilla
@@ -28,15 +28,15 @@
 			}
 			75_speed
 			{
-				speed				*0.75
+				speed				*0.85
 			}
 			50_speed
 			{
-				speed				*0.5
+				speed				*0.7
 			}
 			25_speed
 			{
-				speed				*0.25
+				speed				*0.55
 			}
         }
     }
@@ -52,22 +52,22 @@
 			}
 			75_speed
 			{
-				speed				*0.75
+				speed				*0.85
 			}
 			50_speed
 			{
-				speed				*0.5
+				speed				*0.7
 			}
 			25_speed
 			{
-				speed				*0.25
+				speed				*0.55
 			}
 		}
 	}
 
 	"stand"
 	{
-		speed						243
+		speed						162.5
 		sprintspeed					243
 		PoseMods
 		{
@@ -78,15 +78,18 @@
 			}
 			75_speed
 			{
-				speed				*0.75
+				speed				*0.85
+				sprintspeed			*0.85
 			}
 			50_speed
 			{
-				speed				*0.5
+				speed				*0.7
+				sprintspeed			*0.7
 			}
 			25_speed
 			{
-				speed				*0.25
+				speed				*0.55
+				sprintspeed			*0.55
 			}
 		}
 	}

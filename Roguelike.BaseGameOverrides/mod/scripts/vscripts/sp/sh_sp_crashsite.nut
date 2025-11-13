@@ -22,7 +22,6 @@ void function ShSpWildsCommonInit()
 	SP_CRASHSITE_AutoPrecache()
 
 	//RegisterOnscreenHint( "objective_hint", "#TRAINING_HINT_OBJECTIVE" )
-	RegisterOnscreenHint( "roguelike_swap_hint", "Press %[weaponCycle|weaponSelectPrimary1]% to switch weapons." )
 
 //	########  ####    ###    ##        #######   ######   ##     ## ########
 //	##     ##  ##    ## ##   ##       ##     ## ##    ##  ##     ## ##

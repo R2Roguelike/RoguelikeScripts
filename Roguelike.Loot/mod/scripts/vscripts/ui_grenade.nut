@@ -56,6 +56,10 @@ table function RoguelikeGrenade_CreateWeapon( PRandom rand, string name, int rar
         moneyInvested = 80 + 20 * (rarity) // give 10 * rarity dolla when dismantled ()
     }
 
+	array<RoguelikeWeaponPerk> perkArr = Roguelike_GetWeaponPerksForSlotAndWeapon( PERK_SLOT_GRENADE, name )
+    if (rarity > RARITY_UNCOMMON && perkArr.len() > 0)
+        item.perk1 = perkArr[PRandomInt( rand, perkArr.len() )].uniqueName
+
     item.priceOffset += rarity * 50
 
     return item

@@ -19,7 +19,6 @@ void function RocketDamage( entity ent, var damageInfo )
     if (!attacker.IsPlayer())
         return
 
-    if (attacker)
 
     if (IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.proj.isChargedShot) // atg missile
     {

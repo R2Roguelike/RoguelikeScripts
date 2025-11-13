@@ -89,7 +89,7 @@ resource/ui/menus/hovers/armor_chip.res
 
         image			"vgui/hud/white"
 
-        drawColor	"25 25 25 255"
+        drawColor	"15 15 15 255"
         scaleImage			1
 
         wide				450

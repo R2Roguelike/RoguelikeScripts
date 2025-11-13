@@ -112,7 +112,7 @@ void function OnBossTitanCoreMitigation( entity titan, var damageInfo )
 		case eDamageSourceId.mp_titanweapon_flightcore_rockets:
 		case eDamageSourceId.mp_titancore_amp_core:
 			if (Roguelike_HasDatacorePerk( attacker, "core_dmg" ))
-				DamageInfo_AddDamageBonus( damageInfo, 0.2 )
+				DamageInfo_AddDamageBonus( damageInfo, Roguelike_GetDatacoreValue(attacker) / 100.0 )
 			return
 	}
 

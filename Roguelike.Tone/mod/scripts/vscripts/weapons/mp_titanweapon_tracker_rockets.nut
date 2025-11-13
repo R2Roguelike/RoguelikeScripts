@@ -320,7 +320,7 @@ void function AutoFireMissiles( entity ordnance, entity target, entity owner, bo
 	if (duration > 0)
 		wait duration - 0.01
 	
-	if (delockAfterUse && IsValid(target))
+	if (delockAfterUse && IsValid(target) && IsAlive(target))
 		ordnance.SmartAmmo_UntrackEntity( target )
 }
 #endif

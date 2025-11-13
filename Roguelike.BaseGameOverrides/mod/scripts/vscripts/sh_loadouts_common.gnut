@@ -81,8 +81,6 @@ TitanLoadoutDef function GetTitanLoadoutForRow( var dataTable, int row )
 	loadout.primary			= GetDataTableString( dataTable, row, GetDataTableColumnByName( dataTable, "primary" ) )
 	loadout.special			= GetDataTableString( dataTable, row, GetDataTableColumnByName( dataTable, "special" ) )
 	loadout.antirodeo		= GetDataTableString( dataTable, row, GetDataTableColumnByName( dataTable, "antirodeo" ) )
-	if (loadout.antirodeo == "mp_titanability_smoke")
-		loadout.antirodeo = "mp_titanability_rearm"
 	loadout.melee			= GetDataTableString( dataTable, row, GetDataTableColumnByName( dataTable, "melee" ) )
 	//if (SERVER && GetPlayerArray().len() > 0 && Roguelike_HasMod( player))
 	loadout.ordnance		= GetDataTableString( dataTable, row, GetDataTableColumnByName( dataTable, "ordnance" ) )

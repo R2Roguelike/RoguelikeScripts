@@ -54,6 +54,8 @@ void function Grenades_ApplyModWeaponVars( entity weapon )
 
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_clip_size, 300 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_default_total, 300 )
+    ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_stockpile_max, 300 )
+    ModWeaponVars_SetString( weapon, eWeaponVar.ammo_display, "bar" )
     ModWeaponVars_SetFloat( weapon, eWeaponVar.regen_ammo_refill_rate, 10.0 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_min_to_fire, 150 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_per_shot, 150 )
@@ -81,6 +83,13 @@ void function Grenades_ApplyModWeaponVars( entity weapon )
 
         switch (perk)
         {
+            case "common":
+            case "rare":
+            case "uncommon":
+            case "epic":
+            case "legendary":
+                break
+
             default:
                 RoguelikeWeaponPerk perk = GetWeaponPerkDataByName(perk)
                 if (perk.mwvCallback != null)

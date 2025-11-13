@@ -106,7 +106,9 @@ void functionref (var, var) function RoguelikeDatacore_GetHoverFunc( var menu, b
 		if (data.perk1 != "")
 		{
 			RoguelikeDatacorePerk perk1 = GetDatacorePerkDataByName( data.perk1 )
-			weaponDesc += FormatDescription( format("<daze>%s</>: %s\n\n", perk1.name, perk1.description) )
+			float baseValue = perk1.baseValue
+			baseValue += perk1.valuePerLevel * expect int(data.rarity)
+			weaponDesc += FormatDescription( format(format("<daze>%s</>: %s\n\n", perk1.name, perk1.description), baseValue, baseValue) )
 		}
 
 		int rarity = expect int(data.rarity)

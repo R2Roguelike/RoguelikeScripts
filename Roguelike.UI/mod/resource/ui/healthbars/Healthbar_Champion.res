@@ -35,7 +35,7 @@ resource/ui/layouts/Destiny2/Healthbar_Champion.res
 		Margin				0
 		ProgressDirection			0
 		SegmentFill			1
-		SegmentSize			20
+		SegmentSize			15
 		SegmentGap			1
 		scaleImage			1
 
@@ -62,7 +62,7 @@ resource/ui/layouts/Destiny2/Healthbar_Champion.res
 		Margin				0
 		ProgressDirection			0
 		SegmentFill			1
-		SegmentSize			20
+		SegmentSize			15
 		SegmentGap			1
 		scaleImage			1
 

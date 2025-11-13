@@ -76,8 +76,11 @@ int function ContentScaledXAsInt( int val )
 	return int( fVal + 0.5 )
 }
 
-int function ContentScaledYAsInt( int val )
+int function ContentScaledYAsInt( val )
 {
+	if (typeof(val) != "float")
+		val = float(val)
+	expect float(val)
 	if (cachedScaleFactor[0] <= 0.0)
 		cachedScaleFactor = GetContentScaleFactor( GetMenu( "MainMenu" ) )
 

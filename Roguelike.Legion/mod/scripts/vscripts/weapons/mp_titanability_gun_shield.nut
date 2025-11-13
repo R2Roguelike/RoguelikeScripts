@@ -176,6 +176,7 @@ void function Sv_CreateGunShield( entity titan, entity weapon, entity shieldWeap
 				StopSoundOnEntity( vortexWeapon, "weapon_predator_mountedshield_start_3p" )
 				if ( IsValid( titan ) && titan.IsPlayer() )
 				{
+					StopSoundOnEntity( titan.GetActiveWeapon(), "weapon_predator_mountedshield_start_1p" )
 					EmitSoundOnEntityOnlyToPlayer( vortexWeapon, titan, "weapon_predator_mountedshield_stop_1p" )
 					EmitSoundOnEntityExceptToPlayer( vortexWeapon, titan, "weapon_predator_mountedshield_stop_3p" )
 				}
@@ -200,7 +201,7 @@ void function Sv_CreateGunShield( entity titan, entity weapon, entity shieldWeap
 			{
 				EmitSoundOnEntity( titan, "titan_energyshield_down" )
 				PlayFXOnEntity( FX_TITAN_GUN_SHIELD_BREAK, titan, "PROPGUN" )
-				if (Roguelike_HasMod( titan, "power_shield" ))
+				if (Roguelike_HasMod( titan, "shield_threat" ))
 				{
 					printt("shield destroyed!")
 					entity primary = Roguelike_FindWeapon( titan, "mp_titanweapon_predator_cannon" )
@@ -208,9 +209,15 @@ void function Sv_CreateGunShield( entity titan, entity weapon, entity shieldWeap
 					entity offensive = Roguelike_FindWeapon( titan, "mp_titanability_power_shot" )
 					if (IsValid(offensive))
 					{
-						offensive.SetWeaponPrimaryClipCount( offensive.GetWeaponPrimaryClipCountMax() )
+						offensive.SetWeaponPrimaryClipCount( 
+							minint(offensive.GetWeaponPrimaryClipCountMax(), offensive.GetWeaponPrimaryClipCount() + 160) // 2 charges
+						)
 					}
-
+					if (titan.IsPlayer())
+					{
+						EmitSoundOnEntity( titan, "Titan_Legion_Smart_Core_Activated_1P" )
+						ServerToClientStringCommand( titan, "mod_activated Power Shield! 5 1 1 1" )
+					}
 				}
 			}
 		}

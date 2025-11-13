@@ -45,6 +45,7 @@ bool function Tone_ShouldCreateTrackerHud( entity player )
 
 void function Tone_HudThink( entity player )
 {
+	player.Signal( "StopToneHud" )
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "StopToneHud")
 	entity cockpit = player.GetCockpit()

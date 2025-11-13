@@ -535,7 +535,10 @@ function PilotBecomesTitan( entity player, entity titan, bool fullCopy = true )
 	}
 	#endif
 
-	string setActiveWeapon = titan.GetLatestPrimaryWeapon().GetWeaponClassName()
+	string setActiveWeapon = "" 
+	
+	if (IsValid(titan.GetLatestPrimaryWeapon()))
+		setActiveWeapon = titan.GetLatestPrimaryWeapon().GetWeaponClassName()
 	if (!Roguelike_GetTitanLoadouts().contains(setActiveWeapon))
 		setActiveWeapon = Roguelike_GetTitanLoadouts()[0]
 

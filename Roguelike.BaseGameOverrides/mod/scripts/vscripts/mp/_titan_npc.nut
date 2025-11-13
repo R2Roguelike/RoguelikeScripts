@@ -609,25 +609,29 @@ void function SpawnTitanBatteryOnDeath( entity titan, var damageInfo )
 
 			if (titan.IsTitan())
 				numBatt += 1
-			if ( "hacker" in titan.s && Roguelike_HasMod( player, "hacked_battery" ) )
-			{
-				numBatt += 1
-			}
 			if ( RoguelikeScorch_IsPerfectDish( player, titan, damageInfo ))
 			{
 				numBatt += 1
+				ServerToClientStringCommand( titan, "mod_activated Perfect Dish! 5 0.3 1 0.3" )
 			}
 			if (damageFlags & DAMAGEFLAG_DISORDER && Roguelike_HasMod( player, "discharge_battery" ))
 			{
 				numBatt += 1
+				ServerToClientStringCommand( titan, "mod_activated Discharge Battery! 5 0.3 1 0.3" )
 			}
 			if (damageInfo != null)
 			{
 				int damageType = DamageInfo_GetCustomDamageType( damageInfo )
 				if ((damageType & DF_MELEE) > 0 && Roguelike_HasMod( player, "addiction" ))
+				{
 					numBatt += 1
+					ServerToClientStringCommand( titan, "mod_activated Addiction Battery! 5 0.3 1 0.3" )
+				}
 				if (DamageInfo_GetDamage( damageInfo ) > 3000 && Roguelike_HasMod( player, "big_finish" ))
+				{
 					numBatt += 1
+					ServerToClientStringCommand( titan, "mod_activated Big Finish! 5 0.3 1 0.3" )
+				}
 			}
 			if (Roguelike_HasMod( player, "executioner_meal" ) && player.IsTitan() && damageInfo != null)
 			{

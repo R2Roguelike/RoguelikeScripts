@@ -22,11 +22,9 @@ var function OnWeaponPrimaryAttack_cloak( entity weapon, WeaponPrimaryAttackPara
 		float duration = weapon.GetWeaponSettingFloat( eWeaponVar.fire_duration )
 		if (Roguelike_HasMod( ownerPlayer, "cloak_infinite" ))
 		{
-			EnableCloakForever( ownerPlayer )
 			ownerPlayer.uncloakOnDamage = true
 		}
-		else
-			EnableCloak( ownerPlayer, duration )
+		EnableCloak( ownerPlayer, duration )
 		#if BATTLECHATTER_ENABLED
 			TryPlayWeaponBattleChatterLine( ownerPlayer, weapon )
 		#endif

@@ -459,7 +459,7 @@ void function PermissionDenied()
 {
 	DialogData dialogData
 	dialogData.header = "Denied :)"
-	dialogData.message = "You can't do that. You're dead. Close the pause menu, and face the consenquences."
+	dialogData.message = "I don't think dead people can reload checkpoint to un-die."
 
 	AddDialogButton( dialogData, "#OK" )
 

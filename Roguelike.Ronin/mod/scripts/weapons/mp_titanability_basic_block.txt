@@ -55,8 +55,8 @@ WeaponData
 	"sound_weapon_ready"							"HUD_TitanDefenseAbility_replenished_1P"
 	"vortex_drain"									"0.0"
 	"projectile_adjust_to_gun_barrel"				"1"
-	"charge_sound_1p"								"Weapon_ShoulderLaser_StutterBuild_1P"
-	"charge_sound_3p"								"Weapon_ShoulderLaser_StutterBuild_3P"
+	"charge_sound_1p"								""
+	"charge_sound_3p"								""
 
 	// Ammo
 	"ammo_stockpile_max"							"4500"
@@ -66,8 +66,8 @@ WeaponData
 	// Charge settings
     "cooldown_type"                                 "vortex_drain"
 	"charge_time" 									"-1.0"
-	"charge_cooldown_time"							"1.0"
-	"charge_cooldown_delay"   						"1.0"
+	"charge_cooldown_time"							"0.5"
+	"charge_cooldown_delay"   						"0.1"
 	"charge_end_forces_fire"  						"0"
 	//"charge_allow_melee"							"1"		// can press melee while blocking
 	"charge_allow_melee"							"0"		// re-enable for DLC4, fix anim bugs
@@ -78,9 +78,9 @@ WeaponData
 	"zoom_time_out"   								"0.125"
 	"zoom_fov"										"70"
 	"holster_time"									".65"
-	"deploy_time" 									".2"
+	"deploy_time" 									".05"
 	"lower_time"  									".65"
-	"raise_time"  									".1"
+	"raise_time"  									".05"
 	"vortex_refire_behavior"  						"absorb"
 	"play_offhand_charging_anim"  					"1"
 	"offhand_blocks_sprint"							"1"

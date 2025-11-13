@@ -142,7 +142,6 @@ function CodeCallback_RegisterClass_CPlayer()
 
 	function CPlayer::OnDeathAsClass( damageInfo )
 	{
-		level.ui.roguelikePlayerDead = true
 		switch ( this.GetPlayerClass() )
 		{
 			case "titan":

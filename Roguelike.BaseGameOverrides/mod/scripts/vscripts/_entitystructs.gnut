@@ -391,6 +391,7 @@ global struct ServerPlayerStruct
 	string 			ogTitanOffhandWeaponName
 
 	array<PlayerSlowDownEffect>		slowEffects
+	array<entity>					storedAbilities
 
 	//AT Turrets
 	float PROTO_UseDebounceEndTime = 0.0 //Working around hacky implementation.

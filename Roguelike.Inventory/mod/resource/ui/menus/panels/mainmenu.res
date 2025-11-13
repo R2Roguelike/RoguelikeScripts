@@ -227,7 +227,7 @@
         ypos					-11
         wide					1920
         tall					1080
-        visible					0
+        visible					1
         controlSettingsFile		"resource/ui/menus/panels/spotlight.res"
 
         pin_to_sibling			PinFrame

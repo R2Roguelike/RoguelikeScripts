@@ -14,7 +14,7 @@ resource/ui/menus/hovers/stat_bar.res
         //bgcolor_override 		"0 0 0 200"
         font					JetBrainsMono_18
 
-		wide				72
+		wide				80
         tall                24
         wrap                0
 
@@ -39,7 +39,7 @@ resource/ui/menus/hovers/stat_bar.res
 		ChangeStyle			0
 		scaleImage			1
 
-		wide				302
+		wide				300
 		tall				24
 
 		"xpos"			"8"
@@ -57,14 +57,14 @@ resource/ui/menus/hovers/stat_bar.res
         //auto_wide_tocontents	1
         auto_tall_tocontents	0
         labelText				"++25"
-        fgcolor_override		"25 25 25 255"
+        fgcolor_override		"255 255 255 255"
         textAlignment			west
         //fgcolor_override 		"255 255 255 255"
         //bgcolor_override 		"0 0 0 200"
-        font					JetBrainsMonoBold_20
+        font					JetBrainsMonoBold_24
 
 		wide				40
-        tall                28
+        tall                24
         wrap                0
 
 		"xpos"			"8"

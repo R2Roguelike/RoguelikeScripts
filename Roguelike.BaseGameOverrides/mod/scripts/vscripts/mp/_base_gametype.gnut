@@ -1783,6 +1783,7 @@ void function EntityOutOfBounds( entity trigger, entity ent, entity caller, var 
 	OutOfBoundsDataStruct dataStruct = file.outOfBoundsTable[ ent ]
 
 	dataStruct.outOfBoundsTriggersTouched++
+	printt(trigger.GetOrigin())
 
 	Assert( dataStruct.outOfBoundsTriggersTouched > 0 )
 

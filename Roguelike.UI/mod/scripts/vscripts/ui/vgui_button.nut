@@ -5,6 +5,7 @@ global function VGUIButton_SetText
 global function VGUIButton_SetState
 global function VGUIButton_GetState
 global function VGUIButton_SetValueText
+global function VGUIButton_SetImage
 
 global enum eVGUIButtonState
 {
@@ -41,6 +42,12 @@ void function VGUIButton_Init( var panel )
     }
 }
 
+void function VGUIButton_SetImage( var panel, asset image )
+{
+    Hud_SetImage( Hud_GetChild( panel, "Icon" ), image )
+    Hud_SetAlpha( Hud_GetChild( panel, "Icon" ), 255 )
+}
+
 void function VGUIButton_SetText( var panel, string text )
 {
     var label = Hud_GetChild( panel, "Label" )
@@ -69,17 +76,20 @@ void function OnGetFocus( var button )
     Hud_GetChild( panel, "GoldBorder" ).SetVisible( false )
     Hud_SetLocked( button, false )
     Hud_SetNew( button, false )
+    int alpha = Hud_GetAlpha( Hud_GetChild( panel, "Icon" ) )
     switch (panel.s.state)
     {
         case eVGUIButtonState.None:
             Hud_GetChild( panel, "BG" ).SetColor( 220, 220, 220, 255 )
             Hud_GetChild( panel, "Label" ).SetColor( 25, 25, 25, 255 )
+            Hud_GetChild( panel, "Icon" ).SetColor( 25, 25, 25, alpha )
             Hud_SetNew( button, true )
             break
         case eVGUIButtonState.Selected:
             Hud_GetChild( panel, "BG" ).SetColor( 219, 157, 0, 255 )
             Hud_GetChild( panel, "Label" ).SetColor( 0, 0, 0, 255 )
             Hud_GetChild( panel, "Value" ).SetColor( 0, 0, 0, 255 )
+            Hud_GetChild( panel, "Icon" ).SetColor( 0, 0, 0, alpha )
             Hud_SetNew( button, true )
             break
         case eVGUIButtonState.Locked:
@@ -88,6 +98,7 @@ void function OnGetFocus( var button )
             Hud_SetLocked( button, true )
             Hud_GetChild( panel, "BG" ).SetColor( 220, 220, 220, 255 )
             Hud_GetChild( panel, "Label" ).SetColor( 25, 25, 25, 255 )
+            Hud_GetChild( panel, "Icon" ).SetColor( 25, 25, 25, alpha )
             Hud_GetChild( panel, "Overlay" ).SetVisible( true )
             break
     }
@@ -101,16 +112,19 @@ void function OnLoseFocus( var button )
     Hud_GetChild( panel, "Lock" ).SetVisible( false )
     Hud_GetChild( panel, "GoldBorder" ).SetVisible( false )
     Hud_SetLocked( button, false )
+    int alpha = Hud_GetAlpha( Hud_GetChild( panel, "Icon" ) )
     switch (panel.s.state)
     {
         case eVGUIButtonState.None:
             Hud_GetChild( panel, "BG" ).SetColor( 0, 0, 0, 128 )
             Hud_GetChild( panel, "Label" ).SetColor( 255, 255, 255, 255 )
+            Hud_GetChild( panel, "Icon" ).SetColor( 255, 255, 255, alpha )
             break
         case eVGUIButtonState.Selected:
             Hud_GetChild( panel, "BG" ).SetColor( 0, 0, 0, 128 )
             Hud_GetChild( panel, "Label" ).SetColor( 219, 157, 0, 255 )
             Hud_GetChild( panel, "Value" ).SetColor( 219, 157, 0, 255 )
+            Hud_GetChild( panel, "Icon" ).SetColor( 219, 157, 0, alpha )
             Hud_GetChild( panel, "GoldBorder" ).SetVisible( true )
             break
         case eVGUIButtonState.Locked:
@@ -118,6 +132,7 @@ void function OnLoseFocus( var button )
         case eVGUIButtonState.Disabled:
             Hud_GetChild( panel, "BG" ).SetColor( 0, 0, 0, 128 )
             Hud_GetChild( panel, "Label" ).SetColor( 255, 255, 255, 255 )
+            Hud_GetChild( panel, "Icon" ).SetColor( 255, 255, 255, alpha )
             Hud_GetChild( panel, "Overlay" ).SetVisible( true )
             Hud_SetLocked( button, true )
             break

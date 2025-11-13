@@ -241,6 +241,7 @@ void function CodeCallback_MapInit()
 	RegisterSignal( "BTSacrificeDialogue" )
 	RegisterSignal( "MissionFailAfterDelay" )
 	RegisterSignal( "InjectorSpoolDown" )
+	RegisterSignal( "STOPTHECOUNT" )
 	RegisterSignal( "Init_BTLoadingBayClimb" )
 
 	FlagInit( "PickUpEyeCase" )
@@ -1694,6 +1695,11 @@ void function Init_BTEyeCase( entity player, entity scriptRef )
 	waitthread FirstPersonSequence( sequenceTortureRoomPickup, player, moverPickup )
 	file.extraDelay += 20.0
 	FlagClear( "TR_PauseRoomTemp" )
+	SetServerVar( "timerVisible", true )
+	thread void function () : ()
+	{
+
+	}()
 
 	GivePlayerEyeCache( player )
 
@@ -1716,7 +1722,36 @@ void function Init_BTEyeCase( entity player, entity scriptRef )
 void function GivePlayerEyeCache( entity player )
 {
 	Remote_CallFunction_NonReplay( player, "ServerCallback_GiveSmartPistol")
+	
 	FlagSet( "TRDoorHackable" )
+}
+
+void function Last5Seconds( entity player )
+{
+	float timerank2 = (GetTimeForMaxRank(GetMapName())[2]) * GetTimeRankMultiplier()
+	while ((timerank2 - Time() + expect float(GetServerVar("startTime"))) > 5.0)
+	{
+		wait 0.001
+		if (GetServerVar("isTimerPaused"))
+			return
+	}
+	
+	MuteAll( player, 4 )
+	ScreenFadeToBlackForever( player, 4.0 )
+	SetServerVar( "timerVisible", false )
+
+	thread void function(entity player) : ()
+	{
+		wait 4
+		ClientCommand(player, "playvideo explosion")
+		wait 1
+		UnMuteAll( player )
+		ServerToClientStringCommand( player, "run_end")
+	}(player)
+	player.WaitSignal("STOPTHECOUNT")
+
+	UnMuteAll( player )
+	ScreenFadeFromBlack( player, 1.0, 0.0 )
 }
 
 void function OnOuterRingTrigEnter( entity trigger, entity ent )
@@ -1797,6 +1832,8 @@ entity function CreateCoreEnergy( vector origin )
 
 void function SP_TortureRoomThread( entity player )
 {
+	Roguelike_PauseTimer()
+	Roguelike_SetTimerValue( 0 )
 	Remote_CallFunction_NonReplay( player, "ServerCallback_StartPilotCockpitRebootSeq" )
 
 	FlagClear( "DeathHintsEnabled" )
@@ -1814,7 +1851,10 @@ void function SP_TortureRoomThread( entity player )
 
 void function TortureRoomSkipped( entity player )
 {
-
+	Roguelike_SetTimerValue( 0 )
+	if (GetServerVar("isTimerPaused"))
+		Roguelike_UnpauseTimer()
+	SetServerVar( "timerVisible", true )
 }
 
 void function TortureRoomSetup( entity player )
@@ -1861,10 +1901,14 @@ void function SmartPistolRunSkipped( entity player )
 	FlagSet( "sp_run_vista_titan_hill" )
 	thread StratonHornetDogfights()
 	thread DropshipTakeOffs()
+	thread Last5Seconds(player)
 }
 
 void function SP_SmartPistolRunThread( entity player )
 {
+	if (GetServerVar("isTimerPaused"))
+		Roguelike_UnpauseTimer()
+	thread Last5Seconds( player)
 	FlagClear( "open_torture_room_blast_door" )
 	entity tr_door = GetEntByScriptName( "tr_door" )
 	tr_door.SetSkin( 1 )
@@ -3265,6 +3309,10 @@ void function InjectorRoomStartPointSetup( entity player )
 void function InjectorRoomSkipped( entity player )
 {
 	svGlobal.levelEnt.Signal( "StratonHornetDogfights" )
+	if (!GetServerVar("isTimerPaused"))
+		Roguelike_PauseTimer()
+
+	SetServerVar("timerVisible", false)
 }
 
 void function SP_InjectorRoomThread( entity player )
@@ -4189,6 +4237,7 @@ void function SP_BliskFarewellThread( entity player )
 	Objective_Clear()
 
 	Remote_CallFunction_NonReplay( player, "ServerCallback_ShowMashHint" )
+	SetServerVar( "timerVisible", false )
 
 	player.GetFirstPersonProxy().SetSkin( 3 )
 
@@ -4228,6 +4277,8 @@ void function SP_BliskFarewellThread( entity player )
 	StatusEffect_AddTimed( player, eStatusEffect.emp, 1.0, 1.0, 0.2 )
 	EmitSoundOnEntity( player, "titan_healthbar_tier1_down_1P" )
 	Remote_CallFunction_NonReplay( player, "ServerCallback_HideMashHint" )
+	Roguelike_PauseTimer()
+	Signal( player, "STOPTHECOUNT" )
 
 	level.nv.coreSoundActive = 2
 	wait 0.2
@@ -5712,6 +5763,13 @@ void function SP_RisingWorldJumpThread( entity player )
 	thread WarpInThread( player, dropship, idleMover, dropshipRef )
 	FlagSet( "HideWorldRunRandoms" )
 	waitthread WarpOutThread( player, dropship, timeToWarp )
+	
+	if (GetConVarInt("roguelike_run_heat") >= 15)
+	{
+		// unlock archon
+		Remote_CallFunction_NonReplay( player, "ServerCallback_Roguelike_UnlockLoadout", 6) // reward for beating run with 15 heat
+	}
+
 	UnlockAchievement( player, achievements.RISING_WORLD_RUN )
 }
 
@@ -6821,14 +6879,14 @@ void function SP_ExplodingPlanetThread( entity player )
 	Remote_CallFunction_Replay( player, "ServerCallback_SetNearDOF", 0, 75, 0.1 )
 
 	entity dropship = file.dropship
-	dropship.Hide()
+	//dropship.Hide()
 	dropship.SetModel( SW_CROW )
 	SetTeam( dropship, TEAM_MILITIA )
 	dropship.ClearParent()
 	dropship.Anim_Stop()
 	thread PlayAnim( dropship, "ref" )
 	dropship.SetNextThinkNow()
-	//dropship.RenderWithViewModels( true )
+	dropship.RenderWithViewModels( true )
 
 	entity spacenode = GetEnt( "spacenode_1" )
 

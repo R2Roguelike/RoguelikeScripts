@@ -6,6 +6,7 @@ global function OnWeaponPrimaryAttack_titanability_roguelike_pylon
 global function OnWeaponOwnerChanged_titanability_roguelike_pylon
 #if SERVER
 global function OnWeaponNPCPrimaryAttack_titanability_roguelike_pylon
+global function Roguelike_ThrowPylon
 #endif
 
 const asset LASER_TRIP_AIRBURST_FX = $"P_impact_exp_arcball_default"
@@ -28,7 +29,7 @@ const float LASER_TRIP_BIGZAP_RANGE = 1500.0
 
 const float LASER_TRIP_LIFETIME = 300.0
 const float LASER_TRIP_BUILD_TIME = 1.0
-const int LASER_TRIP_MAX = 9
+const int LASER_TRIP_MAX = 2
 
 const float LASER_TRIP_DEPLOY_POWER = 200.0
 const float LASER_TRIP_DEPLOY_SIDE_POWER = 400.0
@@ -68,7 +69,8 @@ void function OnWeaponOwnerChanged_titanability_roguelike_pylon( entity weapon, 
 #if SERVER
 var function OnWeaponNPCPrimaryAttack_titanability_roguelike_pylon( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
-	return OnWeaponPrimaryAttack_titanability_roguelike_pylon( weapon, attackParams )
+	return 1
+	//return OnWeaponPrimaryAttack_titanability_roguelike_pylon( weapon, attackParams )
 }
 #endif
 
@@ -102,15 +104,25 @@ var function OnWeaponPrimaryAttack_titanability_roguelike_pylon( entity weapon, 
 	attackParams.dir = dir
 	deployables.append( ThrowDeployable( weapon, attackParams, LASER_TRIP_DEPLOY_POWER, OnLaserPylonPlanted ) )
 
-	#if SERVER
-	foreach ( i, deployable in deployables )
-	{
-		deployable.proj.projectileID = i
-		deployable.proj.projectileGroup = clone deployables
-		deployable.proj.inflictorOverride = inflictor
-	}
-	#endif
 	return weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )
+}
+
+void function Roguelike_ThrowPylon( entity weapon )
+{
+	
+	vector angles = weapon.GetWeaponOwner().GetAngles()
+	angles.x = 0
+
+	vector forward = AnglesToForward( angles )
+
+	WeaponPrimaryAttackParams params
+	params.dir = forward
+	params.pos = weapon.GetWeaponOwner().GetWorldSpaceCenter()
+	params.firstTimePredicted = false
+	params.burstIndex = 0
+	params.barrelIndex = 0
+
+	ThrowDeployable( weapon, params, LASER_TRIP_DEPLOY_POWER, OnLaserPylonPlanted )
 }
 
 void function OnLaserPylonPlanted( entity projectile )
@@ -231,7 +243,6 @@ function DeployLaserPylon( entity projectile )
 	pylon.NonPhysicsSetMoveModeLocal( true )
 	pylon.NonPhysicsMoveTo( pylon.GetLocalOrigin() + <0,0,45>, LASER_TRIP_BUILD_TIME, 0, 0 )
 	pylon.e.spawnTime = Time()
-	pylon.e.projectileID = projectile.proj.projectileID
 
 	int projCount = projectile.proj.projectileGroup.len()
 	foreach ( p in projectile.proj.projectileGroup )
@@ -294,50 +305,6 @@ function DeployLaserPylon( entity projectile )
 	PlayLoopFXOnEntity( LASER_TRIP_FX_ALL, pylon )
 
 	// AddEntityCallback_OnDamaged( pylon, OnPylonHeadDamaged )
-
-	foreach ( p in projectile.proj.projectileGroup )
-	{
-		if ( IsValid( p ) && !p.IsProjectile() && p != pylon && p.e.projectileID == projectile.proj.projectileID - 1 )
-		{
-			vector pOrg = p.GetOrigin()
-			vector pylonOrg = pylon.GetOrigin()
-			TraceResults trace = TraceLine( pOrg, pylonOrg, [], TRACE_MASK_NPCWORLDSTATIC, TRACE_COLLISION_GROUP_NONE )
-			if ( trace.fraction < 0.99 )
-				continue
-
-			if ( p.IsMarkedForDeletion() )
-				continue
-
-			entity cpEnd = CreateEntity( "info_placement_helper" )
-			SetTargetName( cpEnd, UniqueString( "laser_pylon_cpEnd" ) )
-			cpEnd.SetParent( p, "center", false, 0.0 )
-			DispatchSpawn( cpEnd )
-
-			entity beamFX = CreateEntity( "info_particle_system" )
-			beamFX.kv.cpoint1 = cpEnd.GetTargetName()
-
-			beamFX.SetValueForEffectNameKey( LASER_TRIP_BEAM_FX )
-			beamFX.kv.start_active = 1
-			// SetTeam( beamFX, GetOtherTeam( owner.GetTeam() ) )
-			// beamFX.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY
-			beamFX.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
-			beamFX.SetOrigin( pylonOrg )
-			vector cpEndPoint = cpEnd.GetOrigin()
-			beamFX.SetAngles( VectorToAngles( cpEndPoint - pylon.GetOrigin() ) )
-			beamFX.SetParent( pylon, "center", true, 0.0 )
-			DispatchSpawn( beamFX )
-
-			vector centerPoint = pylonOrg + ( ( pOrg - pylonOrg ) / 2 )
-			EmitSoundAtPosition( TEAM_UNASSIGNED, centerPoint, "Wpn_LaserTripMine_LaserLoop" )
-			thread StopLaserSoundAtPosition( pylon, centerPoint )
-			if ( projCount == 3 )
-				EmitSoundAtPosition( TEAM_UNASSIGNED, centerPoint, "Wpn_LaserTripMine_FirstConnect" )
-			else
-				EmitSoundAtPosition( TEAM_UNASSIGNED, centerPoint, "Wpn_LaserTripMine_SecondConnect" )
-
-			pylon.e.fxArray.append( p )
-		}
-	}
 
 	if ( IsValid( projectile ) )
 		projectile.Destroy()
@@ -406,30 +373,4 @@ void function OnPylonBodyDamaged( entity pylonBody, var damageInfo )
 	}
 }
 
-#endif
-
-#if SERVER
-void function LaserTrip_DamagedPlayerOrNPC( entity ent, var damageInfo )
-{
-	entity attacker = DamageInfo_GetAttacker( damageInfo )
-	if ( ent.IsPlayer() )
-	{
-		if ( ent.IsTitan() )
-		 	EmitSoundOnEntityOnlyToPlayer( ent, ent, "titan_rocket_explosion_3p_vs_1p" )
-		else
-		 	EmitSoundOnEntityOnlyToPlayer( ent, ent, "flesh_explo_med_3p_vs_1p" )
-	}
-
-	if (!IsValid(attacker) || !attacker.IsPlayer())
-	{
-		return
-	}
-	float cur = RSE_Get( ent, RoguelikeEffect.ion_charge )
-	cur += 0.25
-	RSE_Apply( ent, RoguelikeEffect.ion_charge, min(cur, 1.0) )
-	if (cur > 0.99 || Roguelike_HasMod( attacker, "pylon_charge" ))
-	{
-		IonDischarge( ent, attacker, damageInfo )
-	}
-}
 #endif

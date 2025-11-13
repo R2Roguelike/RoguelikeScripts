@@ -2,12 +2,14 @@
 {
     "global"
     {
+		titan_regen_delay		6.0
+
 		ui_targetinfo				""
         ui_targetinfo               "" [$mp]
         ui_targetinfo               "" [$sp]
 
-        dodgePowerDrain		49
-        powerRegenRate		12.25
+        dodgePowerDrain		49.99
+        powerRegenRate		12.5
         dodgePowerDelay		0.2
 		aiEnemy_priority		100
 
@@ -19,7 +21,7 @@
 
 		sharedEnergyTotal 20000
 		sharedEnergyRegenDelay 0.2
-		sharedEnergyRegenRate 500.0
+		sharedEnergyRegenRate 750.0
 
         ClassMods
         {
@@ -36,19 +38,27 @@
 
 			segment_sacrifice_1
 			{
-		        health				10000 // not used by segmented health
+		        health				--2500 // not used by segmented health
 			}
 			segment_sacrifice_2
 			{
-		        health				7500 // not used by segmented health
+		        health				--5000 // not used by segmented health
+			}
+			segment_sacrifice_4
+			{
+		        health				--10000 // not used by segmented health
 			}
 			damage_sacrifice_1
 			{
-		        health				15000 // not used by segmented health
+		        health				++2500 // not used by segmented health
 			}
 			damage_sacrifice_2
 			{
-		        health				17500 // not used by segmented health
+		        health				++5000 // not used by segmented health
+			}
+			damage_sacrifice_4
+			{
+		        health				++5000 // not used by segmented health
 			}
         }
     }

@@ -51,7 +51,7 @@ WeaponData
 	"ammo_no_remove_from_clip"						"1"
 
 	//Regen Ammo
-	"regen_ammo_refill_rate"						"25"
+	"regen_ammo_refill_rate"						"37.5"
 	"regen_ammo_refill_start_delay"					"0.0"
 
 	MP_BASE

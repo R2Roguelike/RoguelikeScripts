@@ -523,12 +523,15 @@ function CommonNPCTitanOnSpawned( entity npc )
 	{
 		Assert( npc.GetMainWeapons().len() == 0 )
 
-		// if designer overwrites weapons, apply them
-		GiveTitanLoadout( npc, npc.ai.titanSpawnLoadout )
+		// RHACK: - I REALLY REALLY SHOULDVE DONE THIS PROPERLY BUT LIKE, HOLY SHIT THATS SO FAR OUTSIDE THE SCOPE OF THIS MOD LMAO
+		if (npc.ai.titanSpawnLoadout.setFile != "titan_buddy")
+			GiveTitanLoadout( npc, npc.ai.titanSpawnLoadout )
 	}
 	else if ( npc.GetMainWeapons().len() == 0 )
 	{
-		GiveTitanLoadout( npc, npc.ai.titanSpawnLoadout )
+		// RHACK: - I REALLY REALLY SHOULDVE DONE THIS PROPERLY BUT LIKE, HOLY SHIT THATS SO FAR OUTSIDE THE SCOPE OF THIS MOD LMAO
+		if (npc.ai.titanSpawnLoadout.setFile != "titan_buddy")
+			GiveTitanLoadout( npc, npc.ai.titanSpawnLoadout )
 	}
 
 	//Assert( npc.ai.titanSpawnLoadout.setFile == npc.ai.titanSettings.titanSetFile )

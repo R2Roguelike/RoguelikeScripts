@@ -22,7 +22,7 @@ resource/ui/roguelike_timer.res
 		tall				45
 		labelText			"12:51"
 		allCaps				1
-		font				JetBrainsMonoBold_80_Italic
+		font				JetBrainsMonoBold_48_Italic
 		auto_wide_tocontents	1
         auto_tall_tocontents    1
 		textAlignment		center
@@ -45,8 +45,8 @@ resource/ui/roguelike_timer.res
 		wide				128
 		tall				6
 
-		"xpos"			"-20"
-		"ypos"			"-32"
+		"xpos"			"-10"
+		"ypos"			"-24"
 
         pin_to_sibling "Time"
 		pin_corner_to_sibling	TOP_LEFT
@@ -135,8 +135,8 @@ resource/ui/roguelike_timer.res
 		wide				128
 		tall				6
 
-		"xpos"			"4"
-		"ypos"			"21"
+		"xpos"			"5"
+		"ypos"			"23"
 
         pin_to_sibling "TimeBG"
 		pin_corner_to_sibling	TOP_LEFT
@@ -216,12 +216,12 @@ resource/ui/roguelike_timer.res
 	Heat
 	{
 		ControlName			Label
-		xpos				-43
-		ypos				-16
+		xpos				-30
+		ypos				-10
 
 		visible				1
 		zpos				200
-        wide                128
+        wide                512
 		tall				24
 		labelText			""
 		allCaps				1
@@ -234,28 +234,6 @@ resource/ui/roguelike_timer.res
 		pin_to_sibling				Time
 		pin_corner_to_sibling		TOP_RIGHT
 		pin_to_sibling_corner		BOTTOM_RIGHT
-	}
-	Money
-	{
-		ControlName			Label
-		xpos				16
-		ypos				0
-
-		visible				1
-		zpos				200
-        wide                128
-		tall				24
-		labelText			"0$"
-		allCaps				1
-		font				JetBrainsMonoBold_27_Italic
-		auto_wide_tocontents	0
-        auto_tall_tocontents    1
-		textAlignment		west
-		fgcolor_override 	"255 192 64 255"
-
-		pin_to_sibling				Heat
-		pin_corner_to_sibling		TOP_LEFT
-		pin_to_sibling_corner		TOP_RIGHT
 	}
 
 }

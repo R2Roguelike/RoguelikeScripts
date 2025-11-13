@@ -5555,7 +5555,7 @@ void function PilotLink_TitanTraining( entity player )
 	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", OFFHAND_LEFT )
 	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", OFFHAND_TITAN_CENTER )
 	Remote_CallFunction_Replay( player, "ServerCallback_ShowHudIcon", 3 )
-	thread DisplayVortexHint( player )
+	//thread DisplayVortexHint( player )
 
 	WaitForEnemyCount( 3, 20 )
 
@@ -5578,7 +5578,7 @@ void function PilotLink_TitanTraining( entity player )
 	// ***** MISSILES AVAILABLE *****
 	FlagSet( "titan_training_rockets" )
 	//HackEnableOffhand( player, OFFHAND_RIGHT )
-	thread DisplayMissileSystemHint( player )
+	//thread DisplayMissileSystemHint( player )
 
 	if ( vortexWeapon.HasMod( "sp_wider_return_spread" ) )
 		vortexWeapon.RemoveMod( "sp_wider_return_spread" )
@@ -5741,7 +5741,7 @@ void function DisplayMissileSystemHint( entity player )
 	)
 
 	AddButtonPressedPlayerInputCallback( player, IN_OFFHAND0, PlayerUsedMissiles )
-	//DisplayOnscreenHint( player, "missile_system_hint" )
+	DisplayOnscreenHint( player, "vortex_hint" )
 	WaitSignal( player, "used_missiles" )
 
 	WaitForever()

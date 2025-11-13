@@ -2,15 +2,13 @@
 {
 	"global"
 	{
-		friction					100
+		friction					4
 	}
 	"crouch"
 	{
-		speed						120
 	}
 
 	"stand"
 	{
-		speed						243
 	}
 }

@@ -1,0 +1,13 @@
+global function ClPilotSpeedometer_Init
+
+struct
+{
+	var rui = null
+	bool useMetric
+	bool initialized = false
+} file
+
+void function ClPilotSpeedometer_Init()
+{
+	return // ROGUELIKE - srmm fuckery - dont enable this speedometer k thx bye
+}

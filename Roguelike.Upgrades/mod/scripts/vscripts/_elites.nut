@@ -21,12 +21,10 @@ void function Elites_Init()
 
     
     Elites_Add( Elite_BubbleShield )
-    Elites_AddTitan( Elite_Healing )
+    Elites_Add( Elite_Healing )
     Elites_Add( Elite_Enraged )
     Elites_Add( Elite_Invulnerable )
-    Elites_AddTitan( Elite_Parry )
-    if (!("titan_health" in Roguelike_GetRunModifiers()))
-        Elites_AddTitan( Elite_Sacrifice )
+    Elites_Add( Elite_Parry )
 }
 
 string function GetEliteType( entity npc )
@@ -57,8 +55,9 @@ void function Elites_Generate( entity npc )
 {
     int levelsComplete = GetConVarInt("roguelike_levels_completed")
     float chance = 1.0 / GraphCapped( levelsComplete, 0, 5, 10, 5 )
+    chance += 0.1 * Roguelike_GetRunModifier("elite_freq")
     vector origin = npc.GetOrigin()
-    int posSeed = int((origin.x + origin.y + origin.z) * 12341)
+    int posSeed = int((origin.x + origin.y + origin.z) * 123)
     PRandom rand = NewPRandom(Roguelike_GetLevelSeed() + posSeed)
     if (PRandomFloat(rand, 0, 1) > chance)
         return
@@ -416,10 +415,31 @@ void function Elite_Healing( entity npc )
     //TestBubbleShield( npc.GetTeam(), npc.GetOrigin(), npc.GetAngles(), npc )
 
     int index = 2
-    if (IsValid(npc.GetOffhandWeapon(1)) && npc.GetOffhandWeapon(1).GetWeaponClassName() == "mp_titanability_tether_trap")
+    if ( !npc.IsTitan()
+        || (IsValid(npc.GetOffhandWeapon(1)) && npc.GetOffhandWeapon(1).GetWeaponClassName() == "mp_titanability_tether_trap"))
         index = 1
-    npc.TakeOffhandWeapon(index)
+    if (IsValid(npc.GetOffhandWeapon(index)))
+        npc.TakeOffhandWeapon(index)
     npc.GiveOffhandWeapon( "mp_titanability_roguelike_pylon", index )
+
+
+    thread void function(entity npc) : (index)
+    {
+        wait 0.001
+        entity offhand = npc.GetOffhandWeapon(index)
+        while (true)
+        {
+            wait 0.001
+            if (!IsValid(offhand) || !IsValid(offhand.GetWeaponOwner()) || !IsAlive(offhand.GetWeaponOwner()))
+                break
+                
+            if (GetHealthFrac(offhand.GetWeaponOwner()) > 0.95)
+                continue
+
+            Roguelike_ThrowPylon( offhand )
+            wait 20
+        }
+    }(npc)
 }
 
 void function HealingElite_Pylon( entity npc, entity tower )
@@ -476,7 +496,7 @@ void function HealingElite_Pylon( entity npc, entity tower )
 
             zapBeam.Fire( "Start" )
 
-            while (IsValid(ent) && IsAlive( ent ) && Distance( npc.GetOrigin(), ent.GetOrigin() ) < range && ent.GetHealth() < ent.GetMaxHealth())
+            while (IsValid(tower) && IsValid(ent) && IsAlive( ent ) && Distance( tower.GetOrigin(), ent.GetOrigin() ) < range && ent.GetHealth() < ent.GetMaxHealth())
             {
                 ent.SetHealth( minint( ent.GetMaxHealth(), ent.GetHealth() + int(ent.GetMaxHealth() * 0.02) ))
                 wait 0.19

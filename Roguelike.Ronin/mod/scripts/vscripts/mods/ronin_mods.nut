@@ -6,7 +6,8 @@ void function Ronin_RegisterMods()
         RoguelikeMod mod = NewMod("ronin_dash_melee")
         mod.name = "Dash-Attack"
         mod.abbreviation = "DA"
-        mod.description = "Timing your dash with your sword hit <cyan>gurantees a critical hit</>."
+        mod.description = "Timing your dash with your sword hit <cyan>gurantees a critical hit.</>"
+        mod.shortdesc = "Sword Dash-Attacks <cyan>ALWAYS crit."
         mod.cost = 1
         mod.chip = TITAN_CHIP_UTILITY
     }
@@ -14,7 +15,8 @@ void function Ronin_RegisterMods()
         RoguelikeMod mod = NewMod("reflective_sword")
         mod.name = "Reflective Sword"
         mod.abbreviation = "RS"
-        mod.description = "Sword block blocks <green>100%</> damage.\nBlocked damage <cyan>grants up to +35% DMG</>.\nSword block <red>no longer blocks ANY damage</> while at max charge."
+        mod.description = "Sword block blocks <green>100%</> damage.\nBlocked damage <cyan>grants up to +35% DMG.</>\nSword block <red>no longer blocks ANY damage</> while at max charge."
+        mod.shortdesc = "Sword block blocks all DMG and grants a buff.\n<red>But it has a cooldown."
         mod.cost = 2
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -23,7 +25,8 @@ void function Ronin_RegisterMods()
         RoguelikeMod mod = NewMod("perfect_sword")
         mod.name = "Perfect Technique"
         mod.abbreviation = "PT"
-        mod.description = "If Sword block blocks damage <daze>during it's first second of usage</>, you are <cyan>invulnerable for 1s</> and gain 3 Overload stacks."
+        mod.description = "If Sword block blocks damage <daze>during it's first 0.35s of usage,</> you are <cyan>invulnerable for the duration of the sword block,</> and <daze>reflect projectiles.</>"
+        mod.shortdesc = "Timing Sword Block grants <cyan>invulnerability\nand projectile reflection."
         mod.cost = 2
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -32,7 +35,8 @@ void function Ronin_RegisterMods()
         RoguelikeMod mod = NewMod("quickswap")
         mod.name = "Quickswap"
         mod.abbreviation = "Qs"
-        mod.description = "Firing your shotgun right after switching to it deals<red> +50% damage</>."
+        mod.description = "Firing your shotgun right after switching to it deals<red> +50% damage.</>"
+        mod.shortdesc = "Shotgun Swaps grant <cyan>+DMG%."
         mod.cost = 3
         mod.chip = TITAN_CHIP_WEAPON
     }
@@ -41,6 +45,7 @@ void function Ronin_RegisterMods()
         mod.name = "Conductive Sword"
         mod.abbreviation = "CS"
         mod.description = "Sword hits while the target has <daze>Daze</> charge your offensives."
+        mod.shortdesc = "Sword hits against Dazed targets charge\nyour offensives."
         mod.cost = 2
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -48,7 +53,8 @@ void function Ronin_RegisterMods()
         RoguelikeMod mod = NewMod("overcharged_arc_wave")
         mod.name = "Overcharged Waves"
         mod.abbreviation = "OW"
-        mod.description = "Arc Wave recharges rapidly when using sword core."
+        mod.description = "Arc Wave and Phase Dash recharge rapidly when using Sword Core."
+        mod.shortdesc = "Arc Wave and Phase Dash recharge rapidly\nwhen using Sword Core."
         mod.cost = 2
         mod.chip = TITAN_CHIP_CORE
     }
@@ -57,6 +63,7 @@ void function Ronin_RegisterMods()
         mod.name = "Conduction"
         mod.abbreviation = "Cd"
         mod.description = "Arc Wave hits restore Dash Energy. Dashing restores Arc Wave cooldown."
+        mod.shortdesc = "Arc Wave and Dashing restore cooldowns for\neach other."
         mod.cost = 1
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -65,6 +72,7 @@ void function Ronin_RegisterMods()
         mod.name = "Unrelenting Sword"
         mod.abbreviation = "US"
         mod.description = "Less Sword Core duration is consumed while swinging your sword."
+        mod.shortdesc = "Less Sword Core duration is consumed while\nswinging your sword."
         mod.cost = 2
         mod.chip = TITAN_CHIP_CORE
     }
@@ -73,6 +81,7 @@ void function Ronin_RegisterMods()
         mod.name = "Overdaze"
         mod.abbreviation = "Od"
         mod.description = "<overload>Overload</> stacks no longer have a cap. Sword Core may consume <overload>Overload</> stacks for +50% DMG."
+        mod.shortdesc = "<overload>Overload</> stacks no longer have a cap.\nSword Core consumes <overload>Overload stacks."
         mod.cost = 2
         mod.chip = TITAN_CHIP_UTILITY
     }
@@ -80,23 +89,17 @@ void function Ronin_RegisterMods()
         RoguelikeMod mod = NewMod("executioner_meal")
         mod.name = "Executioners Meal"
         mod.abbreviation = "EM"
-        mod.description = "Enemies finished off with a <cyan>sword hit</> spawn an additional <green>battery</>."
+        mod.description = "Enemies finished off with a <cyan>sword hit</> <green>spawn an additional battery.</>"
+        mod.shortdesc = "Sword kills <green>spawn an additional battery."
         mod.cost = 3
         mod.chip = TITAN_CHIP_CHASSIS
-    }
-    {
-        RoguelikeMod mod = NewMod("executioner")
-        mod.name = "Executioner"
-        mod.abbreviation = "Ex"
-        mod.description = "<cyan>Sword hits</> <red>execute</> enemies with less than 25% HP."
-        mod.cost = 3
-        mod.chip = TITAN_CHIP_UTILITY
     }
     {
         RoguelikeMod mod = NewMod("offensive_overload")
         mod.name = "Daze to All"
         mod.abbreviation = "DtA"
-        mod.description = "When dealing damage with any offensive ability - the target is inflicted <daze>Daze</>. This can trigger every 10s."
+        mod.description = "When dealing damage with any offensive ability - the target is inflicted <daze>Daze.</> This can trigger every 10s."
+        mod.shortdesc = "Damage with any offensive ability inflicts Daze."
         mod.cost = 2
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -105,6 +108,7 @@ void function Ronin_RegisterMods()
         mod.name = "Sword Sheath"
         mod.abbreviation = "SSh"
         mod.description = "You always use your sword for melee."
+        mod.shortdesc = "You always use your sword for melee."
         mod.cost = 1
         mod.chip = TITAN_CHIP_UTILITY
     }
@@ -112,7 +116,8 @@ void function Ronin_RegisterMods()
         RoguelikeMod mod = NewMod("phase_ammo")
         mod.name = "Phase Ammo"
         mod.abbreviation = "PA"
-        mod.description = "Phase Dash reloads all weapons, and grants <overload>2 Overload charges</>."
+        mod.description = "Phase Dash reloads all weapons, and grants <overload>2 Overload charges."
+        mod.shortdesc = "Phase Dash grants <overload>2 Overload charges."
         mod.cost = 1
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -121,6 +126,7 @@ void function Ronin_RegisterMods()
         mod.name = "Oath of the Sword"
         mod.abbreviation = "OtS"
         mod.description = "60% damage resistance while in Sword Core."
+        mod.shortdesc = "Gain DMG Resist while in Sword Core."
         mod.cost = 1
         mod.chip = TITAN_CHIP_ABILITIES
     }

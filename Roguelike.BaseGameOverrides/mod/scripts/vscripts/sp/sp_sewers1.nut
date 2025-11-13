@@ -2604,6 +2604,7 @@ void function KaneArena_PickupHelmetSequence( entity player )
 
 	thread KaneArena_DisembarkNag( player )
 
+	WaitForever() 
 	Objective_Clear()
 
 	wait 1.0

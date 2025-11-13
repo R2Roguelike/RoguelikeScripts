@@ -49,6 +49,7 @@ void function TriggerFunctionsSP_Init()
 	AddTriggerEditorClassFunc( "trigger_quickdeath_checkpoint", TriggerQuickDeathCheckpointOnTrigger )
 	AddTriggerEditorClassFunc( "trigger_quickdeath", TriggerQuickDeathOnTrigger )
 	AddSpawnCallback( "trigger_out_of_bounds", Roguelike_ModifyTrigger )
+	AddSpawnCallback( "trigger_hurt", Roguelike_ModifyTrigger )
 	AddTriggerEditorClassFunc( "checkpoint_disabled_volume", CheckPointDisabledVolumeThink )
 
 	AddSpawnCallbackEditorClass( "trigger_multiple", "trigger_level_transition", LevelTransitionTrigger )

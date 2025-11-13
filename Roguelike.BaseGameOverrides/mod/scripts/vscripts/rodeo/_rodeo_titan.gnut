@@ -1707,7 +1707,7 @@ void function Rodeo_ApplyBatteryToTitan( entity battery, entity titan )
 		healingAmount = Roguelike_GetBatteryHealingMultiplier( Roguelike_GetStat( titan, STAT_ARMOR ) )
 
 	if ( titan.IsPlayer() && Roguelike_HasDatacorePerk( titan, "second_wind" ))
-		healingAmount /= 2
+		healingAmount = int(healingAmount * Roguelike_GetDatacoreValue(titan) / 100.0)
 		
 	if ( titan.IsPlayer() && Roguelike_HasDatacorePerk( titan, "tanky" ))
 		RSE_Apply( titan, RoguelikeEffect.tanky_perk, 1.0, 15.0, 15.0 )
@@ -1734,16 +1734,6 @@ void function Rodeo_ApplyBatteryToTitan( entity battery, entity titan )
  		}
 
  		titan.GetTitanSoul().nextRegenTime = Time()
-	 	if ( healthDifference < healingAmount )
-		{
-			titan.GetTitanSoul().SetShieldHealth( healingAmount - healthDifference + titan.GetTitanSoul().GetShieldHealth() )
-		}
-
-		if ( GetShieldHealthFrac( titan ) >= BATTERY_PICKUP_IGNORE_FRAC )
- 		{
- 			titan.GetTitanSoul().SetShieldHealth( titan.GetTitanSoul().GetShieldHealthMax() )
- 		}
-
 	}
 	else if ( IsMultiplayer() )
 	{

@@ -32,13 +32,13 @@
 			"Path": "ui_mods.nut",
 			"RunOn": "UI || SERVER || CLIENT",
             "UICallback": {
-                "Before": "Mods_Init"
+                "After": "Mods_Init"
             },
             "ServerCallback": {
-                "Before": "Mods_Init"
+                "After": "Mods_Init"
             },
             "ClientCallback": {
-                "Before": "Mods_Init"
+                "After": "Mods_Init"
             }
 		},
 		{
@@ -127,12 +127,17 @@
 		{
 			"Name": "memory_titan_hp",
 			"DefaultValue": "-1",
-			"Flags": "CHEAT | ARCHIVE_PLAYERPROFILE"
+			"Flags": "CHEAT"
 		},
 		{
 			"Name": "memory_titan_settings",
 			"DefaultValue": "",
-			"Flags": "CHEAT | ARCHIVE_PLAYERPROFILE"
+			"Flags": "CHEAT"
+		},
+		{
+			"Name": "memory_titan_max_hp",
+			"DefaultValue": "12500",
+			"Flags": "CHEAT"
 		}
 	]
 }

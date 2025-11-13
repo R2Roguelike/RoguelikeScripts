@@ -455,10 +455,10 @@ void function DifficultyMenuPopUp()
 	DialogData dialogData
 	dialogData.header = "#SP_DIFFICULTY_MISSION_SELECT_TITLE"
 
-	AddDialogButton( dialogData, "Normal", StartLevelEasy, NORMAL_DIFFICULTY_DESC )
-	AddDialogButton( dialogData, "Hard", StartLevelNormal, HARD_DIFFICULTY_DESC )
-	AddDialogButton( dialogData, "Master", StartLevelHard, MASTER_DIFFICULTY_DESC )
-	AddDialogButton( dialogData, "Masochist", StartLevelMaster, MASOCHIST_DIFFICULTY_DESC )
+	AddDialogButton( dialogData, DIFFICULTY_NAMES[0], StartLevelEasy, NORMAL_DIFFICULTY_DESC )
+	AddDialogButton( dialogData, DIFFICULTY_NAMES[1], StartLevelNormal, HARD_DIFFICULTY_DESC )
+	AddDialogButton( dialogData, DIFFICULTY_NAMES[2], StartLevelHard, MASTER_DIFFICULTY_DESC )
+	AddDialogButton( dialogData, DIFFICULTY_NAMES[3], StartLevelMaster, MASOCHIST_DIFFICULTY_DESC )
 
 	AddDialogFooter( dialogData, "#A_BUTTON_SELECT" )
 	AddDialogFooter( dialogData, "#B_BUTTON_BACK" )

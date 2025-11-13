@@ -61,7 +61,7 @@ var function OnWeaponPrimaryAttack_titanweapon_slow_trap( entity weapon, WeaponP
 		PlayerUsedOffhand( weaponOwner, weapon )
 
 	vector right = AnglesToRight( VectorToAngles( attackParams.dir ) )
-	if (Roguelike_HasMod( weaponOwner, "gassin" ))
+	if (Roguelike_HasMod( weaponOwner, "offense_canister" ))
 	{
 		attackParams.dir += right * 0.15
 		ThrowDeployable( weapon, attackParams, 1500, OnSlowTrapPlanted, <0,0,0> )

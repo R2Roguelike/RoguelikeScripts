@@ -1547,11 +1547,7 @@ bool function GetCompletedDifficultyForBSPNum( int bspNum, string pvar )
 
 int function GetLastLevelUnlocked()
 {
-	if ( file.devUnlockedSPMissions )
-	{
-		return 9
-	}
-	return GetConVarInt( "sp_unlockedMission" )
+	return 9
 }
 
 void function UnlockSPLocally()
@@ -1695,6 +1691,16 @@ void function FindAndRemove( array<entity> arr, entity target )
 	}
 }
 
+float function MoveTowards( float cur, float target, float maxMovement )
+{
+	if (cur > target)
+	{
+		return max(target, cur - maxMovement)
+	}
+
+	return min(target, cur + maxMovement)
+}
+
 string cachedVal
 array<string> cachedResult
 array<string> function Roguelike_GetTitanLoadouts()
@@ -1746,26 +1752,20 @@ int function RoundToInt( float f )
 	return int(f + 0.500001)
 }
 
-string function GetTitanNameFromWeapon(string weapon)
+vector function VectorLerp( vector a, vector b, float t )
 {
-    switch (weapon)
-    {
-        case "mp_titanweapon_xo16_shorty":
-            return "Expedition?"
-        case "mp_titanweapon_sticky_40mm":
-            return "Tone"
-        case "mp_titanweapon_meteor":
-            return "Scorch"
-        case "mp_titanweapon_rocketeer_rocketstream":
-            return "Brute"
-        case "mp_titanweapon_particle_accelerator":
-            return "Ion"
-        case "mp_titanweapon_leadwall":
-            return "Ronin"
-        case "mp_titanweapon_sniper":
-            return "Northstar"
-        case "mp_titanweapon_predator_cannon":
-            return "Legion"
+	t = clamp( t, 0.0, 1.0 )
+	return < (b.x - a.x) * t + a.x, (b.y - a.y) * t + a.y, (b.z - a.z) * t + a.z > 
+}
+
+string function RecursiveCommas(int n, bool recursed = false)
+{
+    int rest = n % 1000; //"last 3 digits"
+    n /= 1000;
+
+    if (n > 0) {
+        return RecursiveCommas(n) + "," + format( "%03i", rest ); //printing "begining"
     }
-    return "INVALID"
+
+    return rest.tostring(); //first chunk of the number
 }

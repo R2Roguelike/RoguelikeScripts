@@ -3,11 +3,13 @@ global struct RoguelikeMod
     string uniqueName = "unnamed_mod"
     string name = "UNNAMED MOD!!"
     string description = "THERE IS NO DESCRIPTION DEVS DIDNT MAKE ONE"
+    string shortdesc = "PLACEHOLDER!!!!!"
     string abbreviation = "XXX"
     asset icon = $"vgui/hud/missing"
     int cost = 0
     bool isTitan = false
     int chip = 0
+    string colorTag = ""
     array<string> loadouts = []
     bool isHidden = false
     bool isSwappable = true
@@ -113,10 +115,11 @@ global const int RARITY_MYTHIC      = 5;
 global const int RARITY_STELLAR     = 6;
 global const int RARITY_RADIANT     = 7;
 
-global const int ENEMY_DEF_PER_LEVEL_EASY  = 175;
+// reduce by 25 for base
+global const int ENEMY_DEF_PER_LEVEL_EASY  = 150;
 global const int ENEMY_DEF_PER_LEVEL       = 175;
 global const int ENEMY_DEF_PER_LEVEL_HARD  = 200;
-global const int ENEMY_DEF_PER_LEVEL_MASTER= 200;
+global const int ENEMY_DEF_PER_LEVEL_MASTER= 225;
 global const int ENEMY_HP_PER_LEVEL        = 0;
 global const int ENEMY_HP_PER_LEVEL_HARD   = 0;
 global const int ENEMY_HP_PER_LEVEL_MASTER = 0;
@@ -124,9 +127,10 @@ global const int ENEMY_HP_PER_LEVEL_MASTER = 0;
 global const int CHIP_MAIN_STAT_MULT = 5;
 global const int CHIP_SUB_STAT_MULT = 5;
 
-global const string NORMAL_DIFFICULTY_DESC = "For those who are either fresh off the campaign or after not playing for a long time. ^F4D5A600Not very hard, but great if you want to learn the fundementals."
-global const string HARD_DIFFICULTY_DESC = "The intended experience.\n^F4D5A600Recommended if you've played Titanfall 2 recently."
-global const string MASTER_DIFFICULTY_DESC = "Enemy health increased, enemy cooldowns halved.\n^F4D5A600Recommended for those who found Hard too easy."
+global const array<string> DIFFICULTY_NAMES = [ "Easy", "Normal", "Hard", "Masochist" ]
+global const string NORMAL_DIFFICULTY_DESC = "Enemy health reduced, certain level modifications disabled.\n^F4D5A600For those who don't like, or can't take on a challenge."
+global const string HARD_DIFFICULTY_DESC = "The intended experience for those new here.\n^F4D5A600Good luck."
+global const string MASTER_DIFFICULTY_DESC = "Enemy health increased, enemy cooldowns halved.\n^F4D5A600Recommended for those who found Normal too easy."
 global const string MASOCHIST_DIFFICULTY_DESC = "Batteries no longer spawn naturally.\n^F4D5A600Recommended if you're really looking for pain."
 
 global const array<string> STAT_NAMES = ["Armor", "Energy", "Power", "Cooling", "Temper", "Speed", "Endurance", "Vision"]
@@ -140,20 +144,6 @@ global const string PRIMARY_RONIN = "mp_titanweapon_leadwall"
 global const string PRIMARY_NORTHSTAR = "mp_titanweapon_sniper"
 global const string PRIMARY_LEGION = "mp_titanweapon_predator_cannon"
 
-global const table<string, int> TITAN_BITS = {
-    [PRIMARY_EXPEDITION] = 1,
-    [PRIMARY_TONE] = 2,
-    [PRIMARY_SCORCH] = 4,
-    [PRIMARY_BRUTE] = 8,
-    [PRIMARY_ION] = 0x10,
-    [PRIMARY_RONIN] = 0x20,
-    [PRIMARY_NORTHSTAR] = 0x40,
-    [PRIMARY_LEGION] = 0x80
-}
-
-global const int SCORCH_RONIN = TITAN_BITS[PRIMARY_SCORCH] | TITAN_BITS[PRIMARY_RONIN]
-global const int EXPEDITION_SCORCH = TITAN_BITS[PRIMARY_EXPEDITION] | TITAN_BITS[PRIMARY_SCORCH]
-global const int EXPEDITION_RONIN = TITAN_BITS[PRIMARY_EXPEDITION] | TITAN_BITS[PRIMARY_RONIN]
 global const int ALL_CHIP_SLOTS = 0xFFFF
 
 global const int DAMAGEFLAG_DISCHARGE = 32
@@ -161,9 +151,24 @@ global const int DAMAGEFLAG_DISORDER = 64
 global const int DAMAGEFLAG_ELECTRIC = 128
 global const int DAMAGEFLAG_FIRE = 256
 global const int DAMAGEFLAG_CLONE = 512 // for tone's hacked enemy
+global const int DAMAGEFLAG_GREEN = 1024 // for green damage - used for procs
+global const int DAMAGEFLAG_LOADOUT1 = 2048 // for green damage - used for procs
+global const int DAMAGEFLAG_LOADOUT2 = 4096 // for green damage - used for procs
+
+// maps which have saves disabled
+// if buffer overflows happen in a map, add them here
+// otherwise use checkpoints preferable
+
+global const array<string> DISABLE_SAVE_MAPS = [
+    "sp_tday",
+    "sp_s2s",
+    "sp_skyway_v1",
+    "sp_beacon"
+]
 
 global const int SHOP_MOD_PRICE = 500
-global const int SHOP_LOOT_PRICE = 500
+global const int SHOP_LOOT_PRICE = 100
+global const int SHOP_LOOT_PRICE_PERRARITY = 100
 
 global const int STAT_CAP = 3000
 
@@ -217,6 +222,8 @@ global enum RoguelikeEffect
     explosive_start,
     kill_self_dmg,
     physical_dmg,
+    electric_dmg,
+    fire_dmg,
     clone_lockons_generic,
     hit_locks,
     physical_spread,
@@ -227,7 +234,30 @@ global enum RoguelikeEffect
     swap,
     dash_plus,
     tanky_perk,
+    buff_turret,
+    mag_size_inf,
     count,
+}
+
+global struct RoguelikeLoadout
+{
+    string name = "UNNAMED"
+    int index = -1
+    string description = "PLACEHOLDER!"
+    string role = "FUCK"
+    int element = 0 // default to physical
+    int unlockBit = -1
+    string primary
+    string offensive
+    string utility
+    string defensive
+    string core
+    string melee = "melee_titan_punch"
+    string statusEffectName = "FUCK"
+    #if CLIENT
+    void functionref( var, var, entity, entity ) displayStatusEffect
+    #endif
+    array color
 }
 
 global array<string> ROGUELIKE_FIRE_WEAPONS = [
@@ -238,7 +268,18 @@ global array<string> ROGUELIKE_FIRE_WEAPONS = [
     "mp_weapon_vinson",
     "mp_weapon_lstar",
     "mp_weapon_car",
-    "molotov"
+    "molotov",
+    // all of scorch
+    "mp_titanweapon_meteor",
+    "mp_titanweapon_meteor_thermite",
+    "mp_titancore_flame_wave",
+    "mp_titanweapon_flame_wall",
+    "mp_titanweapon_heat_shield",
+    "mp_titanability_slow_trap",
+    "mp_titancore_salvo_core",
+    "mp_titanweapon_tracker_rockets",
+    //"mp_titanweapon_shoulder_rockets",
+    "mp_titanweapon_sticky_40mm"
 ]
 global array<string> ROGUELIKE_ELECTRIC_WEAPONS = [
     "mp_weapon_rspn101",
@@ -251,6 +292,14 @@ global array<string> ROGUELIKE_ELECTRIC_WEAPONS = [
     "mp_weapon_grenade_emp",
     "mp_weapon_grenade_electric_smoke",
     "mp_weapon_grenade_gravity",
+    "mp_titanweapon_leadwall",
+    "melee_titan_sword",
+    "mp_titancore_shift_core",
+    "mp_titanweapon_particle_accelerator",
+    "mp_titanweapon_laser_lite",
+    "mp_titanweapon_vortex_shield",
+    "mp_titanweapon_arc_wave",
+    //"mp_titanweapon_sniper",
 ]
 global array<string> ROGUELIKE_PILOT_WEAPONS = [
 	//ar

@@ -7,15 +7,8 @@ void function RunModifiers_Init()
         mod.name = "Route"
         mod.description = "The route to the Fold Weapon has been extended... and the enemies will use the additional time to get even stronger."
         mod.options = ["Normal", "Long", "Stupidly Long"]
-        mod.baseCost = 2
-        mod.costPerLevel = 4
-    }
-    {
-        RoguelikeRunModifier mod = NewMod("memory")
-        mod.name = "TITAN HP PERSISTENCE"
-        mod.description = "BT's health persists for the entrire run."
-        mod.options = ["Off", "On"]
-        mod.baseCost = 3
+        mod.baseCost = 5
+        mod.costPerLevel = 5
     }
     {
         RoguelikeRunModifier mod = NewMod("pain")
@@ -30,22 +23,22 @@ void function RunModifiers_Init()
         mod.name = "Lost Segments On Doom"
         mod.description = "BT's health is reduced, and spread out into more segments."
         mod.options = ["0", "1"]
-        mod.baseCost = 3
+        mod.baseCost = 4
     }
     {
         RoguelikeRunModifier mod = NewMod("unwalkable")
         mod.name = "Pilot Walk Speed"
         mod.description = "Your ground speed as a Pilot is reduced."
-        mod.options = ["-0%", "-25%", "-50%", "-75%"]
-        mod.baseCost = 1
-        mod.costPerLevel = 2
+        mod.options = ["-0%", "-15%", "-30%", "-45%"]
+        mod.baseCost = 2
+        mod.costPerLevel = 1
     }
     {
         RoguelikeRunModifier mod = NewMod("defense")
         mod.name = "Enemy Defensive CD"
         mod.description = "Enemies have their defensive cooldowns reduced."
         mod.options = ["-0%", "-50%", "-75%", "-100%"]
-        mod.baseCost = 1
+        mod.baseCost = 4
         mod.costPerLevel = 2
     }
     {
@@ -57,10 +50,10 @@ void function RunModifiers_Init()
         mod.costPerLevel = 3
     }
     {
-        RoguelikeRunModifier mod = NewMod("crit_or_nothing")
-        mod.name = "Non-Crit DMG"
-        mod.description = "Non-critical hits against Titans deal reduced damage."
-        mod.options = ["-0%", "-25%", "-50%"]
+        RoguelikeRunModifier mod = NewMod("enemy_hp")
+        mod.name = "Enemy Base HP Segments"
+        mod.description = "Enemy Base HP increased."
+        mod.options = ["+0", "+1", "+2"]
         mod.baseCost = 2
         mod.costPerLevel = 3
     }
@@ -69,6 +62,30 @@ void function RunModifiers_Init()
         mod.name = "Time Requirements"
         mod.description = "Reduces the time you have to get a rank for each stage."
         mod.options = ["-0%", "-16%", "-33%"]
+        mod.baseCost = 2
+        mod.costPerLevel = 3
+    }
+    {
+        RoguelikeRunModifier mod = NewMod("cash_gain")
+        mod.name = "Cash Gained"
+        mod.description = "Reduces the time you have to get a rank for each stage."
+        mod.options = ["-0%", "-10%", "-20%", "-30%"]
+        mod.baseCost = 2
+        mod.costPerLevel = 3
+    }
+    {
+        RoguelikeRunModifier mod = NewMod("proj_speed")
+        mod.name = "Enemy Projectile Spd"
+        mod.description = "proj speed."
+        mod.options = ["+0%", "+50%", "+100%"]
+        mod.baseCost = 2
+        mod.costPerLevel = 3
+    }
+    {
+        RoguelikeRunModifier mod = NewMod("elite_freq")
+        mod.name = "Elite Enemies"
+        mod.description = ""
+        mod.options = ["NORMAL", "MORE", "WAY MORE"]
         mod.baseCost = 2
         mod.costPerLevel = 3
     }

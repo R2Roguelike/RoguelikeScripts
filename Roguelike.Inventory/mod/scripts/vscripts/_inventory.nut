@@ -8,6 +8,8 @@ global function Roguelike_RefreshInventory
 global function Roguelike_HasDatacorePerk
 global function Roguelike_PauseTimer
 global function Roguelike_UnpauseTimer
+global function Roguelike_SetTimerValue
+global function Roguelike_GetDatacoreValue
 global function CC_Fuck
 
 struct {
@@ -20,7 +22,7 @@ void function Inventory_Init()
     AddClientCommandCallback( "RefreshInventory", CC_RefreshInventory )
     AddClientCommandCallback( "notarget", CC_NoTarget )
     AddClientCommandCallback( "freezeall", CC_FreezeAll )
-    //AddClientCommandCallback( "fuck", CC_Fuck )
+    AddClientCommandCallback( "fuck2", CC_Fuck2 )
 
     AddCallback_OnClientConnected( OnClientConnected )
     AddCallback_OnLoadSaveGame( void function( entity player ) : () {
@@ -49,6 +51,16 @@ void function Roguelike_PauseTimer()
 
     SetServerVar("timerValue", Time() - GetServerVar("startTime") )
     SetServerVar("isTimerPaused", true)
+}
+void function Roguelike_SetTimerValue( float value )
+{
+    if (!GetServerVar("isTimerPaused"))
+    {
+        SetServerVar("startTime", Time() - value )
+        return
+    }
+
+    SetServerVar("timerValue", value )
 }
 void function Roguelike_UnpauseTimer()
 {
@@ -129,8 +141,11 @@ void function RefreshInventory( entity player )
 
     player.s.mods <- []
     player.s.stats <- []
-    if (datacoreList.len() > 1)
+    if (datacoreList.len() > 2)
+    {
         player.s.datacorePerk <- datacoreList[1]
+        player.s.datacoreValue <- float(datacoreList[2])
+    }
     else
         player.s.datacorePerk <- ""
 
@@ -410,6 +425,22 @@ void function LaserSegment( vector origin, vector dir, entity cpEnd, entity play
     }
 
 }
+bool function CC_Fuck2( entity player, array<string> args )
+{
+    thread void function (entity player, array<string> args) : ()
+    {
+        while (true)
+        {
+            table results = player.WaitSignal( "OnPrimaryAttack" )
+            entity weapon = expect entity(results.activator)
+            print(weapon)
+            foreach (k, v in weapon.GetMods())
+                printt(k, v)
+        }
+    }(player, args)
+    return true
+}
+
 bool function CC_NoTarget( entity player, array<string> args )
 {
     if (!GetConVarBool("sv_cheats"))
@@ -467,6 +498,8 @@ int function Roguelike_GetModCount( entity player, string modName )
 
 bool function Roguelike_HasMod( entity player, string modName )
 {
+    if (!IsValid( player ))
+        return false
     if (!("mods" in player.s))
         return false
 
@@ -485,4 +518,11 @@ bool function Roguelike_HasDatacorePerk( entity player, string perk )
     if ("datacorePerk" in player.s)
         return player.s.datacorePerk == perk
     return false
+}
+
+float function Roguelike_GetDatacoreValue( entity player )
+{
+    if ("datacoreValue" in player.s)
+        return expect float(player.s.datacoreValue)
+    return 0.0
 }

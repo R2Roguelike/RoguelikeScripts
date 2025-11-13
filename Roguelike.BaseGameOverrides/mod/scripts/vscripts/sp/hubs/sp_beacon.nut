@@ -1701,7 +1701,7 @@ void function StartPoint_Send_Signal( entity player )
 	ElevatorUp( 3.5 )
 
 	ControlRoomSceneC( player )
-
+	
 	ScreenFadeToBlackForever( player )
 
 	wait 3.0

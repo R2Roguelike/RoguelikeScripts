@@ -23,7 +23,7 @@ struct {
 
 void function Hover_Init()
 { //PAIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIN
-
+    ClientCommand( "bind \"`\" toggleconsole")
     RegisterSignal( "StopHover" )
     var menu = CreateMenu( "menu_Hover", $"resource/ui/menus/hovers.menu" )
 
@@ -56,6 +56,8 @@ void function Hover_Init()
     }
     file.preHoverCallbacks[HOVER_WEAPON] <- void function (var panel) : (){
         Hud_SetHeight( panel, ContentScaledYAsInt( 364 ) )
+        Hud_SetColor( Hud_GetChild(panel, "TitleStrip"), 40, 40, 40, 255 )
+        Hud_SetColor( Hud_GetChild(panel, "BG"), 25,25,25, 255 )
     }
 
     Hud_SetVisible( file.menu, true )
@@ -146,7 +148,7 @@ void function Hover_Update()
                 loc.x = loc.x + 20
             }
 
-            if (loc.y > screenSize[1] / 2)
+            if (loc.y < screenSize[1] / 2)
             {
                 loc.y = min(loc.y + 20, screenSize[1] - Hud_GetHeight(file.menu) - 20)
             }

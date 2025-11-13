@@ -1,0 +1,58 @@
+{
+    "Name": "Moblin.Archon",
+    "Description": "Implements the Archon Titan by Moblin and others, based off of cut content.\n\nThank you to everyone who has contributed and playtested the mod.",
+    "LoadPriority": 10,
+    "RequiredOnClient": true,
+    "Version": "1.7.0",
+
+    "Scripts": [
+        {
+            "Path": "archon.nut",
+            "RunOn": "CLIENT || UI || SERVER",
+            "ServerCallback": {
+                "Before": "Archon_Init"
+            },
+            "ClientCallback": {
+                "Before": "Archon_Init"
+            },
+            "UICallback": {
+                "Before": "Archon_Init"
+            }
+        },
+        {
+            "Path": "sh_archon_util.nut",
+            "RunOn": "( CLIENT || SERVER )",
+            "ClientCallback": {
+                "Before": "ArchonRegisterExecution",
+                "After": "ArchonPrecache"
+            },
+            "ServerCallback": {
+                "Before": "ArchonRegisterExecution",
+                "After": "ArchonPrecache"
+            }
+        },
+        {
+            "Path": "weapons/mp_titancore_storm_core.nut",
+            "RunOn": "CLIENT || SERVER"
+        },
+        {
+            "Path": "weapons/mp_titanweapon_charge_ball.nut",
+            "RunOn": "CLIENT || SERVER"
+        },
+        {
+            "Path": "weapons/mp_titanweapon_tesla_node.nut",
+            "RunOn": "CLIENT || SERVER"
+        },
+        {
+            "Path": "weapons/mp_titanweapon_shock_shield.nut",
+            "RunOn": "CLIENT || SERVER"
+        },
+        {
+            "Path": "weapons/mp_titanweapon_archon_arc_cannon.nut",
+            "RunOn": "CLIENT || SERVER"
+        }
+    ],
+    "Localisation": [
+      "resource/moblin_archon_localisation_%language%.txt"
+    ]
+}

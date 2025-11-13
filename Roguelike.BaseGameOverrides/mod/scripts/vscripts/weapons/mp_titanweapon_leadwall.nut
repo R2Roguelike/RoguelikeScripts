@@ -92,7 +92,9 @@ function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, bool pl
 			vector rightVec = baseRightVec * file.boltOffsets[index][1] * 0.05 * RandomFloatRange( 1.2, 1.5 ) * adsMultiplier
 
 			vector attackDir = attackParams.dir + upVec + rightVec
-			float projectileSpeed = 4400
+			float projectileSpeed = 6000
+			//if (owner.IsNPC())
+			//	projectileSpeed *= 2 // offset to global proj speed reduction for npcs
 
 			if ( weapon.GetWeaponClassName() == "mp_weapon_shotgun_doublebarrel" )
 				{

@@ -89,6 +89,8 @@ int function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, boo
 	if ( shouldCreateProjectile )
 	{
 		float speed = PROJECTILE_SPEED_40MM
+		if (owner.IsNPC())
+			speed *= 0.5
 
 		bool hasMortarShotMod = weapon.HasMod( "mortar_shots" )
 		if( hasMortarShotMod )

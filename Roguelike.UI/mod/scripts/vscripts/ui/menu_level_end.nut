@@ -5,6 +5,7 @@ global function LevelEnd_ResetTolls
 global function Roguelike_UnlockMods
 global function Roguelike_UnlockMod
 global function Roguelike_BackupRun
+global function Roguelike_UnlockModsForSection
 
 struct {
     var menu
@@ -26,6 +27,7 @@ void function InitLevelEndMenu()
     AddMenuEventHandler( file.menu, eUIEvent.MENU_NAVIGATE_BACK, OnNavBack )
 
     VGUIButton_Init( Hud_GetChild( file.menu, "ContinueButton" ))
+    VGUIButton_SetText( Hud_GetChild( file.menu, "ContinueButton" ), ">> CONTINUE >>")
     VGUIButton_OnClick( Hud_GetChild( file.menu, "ContinueButton" ), Continue )
 }
 
@@ -76,7 +78,7 @@ void function MenuAnimation()
     levelsCompleted++
 
     // add power
-    int powerGained = [300 + 75 * levelsCompleted, 200 + 50 * levelsCompleted, 120 + 30 * levelsCompleted][timeRank]
+    int powerGained = [300 + 75 * levelsCompleted, 200 + 50 * levelsCompleted, 120 + 30 * levelsCompleted][killsRank]
     Roguelike_AddMoney( powerGained )
 
     runData.map <- file.nextMap
@@ -104,15 +106,16 @@ void function MenuAnimation()
             enemyDEFGained = ENEMY_DEF_PER_LEVEL_MASTER
             break
     }
+    enemyDEFGained += levelsCompleted * 25
     runData.enemyBonusHP += enemyHPGained
     runData.enemyDEF += enemyDEFGained
     runData.levelsCompleted <- levelsCompleted
 
-    int modsUnlocked = [6,4,2][killsRank]
+    int modsUnlocked = [3,2,1][timeRank]
     Roguelike_UnlockMods( modsUnlocked )
 
     NSSaveJSONFile( "run_backup.json", runData )
-    Hud_SetText(Hud_GetChild(file.menu, "EnemyDEF"), format( "-%.0f%%", (1.0 - prevCoreGain) * 100.0 ) )
+    Hud_SetText(Hud_GetChild(file.menu, "EnemyDEF"), format( "-%.0f%%", (1.0 - coreGain) * 100.0 ) )
     Hud_SetText(Hud_GetChild(file.menu, "EnemyHP"), "+" + string( prevEnemyDEF / 5 ) + "%") // / 500 * 100
 
     Hud_SetBarProgress(Hud_GetChild(file.menu, "KillsBar"), 0.0)
@@ -135,7 +138,7 @@ void function MenuAnimation()
 
     Hud_SetText(Hud_GetChild(file.menu, "KillsRank"), GetRankName(killsRank))
     Hud_GetChild(file.menu, "KillsRank").SetColor(GetColorForRank(killsRank))
-    Hud_SetText(Hud_GetChild(file.menu, "KillsReward"), format("%i Mods Unlocked", modsUnlocked))
+    Hud_SetText(Hud_GetChild(file.menu, "KillsReward"), format("+%i$", powerGained))
 
     wait 0.2
 
@@ -156,7 +159,7 @@ void function MenuAnimation()
 
     Hud_SetText(Hud_GetChild(file.menu, "TimeRank"), GetRankName(timeRank))
     Hud_GetChild(file.menu, "TimeRank").SetColor(GetColorForRank(timeRank))
-    Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), format("+%i$", powerGained))
+    Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), format("%i Mods Unlocked", modsUnlocked))
 
     wait 0.2
 }
@@ -168,6 +171,9 @@ void function Roguelike_BackupRun( int startPoint )
     runData.startPointIndex <- startPoint
     runData.timestamp <- GetUnixTimestamp()
     runData.version <- RUNDATA_VERSION
+    runData.titanHp <- GetConVarInt("memory_titan_hp")
+    runData.titanSettings <- GetConVarString("memory_titan_settings")
+    runData.titanMaxHp <- GetConVarInt("memory_titan_max_hp")
     NSSaveJSONFile( "run_backup.json", runData )
 
     Roguelike_WriteSaveToDisk()
@@ -175,10 +181,9 @@ void function Roguelike_BackupRun( int startPoint )
 
 void function Roguelike_UnlockMods( int count )
 {
-    int pilotMods = count / 2
-    int titanMods = count - pilotMods
+    int titanMods = count
     Roguelike_UnlockModsForSection( titanMods, true )
-    Roguelike_UnlockModsForSection( pilotMods, false )
+    //Roguelike_UnlockModsForSection( pilotMods, false )
 }   
 
 void function Roguelike_UnlockModsForSection( int count, bool isTitan )
@@ -186,8 +191,9 @@ void function Roguelike_UnlockModsForSection( int count, bool isTitan )
     PRandom rand = NewPRandom(Roguelike_GetLevelSeed() + 17377)
     table runData = Roguelike_GetRunData()
     array lockedMods = GetAllLockedMods(false)
-
+    
     count = minint( count, lockedMods.len() )
+    RunStats_ModsUnlocked( count )
 
     for (int i = 1; i <= count;)
     {
@@ -196,6 +202,8 @@ void function Roguelike_UnlockModsForSection( int count, bool isTitan )
         if (!IsModAvailable(mod))
             continue
         if (Roguelike_IsModUnlocked(mod))
+            continue
+        if (mod.isTitan != isTitan)
             continue
 
         Roguelike_UnlockMod( mod )

@@ -69,6 +69,10 @@ struct
 	var cockpitRui
 	var cockpitLowerRui
 	var cockpitAdditionalRui
+	var cockpitHealthText
+	var cockpitShieldText
+	vector flashColor
+	float flashStartTime
 	array<TitanCockpitManagedRUI> titanCockpitManagedRUIs
 
 	string lastPilotSettings
@@ -269,6 +273,26 @@ void function ShowRUIHUD( entity cockpit )
 	file.coreHintRui = CreateTitanCockpitRui( $"ui/core_hint.rpak" )
 	#endif
 
+	file.cockpitShieldText = CreateTitanCockpitRui($"ui/cockpit_console_text_center.rpak")
+	RuiSetInt( file.cockpitShieldText, "maxLines", 1 );
+	RuiSetInt( file.cockpitShieldText, "lineNum", 0 );
+	RuiSetFloat2( file.cockpitShieldText, "msgPos", <0.0, -0.322, 0> )
+	RuiSetString( file.cockpitShieldText, "msgText",  "10,000" )
+	RuiSetFloat3( file.cockpitShieldText, "msgColor", <1.0, 1.0, 1.0> )
+	RuiSetFloat( file.cockpitShieldText, "msgFontSize", 30.0)
+	RuiSetFloat( file.cockpitShieldText, "msgAlpha", 1.0 )
+	RuiSetFloat( file.cockpitShieldText, "thicken", 0.1 )
+
+	file.cockpitHealthText = CreateTitanCockpitRui($"ui/cockpit_console_text_center.rpak")
+	RuiSetInt( file.cockpitHealthText, "maxLines", 1 );
+	RuiSetInt( file.cockpitHealthText, "lineNum", 0 );
+	RuiSetFloat2( file.cockpitHealthText, "msgPos", <0.0, -0.253, 0> )
+	RuiSetString( file.cockpitHealthText, "msgText",  "10,000" )
+	RuiSetFloat3( file.cockpitHealthText, "msgColor", <0.3, 0.8, 1.0> )
+	RuiSetFloat( file.cockpitHealthText, "msgFontSize", 36.0)
+	RuiSetFloat( file.cockpitHealthText, "msgAlpha", 1.0 )
+	RuiSetFloat( file.cockpitHealthText, "thicken", 0.1 )
+
 	file.cockpitRui = CreateTitanCockpitRui( $"ui/ajax_cockpit_base.rpak" )
 	RuiTrackFloat3( file.cockpitRui, "playerOrigin", player, RUI_TRACK_ABSORIGIN_FOLLOW )
 	RuiTrackFloat3( file.cockpitRui, "playerEyeAngles", player, RUI_TRACK_EYEANGLES_FOLLOW )
@@ -305,7 +329,7 @@ void function ShowRUIHUD( entity cockpit )
 	RuiSetBool( file.cockpitRui, "ejectIsAllowed", ejectIsAllowed )
 
 	string playerSettings = GetLocalViewPlayer().GetPlayerSettings()
-	float health = player.GetPlayerModHealth()
+	int health = player.GetMaxHealth()
 	float healthPerSegment = GetPlayerSettingsFieldForClassName_HealthPerSegment( playerSettings )
 	RuiSetInt( file.cockpitRui, "numHealthSegments", int( health / healthPerSegment ) )
 	RuiTrackFloat( file.cockpitRui, "cockpitColor", player, RUI_TRACK_STATUS_EFFECT_SEVERITY, eStatusEffect.cockpitColor )
@@ -333,6 +357,41 @@ void function ShowRUIHUD( entity cockpit )
 	file.isFirstBoot = false
 
 	UpdateTitanCockpitVisibility()
+	thread RoguelikeHUD_TrackHealth(player, cockpit)
+}
+
+void function RoguelikeHUD_TrackHealth( entity player, entity cockpit )
+{
+	player.EndSignal( "OnDeath" )
+	cockpit.EndSignal( "OnDestroy" )
+
+	while (true)
+	{
+		wait 0.001
+		RuiSetString( file.cockpitHealthText, "msgText", RecursiveCommas(player.GetHealth()))
+		if (IsValid(player.GetTitanSoul()) && player.GetTitanSoul().GetShieldHealth() > 0)
+			RuiSetString( file.cockpitShieldText, "msgText", RecursiveCommas(player.GetTitanSoul().GetShieldHealth()))
+		else 
+			RuiSetString( file.cockpitShieldText, "msgText", "")
+
+		vector shieldColor = <1.0, 1.0, 1.0>
+		vector healthColor = <0.3, 0.8, 1.0>
+		float flashFrac = 0.0
+
+		if (Time() - file.flashStartTime < 0.1 && Time() > file.flashStartTime)
+		{
+			flashFrac = GraphCapped(Time() - file.flashStartTime, 0, 0.1, 0, 1 )
+		}
+		else
+		{
+			flashFrac = GraphCapped(Time() - file.flashStartTime, 0.75, 0.9, 1, 0 )
+		}
+		vector mul = VectorLerp( <1,1,1>, file.flashColor, flashFrac )
+		shieldColor = <shieldColor.x * mul.x, shieldColor.y * mul.y, shieldColor.z * mul.z>
+		healthColor = <healthColor.x * mul.x, healthColor.y * mul.y, healthColor.z * mul.z>
+		RuiSetFloat3( file.cockpitHealthText, "msgColor", healthColor)
+		RuiSetFloat3( file.cockpitShieldText, "msgColor", shieldColor)
+	}
 }
 
 #if MP
@@ -535,9 +594,9 @@ void function UpdateEjectHud_SetButtonPressCount( entity player, int buttonCount
 	//	RuiSetInt( file.cockpitAdditionalRui, "ejectButtonCount", buttonCount )
 }
 
-void function ServerCallback_FlashCockpitInvulnerable()
+void function ServerCallback_FlashCockpitInvulnerable( float time )
 {
-	SetCockpitHealthColorTemp( <1, 0.5, -1>, 0.5 )
+	SetCockpitHealthColorTemp( <1, 0.5, -1>, time )
 }
 
 void function UpdateTitanCockpitVisibility()
@@ -711,6 +770,8 @@ void function TitanCockpitDestroyRuisOnDeath( entity cockpit )
 			file.cockpitRui = null
 			file.cockpitLowerRui = null
 			file.coreHintRui = null
+			file.cockpitHealthText = null
+			file.cockpitShieldText = null
 		}
 	)
 
@@ -1373,7 +1434,7 @@ void function TitanCockpitHealthChangedThink( cockpit, entity player )
 			RuiSetFloat( rui, "newHealthFrac", newHealthFrac )
 
 			string playerSettings = GetLocalViewPlayer().GetPlayerSettings()
-			float health = player.GetPlayerModHealth()
+			int health = player.GetMaxHealth()
 			float healthPerSegment = GetPlayerSettingsFieldForClassName_HealthPerSegment( playerSettings )
 			RuiSetInt( rui, "numHealthSegments", int( health / healthPerSegment ) )
 		}
@@ -1588,8 +1649,10 @@ void function SetCockpitHealthColorTemp( vector color, float offset = 0.7 )
 	if ( file.cockpitRui == null )
 		return
 
-	RuiSetGameTime( file.cockpitRui, "startFlashTime", Time() - offset )
+	RuiSetGameTime( file.cockpitRui, "startFlashTime", Time() + offset )
 	RuiSetFloat3( file.cockpitRui, "flashColor", color )
+	file.flashStartTime = Time() + offset
+	file.flashColor = color
 }
 
 void function FlashCockpitHealth( vector color )
@@ -1599,6 +1662,8 @@ void function FlashCockpitHealth( vector color )
 
 	RuiSetGameTime( file.cockpitRui, "startFlashTime", Time() )
 	RuiSetFloat3( file.cockpitRui, "flashColor", color )
+	file.flashStartTime = Time()
+	file.flashColor = color
 }
 
 void function UpdateHealthSegmentCount()
@@ -1608,7 +1673,7 @@ void function UpdateHealthSegmentCount()
 
 	entity player = GetLocalViewPlayer()
 	string playerSettings = player.GetPlayerSettings()
-	float health = player.GetPlayerModHealth()
+	int health = player.GetMaxHealth()
 	float healthPerSegment = GetPlayerSettingsFieldForClassName_HealthPerSegment( playerSettings )
 	RuiSetInt( file.cockpitRui, "numHealthSegments", int( health / healthPerSegment ) )
 }
