@@ -1728,7 +1728,7 @@ void function GivePlayerEyeCache( entity player )
 
 void function Last5Seconds( entity player )
 {
-	float timerank2 = (GetTimeForMaxRank(GetMapName())[2]) * GetTimeRankMultiplier()
+	float timerank2 = (GetTimeForMaxRank(GetMapName())[1]) * GetTimeRankMultiplier()
 	while ((timerank2 - Time() + expect float(GetServerVar("startTime"))) > 5.0)
 	{
 		wait 0.001
@@ -1852,8 +1852,7 @@ void function SP_TortureRoomThread( entity player )
 void function TortureRoomSkipped( entity player )
 {
 	Roguelike_SetTimerValue( 0 )
-	if (GetServerVar("isTimerPaused"))
-		Roguelike_UnpauseTimer()
+	Roguelike_UnpauseTimer()
 	SetServerVar( "timerVisible", true )
 }
 
@@ -1906,8 +1905,7 @@ void function SmartPistolRunSkipped( entity player )
 
 void function SP_SmartPistolRunThread( entity player )
 {
-	if (GetServerVar("isTimerPaused"))
-		Roguelike_UnpauseTimer()
+	Roguelike_UnpauseTimer()
 	thread Last5Seconds( player)
 	FlagClear( "open_torture_room_blast_door" )
 	entity tr_door = GetEntByScriptName( "tr_door" )
@@ -3309,8 +3307,7 @@ void function InjectorRoomStartPointSetup( entity player )
 void function InjectorRoomSkipped( entity player )
 {
 	svGlobal.levelEnt.Signal( "StratonHornetDogfights" )
-	if (!GetServerVar("isTimerPaused"))
-		Roguelike_PauseTimer()
+	Roguelike_PauseTimer()
 
 	SetServerVar("timerVisible", false)
 }
@@ -4870,7 +4867,7 @@ void function MissionFailAfterDelay( entity player, float delay, float fadeTime 
 	wait fadeTime
 	e.missionFailed = true
 	Remote_CallFunction_Replay( player, "ServerCallback_InjectorFired" )
-	ReloadForMissionFailure()
+	ReloadForMissionFailure( false, 0 )
 }
 
 void function EjectionSequence( entity player )
@@ -5089,8 +5086,7 @@ void function EjectionSequence( entity player )
 	SetGlobalNetInt( "titanRebootPhase", skywayTitanCockpitStatus.END )
 	player.FreezeControlsOnServer()
 	player.Server_SetDodgePower( 100.0 )
-	int energy = Roguelike_GetStat( player, STAT_ENERGY )
-	float cdReduction = Roguelike_GetDashCooldownMultiplier( energy )
+	float cdReduction = Roguelike_GetStat( player, "cd_reduction" )
 	player.SetDodgePowerDelayScale( 1.0 )
 	player.SetPowerRegenRateScale( 1.0 / cdReduction )
 	player.SetGroundFrictionScale( 0 )
@@ -5538,6 +5534,8 @@ void function SP_RisingWorldRunThread( entity player )
 	thread PlayDialogue( "RWR_b_1", player )
 
 	FlagWait( "final_jump_redirection_01" )
+
+	ServerToClientStringCommand(GetFirstPlayer(), "STOPTHECOUNT") // STOP THE TIMER!!!
 }
 
 void function SlideOnLanding( entity player, vector vel )
@@ -5764,7 +5762,7 @@ void function SP_RisingWorldJumpThread( entity player )
 	FlagSet( "HideWorldRunRandoms" )
 	waitthread WarpOutThread( player, dropship, timeToWarp )
 	
-	if (GetConVarInt("roguelike_run_heat") >= 15)
+	if (GetConVarInt("roguelike_run_heat") >= 15 && GetConVarInt("roguelike_levels_completed") > 0)
 	{
 		// unlock archon
 		Remote_CallFunction_NonReplay( player, "ServerCallback_Roguelike_UnlockLoadout", 6) // reward for beating run with 15 heat
@@ -6989,6 +6987,9 @@ void function SP_ExplodingPlanetThread( entity player )
 	float fadetime = 4.0
 	ScreenFadeToBlack( player, fadetime, 20.0 )
 	wait fadetime
+	
+	ServerToClientStringCommand(GetFirstPlayer(), "run_won") // player has offically won
+
 	dropship.ClearParent()
 	player.ClearParent()
 	mover.Destroy()

@@ -42,6 +42,8 @@ struct
 
 	float lastSaveTime
 
+	bool allowReloadCheckpoint = false
+
 	array<StoredWeapon> saveStoredWeapons
 	string storedTitanWeapon
 
@@ -511,17 +513,26 @@ bool function RestartFromLevelTransition( entity player, array<string> args )
 	return true
 }
 
-void function ReloadForMissionFailure( float extraDelay = 0 )
+void function ReloadForMissionFailure( bool allowCheckpoint = false, float extraDelay = 0 )
 {
-	thread ReloadForMissionFailure_Thread( extraDelay )
+	thread ReloadForMissionFailure_Thread( allowCheckpoint, extraDelay )
 }
 
-void function ReloadForMissionFailure_Thread( float extraDelay )
+void function ReloadForMissionFailure_Thread( bool allowCheckpoint, float extraDelay )
 {
 	FlagClear( "SaveGame_Enabled" ) // no more saving, you have lost
 	FlagSet( "MissionFailed" )
-	level.ui.roguelikePlayerDead = true // god i hope people dont hate me
 
+	// whether we actually load checkpoint or not
+	bool loadCheckpoint = (allowCheckpoint && !Roguelike_HasMod( GetFirstPlayer(), "checkpoint_used" )) || Roguelike_HasMod( GetFirstPlayer(), "checkpoint" )
+
+	if (loadCheckpoint)
+		Remote_CallFunction_NonReplay( GetFirstPlayer(), "ServerCallback_Roguelike_LoadingCheckpoint", Roguelike_HasMod( GetFirstPlayer(), "checkpoint" ), allowCheckpoint ) // param is whether or not to consume the checkpoint mod
+
+	if (!loadCheckpoint)
+		level.ui.roguelikePlayerDead = true // god i hope people dont hate me
+	else
+		SetGlobalNetBool( "canLoadCheckpoint", true )
 	Signal( file.signalDummy, "StopSearchingForSafeSave" )
 
 	entity player = GetFirstPlayer()
@@ -532,7 +543,7 @@ void function ReloadForMissionFailure_Thread( float extraDelay )
 
 	waitthread WaitForRespawnNowOrTimePass( player, 2.8 + extraDelay )
 
-	ReloadFromSave_RestartFallback()
+	ReloadFromSave_RestartFallback(loadCheckpoint)
 }
 
 void function WaitForRespawnNowOrTimePass( entity player, float delay )
@@ -555,9 +566,9 @@ bool function RespawnNowSP( entity player, array<string> args )
 	return true
 }
 
-void function ReloadFromSave_RestartFallback()
+void function ReloadFromSave_RestartFallback(bool allowCheckpoint)
 {
-	if ( LoadedFromSave() )
+	if ( LoadedFromSave(allowCheckpoint) )
 		return
 
 	ReloadFromLevelStart()
@@ -800,10 +811,35 @@ bool function JustLoadedFromCheckpoint()
 	return Time() - file.loadSaveTime < 1.0
 }
 
-bool function LoadedFromSave()
+bool function LoadedFromSave(bool allowCheckpoint)
 {
-	ServerToClientStringCommand(GetFirstPlayer(), "run_end")
-	return true
+	printt("allowCheckpoint", allowCheckpoint)
+	if (!allowCheckpoint)
+	{
+		ServerToClientStringCommand(GetFirstPlayer(), "run_end")
+		return true
+	}
+
+	if (DISABLE_SAVE_MAPS.contains(GetMapName()))
+	{
+		// set the correct loadscreen
+		string mapName = GetMapName()
+		int startPointIndex = GetCurrentStartPointIndex()
+
+		array<string> clientCommands = GetLoadingClientCommands( mapName, startPointIndex, DETENT_FORCE_DISABLE, false )
+		ExecuteClientCommands( clientCommands )
+
+		if ( GetBugReproNum() != 196356 )
+		{
+			printt( "LOADPROGRESS" )
+			ClientCommand( GetFirstPlayer(), "show_loading_progress" )
+			WaitFrame()
+		}
+
+		ExecuteClientCommands(["sp_startpoint " + startPointIndex, "map " + mapName])
+
+		return true
+	}
 
 	printt( "SAVEGAME: Trying to load saveName" )
 	if ( !HasValidSaveGame() )

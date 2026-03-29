@@ -4,6 +4,7 @@ global function Roguelike_PlayerDealtDamage
 global function Roguelike_PlayerUsedOffhand
 global function Roguelike_IsWeaponDamage
 global function AddCallback_Procs
+global function RoguelikeViewCone
 
 void function AmpedShield_Init()
 {
@@ -16,6 +17,8 @@ void function AmpedShield_Init()
     AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_shotgun, ShotgunDamage )
     AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_mastiff, ShotgunDamage )
     AddCallback_OnTitanDoomed( OnTitanDoomed )
+
+    RegisterSignal( "StopEnderPearl" )
 }
 
 void function OnClientConnected_SpeedIsCash( entity player )
@@ -136,11 +139,7 @@ void function CheckShield( entity player, entity titan )
     if (!IsValid(player) || !IsAlive(player))
         return
 
-    int maxShield = 1000
-    if (Roguelike_HasMod( player, "max_shield"))
-        maxShield += 500
-    if (Roguelike_HasMod( player, "armor_shield"))
-        maxShield += minint(Roguelike_GetStat( player, STAT_ARMOR ), 100) * 7
+    int maxShield = int(Roguelike_GetStat( player, "max_shields" ))
 
     player.GetTitanSoul().SetShieldHealthMax(maxShield)
 }
@@ -161,13 +160,16 @@ void function InventoryRefreshed( entity player )
     if (player.IsTitan())
     {
         player.SetMoveSpeedScale(Roguelike_HasMod(player, "titan_move_speed") ? 1.2 : 1.0 )
-        int energy = Roguelike_GetStat( player, STAT_ENERGY )
-		float cdReduction = Roguelike_GetDashCooldownMultiplier( energy )
-        player.SetPowerRegenRateScale( 1.0 / cdReduction )
+		float cdReduction = Roguelike_GetStat( player, "cd_reduction" )
+        if (!IsTitanCoreFiring( player ))
+        {
+            player.SetPowerRegenRateScale( 1.0 / cdReduction )
+        }
         CheckShield( player, player )
         
         player.SetSharedEnergyTotal( Ion_GetMaxEnergy( player ) )
-        player.SetSharedEnergyRegenRate(500)
+        
+        player.SetSharedEnergyRegenRate(500 + Roguelike_GetStat(player, "ability_power") * 2)
 
         if (!GetDoomedState( player ))
             player.SetMaxHealth(GetConVarInt("memory_titan_max_hp"))
@@ -182,12 +184,12 @@ void function InventoryRefreshed( entity player )
         if (Roguelike_HasMod( player, "double_dash" ))
             dodgePowerDrain = 50.0
             
-        player.kv.gravity = (Roguelike_HasMod( player, "moonboots" ) ? 0.8 : 1.0)
+        player.kv.gravity = (Roguelike_HasMod( player, "moonboots" ) ? 0.75 : 1.0)
         Roguelike_Player_SetDodgeDrain(player, dodgePowerDrain)
-        int endurance = Roguelike_GetStat( player, STAT_ENDURANCE )
-        int speed = Roguelike_GetStat( player, STAT_SPEED )
+        float endurance = Roguelike_GetStat( player, "max_hp" )
+        float speed = Roguelike_GetStat( player, "move_speed" )
         float healthFrac = GetHealthFrac( player )
-        player.SetMaxHealth(100 * (1.0 + Roguelike_GetPilotHealthBonus( endurance )))
+        player.SetMaxHealth(100 * (1.0 + endurance))
 
         if (player.ContextAction_IsBusy() || player.ContextAction_IsActive())
             player.SetHealth(player.GetMaxHealth())
@@ -200,11 +202,12 @@ void function InventoryRefreshed( entity player )
         }
         else
         {
-        player.SetMoveSpeedScale(1.0 + Roguelike_GetPilotSpeedBonus( speed ))
+            player.SetMoveSpeedScale(1.0 + speed)
+            Roguelike_Player_SetDodgeSpeed(player, 400.0 * (1.0 + speed))
         }
         if (Roguelike_HasMod( player, "dash_recovery" ))
         {
-            player.SetPowerRegenRateScale( 2.0 * dodgePowerDrain / 100.0 )
+            player.SetPowerRegenRateScale( 1.3333 * dodgePowerDrain / 100.0 )
         }
         else
         {
@@ -213,21 +216,26 @@ void function InventoryRefreshed( entity player )
 
         if (Roguelike_HasMod( player, "ground_friction" ))
         {
-            player.SetGroundFrictionScale( 0.7 )
+            player.SetGroundFrictionScale( 0.7 * Roguelike_GetStat( player, "friction" ) )
         }
         else
         {
-            player.SetGroundFrictionScale( 1 )
+            player.SetGroundFrictionScale( Roguelike_GetStat( player, "friction" ) )
         }
         if (Roguelike_HasMod( player, "wall_friction" ))
         {
-            player.SetWallrunFrictionScale( 0.7 )
+            player.SetWallrunFrictionScale( Roguelike_GetStat( player, "friction" ) )
         }
         else
         {
-            player.SetWallrunFrictionScale( 1 )
+            player.SetWallrunFrictionScale( Roguelike_GetStat( player, "friction" ) )
         }
-        player.kv.airAcceleration = Roguelike_HasMod( player, "bhopper" ) ? 2000 : player.GetPlayerSettingsField( "airAcceleration" )
+        var airAccel = player.GetPlayerSettingsField( "airAcceleration" ) * (1.0 + Roguelike_GetStat( player, "air_accel" ))
+        if (Roguelike_HasMod( player, "bhopper" ))
+        {
+            airAccel *= 4
+        }
+        player.kv.airAcceleration = airAccel
     }
 }
 
@@ -289,7 +297,7 @@ void function PilotDamageReductions( entity player, var damageInfo )
 
     if (attacker == player)
     {
-        float selfDMGMult = Roguelike_GetPilotSelfDamageMult(Roguelike_GetStat(player, STAT_ENDURANCE))
+        float selfDMGMult = Roguelike_GetStat(player, "self_dmg")
         DamageInfo_ScaleDamage( damageInfo, selfDMGMult )
         return
     }
@@ -332,10 +340,11 @@ entity function CreateProcInflictorHelper()
 void function Roguelike_PlayerUsedOffhand( entity player, entity offhand, int index )
 {
     bool isTitan = player.IsTitan()
-    if ( index == OFFHAND_EQUIPMENT && isTitan && Roguelike_HasMod( player, "shield_core" ))
+    if ( index == OFFHAND_SPECIAL && isTitan && Roguelike_HasMod( player, "shield_core" ))
     {
         entity soul = player.GetTitanSoul()
-        soul.SetShieldHealth(soul.GetShieldHealthMax())
+        //soul.SetShieldHealth(soul.GetShieldHealthMax())
+        soul.nextRegenTime = Time() // start regen immediately
     }
     if ( index == OFFHAND_ORDNANCE && isTitan && Roguelike_HasMod( player, "titan_counter" ) && RSE_Get( player, RoguelikeEffect.counter ) <= 0.0)
     {
@@ -376,6 +385,8 @@ void function Roguelike_PlayerDealtDamage( entity victim, entity player, var dam
     entity inflictor = DamageInfo_GetInflictor( damageInfo )
     if (!IsAlive( player ))
         return
+
+    OnBossTitanCoreMitigation( victim, damageInfo )
     entity procEnt = null
     bool destroyProcInflictor = false
     // requires a valid inflictor to work
@@ -394,8 +405,8 @@ void function Roguelike_PlayerDealtDamage( entity victim, entity player, var dam
             procEnt.e.procs.extend(inflictor.e.procs)
     }
 
-    if (procEnt.e.procs.len() > 0) // this damage instacne was a proc
-        DamageInfo_AddDamageFlags( damageInfo, DAMAGEFLAG_GREEN ) // this is proc dmg
+    if (procEnt.e.procs.contains("shock_dmg")) // this damage instacne was a proc
+        DamageInfo_AddDamageFlags( damageInfo, DAMAGEFLAG_GREEN ) // this is unique titan loadout damage
 
     int initialLen = inflictor.e.procs.len()
     float damage = DamageInfo_GetDamage( damageInfo )
@@ -477,9 +488,26 @@ void function PilotProcs( entity victim, entity player, var damageInfo, entity p
             {
                 if (Roguelike_GetWeaponElement(player.GetOffhandWeapon(0).GetWeaponClassName()) == Roguelike_GetDamageInfoElement(damageInfo))
                 {
-                    DamageInfo_AddDamageBonus( damageInfo, 0.2 )
+                    DamageInfo_AddDamageBonus( damageInfo, 0.3 )
                 }
             }
+        }
+    }
+    if (Roguelike_HasMod( player, "explosive_end") && IsValid(sourceWeapon))
+    {
+        if (ROGUELIKE_GRENADES.contains(sourceWeapon.GetWeaponClassName()))
+        {
+            if (RSE_Get( player, RoguelikeEffect.explosive_end ) > 0.0)
+            {
+                float stacks = RSE_Get( player, RoguelikeEffect.explosive_end )
+                DamageInfo_AddDamageBonus( damageInfo, 0.05 * RSE_Get( player, RoguelikeEffect.explosive_end ))
+                RSE_Stop( player, RoguelikeEffect.explosive_end )
+                RSE_Apply( player, RoguelikeEffect.explosive_end, stacks, 3.0, 0.0, false )
+            }
+        }
+        else
+        {
+            RSE_Apply( player, RoguelikeEffect.explosive_end, 1.0, 999999.0, 0.0, false )
         }
     }
 }
@@ -572,6 +600,31 @@ void function TitanProcs( entity victim, entity player, var damageInfo, entity p
         missile.SetHomingSpeeds( 250, 250 )
     }
 
+    if (RSE_Get( player, RoguelikeEffect.brute_infinite_core ) > 0.0 && !inflictor.e.procs.contains("brute_core") && IsValid(victim))
+    {
+        entity activeWeapon = player.GetActiveWeapon()
+        entity weapon = Roguelike_FindWeapon( player, "mp_titanweapon_rocketeer_rocketstream" )
+        printt("firing missile!!")
+        if (weapon == null)
+            return
+
+        printt("firing missile!!")
+
+        vector right = AnglesToRight( player.EyeAngles() )
+        entity missile = weapon.FireWeaponMissile( player.CameraPosition(), CoinFlip() ? right : -right, 1000.0, damageTypes.projectileImpact, damageTypes.explosive, false, false )
+
+        weapon.EmitWeaponSound( "ShoulderRocket_Paint_Fire_1P" )
+
+        missile.SetMissileTarget( victim, < 0, 0, 0 > )
+        // atg missile affects base damage, this kinda sucks!
+        missile.proj.damageScale = damage / weapon.GetWeaponSettingInt(eWeaponVar.damage_near_value_titanarmor)
+        missile.proj.isChargedShot = true
+        missile.e.procs.extend(procEnt.e.procs)
+        missile.e.procs.append("brute_core")
+
+        missile.SetHomingSpeeds( 250, 250 )
+    }
+
     if (Roguelike_HasMod( player, "second_degree_burn" ) && !inflictor.e.procs.contains("sdb") && IsValid(victim)
         && !BURN_DAMAGE_SOURCES.contains(DamageInfo_GetDamageSourceIdentifier( damageInfo )) && GetBurn(victim) > 0)
     {
@@ -580,8 +633,6 @@ void function TitanProcs( entity victim, entity player, var damageInfo, entity p
         if (weapon == null)
             return
 
-        if (true)
-            printt("firing missile!!")
         vector right = AnglesToRight( player.EyeAngles() )
         int damageFlags = damageTypes.gibBullet | DF_IMPACT | DF_EXPLOSION
         entity missile = weapon.FireWeaponBolt( player.CameraPosition(), <deg_sin(RandomFloat(360)),deg_cos(RandomFloat(360)),1>, 0.1, damageFlags, damageFlags, false, 0 )
@@ -615,11 +666,13 @@ void function TitanProcs( entity victim, entity player, var damageInfo, entity p
 
     if (IsValid(sourceWeapon))
     {
-        if (Roguelike_IsWeaponDamage( damageInfo )) // we consider melee to be weapon damage.
+        if (player.IsTitan()) // we consider melee to be weapon damage.
         {
             float weaponCrit = RSE_Get( player, RoguelikeEffect.overcrit )
+            float duration = 2.0
+            duration *= 1.0 + Roguelike_GetStat( player, "ability_duration" )
             if (Roguelike_HasMod( player, "weapon_crit" ))
-                RSE_Apply( player, RoguelikeEffect.overcrit, min(weaponCrit + 1, 20.0), 4.0, 0.0 )
+                RSE_Apply( player, RoguelikeEffect.overcrit, 1.0, duration, 0.0, false )
         }
     }
     else if (inflictor.GetClassName() != "info_target")
@@ -631,9 +684,44 @@ void function TitanProcs( entity victim, entity player, var damageInfo, entity p
 
 bool function Roguelike_IsWeaponDamage( var damageInfo )
 {
+    entity inflictor = DamageInfo_GetInflictor( damageInfo )
+    if (inflictor.e.procs.len() > 0)
+        return false
     entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
     if (sourceWeapon == null)
         return false
 
     return !sourceWeapon.IsWeaponOffhand() || sourceWeapon.GetInventoryIndex() == OFFHAND_MELEE
+}
+
+// script __p().SnapEyeAngles(<0, __p().EyeAngles().y, 0>)
+// script_client __HideHud(); script __p().DisableWeapon()
+// script
+void function RoguelikeViewCone( float lerpTime, vector target)
+{
+    entity player = __p()
+    player.PlayerCone_SetLerpTime( 0.0 )
+	player.PlayerCone_SetSpecific( target )
+	player.PlayerCone_SetMinYaw( 0 )
+	player.PlayerCone_SetMaxYaw( 0 )
+	player.PlayerCone_SetMinPitch( 0 )
+	player.PlayerCone_SetMaxPitch( 0 )
+
+    wait 0.01
+
+    float x = 0
+    player.PlayerCone_SetLerpTime( lerpTime )
+    while (x < 15)
+    {
+        wait 0.15
+        //player.PlayerCone_SetSpecific( <0,0,0> )
+        player.PlayerCone_SetMinYaw( 0 )
+        player.PlayerCone_SetMaxYaw( 0 )
+        player.PlayerCone_SetMinPitch( -x )
+        player.PlayerCone_SetMaxPitch( -x )
+        x+=0.25
+    }
+
+    wait lerpTime
+    player.PlayerCone_Disable()
 }

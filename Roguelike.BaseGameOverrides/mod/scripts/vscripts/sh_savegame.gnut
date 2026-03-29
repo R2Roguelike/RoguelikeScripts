@@ -29,10 +29,10 @@ void function SaveGame_LoadWithStartPointFallback( int detent = DETENT_FORCE_DIS
 	int startPointIndex = SaveGame_GetStartPoint( saveName )
 	bool loadSave = SaveGame_GetVersion( saveName ) == SAVEGAME_VERSION
 	#if SERVER && SP
-	loadSave = loadSave && (!DISABLE_SAVE_MAPS.contains(mapName) || mapName != GetMapName())
+	loadSave = loadSave && (!DISABLE_SAVE_MAPS.contains(mapName) && mapName == GetMapName())
 	#endif
 	#if UI
-	loadSave = loadSave && (!DISABLE_SAVE_MAPS.contains(mapName) || mapName != GetActiveLevel())
+	loadSave = loadSave && (!DISABLE_SAVE_MAPS.contains(mapName) && (mapName == GetActiveLevel() || GetActiveLevel() == ""))
 	#endif
 
 	if ( loadSave )

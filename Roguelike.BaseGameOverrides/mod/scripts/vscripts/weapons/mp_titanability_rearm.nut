@@ -23,13 +23,17 @@ var function OnWeaponPrimaryAttack_titanability_rearm( entity weapon, WeaponPrim
 		{
 			offhandWeapons.extend(weaponOwner.GetMainWeapons())
 			#if SERVER
-			RSE_Apply( weaponOwner, RoguelikeEffect.rearm_reload, 1.0, 20.0, 0.0 )
+			float duration = 15.0
+    		duration *= 1.0 + Roguelike_GetStat( weaponOwner, "ability_duration" )
+			RSE_Apply( weaponOwner, RoguelikeEffect.rearm_reload, 1.0, duration, 0.0 )
 			#endif
 		}
 		if (Roguelike_HasMod( weaponOwner, "rearm_reshield" ))
 		{
 			#if SERVER
-			RSE_Apply( weaponOwner, RoguelikeEffect.rearm_reshield, 0.3, 15.0, 0.0 )
+			float duration = 15.0
+    		duration *= 1.0 + Roguelike_GetStat( weaponOwner, "ability_duration" )
+			RSE_Apply( weaponOwner, RoguelikeEffect.rearm_reshield, 0.3, duration, 0.0 )
 			if (IsValid(weaponOwner.GetTitanSoul()))
 				weaponOwner.GetTitanSoul().SetShieldHealth(weaponOwner.GetTitanSoul().GetShieldHealthMax())
 			#endif
@@ -51,12 +55,13 @@ var function OnWeaponPrimaryAttack_titanability_rearm( entity weapon, WeaponPrim
 			continue // dont reset equipment!
 	
 		if (offhand.GetWeaponPrimaryClipCountMax() > 0)
-		offhand.SetWeaponPrimaryClipCount( offhand.GetWeaponPrimaryClipCountMax() )
+			offhand.SetWeaponPrimaryClipCount( offhand.GetWeaponPrimaryClipCountMax() )
 		#if SERVER
 		if ( offhand.IsChargeWeapon() && offhand.IsWeaponOffhand() )
 			offhand.SetWeaponChargeFractionForced( 0 )
 		#endif
 	}
+	weaponOwner.AddSharedEnergy(10000) // max it out
 
 	#if SERVER
 	if ( weaponOwner.IsPlayer() )//weapon.HasMod( "rapid_rearm" ) &&  )

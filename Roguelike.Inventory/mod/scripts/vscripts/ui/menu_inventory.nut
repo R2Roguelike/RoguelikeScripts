@@ -9,7 +9,11 @@ global function Roguelike_InventorySetLastDiffSetTime
 global function GetDismantleFrac
 global function AttemptDismantle
 global function StopDismantle
+global function Roguelike_GetModDescription
 global function Roguelike_PulseElem
+global function Inventory_GetStatPanel
+global function Roguelike_GetStatRaw
+global function Roguelike_ConsumeCheckpointMod
 
 struct {
     var menu
@@ -23,13 +27,14 @@ struct {
     array<var> modSlots
     float startDismantleTime = -1.0
     float endDismantleTime = -1.0
-    int totalPilot = 0
-    int totalTitan = 0
+    array<var> statPanelsTitan
+    array<var> statPanelsPilot
 } file
 
 void function AddInventoryMenu()
 {
-    SetConVarInt("script_server_fps", 20)
+    SetConVarInt("script_server_fps", 60)
+    SetConVarInt("sv_updaterate_sp", 60)
     SetConVarInt("sv_maxvelocity", 36000)
 	AddMenu( "InventoryMenu", $"resource/ui/menus/inventory.menu", InitInventoryMenu )
     delaythread(0.001) UpdateMenuState()
@@ -60,6 +65,35 @@ void function InitInventoryMenu()
     GridMenuInit( file.menu, file.gridData )
     Grid_InitPage( file.menu, file.gridData )
 
+    for (int i = 0; i < 19; i++)
+    {
+        int x = i % 8
+        int y = i / 8
+        var titanStat = Hud_GetChild( Hud_GetChild(file.menu, "StatPanelTitan"), "GridButton" + x + "x" + y )
+        var pilotStat = Hud_GetChild( Hud_GetChild(file.menu, "StatPanelPilot"), "GridButton" + x + "x" + y )
+        titanStat.s.index <- i
+        pilotStat.s.index <- i
+        int eightX = ContentScaledXAsInt(8)
+        int eightY = ContentScaledYAsInt(8)
+        //Hud_SetX( titanStat, i * (ContentScaledXAsInt(256) + eightX) )
+        //Hud_SetX( pilotStat, (3-i) * (ContentScaledXAsInt(256) + eightX) )
+        Hud_SetY( titanStat, (i) * (ContentScaledYAsInt(32) + eightY) )
+        Hud_SetY( pilotStat, (i) * (ContentScaledYAsInt(32) + eightY) )
+        file.statPanelsTitan.append(titanStat)
+        file.statPanelsPilot.append(pilotStat)
+    }
+
+    foreach (var statPanel in file.statPanelsTitan)
+    {
+        Hud_SetSize( statPanel, ContentScaledXAsInt(384), ContentScaledYAsInt(36) )
+        Hud_Show(statPanel)
+    }
+    foreach (var statPanel in file.statPanelsPilot)
+    {
+        Hud_SetSize( statPanel, ContentScaledXAsInt(384), ContentScaledYAsInt(36) )
+        Hud_Show(statPanel)
+    }
+
     // add hovers to armor chips
     AddHover( Hud_GetChild( file.menu, "ACPilot1" ), ArmorChip_GetHoverFunc( file.menu, false, true, true ), HOVER_ARMOR_CHIP )
     AddHover( Hud_GetChild( file.menu, "ACPilot2" ), ArmorChip_GetHoverFunc( file.menu, false, true, true ), HOVER_ARMOR_CHIP )
@@ -75,28 +109,16 @@ void function InitInventoryMenu()
     AddHover( Hud_GetChild(file.menu, "Grenade"), RoguelikeGrenade_GetHoverFunc( file.menu, false, true, true ), HOVER_WEAPON )
     AddHover( Hud_GetChild(file.menu, "Datacore"), RoguelikeDatacore_GetHoverFunc( file.menu, false, true, true ), HOVER_WEAPON )
 
-    /*AddHover( Hud_GetChild( file.menu, "BalanceSymbol" ), void function( var symbol, var panel ) : (){
-        table runData = Roguelike_GetRunData()
-        if (runData.balanced)
-        {
-            Hud_SetColor( Hud_GetChild(panel, "TitleStrip"), 255, 122, 244, 255 )
-            Hud_SetColor( Hud_GetChild(panel, "BG"), 204, 98, 195, 255 )
-            Hud_SetText( Hud_GetChild(panel, "Title"), FormatDescription("Augment of Balance"))
-            Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription("Your mind is cleared, and you see through the fog.\n\n-20% DMG taken from enemies.") )
-            return
-        }
-        else
-        {
-            Hud_SetText( Hud_GetChild(panel, "Title"), "???")
-            bool tooMuchTitan = file.totalTitan > file.totalPilot
-            Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription(format("You lack balance in your perspective...\n\n%i titan | %i pilot", file.totalTitan, file.totalPilot)) )
-        }
-    }, HOVER_SIMPLE )*/
+    var switchPanel =  Hud_GetChild(file.menu, "InventorySwitch")
+    Hud_EnableKeyBindingIcons( Hud_GetChild( switchPanel, "SwitchPromptLeft"))
+    Hud_EnableKeyBindingIcons( Hud_GetChild( switchPanel, "SwitchPromptRight"))
 
     RegisterButtonPressedCallback( BUTTON_X, AttemptUpgrade )
     RegisterButtonPressedCallback( MOUSE_RIGHT, AttemptUpgrade )
     RegisterButtonPressedCallback( KEY_F, AttemptDismantle )
     RegisterButtonReleasedCallback( KEY_F, StopDismantle )
+    RegisterButtonPressedCallback( KEY_Q, QPress )
+    RegisterButtonPressedCallback( KEY_E, EPress )
     RegisterButtonPressedCallback( BUTTON_Y, AttemptDismantle )
     RegisterButtonReleasedCallback( BUTTON_Y, StopDismantle )
 
@@ -106,12 +128,12 @@ void function InitInventoryMenu()
     // HELP TEXT
     for (int i = 1; i < 5; i++)
     {
-        //AddHover( Hud_GetChild(file.menu, "AC" + i + "_PilotHelp"), ModHelp_Hover, HOVER_SIMPLE )
+        AddHover( Hud_GetChild(file.menu, "AC" + i + "_PilotHelp"), ModHelp_Hover, HOVER_SIMPLE )
         AddHover( Hud_GetChild(file.menu, "AC" + i + "_TitanHelp"), ModHelp_Hover, HOVER_SIMPLE )
     }
 
     // STAT IMAGES
-    for (int i = 0; i < STAT_COUNT; i++)
+    /*for (int i = 0; i < STAT_COUNT; i++)
     {
         string statName = STAT_NAMES[i]
         var statPanel = Hud_GetChild( file.menu, statName + "Stat" )
@@ -127,7 +149,7 @@ void function InitInventoryMenu()
             bg.SetColor( [ 255, 176, 0, 255 ] )
             label.SetColor( [ 255, 176, 0, 255 ] )
         }
-    }
+    }*/
 
     foreach (var modSlot in modButtons)
     {
@@ -146,11 +168,15 @@ void function InitInventoryMenu()
         while( 1)
         {
             wait 0
-            for (int i = 0; i < STAT_COUNT; i++)
+            for (int i = 0; i < file.statPanelsTitan.len(); i++)
             {
-                string statName = STAT_NAMES[i]
-                var statPanel = Hud_GetChild( file.menu, statName + "Stat" )
-                Hud_GetChild( statPanel, "Diff" ).SetAlpha( GraphCapped( Time() - lastDiffSetTime, 0.1, 0.2, 255.0, 0.0 ))
+                //var statPanel = Hud_GetChild( file.menu, statName + "Stat" )
+                Hud_GetChild(file.statPanelsTitan[i], "Diff").SetAlpha( GraphCapped( Time() - lastDiffSetTime, 0.1, 0.2, 255.0, 0.0 ))
+            }
+            for (int i = 0; i < file.statPanelsPilot.len(); i++)
+            {
+                //var statPanel = Hud_GetChild( file.menu, statName + "Stat" )
+                Hud_GetChild(file.statPanelsPilot[i], "Diff").SetAlpha( GraphCapped( Time() - lastDiffSetTime, 0.1, 0.2, 255.0, 0.0 ))
             }
         }
     }()
@@ -168,7 +194,7 @@ void function InitInventoryMenu()
             wait 0
             dt = Time() - dt
 
-            file.slideFrac = clamp( file.slideFrac + (file.isTitanMode ? -4.0 * dt : 4.0 * dt), 0, 1 )
+            file.slideFrac = clamp( file.slideFrac + (file.isTitanMode ? -3.5 * dt : 3.5 * dt), 0, 1 )
 
             Hud_SetX( inventory, GraphCapped( QuadEaseInOut( file.slideFrac ), 0, 1, ContentScaledXAsInt(640), ContentScaledXAsInt(-640) ))
 
@@ -182,6 +208,21 @@ void function InitInventoryMenu()
 
             vector color = VectorLerp( <127, 127, 127>, <255,255,255>, file.isTitanMode ? 1.0 : frac )
             vector pilotColor = VectorLerp( <127, 127, 127>, <255,176,0>, file.isTitanMode ? frac : 1.0 )
+
+            RoguelikeLoadout ornull loadout = Roguelike_GetLoadoutFromIndex(1)
+            Hud_SetVisible( Hud_GetChild( file.menu, "StatPanelTitan" ), file.slideFrac < 0.5 )
+            Hud_SetVisible( Hud_GetChild( file.menu, "StatPanelPilot" ), file.slideFrac > 0.5 )
+            for (int i = 1; i < 5; i++)
+            {
+                Hud_SetVisible( Hud_GetChild( file.menu, "AC" + i + "_TitanMods" ), file.slideFrac < 0.5 )
+                Hud_GetChild( file.menu, "AC" + i + "_TitanMods" ).SetPanelAlpha( 255 * GraphCapped( file.slideFrac, 0.0, 0.5, 1.0, 0.0 ) )
+                Hud_GetChild( file.menu, "AC" + i + "_PilotMods" ).SetPanelAlpha( 255 * GraphCapped( file.slideFrac, 1.0, 0.5, 1.0, 0.0 ) )
+                Hud_SetVisible( Hud_GetChild( file.menu, "AC" + i + "_PilotMods" ), file.slideFrac > 0.5 )
+                if (i == 4)
+                {
+                    Hud_SetVisible( Hud_GetChild( file.menu, "AC" + i + "_TitanMods" ), file.slideFrac < 0.5 && loadout != null )
+                }
+            }
 
             var textLeft = Hud_GetChild( switchButton, "TextLeft" )
             var textRight = Hud_GetChild( switchButton, "TextRight" )
@@ -197,12 +238,32 @@ void function InitInventoryMenu()
     }()
 }
 
+void function QPress( var b )
+{
+    if (file.isTitanMode)
+        return
+    SwitchInventoryMode(b)
+}
+void function EPress( var b )
+{
+    if (!file.isTitanMode)
+        return
+    SwitchInventoryMode(b)
+}
+
 void function SwitchInventoryMode( var b )
 {
+    if (uiGlobal.activeMenu != file.menu)
+        return
     print("switch")
     file.isTitanMode = !file.isTitanMode
     Hud_SetFocused( Hud_GetChild( file.menu, "GridPanel" ))
-    Hud_SetEnabled( b, false )
+    var switchPanel =  Hud_GetChild(file.menu, "InventorySwitch")
+    
+    Hud_SetVisible( Hud_GetChild(switchPanel, "SwitchPromptLeft"), !file.isTitanMode )
+    Hud_SetVisible( Hud_GetChild(switchPanel, "SwitchPromptRight"), file.isTitanMode )
+
+    Hud_SetEnabled( Hud_GetChild( switchPanel, "Button" ), false )
 }
 
 float function QuadEaseInOut( float frac )
@@ -228,7 +289,7 @@ void function AttemptDismantle( var fuck )
     var slot = GetCurrentHoverTarget()
     if (slot == null)
         return
-    if (!("elemNum" in slot.s))
+    if (!("canDismantle" in slot.s))
         return
     thread void function():(slot)
     {
@@ -266,81 +327,16 @@ void function StopDismantle( var fuck )
 
 void function Stat_Hover( var statPanel, var panel )
 {
-    int statIndex = expect int(statPanel.s.data)
-    string statName = STAT_NAMES[statIndex]
-    int statValue = Roguelike_GetStat( statIndex )
-    int statValueRaw = Roguelike_GetStatRaw( statIndex )
+    int statIndex = expect int(statPanel.s.index)
+    RoguelikeStat stat = GetStatForIndex(statIndex)
+    string statName = stat.name
+    float statValue = Roguelike_GetStat( stat.uniqueName )
+    float statValueRaw = Roguelike_GetStatRaw( stat.uniqueName )
 
     string title = statName
     string description = "MISSING DESCRIPTION"
-    switch (statIndex)
+    switch (statName)
     {
-        case STAT_ARMOR:
-            description = format("Reduces Titan damage taken, and increases healing from batteries.\n\n"
-                + "Titan damage reduced by <cyan>%.1f%%.</>\n"
-                + "Battery healing increased by <cyan>%.1f%%.</>",
-                Roguelike_GetTitanDamageResist(statValue) * 100.0,
-                Roguelike_GetBatteryHealingMultiplier(statValue) / 8.0 - 100.0
-            )
-            break
-        case STAT_ENERGY:
-            description = format("Decreases Titan Dash cooldown, and increases Crit Rate.\n\n" +
-                "Titan Dash cooldown decreased by <cyan>%.1f%%.</>\n" +
-                "Base Crit Rate: <cyan>%.1f%%</>",
-                (1.0 - Roguelike_GetDashCooldownMultiplier( statValue ) / 1.0) * 100.0,
-                Roguelike_BaseCritRate( statValue ) * 100.0
-            )
-            break
-        case STAT_POWER:
-            description = format("Reduces Titan ability cooldowns, and increases Crit DMG.\n\n" +
-                "Titan core gain increased by about <cyan>%.1f%%.</>\n" +
-                "Base Crit DMG: <cyan>%.1f%%</>",
-                (Roguelike_GetTitanCoreGain(statValue) / 0.5 - 1.0) * 100.0,
-                Roguelike_BaseCritDMG( statValue ) * 100.0
-            )
-            break
-        case STAT_COOLING:
-            description = format("Reduces Titan ability cooldowns, and increases reload speed.\n\n"
-                + "Titan cooldowns reduced by <cyan>%.1f%%.</>\n"
-                + "Reload speed increased by <cyan>%.1f%%.</>",
-                (1.0 - Roguelike_GetTitanCooldownReduction(statValue) / 1.5) * 100.0,
-                (Roguelike_GetTitanReloadSpeedBonus(statValue) - 1.0) * 100.0
-            )
-            break
-        case STAT_TEMPER:
-            description = format("Reduces Grenade cooldown, and increases Grenade damage.\n\n" +
-                "Grenade cooldown reduced by about <cyan>%.1f%%.</>\nGrenade damage <note>(except self-damage)</> increased by <cyan>%.0f%%</>",
-                (1.0 - Roguelike_GetPilotCooldownReduction(statValue) / 1.25) * 100.0,
-                (Roguelike_GetGrenadeDamageBoost(statValue) - 1.0) * 100.0
-            )
-            break
-        case STAT_VISION:
-            description = format("Reduces Cloak cooldown, and increases Cloak duration.\n\n" +
-                "Cloak cooldown reduced by about <cyan>%.1f%%.</>\nCloak duration increased by <cyan>%.0f%%</>",
-                (1.0 - Roguelike_GetPilotCooldownReduction(statValue) / 1.25) * 100.0,
-                (Roguelike_GetPilotCloakDuration(statValue) - 1.0) * 100.0
-            )
-            break
-        case STAT_SPEED:
-            if (Roguelike_GetRunModifier("vanilla_movement") != 0)
-            {
-                description = format("DISABLED!")
-                break
-            }
-            description = format("Increases Pilot movement speed.\n\n" +
-                "Pilot movement speed increased by <cyan>%.1f%%.</>",
-                Roguelike_GetPilotSpeedBonus(statValue) * 100.0
-            )
-            break
-        case STAT_ENDURANCE:
-            float multiplier = 1.0 + Roguelike_GetPilotHealthBonus(statValue)
-            float selfDMGMult = Roguelike_GetPilotSelfDamageMult(statValue)
-            description = format("Increases Pilot max health. Decreases Self Damage.\n\n" +
-                "Max health increased to <cyan>%i.</>\nSelf Damage decreased by <cyan>%.1f%%</>",
-                int(multiplier * 100.0),
-                (1.0 - selfDMGMult) * 100.0
-            )
-            break
     }
     if (statValueRaw > STAT_CAP)
     {
@@ -373,6 +369,13 @@ void function RefreshInventory()
 {
     table runData = Roguelike_GetRunData()
 
+    table datacore = expect table(runData["Datacore"])
+
+    RoguelikeDatacorePerk datacorePerk = GetDatacorePerkDataByName( expect string(datacore.perk1) )
+    float datacoreValue = datacorePerk.baseValue + datacorePerk.valuePerLevel * expect int(datacore.rarity)
+
+    SetConVarString( "player_datacore", format("%i %s %f", datacore.dashes, datacore.perk1, datacoreValue))
+
     Grid_InitPage( file.menu, file.gridData )
     RoguelikeShop_RefreshInventory()
 
@@ -392,13 +395,18 @@ void function RefreshInventory()
 
     bool hasTitanLoadoutPassive = GetTitanLoadoutPassiveData()[0] != "No Passive"
 
+    RoguelikeLoadout ornull loadout = Roguelike_GetLoadoutFromIndex(1)
+
     for (int i = 1; i <= 4; i++)
     {
-        Hud_SetBarProgress( Hud_GetChild(Hud_GetChild(file.menu, "AC" + i + "_TitanEnergy"), "EnergyBar"), 1.0 )
-        Hud_SetBarProgress( Hud_GetChild(Hud_GetChild(file.menu, "AC" + i + "_TitanEnergy"), "EnergyBarBG"), 1.0 )
+        if (i == 4)
+        {
+            Hud_SetVisible( Hud_GetChild(file.menu, "AC4_TitanEnergy"), loadout != null )
+            Hud_SetVisible( Hud_GetChild(file.menu, "AC4_TitanMods"), loadout != null )
+        }
 
         int totalEnergyUsed = GetTotalEnergyUsed( i, true )
-        int energyAvailable = expect int(runData["ACTitan" + i].energy)
+        int energyAvailable = ArmorChip_GetMaxEnergy(runData["ACTitan" + i])
 
         // TITAN
         for (int j = 0; j < MOD_SLOTS; j++)
@@ -408,16 +416,40 @@ void function RefreshInventory()
 
             if ((mod.isSwappable && totalEnergyUsed > energyAvailable) || IsSlotLocked( i, true, j ))
             {
-                runData[modIndex] <- GetModByName("empty").index
+                if (runData[modIndex] == GetModByName("checkpoint_used").index || 
+                    runData[modIndex] == GetModByName("checkpoint_used_2").index)
+                    runData[modIndex] <- GetModByName("checkpoint_used_2").index // secret punishment mod :3
+                else
+                    runData[modIndex] <- GetModByName("empty").index
             }
 
             totalEnergyUsed = GetTotalEnergyUsed( i, true )
         }
-        Hud_SetHeight( Hud_GetChild(Hud_GetChild(file.menu, "AC" + i + "_TitanEnergy"), "EnergyBarBG"), (energyAvailable - 1) * (ContentScaledYAsInt(16) + ContentScaledYAsInt(4)) + ContentScaledYAsInt(16) )
-        Hud_SetHeight( Hud_GetChild(Hud_GetChild(file.menu, "AC" + i + "_TitanEnergy"), "EnergyBar"), (totalEnergyUsed - 1) * (ContentScaledYAsInt(16) + ContentScaledYAsInt(4)) + ContentScaledYAsInt(16) )
         totalEnergyUsed = GetTotalEnergyUsed( i, true )
+        Hud_SetText( Hud_GetChild(Hud_GetChild(file.menu, "AC" + i + "_TitanEnergy"), "EnergyBarBG"), format("%i/%i", totalEnergyUsed, energyAvailable) )
 
         // REWORK - PILOT no longer has energy
+        totalEnergyUsed = GetTotalEnergyUsed( i, false )
+        energyAvailable = ArmorChip_GetMaxEnergy(runData["ACPilot" + i])
+
+        for (int j = 0; j < MOD_SLOTS; j++)
+        {
+            string modIndex = FormatModIndex(i, false, j)
+            RoguelikeMod mod = GetModForIndex(runData[modIndex])
+
+            if ((mod.isSwappable && totalEnergyUsed > energyAvailable) || IsSlotLocked( i, false, j ))
+            {
+                if (runData[modIndex] == GetModByName("checkpoint_used").index || 
+                    runData[modIndex] == GetModByName("checkpoint_used_2").index)
+                    runData[modIndex] <- GetModByName("checkpoint_used_2").index // secret punishment mod :3
+                else
+                    runData[modIndex] <- GetModByName("empty").index
+            }
+
+            totalEnergyUsed = GetTotalEnergyUsed( i, false )
+        }
+
+        Hud_SetText( Hud_GetChild(Hud_GetChild(file.menu, "AC" + i + "_PilotEnergy"), "EnergyBarBG"), format("%i/%i", totalEnergyUsed, energyAvailable) )
     }
 
     array<var> modButtons = GetElementsByClassname( file.menu, "ModSlot" )
@@ -435,7 +467,7 @@ void function RefreshInventory()
             var descLabel = Hud_GetChild( slotParent, "Mod" + slotIndex + "Desc" )
 
             RoguelikeMod mod = GetModForIndex(runData[modIndex])
-            if (!isTitanMod)
+            /*if (!isTitanMod)
             {
                 table chip = expect table(runData["ACPilot" + chipIndex])
                 
@@ -443,14 +475,14 @@ void function RefreshInventory()
                     mod = GetModForIndex(chip.mods[slotIndex])
                 else
                     mod = GetModForIndex(0)
-            }
+            }*/
 
             ModSlot_DisplayMod( modSlot, isTitanMod, mod )
             array<RoguelikeMod> slotMods = GetModsForChipSlot( chipIndex, isTitanMod )
             bool notification = false
             foreach (RoguelikeMod newMod in slotMods)
             {
-                if (runData.newMods.contains(newMod.uniqueName) && !isTitanMod)
+                if (runData.newMods.contains(newMod.uniqueName))
                 {
                     notification = true
                     break
@@ -458,21 +490,21 @@ void function RefreshInventory()
             }
 
             
-            if (isTitanMod)
+            //if (isTitanMod)
             {
                 Hud_SetVisible( modSlot, !IsSlotLocked( chipIndex, isTitanMod, slotIndex ) )
                 Hud_SetVisible( nameLabel, !IsSlotLocked( chipIndex, isTitanMod, slotIndex ) )
                 Hud_SetVisible( descLabel, !IsSlotLocked( chipIndex, isTitanMod, slotIndex ) )
             }
-            else
+            /*else
             {
                 Hud_SetVisible( modSlot, mod.index != 0 )
                 Hud_SetVisible( nameLabel, mod.index != 0 )
                 Hud_SetVisible( descLabel, mod.index != 0 )
-            }
+            }*/
 
             nameLabel.SetColor( GetModColor(mod) )
-            descLabel.SetColor( GetModColor(mod) )
+            //descLabel.SetColor( GetModColor(mod) )
             Hud_SetText( nameLabel, mod.name )
             string shortdesc = FormatDescription( mod.shortdesc )
             if (!isTitanMod)
@@ -481,17 +513,35 @@ void function RefreshInventory()
             Hud_SetColor(Hud_GetChild(modSlot, "Overlay"), 255, 255, 0, 0 )
             Hud_SetVisible(Hud_GetChild(modSlot, "Overlay"), notification)
             Signal( Hud_GetChild(modSlot, "Overlay"), "ElemFlash" ) // stop flashing
-            thread Roguelike_PulseElem( file.menu, Hud_GetChild(modSlot, "Overlay"), (slotIndex) * 0.1 + (chipIndex % 2 == 0 ? 0.4 : 0.0) )
+            thread Roguelike_PulseElem( file.menu, Hud_GetChild(modSlot, "Overlay"), ((chipIndex) * 0.2 + (slotIndex % 2 * 0.1)) % 2.0 )
 
             AddHover( modSlot, ModSlot_Hover, HOVER_SIMPLE )
         }
     }
+    
+    Roguelike_ApplyRunDataToConVars()
 
     string statsConVar = ""
 
-    file.totalPilot = 0
-    file.totalTitan = 0
-    array<int> stats = [0,0,0,0,0,0,0,0]
+    array<float> stats = NewStatArray(true) // includes base value
+
+    switch (Roguelike_GetRunModifier("battery_healing"))
+    {
+        case 0:
+            stats[GetStatByName("battery_healing").index] += 400
+            break
+        case 1:
+            stats[GetStatByName("battery_healing").index] += 200
+            break
+        case 2:
+            break
+        case 3:
+            stats[GetStatByName("battery_healing").index] -= 200
+            break
+        case 4:
+            stats[GetStatByName("battery_healing").index] -= 400
+            break
+    }
 
     for (int chip = 1; chip <= 4; chip++)
     {
@@ -504,31 +554,188 @@ void function RefreshInventory()
         }
     }
 
-    if (Roguelike_HasMod( "endurance_2" ))
+    for (int i = 0; i < 2; i++)
     {
-        stats[STAT_ENDURANCE] += 10
-    }
-    if (Roguelike_HasMod( "armor_2" ))
-    {
-        stats[STAT_ARMOR] += 10
+        //AddHover( Hud_GetChild(file.menu, "AC" + i + "_PilotHelp"), ModHelp_Hover, HOVER_SIMPLE )
+        string name = "???"
+
+        if (Roguelike_GetTitanLoadouts().len() > i)
+        {
+            RoguelikeLoadout loadout = expect RoguelikeLoadout(Roguelike_GetLoadoutFromIndex(i))
+            name = loadout.name
+        }
+        Hud_SetText( Hud_GetChild(file.menu, "AC" + (3 + i) + "_TitanHelp"), name + " Chip" )
     }
 
-
-    for (int i = 0; i < STAT_COUNT; i++)
+    foreach (string mod in Roguelike_GetModList()) // returns ints as strings for some reason.... 
     {
-        int total = stats[i]
-        if (i < STAT_TITAN_COUNT)
-            file.totalTitan += total
-        else
-            file.totalPilot += total
-        string statName = STAT_NAMES[i]
-        var statPanel = Hud_GetChild( file.menu, statName + "Stat" )
-        Hud_SetText( Hud_GetChild(statPanel, "Value"), string( total ) )
+        RoguelikeMod modInfo = GetModForIndex(int(mod))
+        foreach (RoguelikeStatModifier modifier in modInfo.statModifiers)
+        {
+            stats[GetStatByName(modifier.stat).index] += modifier.amount
+        }
     }
-    statsConVar = JoinIntArray( stats, " " )
+    
+    if (Roguelike_HasDatacorePerk( "ability_cd" ))
+    {
+        float datacoreVal = Roguelike_GetDatacoreValue()
+        
+        stats[GetStatByName("cd_reduction").index] += 1.0 / (1.0 - datacoreVal / 100.0) - 1.0
+    }
+    if (Roguelike_HasDatacorePerk( "second_wind" ))
+    {
+        stats[GetStatByName("battery_healing").index] = RoundToNearestInt(stats[GetStatByName("battery_healing").index] * (100.0 - Roguelike_GetDatacoreValue()) / 100.0)
+    }
+    if (Roguelike_HasMod("battery_heals"))
+    {
+        stats[GetStatByName("battery_healing").index] = RoundToNearestInt(stats[GetStatByName("battery_healing").index] * 1.35)
+    }
+    if (Roguelike_HasMod("max_shield"))
+    {
+        stats[GetStatByName("max_shields").index] = RoundToNearestInt(stats[GetStatByName("max_shields").index] * 1.5)
+    }
 
-    runData.balanced = file.totalPilot == file.totalTitan
-    Roguelike_ApplyRunDataToConVars()
+    // TITAN LOADOUTS
+    
+    array<RoguelikeLoadout ornull> titanLoadouts = [Roguelike_GetLoadoutFromIndex(0), Roguelike_GetLoadoutFromIndex(1)]
+    
+    for (int i = 0; i < 2; i++)
+    {
+        var weapon = Hud_GetChild(file.menu, "Loadout" + i + "Weapon")
+        var offensive = Hud_GetChild(file.menu, "Loadout" + i + "Offensive")
+        var utility = Hud_GetChild(file.menu, "Loadout" + i + "Utility")
+        var defensive = Hud_GetChild(file.menu, "Loadout" + i + "Defensive")
+        var core = Hud_GetChild(file.menu, "Loadout" + i + "Core")
+        
+        RemoveHover(weapon)
+        RemoveHover(offensive)
+        RemoveHover(utility)
+        RemoveHover(defensive)
+        RemoveHover(core)
+
+        if (titanLoadouts[i] == null || !IsFullyConnected())
+        {
+            Hud_Hide(weapon)
+            Hud_Hide(offensive)
+            Hud_Hide(utility)
+            Hud_Hide(defensive)
+            Hud_Hide(core)
+            continue
+        }
+        
+        RoguelikeLoadout loadout = expect RoguelikeLoadout(titanLoadouts[i])
+        Hud_Show(weapon)
+        Hud_Show(offensive)
+        Hud_Show(utility)
+        Hud_Show(defensive)
+        Hud_Show(core)
+        AbilitySlot_Display(weapon, loadout.primary, -1)
+        AbilitySlot_Display(offensive, loadout.offensive, 0)
+        AbilitySlot_Display(utility, loadout.utility, 2)
+        AbilitySlot_Display(defensive, loadout.defensive, 1)
+        AbilitySlot_Display(core, loadout.core, 3)
+    }
+
+    array<RoguelikeStat> titanStats = Roguelike_GetStatsForSide( true, true )
+    array<RoguelikeStat> pilotStats = Roguelike_GetStatsForSide( false, true )
+    /*for (int i = titanStats.len() - 1; i > 0; i--)
+    {
+        if (stats[titanStats[i].index] == titanStats[i].baseValue)
+            titanStats.remove(i)
+    }
+    for (int i = pilotStats.len() - 1; i > 0; i--)
+    {
+        if (stats[pilotStats[i].index] == pilotStats[i].baseValue)
+            pilotStats.remove(i)
+    }*/
+    for (int i = 0; i < file.statPanelsTitan.len(); i++)
+    {
+        // titan
+        var statPanel = file.statPanelsTitan[i]
+        
+        Hud_Hide( Hud_GetChild(statPanel, "Name"))
+        Hud_Hide( Hud_GetChild(statPanel, "Diff"))
+        Hud_Hide( Hud_GetChild(statPanel, "Value"))
+        Hud_Hide( Hud_GetChild(statPanel, "HeaderTitle"))
+
+        if (titanStats.len() <= i)
+        {
+            continue
+        }
+        
+        RoguelikeStat stat = titanStats[i]
+
+        if (stat.isHeader)
+        {
+            Hud_Show( Hud_GetChild(statPanel, "HeaderTitle") )
+            Hud_SetText( Hud_GetChild(statPanel, "HeaderTitle"), stat.name)
+            continue   
+        }
+        
+        Hud_Show( Hud_GetChild(statPanel, "Name"))
+        Hud_Show( Hud_GetChild(statPanel, "Diff"))
+        Hud_Show( Hud_GetChild(statPanel, "Value"))
+        Hud_SetText( Hud_GetChild(statPanel, "Name"), stat.name)
+        Hud_SetColor(Hud_GetChild(statPanel, "Name"), 200, 200, 200, 255 )
+        
+        if (stat.uniqueName == "ability_power" || stat.name == "Ability Power")
+        {
+            Hud_SetColor(Hud_GetChild(statPanel, "Name"), 255, 137, 18, 255 )
+        }
+        RemoveHover( statPanel )
+        if (stat.description != "")
+        {
+            Hud_SetText( Hud_GetChild(statPanel, "Name"), FormatDescription("<daze>(?)</> " + stat.name))
+            AddHover( statPanel, void function( var slot, var panel ) : (stat) {
+                HoverSimpleData data
+                data.title = stat.name
+                data.description = stat.description
+                HoverSimple_SetData(data)
+            }, HOVER_SIMPLE )
+        }
+        //Hud_SetText( Hud_GetChild(statPanel, "Diff"), stats[titanStats[i].index])
+        string format = Roguelike_FormatStatValue(stat, stats[stat.index])
+        Hud_SetText( Hud_GetChild(statPanel, "Value"), format)
+        Hud_SetText( Hud_GetChild(statPanel, "HeaderTitle"), "")
+    }
+    
+    for (int i = 0; i < file.statPanelsPilot.len(); i++)
+    {
+        // pilot
+        var statPanel = file.statPanelsPilot[i]
+        Hud_Hide( Hud_GetChild(statPanel, "Name"))
+        Hud_Hide( Hud_GetChild(statPanel, "Diff"))
+        Hud_Hide( Hud_GetChild(statPanel, "Value"))
+        Hud_Hide( Hud_GetChild(statPanel, "HeaderTitle"))
+
+        if (pilotStats.len() <= i)
+        {
+            continue
+        }
+
+        RoguelikeStat stat = pilotStats[i]
+
+        if (stat.isHeader)
+        {
+            Hud_Show( Hud_GetChild(statPanel, "HeaderTitle") )
+            Hud_SetText( Hud_GetChild(statPanel, "HeaderTitle"), stat.name)
+            continue   
+        }
+
+        Hud_Show( Hud_GetChild(statPanel, "Name"))
+        Hud_Show( Hud_GetChild(statPanel, "Diff"))
+        Hud_Show( Hud_GetChild(statPanel, "Value"))
+        Hud_SetText( Hud_GetChild(statPanel, "HeaderTitle"), "")
+        Hud_SetText( Hud_GetChild(statPanel, "Name"), FormatDescription(stat.name))
+        //Hud_SetText( Hud_GetChild(statPanel, "Diff"), stats[titanStats[i].index])
+        string format = Roguelike_FormatStatValue(stat, stats[stat.index])
+        Hud_SetText( Hud_GetChild(statPanel, "Value"), format)
+
+        //var statPanel = Hud_GetChild( file.menu, statName + "Stat" )
+        //Hud_SetText( Hud_GetChild(statPanel, "Value"), string( total ) )
+    }
+    statsConVar = JoinFloatArray( stats, " " )
+
     // HACK: should be moved to Roguelike_ApplyRunDataToConVars
     SetConVarString( "player_stats", strip( statsConVar ) )
 
@@ -543,6 +750,8 @@ bool function Slot_Init( var button, int elemNum )
 {
     Hud_SetBarProgress( Hud_GetChild( button, "EnergyBar1" ), 1 )
     Hud_SetBarProgress( Hud_GetChild( button, "EnergyBar2" ), 1 )
+
+    button.s.canDismantle <- true
 
     if (!("clickCallback" in button.s))
     {
@@ -575,6 +784,20 @@ bool function Slot_Init( var button, int elemNum )
     {
         InventorySlot_Display( button, null )
     }
+    return true
+}
+
+bool function TitanStat_Init( var button, int elemNum )
+{
+    RemoveHover( button )
+
+    return true
+}
+
+bool function PilotStat_Init( var button, int elemNum )
+{
+    RemoveHover( button )
+    
     return true
 }
 
@@ -747,12 +970,20 @@ string function GetTitanRole(string weapon)
     return "INVALID"
 }
 
+RoguelikeLoadout ornull function Roguelike_GetLoadoutFromIndex( int index )
+{
+    if (Roguelike_GetTitanLoadouts().len() <= index)
+        return null
+    
+    return Roguelike_GetLoadoutFromWeapon(Roguelike_GetTitanLoadouts()[index])
+}
+
 void function ModHelp_Hover( var label, var panel )
 {
     string hudName = Hud_GetHudName(label)
     table runData = Roguelike_GetRunData()
 
-
+    HoverSimpleData data
     string title = "MISSING TITLE"
     string description = "MISSING DESCRIPTION"
     switch (hudName)
@@ -782,30 +1013,67 @@ void function ModHelp_Hover( var label, var panel )
             description = "These mods focus on improving your titan overall."
             break
         case "AC3_TitanHelp":
-            title = "Core and Weapon Mods"
-            description = "These mods focus on improving your core and weapon."
+            RoguelikeLoadout ornull loadout = Roguelike_GetLoadoutFromIndex(0)
+            if (loadout != null)
+            {
+                expect RoguelikeLoadout(loadout)
+                title = loadout.name + " Mods"
+                description = format("These mods focus on improving %s.\n\n%s", loadout.name, loadout.description)
+            }
             break
         case "AC4_TitanHelp":
-            title = "Ability Mods"
-            description = "These mods focus on improving your abilities."
+            RoguelikeLoadout ornull loadout = Roguelike_GetLoadoutFromIndex(1)
+            title = "??? Mods"
+            description = "These mods focus on... <red>something you haven't acquired yet?</> It seems like you'll have to <red>continue</> for this all to make sense."
+            if (loadout != null)
+            {
+                expect RoguelikeLoadout(loadout)
+                title = loadout.name + " Mods"
+                description = format("These mods focus on improving %s.\n\n%s", loadout.name, loadout.description)
+            }
             break
     }
 
-    Hud_SetText( Hud_GetChild(panel, "Title"), title)
-    Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription(description) )
+    data.title = title
+    data.description = FormatDescription(description)
+
+    HoverSimple_SetData( data )
 }
 
 void function OpenInventoryMenu( bool isTitan )
 {
     file.isTitanMode = isTitan
     file.slideFrac = isTitan ? 0.0 : 1.0
+    var switchPanel =  Hud_GetChild(file.menu, "InventorySwitch")
+
+    Hud_SetVisible( Hud_GetChild(switchPanel, "SwitchPromptLeft"), !file.isTitanMode )
+    Hud_SetVisible( Hud_GetChild(switchPanel, "SwitchPromptRight"), file.isTitanMode )
 
     if (uiGlobal.activeMenu == null) // bruh
 	    AdvanceMenu( file.menu )
 }
 
+string function Roguelike_GetModDescription(RoguelikeMod mod)
+{
+    string desc = ""
+
+    string tagDescs = ""
+    if (mod.tags.len() > 0)
+    {
+        tagDescs = "<cyan>"
+        foreach (string tag in mod.tags)
+        {
+            tagDescs += Roguelike_GetTagDesc(tag) + " "
+        }
+        tagDescs += "</>\n\n"
+    }
+
+    return format("%s", FormatDescription(tagDescs + mod.description))
+}
+
 void function ModSlot_Hover( var slot, var panel )
 {
+    HoverSimpleData hoverData
     string modIndex = expect string(slot.s.data)
     bool isTitanMod = modIndex.find("Titan") != null
     int chipIndex = int( modIndex.slice( 2, 3 ) )
@@ -813,14 +1081,18 @@ void function ModSlot_Hover( var slot, var panel )
     table runData = Roguelike_GetRunData()
 
     RoguelikeMod mod = GetModForIndex(runData[modIndex])
-    if (!isTitanMod)
+    /*if (!isTitanMod)
     {
         var chip = runData["ACPilot" + chipIndex]
         mod = GetModForIndex( chip.mods[slotIndex] )
-    }
+    }*/
 
-    Hud_SetText( Hud_GetChild(panel, "Title"), mod.name)
-    Hud_SetText( Hud_GetChild(panel, "Description"), format("Energy Cost: ^FF800000%i^FFFFFFFF\n\n%s", mod.cost, FormatDescription(mod.description)) )
+    hoverData.title = mod.name
+    hoverData.color = GetModColor(mod)
+    hoverData.description = Roguelike_GetModDescription(mod)
+    ModSlot_UpdateBoxes( mod )
+    hoverData.boxes = mod.boxes
+    HoverSimple_SetData(hoverData)
 }
 
 // utility to allow using <color> tags instead of memorizing ^ABCDEF12 sequences
@@ -840,6 +1112,7 @@ string function FormatDescription(string desc)
     result = StringReplace( result, "<red>",   "^FF404000", true )
     result = StringReplace( result, "<weak>",  "^B15EFF00", true )
     result = StringReplace( result, "<magic>", "^FF7AF400", true )
+    result = StringReplace( result, "<arm>", "^FF40C000", true )
     result = StringReplace( result, "<punc>", "^FF404000", true )
     result = StringReplace( result, "<hack>", "^20FF2000", true )
 
@@ -851,11 +1124,11 @@ void function ModSlot_Click( var button )
     var slot = Hud_GetParent( button )
 
     string data = expect string( slot.s.data )
-    bool isTitan = data.find("Titan") != null
-    if (!isTitan)
-        return // REWORK - pilot mods are random
 
-    ModSelect_SetContext( expect string( slot.s.data ), Hud_GetAbsX( slot ), Hud_GetAbsY( slot ) )
+    if (!GetModForIndex(Roguelike_GetRunData()[data]).isSwappable)
+        return
+
+    ModSelect_SetContext( data, Hud_GetAbsX( slot ), Hud_GetAbsY( slot ) )
 
     OpenSubmenu( GetMenu("ModSelect"), false )
 }
@@ -889,7 +1162,8 @@ void function AttemptUpgrade( var env )
     }
 
     int price = Roguelike_GetUpgradePrice( data )
-    if (data.level >= Roguelike_GetItemMaxLevel( data ) || (Roguelike_GetMoney() < price && !GetConVarBool("roguelike_unlock_all")))
+    int maxRarityObtained = expect int(Roguelike_GetRunData().maxRarityObtained)
+    if ((data.level >= Roguelike_GetItemMaxLevel( data ) && (data.type != "armor_chip" || maxRarityObtained <= data.rarity)) || (Roguelike_GetMoney() < price && !GetConVarBool("roguelike_unlock_all")))
     {
         EmitUISound( "HUD_MP_BountyHunt_BankBonusPts_Deposit_End_Unsuccessful_1P" )
         return
@@ -898,18 +1172,20 @@ void function AttemptUpgrade( var env )
     EmitUISound( "HUD_MP_BountyHunt_BankBonusPts_Deposit_End_Successful_1P" )
     Roguelike_TakeMoney( price )
 
-    data.level += 1
+    if (data.level == 3 && data.type == "armor_chip")
+    {
+        data.level = 0
+        data.rarity += 1
+    }
+    else
+    {
+        data.level += 1
+    }
     data.moneyInvested += price
 
     switch (data.type)
     {
         case "armor_chip":
-            if (data.level == 2 && data.subStats.len() > 0)
-                data.boosts.append(0)
-            else
-            {
-                data.energy += 1
-            }
             break
         case "weapon":
             break
@@ -940,7 +1216,11 @@ void function UpdateMenuState()
 				newState = 1
 
 			RunClientScript( "Healthbars_SetMenuState", newState )
-            RunClientScript("RoguelikeTimer_SetMoney", Roguelike_GetMoney())
+            if (Roguelike_IsRunActive())
+            {
+                RunClientScript("RoguelikeTimer_SetMoney", Roguelike_GetMoney())
+                RunClientScript("RoguelikeTimer_SetStartTime", Roguelike_GetRunData().timestamp)
+            }
 		}
 	}
 }
@@ -965,18 +1245,40 @@ void function Roguelike_ForceRefreshInventory()
     RefreshInventory()
 }
 
-bool function Roguelike_HasMod( string mod )
+array<string> statsCache
+string statsVal
+float function Roguelike_GetStat( string stat )
 {
-    int modIndex = GetModByName(mod).index
-    return split( GetConVarString("player_mods"), " " ).contains(string(modIndex))
+    if (statsVal != GetConVarString("player_stats"))
+    {
+        statsVal = GetConVarString("player_stats")
+        statsCache = split( GetConVarString("player_stats"), " " )
+        print("alloc")
+    }
+
+    int index = GetStatByName(stat).index
+    if (statsCache.len() <= index)
+        return GetStatByName(stat).baseValue
+    float baseVal = float( statsCache[index] )
+    
+    if (GetStatByName(stat).diminishingReturns)
+        return 1.0 / (1.0 + baseVal)
+
+    return baseVal
 }
-int function Roguelike_GetStat( int stat )
+float function Roguelike_GetStatRaw( string stat )
 {
-    return minint(int( split( GetConVarString("player_stats"), " " )[stat] ), STAT_CAP)
-}
-int function Roguelike_GetStatRaw( int stat )
-{
-    return int( split( GetConVarString("player_stats"), " " )[stat] )
+    if (statsVal != GetConVarString("player_stats"))
+    {
+        statsVal = GetConVarString("player_stats")
+        statsCache = split( GetConVarString("player_stats"), " " )
+        print("alloc")
+    }
+
+    int index = GetStatByName(stat).index
+    if (statsCache.len() < index)
+        return GetStatByName(stat).baseValue
+    return float( statsCache[index] )
 }
 
 void function Roguelike_PulseElem( var menu, var element, float delay = 0, int startAlpha = 255, int endAlpha = 0, float rate = 2.0 )
@@ -997,4 +1299,50 @@ void function Roguelike_PulseElem( var menu, var element, float delay = 0, int s
 		wait duration
         Hud_SetAlpha( element, startAlpha )
 	}
+}
+
+var function Inventory_GetStatPanel( bool isTitan, int index )
+{
+    return isTitan ? file.statPanelsTitan[index] : file.statPanelsPilot[index]
+}
+
+array<string> datacoreCache
+string datacoreVal = ""
+bool function Roguelike_HasDatacorePerk( string perk )
+{
+    if (datacoreVal != GetConVarString("player_datacore"))
+    {
+        datacoreVal = GetConVarString("player_datacore")
+        datacoreCache = split( GetConVarString("player_datacore"), " " )
+        print("alloc")
+    }
+    if (datacoreCache.len() > 1)
+        return datacoreCache[1] == perk
+    return false
+}
+
+float function Roguelike_GetDatacoreValue()
+{
+    if (datacoreVal != GetConVarString("player_datacore"))
+    {
+        datacoreVal = GetConVarString("player_datacore")
+        datacoreCache = split( GetConVarString("player_datacore"), " " )
+        print("alloc")
+    }
+    if (datacoreCache.len() > 1)
+        return float( datacoreCache[2] )
+    return 0.0
+}
+
+void function Roguelike_ConsumeCheckpointMod()
+{
+    for (int i = 0; i <= 3; i++)
+    {
+        string modIndex = format( "AC1_TitanMod%i", i )
+        if (GetModForIndex(Roguelike_GetRunData()[modIndex]).uniqueName == "checkpoint")
+        {
+            Roguelike_GetRunData()[modIndex] <- GetModByName("checkpoint_used").index
+            return
+        }
+    }
 }

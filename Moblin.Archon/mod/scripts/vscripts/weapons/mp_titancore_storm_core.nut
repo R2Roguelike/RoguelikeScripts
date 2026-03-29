@@ -215,7 +215,7 @@ void function UpdateStormCoreField( entity owner, entity bolt, entity weapon, ve
 
 	while ( Time() < endTime )
 	{
-		WaitFrame()
+		wait 0.099
 		origin = bolt.GetOrigin()
 		StormCoreFieldDamage( weapon, bolt, origin )
 	}
@@ -273,14 +273,15 @@ function StormCoreFieldDamage( entity weapon, entity bolt, vector origin )
 
 	// damage shields first and then other things
 	DamageShieldsInRadiusOnEntity( weapon, bolt, ARC_TITAN_EMP_FIELD_RADIUS, 450 * 8 ) // damageheavyArmor * 8
+	float powerScalar = SoftCastToFloat(GetWeaponInfoFileKeyField_Global("mp_titancore_storm_core", "ability_power_scalar_1"))
 	RadiusDamage(
 		origin,									// center
 		weapon.GetWeaponOwner(),									// attacker
 		bolt,									// inflictor
 		90,					// damage
 		700,					// damageHeavyArmor
-		ARC_TITAN_EMP_FIELD_INNER_RADIUS,		// innerRadius
-		ARC_TITAN_EMP_FIELD_RADIUS,				// outerRadius
+		ARC_TITAN_EMP_FIELD_INNER_RADIUS +Roguelike_GetStat( weapon.GetOwner(), "ability_power") * powerScalar,		// innerRadius
+		ARC_TITAN_EMP_FIELD_RADIUS + Roguelike_GetStat( weapon.GetOwner(), "ability_power") * powerScalar,				// outerRadius
 		SF_ENVEXPLOSION_NO_DAMAGEOWNER,			// flags
 		0,										// distanceFromAttacker
 		0,					                    // explosionForce
@@ -349,6 +350,8 @@ void function StormCoreOnDamage( entity ent, var damageInfo )
 
 	const ARC_TITAN_EMP_DURATION			= 0.35
 	const ARC_TITAN_EMP_FADEOUT_DURATION	= 0.35
+
+	ApplyShock( ent, 1.0 )
 
 	StatusEffect_AddTimed( ent, eStatusEffect.emp, 0.25, ARC_TITAN_EMP_DURATION, ARC_TITAN_EMP_FADEOUT_DURATION )
 

@@ -982,6 +982,7 @@ void function S2S_EntitiesDidLoad()
 
 	//the main ships that are always there
 	file.malta 		= SpawnMalta()
+	s2s_mover = file.malta.mover
 	file.gibraltar 	= SpawnGibraltar( CLVec( < 8000, 0, -5000 > ) )
 	file.OLA 		= SpawnOLA( CLVec( < -8000, 0, -5000 > ) )
 
@@ -12397,8 +12398,6 @@ void function MaltaDeck_Main( entity player )
 //	FlagWaitClear( "BossTitanViewFollow" )
 
 	table results = viper.WaitSignal( "DoCore" )
-	DumpCallstack()
-	printt(getstackinfos(3))
 	bool firstTime = true
 	viper.SetEnemy( file.player )
 	thread ViperCoreThink( viper, firstTime )
@@ -12414,9 +12413,14 @@ void function MaltaDeck_Main( entity player )
 	thread MaltaDeck_ViperAgroOnDeckTitansDead( viper )
 	FlagClear( "StopAirBattleDeaths_IMC" )
 
-	FlagWait( "DeckViperStage2" )
-	DeckCheckpoint()
-	thread RoninScorchFlyingFight( viper, player )
+	array<string> loadouts = Roguelike_GetTitanLoadouts()
+	bool isScorchRonin = loadouts.contains(PRIMARY_RONIN) && loadouts.contains(PRIMARY_SCORCH)
+	if (!isScorchRonin) // scorch ronin no phase 2 viper
+	{
+		FlagWait( "DeckViperStage2" )
+		DeckCheckpoint()
+		thread RoninScorchFlyingFight( viper, player )
+	}
 
 	FlagWait( "ViperFakeDead" )
 
@@ -13889,7 +13893,7 @@ ShipStruct function MaltaDeck_SpawnBossTitan()
 	entity spawner 	= GetEntByScriptName( "deckBossTitan" )
 	entity viper 	= SpawnFromSpawner( spawner )
 	viper.s.baseHealth <- 7500
-	viper.s.mods <- ["cluster_core"] // viper gets cluster rockets for core
+	viper.e.mods = ["cluster_core"] // viper gets cluster rockets for core
 	viper.SetModel( TITAN_VIPER_SCRIPTED_MODEL )
 	viper.SetSkin( 1 )
 
@@ -14931,7 +14935,7 @@ void function BossFight_Main( entity player )
 		float duration = viper.GetSequenceDuration( "lt_s2s_end_fight_kill" )
 		wait duration - 0.1
 
-		ReloadForMissionFailure()
+		ReloadForMissionFailure(false)
 		ScreenFadeToBlackForever( player, 0.0 )
 		Remote_CallFunction_NonReplay( player, "ServerCallback_TitanDied", eDamageSourceId.titan_execution )
 
@@ -16914,7 +16918,7 @@ void function Ending_CrashFX( bool failed = false )
 	if ( failed )
 	{
 		wait time - 3.8 //reload takes 3.8
-		ReloadForMissionFailure()
+		ReloadForMissionFailure(false)
 	}
 
 	wait 1
@@ -17331,7 +17335,7 @@ void function SyncedStumble( vector angles )
 	foreach( stalker in stalkers )
 		thread StalkerStumbleThink( stalker, angles )
 
-	thread PlayerStumbleThink( angles )
+	//thread PlayerStumbleThink( angles )
 }
 
 void function GruntStumbleThink( entity guy, vector angles )

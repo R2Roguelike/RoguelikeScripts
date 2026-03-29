@@ -94,7 +94,9 @@ void function FireTrapDamage( entity ent, var damageInfo )
     if (attacker == ent && Roguelike_HasMod( attacker, "warmth" ) && attacker.IsTitan())
     {
         DamageInfo_ScaleDamage( damageInfo, 0 )
-        RSE_Apply( attacker, RoguelikeEffect.scorch_warmth, WARMTH_DMG_RESIST, 1.25, 1.0 )
+        float duration = 1.25
+        duration *= 1.0 + Roguelike_GetStat( attacker, "ability_duration" )
+        RSE_Apply( attacker, RoguelikeEffect.scorch_warmth, WARMTH_DMG_RESIST, duration, 1.0 )
     }
 
     if (attacker != ent)
@@ -158,7 +160,7 @@ void function FlameWaveDamage( entity ent, var damageInfo )
     if (!attacker.IsPlayer())
         return
 
-    DamageInfo_ScaleDamage( damageInfo, 0.5 ) // reduce base damage by 50%. were gonna cause eruptions lol
+    //DamageInfo_ScaleDamage( damageInfo, 0.75 ) // reduce base damage by 50%. were gonna cause eruptions lol
 
     if (Roguelike_HasMod( attacker, "flame_core_burn_dmg"))
         RSE_Apply( ent, RoguelikeEffect.burn_flame_core, 100.0, 15.0, 5.0 )
@@ -166,7 +168,11 @@ void function FlameWaveDamage( entity ent, var damageInfo )
         AddBurn( ent, attacker, 500 )
 
     if (Roguelike_HasMod( attacker, "again" ))
+    {
+        float duration = 15.0
+        duration *= 1.0 + Roguelike_GetStat( attacker, "ability_duration" )
         RSE_Apply( ent, RoguelikeEffect.core_on_kill, 1.0, 15.0, 5.0 )
+    }
 
     Eruption( ent, attacker ) // always cause an eruption.
 }
@@ -185,24 +191,21 @@ void function AddBurn( entity ent, entity attacker, float amount )
     {
         entity otherUtility = Roguelike_GetAlternateOffhand( attacker, OFFHAND_RIGHT )
         if (IsValid( otherUtility ))
-            RestoreCooldown( otherUtility, 0.004 )
+            RestoreCooldown( otherUtility, 0.0015 )
 
         if (wall != null)
-            RestoreCooldown( wall, 0.004 )
+            RestoreCooldown( wall, 0.0015 )
     }
 
     float cur = RSE_Get( ent, RoguelikeEffect.burn )
 
-    float maxBaseBurn = 25
+    float maxBaseBurn = 25 + Roguelike_GetStat( attacker, "ability_power" ) * 0.3
+    if (Roguelike_HasMod(attacker, "scorch_burn_dmg"))
+        maxBaseBurn += 25
 
-    array<string> extraBurnMods = [ "offense_canister", "buy1get1free", "flamethrower", "gas_recycle", "burn_dmg", "burn_shield", "flame_core_burn_dmg"]
-
-    foreach (string mod in extraBurnMods)
-        if (Roguelike_HasMod( attacker, mod ))
-            maxBaseBurn += 5
-
-    float duration = 5.0 * Roguelike_GetFireDurationMultiplier( attacker )
-    RSE_Apply( ent, RoguelikeEffect.burn, maxBaseBurn, 4.0, 0.0 )
+    float duration = 4.0 
+    duration *= 1.0 + Roguelike_GetStat( attacker, "ability_duration" )
+    RSE_Apply( ent, RoguelikeEffect.burn, maxBaseBurn, duration, 0.0 )
 
     if (cur >= 200)
     {
@@ -225,6 +228,7 @@ void function Eruption( entity victim, entity attacker )
         EmitSoundOnEntity( victim, "titan_nuclear_death_charge" )
         wait 3.0
     }
+
     vector origin = victim.GetOrigin()
 
     victim.s.burnt <- true
@@ -289,12 +293,6 @@ float function Roguelike_GetFireDurationMultiplier( entity player )
 {
     if (IsMercTitan(player))
         return 30.0
-    array<string> extraFireDuration = [ "dash_wall", "high_wall", "warmth", "again", "let_[insert_pronoun_here]_cook", "gassin" ]
 
-    float mult = 1.0
-    foreach (string mod in extraFireDuration)
-        if (Roguelike_HasMod( player, mod ))
-            mult += 0.25
-
-    return mult
+    return (1.0 + Roguelike_GetStat(player, "ability_duration"))
 }

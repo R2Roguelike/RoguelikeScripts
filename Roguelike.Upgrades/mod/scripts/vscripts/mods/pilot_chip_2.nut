@@ -39,16 +39,16 @@ void function PilotChip2_RegisterMods()
         RoguelikeMod mod = NewMod("moonboots")
         mod.name = "Moonboots"
         mod.abbreviation = "Mb"
-        mod.description = "Gravity reduced by ^40FFFF0020%."
-        mod.shortdesc = "Gravity reduced by ^40FFFF0020%."
+        mod.description = "Gravity reduced by ^40FFFF0025%."
+        mod.shortdesc = "Gravity reduced by ^40FFFF0025%."
         mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("bhopper")
         mod.name = "2Much4ZBlock"
         mod.abbreviation = "ZBl"
-        mod.description = "+300% air acceleration."
-        mod.shortdesc = "+300% air acceleration."
+        mod.description = "<cyan>+300%</> air acceleration."
+        mod.shortdesc = "<cyan>+300%</> air acceleration."
         mod.cost = 3
     }
     {
@@ -80,15 +80,15 @@ void function PilotChip2_RegisterMods()
         mod.name = "MRVN Robber"
         mod.abbreviation = "MRV"
         mod.description = "MRVN kills as a pilot reward triple the cash."
-        mod.shortdesc = "MRVN kills as a pilot reward <cyan>triple the cash.</>"
+        mod.shortdesc = "MRVN kills as a pilot reward\n<cyan>triple the cash.</>"
         mod.cost = 1
     }
     {
         RoguelikeMod mod = NewMod("dash_recovery")
         mod.name = "Dash Recovery"
         mod.abbreviation = "DaR"
-        mod.description = "Dash cooldown reduced."
-        mod.shortdesc = "Dash cooldown reduces."
+        mod.description = "Dash cooldown reduced by 25%."
+        mod.shortdesc = "Dash cooldown reduced."
         mod.cost = 1
     }
     {
@@ -97,6 +97,14 @@ void function PilotChip2_RegisterMods()
         mod.abbreviation = "KiD"
         mod.description = "Restore a dash on kill."
         mod.shortdesc = "Restore a dash on kill."
+        mod.cost = 1
+    }
+    {
+        RoguelikeMod mod = NewMod("xray")
+        mod.name = "X-Ray"
+        mod.abbreviation = "X-R"
+        mod.description = "See nearby chests through walls.\n<note>not all of them may be reachable! activate your brain!</>"
+        mod.shortdesc = "See nearby chests through walls."
         mod.cost = 1
     }
 }

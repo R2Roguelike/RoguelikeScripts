@@ -33,6 +33,8 @@ WeaponData
 	"sound_weapon_ready"							"HUD_TitanUtilityAbility_replenished_1P"
 	"projectile_adjust_to_gun_barrel"				"0"
 
+	"ability_duration_base_value"					"3"
+
 	"sound_dryfire"   								"titan_dryfire"
 
 	// Ammo

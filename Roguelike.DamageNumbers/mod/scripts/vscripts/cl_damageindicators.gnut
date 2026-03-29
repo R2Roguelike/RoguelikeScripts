@@ -131,71 +131,105 @@ void function Cl_DamageIndicator_Init()
 
 			string text = ""
 
-			int i = 0
+			array<RSEInstance> effectData
 			foreach (RSEInstance instance in GetLocalViewPlayer().e.rseData)
 			{
 				if (instance.endTime <= Time())
 					continue
 				if (instance.effect in effectDisplayConditions && !effectDisplayConditions[instance.effect](GetLocalViewPlayer()))
 					continue
+				if (!(instance.effect in effectDisplayNames))
+					continue
 
-				float timeLeft = instance.endTime - Time()
-				if (instance.effect in effectDisplayNames)
+				bool effectExists = false
+				foreach (RSEInstance effect in effectData)
 				{
-					while (ruis.len() <= i)
+					if (effect.effect == instance.effect)
 					{
-						var rui = RuiCreate( $"ui/cockpit_console_text_top_left.rpak", clGlobal.topoCockpitHud, RUI_DRAW_COCKPIT, 0)
-						RuiSetInt( rui, "maxLines", 1 );
-						RuiSetInt( rui, "lineNum", 0 );
-						RuiSetFloat2( rui, "msgPos", <0.05, 0.52 + i * 0.019, 0> )
-						RuiSetString( rui, "msgText",  "0:10 `1effect\n`00:05 `1my god" )
-						RuiSetFloat3( rui, "msgColor", <1.0, 1.0, 1.0> )
-						RuiSetFloat( rui, "msgFontSize", 32.0)
-						RuiSetFloat( rui, "msgAlpha", 0.9 )
-						RuiSetFloat( rui, "thicken", 0.2 )
-						ruis.append(rui)
+						effect.endTime = min(instance.endTime, effect.endTime)
+						effect.stacks += RSE_GetIntensity( instance )
+						effectExists = true
+						break
 					}
-					RuiSetFloat2( ruis[i], "msgPos", <0.05, 0.52 + i * 0.019, 0> )
-					if (instance.effect == RoguelikeEffect.polarity_blue)
-					{
-						RuiSetFloat3( ruis[i], "msgColor", <0.0, 0.0, 1.0> )
-					}
-					else if (instance.effect == RoguelikeEffect.polarity_red)
-					{
-						RuiSetFloat3( ruis[i], "msgColor", <1.0, 0.0, 0.0> )
-					}
-					else
-					{
-						RuiSetFloat3( ruis[i], "msgColor", <1.0, 1.0, 1.0> )
-					}
-					if (instance.effect in effectDisplayPercentage)
-					{
-						float intensity = RSE_GetIntensity( instance )
-						RuiSetString( ruis[i], "msgText", format("`0%03i%% `1%s\n", int(intensity * 100.0), effectDisplayNames[instance.effect]) )
-					}
-					else if (instance.effect in effectDisplayStacks)
-					{
-						float intensity = RSE_GetIntensity( instance )
-						if (timeLeft > 3600)
-						{
-							RuiSetString( ruis[i], "msgText", format("     `1%s x`0%i\n", effectDisplayNames[instance.effect], int(intensity)) )
-						}
-						else
-						{
-							RuiSetString( ruis[i], "msgText", format("`0%i:%02i `1%s x`0%i\n", int(timeLeft / 60), int(timeLeft % 60), effectDisplayNames[instance.effect], int(intensity)) )
-						}
-					}
-					else
-					{
-						RuiSetString( ruis[i], "msgText", format("`0%i:%02i `1%s\n", int(timeLeft / 60), int(timeLeft % 60), effectDisplayNames[instance.effect]) )
-					}
-
-					i++
 				}
+				if (effectExists)
+					continue
+
+				RSEInstance newInstance
+				newInstance.endTime = instance.endTime
+				newInstance.startTime = instance.startTime
+				newInstance.effect = instance.effect
+				newInstance.fadeOutTime = instance.fadeOutTime
+				newInstance.stacks = RSE_GetIntensity( instance )
+				effectData.append(newInstance)
+			}
+
+			
+			while (ruis.len() <= effectData.len())
+			{
+				var rui = RuiCreate( $"ui/cockpit_console_text_top_left.rpak", clGlobal.topoCockpitHud, RUI_DRAW_COCKPIT, 0)
+				RuiSetInt( rui, "maxLines", 1 );
+				RuiSetInt( rui, "lineNum", 0 );
+				RuiSetFloat2( rui, "msgPos", <0.05, 0.52 + ruis.len() * 0.019, 0> )
+				RuiSetString( rui, "msgText",  "0:10 `1effect\n`00:05 `1my god" )
+				RuiSetFloat3( rui, "msgColor", <1.0, 1.0, 1.0> )
+				RuiSetFloat( rui, "msgFontSize", 32.0)
+				RuiSetFloat( rui, "msgAlpha", 0.9 )
+				RuiSetFloat( rui, "thicken", 0.2 )
+				ruis.append(rui)
+			}
+
+			int i = 0
+			foreach (RSEInstance instance in effectData)
+			{
+				float timeLeft = instance.endTime - Time()
+
+				RuiSetFloat2( ruis[i], "msgPos", <0.05, 0.52 + i * 0.02, 0> )
+
+				switch (instance.effect)
+				{
+					case RoguelikeEffect.polarity_blue:
+						RuiSetFloat3( ruis[i], "msgColor", <0.0, 0.0, 1.0> )
+						break
+					case RoguelikeEffect.polarity_red:
+						RuiSetFloat3( ruis[i], "msgColor", <1.0, 0.0, 0.0> )
+						break
+					default:
+						RuiSetFloat3( ruis[i], "msgColor", <1.0, 1.0, 1.0> )
+						break
+				}
+
+				if (instance.effect in effectDisplayPercentage)
+				{
+					float intensity = RSE_GetIntensity( instance )
+					RuiSetString( ruis[i], "msgText", format("`0%03i%% `1%s\n", int(intensity * 100.0), effectDisplayNames[instance.effect]) )
+				}
+				else if (instance.effect in effectDisplayStacks)
+				{
+					float intensity = RSE_GetIntensity( instance )
+					if (timeLeft > 3600)
+					{
+						RuiSetString( ruis[i], "msgText", format("     `1%s x`0%i\n", effectDisplayNames[instance.effect], int(intensity)) )
+					}
+					else
+					{
+						RuiSetString( ruis[i], "msgText", format("`0%i:%02i `1%s x`0%i\n", int(timeLeft / 60), int(timeLeft % 60), effectDisplayNames[instance.effect], int(intensity)) )
+					}
+				}
+				else if (timeLeft > 3600)
+				{
+					RuiSetString( ruis[i], "msgText", format("     `1%s\n", effectDisplayNames[instance.effect]) )
+				}
+				else
+				{
+					RuiSetString( ruis[i], "msgText", format("`0%i:%02i `1%s\n", int(timeLeft / 60), int(timeLeft % 60), effectDisplayNames[instance.effect]) )
+				}
+
+				i++
 			}
 			for (; i < ruis.len(); i++)
 			{
-				RuiSetFloat2( ruis[i], "msgPos", <1.05, 0.52 + i * 0.019, 0> )
+				RuiSetFloat2( ruis[i], "msgPos", <1.05, 0.52 + i * 0.02, 0> )
 			}
 		}
 	}()
@@ -248,55 +282,94 @@ void function AddSmallDamageTextFlyout(entity victim, float damage, bool isCrit,
 	string prefix = ""
 	string suffix = ""
 	float duration = OUTGOING_DAMAGE_TEXT_SMALL_FADE_TIME
-	vector color = isCrit ? <1.0, 1.0, 0.3> : <1.0, 0.9, 0.1>
+
 	bool isBurn = max(RSE_Get( victim, RoguelikeEffect.burn ), RSE_Get( victim, RoguelikeEffect.burn_flame_core)) > 0
-	isBurn = isBurn && (!(bool(damageFlags & DAMAGEFLAG_FIRE)) || Roguelike_HasMod( GetLocalClientPlayer(), "burn_dmg" ))
-	
+
+	// default - physical
+	vector color = isCrit ? <1.0, 1.0, 0.3> : <1.0, 0.9, 0.1>
 	if (isBurn)
 		color = <color.x, color.y-0.4, color.z>
 
-	if (damageFlags & DAMAGEFLAG_DISORDER)
+	int loadoutIndex = (damageFlags >> 11) % 32
+
+	if (player.IsTitan())
 	{
-		EmitSoundOnEntity(player, "ronin_sword_impact_metal_1p_vs_3p")
-		EmitSoundOnEntity(player, "ronin_sword_impact_armor_1p_vs_3p")
-		EmitSoundOnEntity(player, "titan_rocket_explosion_1p_vs_3p")
-		prefix = "DISORDER!\n"
-		duration += 1.0
-		color = <1.0, 0.0, 0.0>
+		if ((damageFlags & DAMAGEFLAG_ARMED) & DAMAGEFLAG_DISORDER)
+		{
+			EmitSoundOnEntity(player, "ronin_sword_impact_metal_1p_vs_3p")
+			EmitSoundOnEntity(player, "ronin_sword_impact_armor_1p_vs_3p")
+			EmitSoundOnEntity(player, "titan_rocket_explosion_1p_vs_3p")
+			prefix = "DISARMED!\n"
+			duration += 1.0
+			color = <1, 0.25, 0.5>
+		}
+		else if (damageFlags & DAMAGEFLAG_ARMED)
+		{
+			EmitSoundOnEntity(player, "ronin_sword_impact_metal_1p_vs_3p")
+			EmitSoundOnEntity(player, "ronin_sword_impact_armor_1p_vs_3p")
+			EmitSoundOnEntity(player, "titan_rocket_explosion_1p_vs_3p")
+			prefix = "REARMED!\n"
+			duration += 1.0
+			color = <1, 0.25, 0.75>
+		}
+		else if (damageFlags & DAMAGEFLAG_DISORDER)
+		{
+			EmitSoundOnEntity(player, "ronin_sword_impact_metal_1p_vs_3p")
+			EmitSoundOnEntity(player, "ronin_sword_impact_armor_1p_vs_3p")
+			EmitSoundOnEntity(player, "titan_rocket_explosion_1p_vs_3p")
+			prefix = "DISORDER!\n"
+			duration += 1.0
+			color = <1.0, 0.0, 0.0>
+		}
+		else if (damageFlags & DAMAGEFLAG_DISCHARGE)
+		{
+			EmitSoundOnEntity(player, "ronin_sword_impact_metal_1p_vs_3p")
+			EmitSoundOnEntity(player, "ronin_sword_impact_armor_1p_vs_3p")
+			EmitSoundOnEntity(player, "titan_rocket_explosion_1p_vs_3p")
+			prefix = "DISCHARGE!\n"
+			duration += 1.0
+			color = <0.0, 1.0, 1.0>
+		}
+		else if ((damageFlags & DAMAGEFLAG_GREEN) || (damageFlags & DAMAGEFLAG_CLONE))
+		{
+			color = <0.0, 1.0, 0.333>
+			if (isBurn)
+				color += <0.5, -0.333, -0.2>
+		}
+		else if (loadoutIndex <= 0)
+		{
+			color = <0.8, 0.8, 0.8>
+			if (isBurn)
+				color += <0.2, 0.0, 0.0>
+		}
+		else
+		{
+			RoguelikeLoadout loadout = VALID_LOADOUTS[loadoutIndex - 1]
+			color = <loadout.color[0] / 255.0, loadout.color[1] / 255.0, loadout.color[2] / 255.0>
+			if (isBurn)
+				color += <0.5, -0.25, -0.25>
+		}
 	}
-	else if (damageFlags & DAMAGEFLAG_DISCHARGE)
+	else 
 	{
-		EmitSoundOnEntity(player, "ronin_sword_impact_metal_1p_vs_3p")
-		EmitSoundOnEntity(player, "ronin_sword_impact_armor_1p_vs_3p")
-		EmitSoundOnEntity(player, "titan_rocket_explosion_1p_vs_3p")
-		prefix = "DISCHARGE!\n"
-		duration += 1.0
-		color = <0.0, 1.0, 1.0>
-	}
-	if (damageFlags & DAMAGEFLAG_ELECTRIC)
-	{
-		color = <0.0, 0.5, 1.0>
-		if (isCrit)
-			color += <0.2, 0.2, 0.0>
-		if (isBurn)
-			color += <0.5, -0.25, -0.25>
-	}
-	if (damageFlags & DAMAGEFLAG_FIRE)
-	{
-		color = <1.0, 0.333, 0.0>
-		if (isCrit)
-			color += <0.0, 0.2, 0.2>
-		if (isBurn)
-			color -= <0.0, 0.333, 0>
-	}
-	if (damageFlags & DAMAGEFLAG_GREEN)
-	{
-		color = <0.0, 1.0, 0.333>
-		if (isCrit)
-			color += <0.2, 0.0, 0.2>
-		if (isBurn)
-			color += <0.5, -0.333, -0.2>
-	}
+		if (damageFlags & DAMAGEFLAG_ELECTRIC)
+		{
+			color = <0.0, 0.5, 1.0>
+			if (isCrit)
+				color += <0.2, 0.2, 0.0>
+		}
+		else if (damageFlags & DAMAGEFLAG_FIRE)
+		{
+			color = <1.0, 0.333, 0.0>
+			if (isCrit)
+				color += <0.0, 0.2, 0.2>
+		}
+		else
+		{
+			vector color = isCrit ? <1.0, 1.0, 0.3> : <1.0, 0.9, 0.1>
+		}
+	} 
+
 	color = <clamp(color.x, 0, 1), clamp(color.y, 0, 1), clamp(color.z, 0, 1)>
 	if (isCrit)
 		suffix += "!!"
@@ -313,7 +386,7 @@ void function AddSmallDamageTextFlyout(entity victim, float damage, bool isCrit,
 
 	while ( Time() - startTime < duration )
 	{
-		float alpha = Graph( Time() - startTime, duration - 1.0, duration, 1.0, 0 )
+		float alpha = GraphCapped( Time() - startTime, duration - 1.0, duration, 1.0, 0 )
 		posOffset.y += Graph( Time() - startTime, 0, duration, 0, 0.0 )
 		RuiSetFloat( rui, "msgAlpha", alpha )
 		RuiSetFloat2( rui, "msgPos", WorldToScreenPos(msgPos) - posOffset )
@@ -363,7 +436,21 @@ void function PlayerDidDamageText( float damage, vector damagePosition, entity v
 	{
 		damagePosition += <RandomFloatRange(-6, 6), RandomFloatRange(-6, 6), RandomFloatRange(-6, 6) + 12>
 	}
-	RunUIScript( "RunStats_DamageDealt", damage, isBigEnemy )
+
+	int loadoutIndex = (damageFlags >> 11) % 32 - 1
+	if (player.IsTitan())
+	{
+		foreach (int index, string loadout in Roguelike_GetTitanLoadouts())
+		{
+			if (expect RoguelikeLoadout(Roguelike_GetLoadoutFromWeapon(loadout)).index == loadoutIndex)
+			{
+				loadoutIndex = index
+				break
+			}
+		}
+	}
+
+	RunUIScript( "RunStats_DamageDealt", damage, isBigEnemy, loadoutIndex )
 	//damage /= scalar
 	//damage *= 1.0 + entDEF * 0.003333
 

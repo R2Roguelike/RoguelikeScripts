@@ -171,8 +171,27 @@ int function Grenade_OnWeaponToss_( entity weapon, WeaponPrimaryAttackParams att
 		projectileLagCompensated = false
 	}
 #endif
-	entity grenade = Grenade_Launch( weapon, attackParams.pos, (attackParams.dir * directionScale), projectilePredicted, projectileLagCompensated )
+
+	vector right = CrossProduct( attackParams.dir, <0,0,1> ) * 1.0
 	entity weaponOwner = weapon.GetWeaponOwner()
+	int amount = 1
+	if (Roguelike_HasMod( weaponOwner, "multi_star" ))
+	{
+		print("multi star")
+		if (weapon.GetWeaponClassName() == "mp_weapon_thermite_grenade"
+			|| weapon.GetWeaponClassName() == "mp_weapon_grenade_gravity")
+			amount = 3
+	}
+
+	for (int i = 0; i < amount; i++)
+	{
+		vector dir = attackParams.dir
+		if (i != 0)
+		{
+			dir += ((i % 2 == 0) ? 0.2 : -0.2) * right
+		}
+		entity grenade = Grenade_Launch( weapon, attackParams.pos, (dir * directionScale), projectilePredicted, projectileLagCompensated )
+	}
 	weaponOwner.Signal( "ThrowGrenade" )
 
 	PlayerUsedOffhand( weaponOwner, weapon ) // intentionally here and in Hack_DropGrenadeOnDeath - accurate for when cooldown actually begins

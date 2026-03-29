@@ -28,7 +28,6 @@ struct
 	string currentStartPoint
 	array<StartPoint> startPointsArray
 	void functionref( entity ) playerDidLoadFunc
-
 } file
 
 
@@ -171,7 +170,9 @@ void function StartPoints_EntitiesDidLoad()
 		SetCurrentStartPoint( startPoint.startPointEnum )
 
 		if (DISABLE_SAVE_MAPS.contains(GetMapName()))
-		ServerToClientStringCommand( player, "run_backup " + i ) // save data now
+		{
+			ServerToClientStringCommand( player, "run_backup " + i ) // save data now
+		}
 
 		waitthread startPoint.main( player )
 	}
@@ -226,7 +227,7 @@ void function PickStartPoint( string mapName, string startPointEnum, LevelTransi
 
 	expect LevelTransitionStruct( trans )
 
-	PopulateLevelTransWithLoadouts( player, trans )
+	//PopulateLevelTransWithLoadouts( player, trans )
 	PlayerTransitionsToLevel( player, mapName, startPointEnum, trans )
 }
 

@@ -6,7 +6,7 @@ resource/ui/menus/panels/mod_slot.res
 
 		image			"ui/titan_mod_3"
 
-		drawColor	"0 0 0 135"
+		drawColor	"0 0 0 150"
 		scaleImage			1
 
 		wide				 64

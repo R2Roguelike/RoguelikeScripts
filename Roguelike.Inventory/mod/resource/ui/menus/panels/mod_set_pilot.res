@@ -4,7 +4,7 @@ resource/ui/menus/panels/mod_set.res
     {
         ControlName		ImagePanel
         image           "vgui/hud/white"
-        wide			480
+        wide			960
         tall			344
         visible			1
         scaleImage		1
@@ -82,7 +82,7 @@ resource/ui/menus/panels/mod_set.res
         controlSettingsFile	"resource/ui/menus/panels/mod_slot.res"
         classname "ModSlot"
         xpos            0
-        ypos			16
+        ypos			12
         wide			 64
         tall			 64
         visible			1
@@ -144,17 +144,17 @@ resource/ui/menus/panels/mod_set.res
         ControlName			CNestedPanel
         controlSettingsFile	"resource/ui/menus/panels/mod_slot.res"
         classname "ModSlot"
-        xpos            0
-        ypos			16
+        xpos            400
+        ypos			0
         wide			 64
         tall			 64
         visible			1
         scaleImage		1
         scriptID        2
 
-        pin_to_sibling			Mod1
+        pin_to_sibling			Mod0
         pin_corner_to_sibling	TOP_RIGHT
-        pin_to_sibling_corner	BOTTOM_RIGHT
+        pin_to_sibling_corner	TOP_LEFT
 
         zpos			1
     }
@@ -208,7 +208,7 @@ resource/ui/menus/panels/mod_set.res
         controlSettingsFile	"resource/ui/menus/panels/mod_slot.res"
         classname "ModSlot"
         xpos            0
-        ypos			16
+        ypos			12
         wide			 64
         tall			 64
         visible			1

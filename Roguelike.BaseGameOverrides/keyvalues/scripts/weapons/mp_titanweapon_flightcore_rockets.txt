@@ -120,6 +120,13 @@ WeaponData
 
 	}
 
+	"ability_power_scalar_1"					"damage_near_value_titanarmor"
+	"ability_power_scalar_2"					"damage_far_value_titanarmor"
+	"ability_power_scalar_3"					"explosion_damage_heavy_armor"
+	"ability_power_scalar_1"					"1"
+	"ability_power_scalar_2"					"1"
+	"ability_power_scalar_3"					"1"
+
 	// Sound
 	"sound_dryfire"									"Weapon_Titan_Rocket_Launcher.DryFire"
 	"sound_zoom_in"									"Weapon_Titan_Rocket_Launcher.ADS_In"

@@ -635,3 +635,36 @@ void function Hud_SetNavDown( var buttonFrom, var buttonTo )
 {
 	buttonFrom.SetNavDown( buttonTo )
 }
+
+const RED = 0.2126;
+const GREEN = 0.7152;
+const BLUE = 0.0722;
+
+const GAMMA = 2.4;
+
+float function luminancefrac(float a)
+{
+	return a <= 0.03928
+		? a / 12.92
+		: pow((a + 0.055) / 1.055, GAMMA)
+}
+
+float function luminance(vector v) {
+
+	vector a = <luminancefrac(v.x), luminancefrac(v.y), luminancefrac(v.z)>
+
+  	return a.x * RED + a.y * GREEN + a.z * BLUE;
+}
+
+float function contrast(vector rgb1, vector rgb2) {
+  float lum1 = luminance(rgb1);
+  float lum2 = luminance(rgb2);
+  float brightest = max(lum1, lum2);
+  float darkest = min(lum1, lum2);
+  return (brightest + 0.05) / (darkest + 0.05);
+}
+
+bool function ShouldTextBeBlack(vector rgb)
+{
+	return contrast(<0,0,0>, rgb) > contrast(<1,1,1>, rgb)
+}

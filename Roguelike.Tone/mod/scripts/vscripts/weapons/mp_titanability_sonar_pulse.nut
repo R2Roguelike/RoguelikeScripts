@@ -68,7 +68,13 @@ void function OnProjectileCollision_titanability_sonar_pulse( entity projectile,
 		bool hasDamageAmp = mods.contains( "fd_sonar_damage_amp" ) || Roguelike_HasMod( owner, "red_sonar" )
 		PulseLocation( owner, team, pos, hasIncreasedDuration, hasDamageAmp )
 		if ( Roguelike_HasMod( owner, "routine_exposure" ) )
+		{
+			foreach (entity hackedTitan in owner.e.hackedTargets)
+			{
+				PulseLocation( owner, team, hackedTitan.GetOrigin(), hasIncreasedDuration, hasDamageAmp )
+			}
 			thread DelayedPulseLocation( owner, team, pos, hasIncreasedDuration, hasDamageAmp )
+		}
 
 	#endif
 }
@@ -81,6 +87,10 @@ void function DelayedPulseLocation( entity owner, int team, vector pos, bool has
 		wait 2.0
 		if ( !IsValid( owner ) )
 			return
+		foreach (entity hackedTitan in owner.e.hackedTargets)
+		{
+			PulseLocation( owner, team, hackedTitan.GetOrigin(), hasIncreasedDuration, hasDamageAmp )
+		}
 		PulseLocation( owner, team, pos, hasIncreasedDuration, hasDamageAmp )
 		if ( owner.IsPlayer() )
 		{
@@ -97,7 +107,7 @@ void function DelayedPulseLocation( entity owner, int team, vector pos, bool has
 
 void function PulseLocation( entity owner, int team, vector pos, bool hasIncreasedDuration, bool hasDamageAmp )
 {
-	array<entity> nearbyEnemies = GetNearbyEnemiesForSonarPulse( team, pos )
+	array<entity> nearbyEnemies = GetNearbyEnemiesForSonarPulse( owner, team, pos )
 	foreach( enemy in nearbyEnemies )
 	{
 		thread SonarPulseThink( enemy, pos, team, owner, hasIncreasedDuration, hasDamageAmp )
@@ -123,9 +133,11 @@ void function SonarPulseThink( entity enemy, vector position, int team, entity s
 	else
 		duration = SONAR_PULSE_DURATION
 
+	duration *= 1.0 + Roguelike_GetStat( sonarOwner, "ability_duration" )
+
 	//RSE_Apply( enemy, RoguelikeEffect.tone_expose, 1.0, duration, duration )
 	if ( hasDamageAmp )
-		statusEffect = StatusEffect_AddEndless( enemy, eStatusEffect.damage_received_multiplier, 0.25 )
+		statusEffect = StatusEffect_AddEndless( enemy, eStatusEffect.damage_received_multiplier, (25 + Roguelike_GetStat( sonarOwner, "ability_power")) / 255.0 )
 	SonarStart( enemy, position, team, sonarOwner )
 
 	int sonarTeam = sonarOwner.GetTeam()
@@ -147,10 +159,12 @@ void function SonarPulseThink( entity enemy, vector position, int team, entity s
 	wait duration
 }
 
-array<entity> function GetNearbyEnemiesForSonarPulse( int team, vector origin )
+array<entity> function GetNearbyEnemiesForSonarPulse( entity owner, int team, vector origin )
 {
+	float powerScalar = SoftCastToFloat(GetWeaponInfoFileKeyField_Global("mp_titanability_sonar_pulse", "ability_power_scalar_1"))
+	float radius = SONAR_PULSE_RADIUS + (Roguelike_GetStat(owner, "ability_power") * powerScalar)
 	array<entity> nearbyEnemies
-	array<entity> guys = GetPlayerArrayEx( "any", TEAM_ANY, TEAM_ANY, origin, SONAR_PULSE_RADIUS )
+	array<entity> guys = GetPlayerArrayEx( "any", TEAM_ANY, TEAM_ANY, origin, radius )
 	foreach ( guy in guys )
 	{
 		if ( !IsAlive( guy ) )
@@ -160,7 +174,7 @@ array<entity> function GetNearbyEnemiesForSonarPulse( int team, vector origin )
 			nearbyEnemies.append( guy )
 	}
 
-	array<entity> ai = GetNPCArrayEx( "any", TEAM_ANY, team, origin, SONAR_PULSE_RADIUS )
+	array<entity> ai = GetNPCArrayEx( "any", TEAM_ANY, team, origin, radius )
 	foreach ( guy in ai )
 	{
 		if ( IsAlive( guy ) )
@@ -175,7 +189,7 @@ array<entity> function GetNearbyEnemiesForSonarPulse( int team, vector origin )
 			if ( harv.GetTeam() == team )
 				continue
 
-			if ( Distance( origin, harv.GetOrigin() ) < SONAR_PULSE_RADIUS )
+			if ( Distance( origin, harv.GetOrigin() ) < radius )
 			{
 				nearbyEnemies.append( harv )
 			}

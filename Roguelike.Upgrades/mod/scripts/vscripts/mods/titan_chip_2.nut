@@ -1,21 +1,56 @@
 global function TitanChip2_RegisterMods
 
+global const string EXTRA_OFFENSIVE_CHARGE = "offensive_charge"
 void function TitanChip2_RegisterMods()
 {
+    Roguelike_RegisterTag( EXTRA_OFFENSIVE_CHARGE, "+1 Charge for all Offensives." )
     {
         RoguelikeMod mod = NewMod("titan_holster")
         mod.name = "Weapon Holster"
         mod.abbreviation = "WH"
-        mod.description = "Titan primary weapons regenerate ammo while unequipped.\n\n<note>Rate varies by mag size. If your mag size isnt above 100 or below 2, it takes 5 seconds to regenerate from 0 to full.</>"
+        mod.description = "Titan primary weapons regenerate ammo while unequipped."
         mod.shortdesc = "Titan primary weapons regenerate ammo while\nunequipped."
+        {
+            HoverSimpleBox box
+            box.currentValue = "20%"
+            box.label = "Mag Regen/sec"
+            mod.boxes.append(box)
+        }
+        {
+            HoverSimpleBox box
+            box.currentValue = "0.3"
+            box.label = "Min Bullets/sec"
+            box.newRow = false
+            mod.boxes.append(box)
+        }
+        {
+            HoverSimpleBox box
+            box.currentValue = "20"
+            box.label = "Max Bullets/sec"
+            box.newRow = false
+            mod.boxes.append(box)
+        }
         mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("tick_spawner")
         mod.name = "Tick-Tock O'Clock"
         mod.abbreviation = "TTO"
-        mod.description = "Killing an enemy Titan or Reaper has a chance to spawn ticks."
-        mod.shortdesc = "Killing an enemy Titan or Reaper will\nsometimes spawn ticks."
+        mod.description = "Killing an enemy Titan or Reaper spawns ticks.\n\n<note>These ticks deal heavily increased damage to enemies and are invulnerable to enemy projectiles.</>"
+        mod.shortdesc = "Killing an enemy Titan or Reaper spawns ticks."
+        {
+            HoverSimpleBox box
+            box.currentValue = "5"
+            box.label = "Ticks/Titan"
+            mod.boxes.append(box)
+        }
+        {
+            HoverSimpleBox box
+            box.currentValue = "3"
+            box.label = "Ticks/Reaper"
+            box.newRow = false
+            mod.boxes.append(box)
+        }
         mod.cost = 2
     }
     {
@@ -30,16 +65,17 @@ void function TitanChip2_RegisterMods()
         RoguelikeMod mod = NewMod("shock_bullets")
         mod.name = "Ricochet"
         mod.abbreviation = "Rc"
-        mod.description = "On hitting a Titan: 20% chance to cause another Titan within 20m to take a hit for 30% of the damage."
+        mod.description = "<daze>On hitting a Titan</>: <cyan>20% chance</> to cause another Titan within 20m to take a hit for <cyan>30% of the damage."
         mod.shortdesc = "<daze>On hit:</> Sometimes, another Titan will <cyan>take a\nhit too."
         mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("offensive_charge")
-        mod.name = "Backup Plan"
-        mod.abbreviation = "BP"
-        mod.description = "All offensives gain 1 charge."
-        mod.shortdesc = "All offensives gain 1 charge."
+        mod.name = "Offensive Theft"
+        mod.abbreviation = "OT"
+        mod.description = "Titan Kills restore an offensive charge for both loadouts."
+        mod.shortdesc = "<cyan>+1 Charge for all offensives.\n</>Kills restore offensive charges."
+        mod.tags = [EXTRA_OFFENSIVE_CHARGE]
         mod.cost = 2
     }
     {

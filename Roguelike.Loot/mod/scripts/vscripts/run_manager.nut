@@ -11,6 +11,7 @@ global function Roguelike_AddMoney
 global function Roguelike_TakeMoney
 global function Roguelike_ApplyRunDataToConVars
 global function RunEnded
+global function RunWon
 global function __SetPower
 global function __SecondLoadout
 global function Roguelike_GiveSmartPistolSkyway
@@ -37,7 +38,9 @@ const array<string> SAVE_CONVARS = [
     "meta_helmets_14",
     "roguelike_titan_loadout",
     "roguelike_loadouts_unlocked",
-    "roguelike_run_modifiers"
+    "roguelike_run_modifiers",
+    "roguelike_save_backup",
+    "roguelike_disable_music"
 ]
 
 struct {
@@ -125,13 +128,22 @@ void function RunEnded()
     RunEnd_SetRunData( file.runData )
     file.isRunActive = false
     file.runData = {}
+    RunEnd_SetDisconnect( true )
     AdvanceMenu(GetMenu("RunEndMenu"))
     //ClientCommand("disconnect")
 }
 
-void function Roguelike_StartNewRun(int seed = -1)
+void function RunWon()
 {
-    if (seed == -1)
+    RunEnd_SetRunData( file.runData )
+    RunEnd_SetDisconnect( false )
+    AdvanceMenu(GetMenu("RunEndMenu"))
+    //ClientCommand("disconnect")
+}
+
+void function Roguelike_StartNewRun(int seed = -2147483648)
+{
+    if (seed == -2147483648)
     {
         seed = RandomInt(2147483647)
     }
@@ -143,25 +155,35 @@ void function Roguelike_StartNewRun(int seed = -1)
         newMods = []
     }
 
+    printt("--- NEW RUN ---")
+    printt("Seed:", seed)
+
     file.runData = runData
     file.isRunActive = true
 
     // run stats
     runData.damageDealtPilot <- 0.0
     runData.damageDealtTitan <- 0.0
+    runData.damageDealtTitan0 <- 0.0 // 1st loadout
+    runData.damageDealtTitan1 <- 0.0 // 2nd loadout
     runData.titansKilled <- 0
     runData.gruntsKilled <- 0
     runData.itemsObtained <- 0
+    runData.chestsOpened <- 0
     runData.modsUnlocked <- 0
     runData.titanHp <- 12500
     runData.titanSettings <- ""
     runData.titanMaxHp <- 12500
+    runData.timestamp <- GetUnixTimestamp()
+    runData.maxRarityObtained <- 0
+    runData.time <- 0.0
 
     // these arrays are to prevent the player from getting
     // 3+ of the same armor chip slot in a row, and to
     // gurantee the player gets a preferred chip slot
     // eventually.
     SetConVarInt("roguelike_run_seed", seed)
+    SetConVarString("roguelike_chests_opened", "")
     runData.seed <- seed
     runData.chipSlotOrder <- [1,2,3,4,5,6,7,8]
     runData.chipSlotOrder.randomize()
@@ -186,8 +208,11 @@ void function Roguelike_StartNewRun(int seed = -1)
     runData.runHeat <- GetConVarInt("roguelike_run_heat")
 
     runData.shopRerolls <- {}
-    //runData.lockedPilotMods <- GetAllLockedPilotMods()
-    runData.lockedTitanMods <- GetAllLockedTitanMods()
+    for (int i = 1; i < 5; i++)
+    {
+        runData["lockedTitanMods" + i] <- GetAllModsForLootPool( true, i )
+        runData["lockedPilotMods" + i] <- GetAllModsForLootPool( false, i )
+    }
     Roguelike_UnlockMods( 4 ) // have the player start with some amount of mods
 
     for (int i = 1; i <= 4; i++)
@@ -212,9 +237,12 @@ void function Roguelike_StartNewRun(int seed = -1)
     runData.loadout1Damage <- 0
     runData.loadout2Damage <- 0
 
+    int weapon = PRandomInt( rand, ROGUELIKE_PILOT_WEAPONS.len() )
+    int weapon2 = PRandomInt( rand, ROGUELIKE_MOVEMENT_TOOLS.len() )
+
     runData.Datacore <- RoguelikeDatacore_CreateDatacore( rand, RARITY_COMMON )
-    runData.WeaponPrimary <- RoguelikeWeapon_CreateWeapon( rand, "mp_weapon_vinson", RARITY_COMMON, "primary" )
-    runData.WeaponSecondary <- RoguelikeWeapon_CreateWeapon( rand, "mp_weapon_epg", RARITY_COMMON, "special" )
+    runData.WeaponPrimary <- RoguelikeWeapon_CreateWeapon( rand, ROGUELIKE_PILOT_WEAPONS[weapon], RARITY_COMMON, "primary" )
+    runData.WeaponSecondary <- RoguelikeWeapon_CreateWeapon( rand, ROGUELIKE_MOVEMENT_TOOLS[weapon2], RARITY_COMMON, "special" )
     runData.Grenade <- RoguelikeGrenade_CreateWeapon( rand, "mp_weapon_frag_grenade", RARITY_COMMON )
 
     Roguelike_ForceRefreshInventory()
@@ -261,10 +289,12 @@ void function Roguelike_ApplyRunDataToConVars()
         for (int j = 0; j < MOD_SLOTS; j++)
         {
             var pilotChip = runData["ACPilot" + i]
-            if (pilotChip.mods.len() > j && pilotChip.mods[j] != 0)
-                modIndexList.append(string(pilotChip.mods[j]))
-            if (runData["AC" + i + "_TitanMod" + j] != 0)
+            //if (pilotChip.mods.len() > j && pilotChip.mods[j] != 0)
+            //    modIndexList.append(string(pilotChip.mods[j]))
+            if (runData["AC" + i + "_TitanMod" + j] != 0 && !IsSlotLocked(i, true, j))
                 modIndexList.append(string(runData["AC" + i + "_TitanMod" + j]))
+            if (runData["AC" + i + "_PilotMod" + j] != 0 && !IsSlotLocked(i, true, j))
+                modIndexList.append(string(runData["AC" + i + "_PilotMod" + j]))
         }
     }
     SetConVarString( "player_mods", JoinStringArray( modIndexList, " " ) )
@@ -371,7 +401,7 @@ void function Roguelike_AddToInventory( table item )
         RunClientScript( "Roguelike_ItemGained" )
 }
 
-void function Roguelike_GenerateLoot(int seed = 0)
+void function Roguelike_GenerateLoot(int seed = 0, int chestId = -1)
 {
     if (seed == 0)
         seed = RandomInt(2000000000)
@@ -381,7 +411,13 @@ void function Roguelike_GenerateLoot(int seed = 0)
     foreach (string k, var v in item)
         printt(k,v)
     file.runData.inventory.append(item)
+    file.runData.maxRarityObtained = maxint(expect int(item.rarity), expect int(file.runData.maxRarityObtained))
     RunStats_ItemObtained()
+    RunStats_ChestOpened()
+
+    array<string> openedChests = split( GetConVarString("roguelike_chests_opened"), " " )
+    openedChests.append(string(chestId))
+    SetConVarString("roguelike_chests_opened", JoinStringArray( openedChests, " " ))
 
     Roguelike_ForceRefreshInventory()
 
@@ -393,17 +429,17 @@ table function Roguelike_GenerateItem(PRandom rand, bool isShop)
 {
     switch (PRandomInt(rand, 10))
     {
-        case 0:
-        case 1: // 22.2% weapon
+        case 0: // 10% weapon
             return RoguelikeWeapon_Generate(rand)
             break
-        case 2: // 11.1% grenade
+        case 1: // 10% grenade
             return RoguelikeGrenade_Generate(rand)
             break
-        case 3: // 22.2% datacore
-        case 4:
+        case 2: // 10% datacore
             return RoguelikeDatacore_Generate(rand)
             break
+        case 3: // 70% weapon
+        case 4:
         case 5:
         case 6:
         case 7:
@@ -491,8 +527,31 @@ void function Roguelike_AddMoney( int amt )
     if (!file.isRunActive)
         return
 
+	switch (Roguelike_GetRunModifier("cash_gain"))
+	{
+		case 0:
+			amt = (amt * 125) / 100 // 125%
+			break
+		case 1:
+			break
+		case 2:
+			amt = (amt * 85) / 100 // 85%
+			break
+		case 3:
+			amt = (amt * 70) / 100 // 70%
+			break
+		case 4:
+			amt = (amt * 50) / 100 // 50%
+			break
+	}
+
     file.runData.money += amt
     RunClientScript( "RoguelikeTimer_SetMoney", file.runData.money )
+}
+
+void function Roguelike_AddTime( float seconds )
+{
+
 }
 
 void function Roguelike_TakeMoney( int amt )
@@ -521,16 +580,41 @@ table function Roguelike_GetSaveData()
     return file.saveData
 }
 
+float lastSaveTime = -99.9
 void function Roguelike_WriteSaveToDisk()
 {
     if (!file.isSaveLoaded)
         throw "Cannot save whilst save data not loaded!"
+
+    thread Roguelike_WriteSaveToDisk_Internal()
+}
+
+bool isSaving = false
+// only save once a second, and only save the most updated data
+void function Roguelike_WriteSaveToDisk_Internal()
+{
+    if (isSaving)
+        return
+
+    isSaving = true
+
+    if (Time() - lastSaveTime < 1.0)
+    {
+        wait 1.0 + Time() - lastSaveTime
+    }
+
+    lastSaveTime = Time()
+    SetConVarInt("roguelike_save_backup", (GetConVarInt("roguelike_save_backup") + 1) % 3)
+
     foreach (string convar in SAVE_CONVARS)
     {
         file.saveData[convar] <- GetConVarString(convar)
     }
     printt("SAVING FILE")
     NSSaveJSONFile( "save.json", file.saveData )
+    NSSaveJSONFile( "save_backup_" + GetConVarInt("roguelike_save_backup") + ".json", file.saveData )
+
+    isSaving = false
 }
 
 bool function Roguelike_IsSaveLoaded()

@@ -1,4 +1,6 @@
 global function ClWeaponStatus_Init
+global function ClWeaponStatus_SetOffhandHint
+global function ClWeaponStatus_ClearOffhandHint
 global function ClWeaponStatus_SetOffhandVisible
 global function ClWeaponStatus_SetWeaponVisible
 global function ClWeaponStatus_GetWeaponHudRui
@@ -124,7 +126,8 @@ void function OnSelectedWeaponChanged( entity selectedWeapon )
 	asset secondaryIcon = $""
 	asset tertiaryIcon = $""
 	array<entity> mainWeapons = GetLocalViewPlayer().GetMainWeapons()
-	#if MP
+	if (!GetLocalViewPlayer().IsTitan())
+	{
 		int activeIndex
 		foreach ( index, weapon in mainWeapons )
 		{
@@ -167,7 +170,9 @@ void function OnSelectedWeaponChanged( entity selectedWeapon )
 		}
 
 		file.lastSelectedIndex = activeIndex
-	#else
+	}
+	else
+	{
 		foreach ( weapon in mainWeapons )
 		{
 			if ( weapon == selectedWeapon )
@@ -179,15 +184,12 @@ void function OnSelectedWeaponChanged( entity selectedWeapon )
 			if ( weapon.GetWeaponType() == WT_ANTITITAN )
 				continue
 
-			if ( GetLocalViewPlayer().IsTitan() )
-				continue
-
 			asset hudIcon = GetWeaponInfoFileKeyFieldAsset_WithMods_Global( weapon.GetWeaponClassName(), weapon.GetMods(), "hud_icon" )
 			secondaryIcon = hudIcon
 		}
 		RuiSetImage( file.ammo_counter, "secondaryHudIcon", secondaryIcon )
 		RuiSetImage( file.ammo_counter, "tertiaryHudIcon", $"" )
-	#endif
+	}
 
 	InitAmmoCounterRui( file.ammo_counter, GetLocalViewPlayer(), selectedWeapon )
 
@@ -296,6 +298,8 @@ void function InitWeaponStatusRuis( entity player )
 			dodgePowerDrain = 50.0
 
 		Roguelike_Player_SetDodgeDrain( player, dodgePowerDrain )
+		
+		Roguelike_Player_SetDodgeSpeed(player, 400.0 * (1.0 + Roguelike_GetStat( player, "move_speed" ) ))
 	}
 
 	UpdateOffhandRuis( player )
@@ -569,6 +573,20 @@ void function InitOffhandRui( var rui, entity player, entity weapon )
 			RuiSetFloat( rui, "refillRate", weapon.GetWeaponSettingFloat( eWeaponVar.regen_ammo_refill_rate ) )
 			break
 
+		case "core":
+			float ammoClipSize = 1.0
+			float ammoPerShot = CRAFT_BATTERY_CORE_COST
+			float ammoMinToFire = CRAFT_BATTERY_CORE_COST
+
+			RuiSetFloat( rui, "minFireFrac", 1.0 )
+			RuiSetFloat( rui, "chargeMaxFrac", CRAFT_BATTERY_CORE_COST )
+			RuiSetInt( rui, "segments", 1 )
+
+			RuiTrackFloat( rui, "chargeFrac", player.GetTitanSoul(), RUI_TRACK_SCRIPT_NETWORK_VAR, GetNetworkedVariableIndex( "coreAvailableFrac" ) )
+			RuiSetFloat( rui, "readyFrac", 0.0 )
+
+			RuiSetFloat( rui, "refillRate", weapon.GetWeaponSettingFloat( eWeaponVar.regen_ammo_refill_rate ) )
+			break
 		case "shield":
 			int ammoClipSize = player.GetTitanSoul().GetShieldHealthMax()
 			int ammoPerShot = weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )
@@ -743,8 +761,31 @@ void function InitOffhandRui( var rui, entity player, entity weapon )
 			break
 	}
 }
+// script_client ClWeaponStatus_SetOffhandHint(0)
+void function ClWeaponStatus_SetOffhandHint( int offhandIndex )
+{
+	entity player = GetLocalClientPlayer()
 
+	var rui = GetRuiForIndex( player, offhandIndex )
+	printt(rui)
+	if (rui == null)
+		return
 
+	RuiSetBool( rui, "isHighlighted", true )
+	//InitOffhandRui( rui, player, player.GetOffhandWeapon(offhandIndex))
+}
+
+void function ClWeaponStatus_ClearOffhandHint( int offhandIndex )
+{
+	entity player = GetLocalClientPlayer()
+
+	var rui = GetRuiForIndex( player, offhandIndex )
+	if (rui == null)
+		return
+
+	RuiSetBool( rui, "isHighlighted", false )
+	//InitOffhandRui( rui, player, player.GetOffhandWeapon(offhandIndex))
+}
 
 void function ClWeaponStatus_SetOffhandVisible( int offhandIndex, bool newState )
 {

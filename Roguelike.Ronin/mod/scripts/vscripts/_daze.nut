@@ -37,7 +37,7 @@ void function OnPlayerDodge( entity player )
     }
     if (Roguelike_HasDatacorePerk( player, "dash+" ))
     {
-        RSE_Apply( player, RoguelikeEffect.dash_plus, 1.0, 2.0, 2.0 )
+        RSE_Apply( player, RoguelikeEffect.dash_plus, 1.0, 4.0, 4.0 )
     }
     file.lastDodgeTime = Time()
 
@@ -102,11 +102,18 @@ void function SwordDamage( entity ent, var damageInfo )
 
     bool crit = (DamageInfo_GetCustomDamageType( damageInfo ) & DF_CRITICAL) > 0
 
-    int daze = RoundToInt(RSE_Stop( ent, RoguelikeEffect.ronin_daze ))
+    int daze = 0
+    if (RSE_Get( ent, RoguelikeEffect.ronin_daze) > 0)
+    {
+        daze = MAX_DAZE_STACKS
+        RSE_Stop( ent, RoguelikeEffect.ronin_daze )
+    }
     SetShotgunBuff( attacker, GetShotgunBuff( attacker ) + daze + 1)
 
     if (Roguelike_HasMod( attacker, "offensive_daze_hits" ) && daze > 0)
     {
+        DamageInfo_AddDamageBonus( damageInfo, 0.5 )
+
         entity arcWave = attacker.GetOffhandWeapon( OFFHAND_ORDNANCE )
         RestoreCooldown( arcWave, 0.333 )
 
@@ -175,14 +182,11 @@ void function AddDaze( entity ent, entity attacker, int amount )
     if (amount > 0.0)
     {
         int cur = GetDaze( ent )
-        int overflow = (cur + amount) - MAX_DAZE_STACKS
-        if (overflow > 0)
+        if (cur > 0)
         {
-            int curBuffStacks = GetShotgunBuff( attacker )
-            SetShotgunBuff( attacker, curBuffStacks + overflow )
-            amount -= overflow
+            SetShotgunBuff( attacker, GetShotgunBuff(attacker) + MAX_DAZE_STACKS )
         }
 
-        RSE_Apply( ent, RoguelikeEffect.ronin_daze, RoundToNearestInt(min(cur + amount, MAX_DAZE_STACKS)) )
+        RSE_Apply( ent, RoguelikeEffect.ronin_daze, 1.0, 10.0, 10.0 )
     }
 }

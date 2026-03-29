@@ -1,6 +1,7 @@
 untyped
 global function AddRunEndMenu
 global function RunEnd_SetRunData
+global function RunEnd_SetDisconnect
 
 struct {
     var menu
@@ -8,6 +9,7 @@ struct {
     int startPointIndex = 0
     int kills = 69
     float time = 370
+    bool disconnect = true
     array<string> statNames = []
     array<int> statValues = []
     array<int> statPointMultiplier = []
@@ -35,25 +37,32 @@ void function Continue( var panel )
     ClientCommand( "map " + file.nextMap )
 }
 
+void function RunEnd_SetDisconnect( bool disconnect )
+{
+    file.disconnect = disconnect
+    Hud_SetText( Hud_GetChild( file.menu, "Title"), disconnect ? "ITS JOEVER" : "W RUN" )
+}
+
 void function RunEnd_SetRunData( table data )
 {
+    Signal(uiGlobal.signalDummy, "EndTimerThread")
     file.statNames.clear()
     file.statValues.clear()
     file.statPointMultiplier.clear()
 
     file.statNames.append("Real Time Spent")
-    file.statValues.append(GetUnixTimestamp() - expect int(data.timestamp))
+    file.statValues.append(int(data.time))
     file.statPointMultiplier.append(10)
     file.statPointOffset.append(0)
 
     file.statNames.append("Small Enemy Kills")
     file.statValues.append(expect int(data.gruntsKilled))
-    file.statPointMultiplier.append(1000)
+    file.statPointMultiplier.append(100)
     file.statPointOffset.append(0)
 
     file.statNames.append("Big Enemy Kills")
     file.statValues.append(expect int(data.titansKilled))
-    file.statPointMultiplier.append(10000)
+    file.statPointMultiplier.append(1000)
     file.statPointOffset.append(0)
 
     file.statNames.append("Damage Dealt (Pilot)")
@@ -66,21 +75,39 @@ void function RunEnd_SetRunData( table data )
     file.statPointMultiplier.append(1)
     file.statPointOffset.append(0)
 
+    file.statNames.append("Damage Dealt (1st Loadout)")
+    file.statValues.append(int(data.damageDealtTitan0))
+    file.statPointMultiplier.append(0)
+    file.statPointOffset.append(0)
+
+    file.statNames.append("Damage Dealt (2nd Loadout)")
+    file.statValues.append(int(data.damageDealtTitan1))
+    file.statPointMultiplier.append(0)
+    file.statPointOffset.append(0)
+
     file.statNames.append("Mods Unlocked")
     file.statValues.append(expect int(data.modsUnlocked))
     file.statPointMultiplier.append(10000)
-    file.statPointOffset.append(10) // 
+    file.statPointOffset.append(8) // 
 
     file.statNames.append("Items Obtained")
     file.statValues.append(expect int(data.itemsObtained))
     file.statPointMultiplier.append(10000)
-    file.statPointOffset.append(0) // 
+    file.statPointOffset.append(0) 
+
+    file.statNames.append("Chests Opened")
+    file.statValues.append(expect int(data.chestsOpened))
+    file.statPointMultiplier.append(10000)
+    file.statPointOffset.append(0) 
 }
 
 void function OnNavBack()
 {
     // dont.
-    ClientCommand("disconnect") // bye
+    if (file.disconnect)
+        ClientCommand("disconnect") // bye
+    else
+        CloseActiveMenu()
 }
 
 void function OnRunEndMenuOpen()
@@ -100,7 +127,7 @@ void function MenuAnimation()
         int val = file.statValues[i]
         int mult = file.statPointMultiplier[i]
         int offset = file.statPointOffset[i]
-        pointTotal += (val - offset) * mult
+        pointTotal += maxint((val - offset) * mult, 0)
 
         if (name == "Real Time Spent") // hack...
         {
@@ -109,8 +136,8 @@ void function MenuAnimation()
             label += FormatDescription( format("%s: <daze>%i:%02i</>\n", name, min, sec) )
         }
         else
-            label += FormatDescription( format("%s: <daze>%i</>\n", name, val) )
-        valText += FormatDescription( format("<daze>%s</> pts.\n", RecursiveCommas((val - offset) * mult)) )
+            label += FormatDescription( format("%s: <daze>%s</>\n", name, RecursiveCommas(val)) )
+        valText += FormatDescription( format("<daze>%s</> pts.\n", RecursiveCommas(maxint((val - offset) * mult, 0))) )
     }
 
     Hud_SetText(Hud_GetChild(file.menu, "StatsLabels"), label)

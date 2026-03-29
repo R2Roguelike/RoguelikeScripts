@@ -192,50 +192,74 @@ void function OnProjectileCollision_titanweapon_sticky_40mm( entity projectile, 
 
 	array<string> mods = projectile.ProjectileGetMods()
 	if ( Roguelike_HasMod( owner, "crit_marks" ) && isCrit )
- 		ApplyTrackerMark( owner, hitEnt )
+		ApplyTrackerMark( owner, hitEnt )
 	#endif
 }
 
 #if SERVER
-void function ApplyTrackerMark( entity owner, entity hitEnt, bool isCloneDamage = false )
+void function ApplyTrackerMark( entity owner, entity hitEnt, bool reducedCooldown = false )
 {
 	if ( !IsAlive( hitEnt ) )
+	{
+		printt("hitEnt not alive.")
 		return
-
-	if ( owner.IsProjectile() )
-		return
+	}
 	
+	if ( owner.IsProjectile() )
+	{
+		printt("owner is projectile lol.")
+		return
+	}
+	
+	if ( RSE_Get( hitEnt, RoguelikeEffect.tone_tracker_cooldown ) > 0.0 )
+	{
+		printt("trackers on cooldown.")
+		return
+	}
+
 	entity trackerRockets = owner.GetOffhandWeapon( OFFHAND_ORDNANCE )
 	if ( !IsValid( trackerRockets ) )
+	{
+		printt("no offensive.")
 		return
+	}
 
 	if (trackerRockets.GetWeaponClassName() != "mp_titanweapon_tracker_rockets" && owner.IsPlayer())
 	{
         trackerRockets = Roguelike_GetAlternateOffhand( owner, OFFHAND_ORDNANCE )
 		if (!IsValid(trackerRockets))
+		{
+			printt("no tracker rockets.")
 			return
+		}
 	}
 
 	// props shouldnt have trackers on them
 	if (!hitEnt.IsNPC() && !hitEnt.IsPlayer())
+	{
+		printt("invalid target.")
 		return
+	}
 
 	int oldCount = trackerRockets.SmartAmmo_GetNumTrackersOnEntity( hitEnt )
 	
 	// SHITTY HACK for tracker markers not working friendly fire
-	if ("hacker" in hitEnt.s && owner == hitEnt.s.hacker)
+	if (IsValid(hitEnt.e.hacker) && owner == hitEnt.e.hacker)
 	{
 		SetTeam( hitEnt, TEAM_IMC )
 	}
 	trackerRockets.SmartAmmo_TrackEntity( hitEnt, TRACKER_LIFETIME )
 	int count = trackerRockets.SmartAmmo_GetNumTrackersOnEntity( hitEnt )
-	if ("hacker" in hitEnt.s && owner == hitEnt.s.hacker)
+	if (IsValid(hitEnt.e.hacker) && owner == hitEnt.e.hacker)
 	{
 		SetTeam( hitEnt, owner.GetTeam() )
 	}
 
 	if ( oldCount == count )
+	{
+		printt("tracker did not apply.")
 		return
+	}
 
 	if ( count == 3 )
 	{
@@ -243,7 +267,7 @@ void function ApplyTrackerMark( entity owner, entity hitEnt, bool isCloneDamage 
 //			EmitSoundOnEntityOnlyToPlayer( hitEnt, hitEnt, "HUD_40mm_TrackerBeep_Locked" )
 			// fire automatically
 		if (owner.IsPlayer())
-			thread AutoFireMissiles( trackerRockets, hitEnt, owner )
+			thread AutoFireMissiles( trackerRockets, hitEnt, owner, true, reducedCooldown )
 		if ( owner.IsPlayer() )
 			EmitSoundOnEntityOnlyToPlayer( owner, owner, "HUD_40mm_TrackerBeep_Locked" )
 

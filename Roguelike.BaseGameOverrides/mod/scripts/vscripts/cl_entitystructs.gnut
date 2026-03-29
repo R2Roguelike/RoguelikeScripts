@@ -43,6 +43,10 @@ global struct ClientEntityStruct
 
 	table<string,AnimEventData> animEventDataForEntity
 	array<RSEInstance> rseData
+	// brute
+	array<entity> armedTargets
+	// tone
+	array<entity> hackedTargets
 	array emergencyIcons
 	array emergencyRings
 

@@ -1,0 +1,8 @@
+"LightmappedGeneric"
+{
+	"$basetexture" "ui/status_effects/border"
+	$translucent		"1"
+	"$vertexcolor" 1
+	"$vertexalpha" 1
+	"$no_fullbright" 1
+}

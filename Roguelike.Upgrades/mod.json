@@ -42,6 +42,10 @@
             }
 		},
 		{
+			"Path": "ui_stats.nut",
+			"RunOn": "UI || SERVER || CLIENT"
+		},
+		{
 			"Path": "mods/run_modifiers.nut",
 			"RunOn": "CLIENT || UI || SERVER",
 			"UICallback":{
@@ -126,18 +130,15 @@
 		},
 		{
 			"Name": "memory_titan_hp",
-			"DefaultValue": "-1",
-			"Flags": "CHEAT"
+			"DefaultValue": "-1"
 		},
 		{
 			"Name": "memory_titan_settings",
-			"DefaultValue": "",
-			"Flags": "CHEAT"
+			"DefaultValue": ""
 		},
 		{
 			"Name": "memory_titan_max_hp",
-			"DefaultValue": "12500",
-			"Flags": "CHEAT"
+			"DefaultValue": "12500"
 		}
 	]
 }

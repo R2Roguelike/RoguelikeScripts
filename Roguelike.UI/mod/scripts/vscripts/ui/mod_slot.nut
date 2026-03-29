@@ -1,5 +1,19 @@
 untyped
 global function ModSlot_DisplayMod
+global function ModSlot_UpdateBoxes
+
+void function ModSlot_UpdateBoxes( RoguelikeMod mod )
+{
+    foreach (HoverSimpleBox box in mod.boxes)
+    {
+        if (!box.abilityPowerBox)
+            continue
+
+        box.currentValue = format(mod.abilityPowerFormat, mod.abilityPowerValue + mod.abilityPowerScalar * Roguelike_GetStat( "ability_power" ))
+        box.initialValue = format(mod.abilityPowerFormat, mod.abilityPowerValue)
+        return
+    }
+}
 
 void function ModSlot_DisplayMod( var slot, bool isTitan, RoguelikeMod ornull mod )
 {
@@ -25,13 +39,16 @@ void function ModSlot_DisplayMod( var slot, bool isTitan, RoguelikeMod ornull mo
         return
     }
 
+    expect RoguelikeMod( mod )
     Hud_SetVisible( slot, true )
     Hud_SetVisible( Hud_GetChild(slot, "Button"), true )
-    expect RoguelikeMod( mod )
+    Hud_SetLocked( Hud_GetChild(slot, "Button"), !mod.isSwappable )
 
 
     if (mod.uniqueName == "empty")
     {
+        Hud_SetVisible( Hud_GetChild(slot, "ModIcon"), true )
+        Hud_SetVisible( Hud_GetChild(slot, "Abbreviation"), false )
         Hud_SetImage( icon, mod.icon )
         Hud_SetColor( icon, 255, 255, 255, 128 )
         Hud_SetVisible( icon, true )
@@ -41,6 +58,7 @@ void function ModSlot_DisplayMod( var slot, bool isTitan, RoguelikeMod ornull mo
     }
 
     Hud_SetImage( icon, $"vgui/hud/empty" )
+    Hud_SetVisible( Hud_GetChild(slot, "ModIcon"), false )
 
 
     Hud_SetVisible( Hud_GetChild(slot, "FloppyDisk"), true )

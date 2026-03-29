@@ -121,8 +121,8 @@ var function OnWeaponPrimaryAttack_titancore_flame_wave( entity weapon, WeaponPr
 	entity scorchedEarthInflictor = CreateOncePerTickDamageInflictorHelper( 10.0 )
 	#endif
 
-	array<float> offsets = [ -1.0, 0.0, 1.0 ]
-	array<string> soundFXs = [ FLAME_WAVE_RIGHT_SFX, FLAME_WAVE_MIDDLE_SFX, FLAME_WAVE_LEFT_SFX ]
+	array<float> offsets = [ -1.0, -1.0, 0.0, 1.0, 1.0 ]
+	array<string> soundFXs = [ FLAME_WAVE_RIGHT_SFX, FLAME_WAVE_MIDDLE_SFX, FLAME_WAVE_MIDDLE_SFX, FLAME_WAVE_MIDDLE_SFX, FLAME_WAVE_LEFT_SFX ]
 	Assert( offsets.len() == soundFXs.len(), "There should be a sound for each projectile." )
 	int count = 0
 	while ( count < offsets.len() )
@@ -133,7 +133,7 @@ var function OnWeaponPrimaryAttack_titancore_flame_wave( entity weapon, WeaponPr
 			return
 
 		vector right = CrossProduct( attackParams.dir, <0,0,1> )
-		vector offset = offsets[count] * right * PROJECTILE_SEPARATION
+		vector offset = offsets[count] * right * (PROJECTILE_SEPARATION )
 
 		const float FUSE_TIME = 99.0
 		entity projectile = weapon.FireWeaponGrenade( attackParams.pos + offset, attackParams.dir, < 0,0,0 >, FUSE_TIME, damageTypes.projectileImpact, damageTypes.explosive, shouldPredict, true, true )
@@ -203,7 +203,7 @@ bool function CreateFlameWaveSegment( entity projectile, int projectileCount, en
 	else
 	{
 		array<entity> rowFxArray = inflictor.e.waveLinkFXTable[ waveCount ]
-		if ( projectileCount == 1 )
+		if ( projectileCount != 0 && projectileCount != 4 )
 		{
 			foreach( fx in rowFxArray )
 			{

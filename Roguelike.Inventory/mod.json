@@ -18,6 +18,10 @@
 			"RunOn": "UI"
 		},
 		{
+			"Path": "ui/ability_slot.nut",
+			"RunOn": "UI"
+		},
+		{
 			"Path": "_inventory.nut",
 			"RunOn": "SERVER",
 			"ServerCallback": {
@@ -33,62 +37,63 @@
 	"ConVars": [
 		{
 			"Name": "player_mods",
-			"Flags": "USERINFO | CHEAT",
+			"Flags": "USERINFO",
 			"DefaultValue": ""
+			
 		},
 		{
 			"Name": "player_stats",
-			"Flags": "USERINFO | CHEAT",
+			"Flags": "USERINFO",
 			"DefaultValue": ""
 		},
 		{
 			"Name": "player_datacore",
-			"Flags": "USERINFO | CHEAT",
+			"Flags": "USERINFO",
 			"DefaultValue": ""
 		},
 		{
 			"Name": "player_weapons",
-			"Flags": "USERINFO | CHEAT",
+			"Flags": "USERINFO",
 			"DefaultValue": ""
 		},
 		{
 			"Name": "player_ordnance",
-			"Flags": "USERINFO | CHEAT",
+			"Flags": "USERINFO",
 			"DefaultValue": ""
 		},
 		{
 			"Name": "player_weapon_perks",
-			"Flags": "USERINFO | CHEAT",
+			"Flags": "USERINFO",
 			"DefaultValue": ""
 		},
 		{
 			"Name": "player_ordnance_perks",
-			"Flags": "USERINFO | CHEAT",
+			"Flags": "USERINFO",
 			"DefaultValue": ""
 		},
 		{
 			"Name": "player_weapon_mods",
-			"Flags": "USERINFO | CHEAT",
+			"Flags": "USERINFO",
 			"DefaultValue": ""
 		},
 		{
 			"Name": "power_enemy_hp",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "power_enemy_def",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "roguelike_stat_balance",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "roguelike_loadouts_unlocked",
-			"Flags": "CHEAT",
+			"DefaultValue": "0"
+		},
+		{
+			"Name": "roguelike_disable_music",
 			"DefaultValue": "0"
 		}
 	]

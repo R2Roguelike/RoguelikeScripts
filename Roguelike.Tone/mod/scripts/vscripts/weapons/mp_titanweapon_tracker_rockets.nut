@@ -38,7 +38,7 @@ void function TrackerRocketsDamage( entity ent, var damageInfo )
 
 	if ((DamageInfo_GetDamageFlags( damageInfo ) & DAMAGEFLAG_CLONE) != 0)
 	{
-		DamageInfo_ScaleDamage( damageInfo, 0.2 )
+		DamageInfo_ScaleDamage( damageInfo, 0.3 )
 	}
 	if (IsValid(weapon)) // was hitscan, basically
 	{
@@ -54,23 +54,21 @@ void function SalvoCoreDamage( entity ent, var damageInfo )
 	entity attacker = DamageInfo_GetAttacker( damageInfo)
 	entity weapon = DamageInfo_GetWeapon( damageInfo )
 
-	float cur = RSE_Get( ent, RoguelikeEffect.salvo_locks )
-	if (cur <= 0.0 && Roguelike_HasMod( attacker, "salvo_locks" ))
-	{
-		ApplyTrackerMark( attacker, ent )
-		RSE_Apply( ent, RoguelikeEffect.salvo_locks, 1.0, 0.26, 0.26 )
-	}
+	if (Roguelike_HasMod( attacker, "salvo_locks" ))
+		ApplyTrackerMark( attacker, ent, true )
 }
 
 void function ToneHack( entity target, entity player )
 {
-	player.Signal("HackEnd") 
 	player.EndSignal( "HackEnd" )
 	target.EndSignal( "OnDeath" )
 	target.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
 	player.EndSignal( "OnDestroy" )
 	int oldTeam = target.GetTeam()
+
+	float duration = 15.0
+	duration *= 1.0 + Roguelike_GetStat( player, "ability_duration" )
 
 	if (!target.IsTitan())
 		return
@@ -80,26 +78,26 @@ void function ToneHack( entity target, entity player )
 		return
 
 	SetTeam( target, player.GetTeam() )
-	target.s.hacker <- player
-	player.s.hackedTitan <- target
-	RSE_Apply( target, RoguelikeEffect.tone_expose, 1.0, 15.0, 15.0 )
+	target.e.hacker = player
+	player.e.hackedTargets.append(target)
+	RSE_Apply( target, RoguelikeEffect.tone_expose, 1.0, duration, duration )
 
 	OnThreadEnd( void function() : (target, oldTeam, player)
 	{
-		if (IsValid(player) && "hackedTitan" in player.s)
+		if (IsValid(player))
 		{
-			delete player.s.hackedTitan
+			player.e.hackedTargets.fastremovebyvalue(target)
 		}
-		if (IsValid(target) && "hacker" in target.s)
+		if (IsValid(target))
 		{
 			RSE_Stop( target, RoguelikeEffect.tone_expose )
 			SetTeam(target, oldTeam)
-			delete target.s.hacker
+			target.e.hacker = null
 		}
 	})
 
 
-	wait 15.0
+	wait duration
 }
 #endif
 
@@ -111,7 +109,7 @@ void function OnWeaponActivate_titanweapon_tracker_rockets( entity weapon )
 		SmartAmmo_SetMissileHomingSpeed( weapon, 200 )
 		SmartAmmo_SetUnlockAfterBurst( weapon, false )
 		SmartAmmo_SetAllowUnlockedFiring( weapon, true )
-		weapon.s.missileThinkThread <- MissileThink
+		//weapon.s.missileThinkThread <- MissileThink
 		weapon.s.initialized <- true
 	}
 }
@@ -254,19 +252,13 @@ void function DelayedDisableToneLockOnNotification(entity target, int statusID)
 
 }
 #if SERVER
-void function AutoFireMissiles( entity ordnance, entity target, entity owner, bool delockAfterUse = true )
+void function AutoFireMissiles( entity ordnance, entity target, entity owner, bool delockAfterUse = true, bool reducedCooldown = false )
 {
 	owner.EndSignal("OnDestroy")
 	target.EndSignal("OnDestroy")
 	EmitSoundOnEntityOnlyToPlayer( owner, owner, "weapon_trackingrockets_fire_1p" )
 
-	int rocketCount = 5
-	array<string> rocketMods = ["crit_marks", "barrage_cd", "you_fucking_bitch", "dual_fire", "hacked_battery", "red_sonar", "wall_locks"]
-	foreach (string mod in rocketMods)
-	{
-		if (Roguelike_HasMod( owner, mod ))
-			rocketCount++
-	}
+	int rocketCount = 5 + Roguelike_GetTagCount( owner, TONE_BENEFIT_1 )
 
 	if (Roguelike_HasMod( owner, "barrage_cd" ))
 	{
@@ -279,48 +271,55 @@ void function AutoFireMissiles( entity ordnance, entity target, entity owner, bo
 		}
 	}
 
-	float duration = 1.5 - 0.05 * rocketCount
+	float duration = 1.5
 
-	for (int i = 0; i < rocketCount; i++)
+	thread void function() : (rocketCount, ordnance, owner, target)
 	{
+		for (int i = 0; i < rocketCount; i++)
 		{
-			entity missile = ordnance.FireWeaponMissile( owner.EyePosition(), AnglesToForward( owner.EyeAngles() ), 1800.0, ordnance.GetWeaponDamageFlags(), ordnance.GetWeaponDamageFlags(), false, false )
-			if (missile != null)
 			{
-				missile.InitMissileForRandomDriftFromWeaponSettings(owner.EyePosition(), AnglesToForward( owner.EyeAngles() ))
-				missile.SetSpeed(SmartAmmo_GetMissileSpeed(ordnance))
-				missile.SetHomingSpeeds(300, 300)
-				missile.SetMissileTarget( target, <0,0,0> )
+				entity missile = ordnance.FireWeaponMissile( owner.EyePosition(), <0,0,1>, 1800.0, ordnance.GetWeaponDamageFlags(), ordnance.GetWeaponDamageFlags(), false, false )
+				if (missile != null)
+				{
+					missile.InitMissileForRandomDriftFromWeaponSettings(owner.EyePosition(), <0,0,1>)
+					missile.SetSpeed(SmartAmmo_GetMissileSpeed(ordnance))
+					missile.SetHomingSpeeds(500, 500)
+					missile.SetMissileTarget( target, <0,0,0> )
+				}
 			}
-		}
-		if (Roguelike_HasMod( owner, "dual_fire" ) && "hackedTitan" in owner.s)
-		{
-			entity hackedTitan = expect entity(owner.s.hackedTitan)
-			entity missile = ordnance.FireWeaponMissile( owner.EyePosition(), AnglesToForward( owner.EyeAngles() ), 1800.0, ordnance.GetWeaponDamageFlags(), ordnance.GetWeaponDamageFlags(), false, false )
-			if (missile != null)
+			if (Roguelike_HasMod( owner, "dual_fire" ))
 			{
-				missile.InitMissileForRandomDriftFromWeaponSettings(owner.EyePosition(), AnglesToForward( owner.EyeAngles() ))
-				missile.SetSpeed(SmartAmmo_GetMissileSpeed(ordnance))
-				missile.SetHomingSpeeds(500, 500)
-				missile.SetOrigin(hackedTitan.GetOrigin() + <0,0,hackedTitan.GetBoundingMaxs().z>)
-				missile.SetMissileTarget( target, <0,0,0> )
-				missile.SetOwner( hackedTitan )
+				foreach (entity hackedTitan in owner.e.hackedTargets)
+				{
+					entity missile = ordnance.FireWeaponMissile( owner.EyePosition(), <0,0,1>, 1800.0, ordnance.GetWeaponDamageFlags(), ordnance.GetWeaponDamageFlags(), false, false )
+					if (missile != null)
+					{
+						missile.InitMissileForRandomDriftFromWeaponSettings(owner.EyePosition(), <0,0,1>)
+						missile.SetSpeed(SmartAmmo_GetMissileSpeed(ordnance))
+						missile.SetHomingSpeeds(500, 500)
+						missile.SetOrigin(hackedTitan.GetOrigin() + <0,0,hackedTitan.GetBoundingMaxs().z>)
+						missile.SetMissileTarget( target, <0,0,0> )
+						missile.SetOwner( hackedTitan )
+					}
+				}
 			}
+			wait 0.046
 		}
-		wait 0.046
-	}
+	}()
 
-	array<string> durationMods = ["routine_exposure", "clone_lockons_generic", "hit_locks", "salvo_locks", "rockets_crits", "hack_dmg", "40mm_fire_rate"]
-	foreach (string mod in durationMods)
-	{
-		if (Roguelike_HasMod( owner, mod ))
-			duration -= 0.2
-	}
+	duration *= Roguelike_GetStat( owner, "cd_reduction" )
 
-	if (duration > 0)
-		wait duration - 0.01
+	duration -= 0.2 * Roguelike_GetTagCount( owner, TONE_BENEFIT_2 )
+
+	duration -= 0.01
+
+	if (!reducedCooldown)
+		RSE_Apply( target, RoguelikeEffect.tone_tracker_cooldown, 1.0, duration, duration )
+
+	if (duration > 0 && !reducedCooldown)
+		wait duration - 0.05
 	
-	if (delockAfterUse && IsValid(target) && IsAlive(target))
+	if (delockAfterUse && IsValid(target) && IsAlive(target) && IsValid(ordnance))
 		ordnance.SmartAmmo_UntrackEntity( target )
 }
 #endif

@@ -1,10 +1,10 @@
 WeaponData
 {
 	// General
-	"printname"   									"#WPN_TITAN_TRIPWIRE"
-	"shortprintname"                              	"#WPN_TITAN_TRIPWIRE_SHORT"
-	"description" 									"#WPN_TITAN_TRIPWIRE_DESC"
-	"longdesc"										"#WPN_TITAN_TRIPWIRE_LONGDESC"
+	"printname"   									"Laser Turret"
+	"shortprintname"                              	"Laser Turret"
+	"description" 									"Deploy 3 Turrets. Costs Energy."
+	"longdesc"										"Deploy 3 Turrets. Costs Energy."
 
 	"menu_icon"										"rui/titan_loadout/tactical/titan_tactical_laser_tripwire_menu"
 	"hud_icon"										"rui/titan_loadout/tactical/titan_tactical_laser_tripwire"
@@ -47,6 +47,11 @@ WeaponData
 
 	"critical_hit"									"0"
 	"grenade_show_indicator_to_owner"				"0"
+
+	"ability_duration_base_value"				"20"
+	"ability_power_base_value"				"30"
+	"ability_power_scalar_1"				"0.1"
+	"ability_power_format"						"Base DMG"
 
 	MP_BASE
 	{
@@ -99,7 +104,7 @@ WeaponData
 	"cooldown_type"                                 "ammo_instant"
 
 	//Regen Ammo
-	"regen_ammo_refill_rate"						"20"
+	"regen_ammo_refill_rate"						"12"
 	"regen_ammo_refill_start_delay"					"0.0"
 
 	// Behavior

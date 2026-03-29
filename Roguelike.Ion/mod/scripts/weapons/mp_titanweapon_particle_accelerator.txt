@@ -32,6 +32,10 @@ WeaponData
 	"projectile_straight_radius_min"				"0"
 	"projectile_straight_radius_max"				"4"
 
+	"ability_power_base_value"						"5"
+	"ability_power_scalar_1"						"0.02"
+	"ability_power_format"							"regen_rate"
+
 	"projectile_first_person_offset_fraction"		"1.0"
 
 	MP_BASE

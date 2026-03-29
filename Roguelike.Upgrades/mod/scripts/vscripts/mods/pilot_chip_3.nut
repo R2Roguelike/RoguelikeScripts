@@ -4,26 +4,26 @@ void function PilotChip3_RegisterMods()
 {
     {
         RoguelikeMod mod = NewMod("pistol_plus")
-        mod.name = "SMG+"
-        mod.abbreviation = "SM+"
-        mod.description = "+30% Base Pistol DMG.\nPistol Range increased."
-        mod.shortdesc = "+30% Base Pistol DMG.\nPistol Range increased."
+        mod.name = "Pistol+"
+        mod.abbreviation = "PS+"
+        mod.description = "<cyan>+30%</> Base Pistol DMG.\nPistol Range increased."
+        mod.shortdesc = "<cyan>+30%</> Base Pistol DMG.\nPistol Range increased."
         mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("shotgun_plus")
         mod.name = "Shotgun+"
         mod.abbreviation = "SG+"
-        mod.description = "+20% Base Shotgun DMG.\nShotgun Range increased."
-        mod.shortdesc = "+20% Base Shotgun DMG.\nShotgun Range increased."
+        mod.description = "<cyan>+20%</> Base Shotgun DMG.\nShotgun Range increased."
+        mod.shortdesc = "<cyan>+20%</> Base Shotgun DMG.\nShotgun Range increased."
         mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("smg_plus")
         mod.name = "SMG+"
         mod.abbreviation = "SM+"
-        mod.description = "+20% Base SMG DMG.\nSMG Range increased."
-        mod.shortdesc = "+20% Base SMG DMG.\nSMG Range increased."
+        mod.description = "<cyan>+20%</> Base SMG DMG.\nSMG Range increased."
+        mod.shortdesc = "<cyan>+20%</> Base SMG DMG.\nSMG Range increased."
         mod.cost = 2
     }
 
@@ -31,16 +31,16 @@ void function PilotChip3_RegisterMods()
         RoguelikeMod mod = NewMod("ar_plus")
         mod.name = "Assault Rifle+"
         mod.abbreviation = "AR+"
-        mod.description = "+20% Base Assault Rifle DMG.\nAR Spread & Recoil decreased."
-        mod.shortdesc = "+20% Base Assault Rifle DMG.\nAR Spread & Recoil decreased."
+        mod.description = "<cyan>+20%</> Base Assault Rifle DMG.\nAR Spread & Recoil decreased."
+        mod.shortdesc = "<cyan>+20%</> Base Assault Rifle DMG.\nAR Spread & Recoil decreased."
         mod.cost = 2
     }
     {
         RoguelikeMod mod = NewMod("lmg_plus")
         mod.name = "Machine Gun+"
         mod.abbreviation = "MG+"
-        mod.description = "+20% Base Machine Gun DMG.\nLMG Mag Size increased."
-        mod.shortdesc = "+20% Base Machine Gun DMG.\nLMG Mag Size increased."
+        mod.description = "<cyan>+20%</> Base Machine Gun DMG.\nLMG Mag Size increased."
+        mod.shortdesc = "<cyan>+20%</> Base Machine Gun DMG.\nLMG Mag Size increased."
         mod.cost = 2
     }
     {
@@ -48,12 +48,12 @@ void function PilotChip3_RegisterMods()
         mod.name = "All-Sniper Style"
         mod.abbreviation = "ASS"
         mod.description = "For Snipers <red>ONLY</>:\n\n" +
-        " -80% Hipfire Spread\n" +
-        " Zoom reduced by 25%\n" +
-        " +33% Fire Rate\n" +
-        " -25% Reload Time\n" +
-        " Instant Zoom In/Out\n" +
-        " +50% Titan Damage"
+        " <cyan>-80%</> Hipfire Spread\n" +
+        " Zoom reduced by <cyan>25%</>\n" +
+        " <cyan>+33%</> Fire Rate\n" +
+        " <cyan>-25%</> Reload Time\n" +
+        " <cyan>Instant</> Zoom In/Out\n" +
+        " <cyan>+50%</> Titan Damage"
         mod.shortdesc = "Snipers are <red>much</> stronger."
         mod.cost = 3
     }
@@ -94,7 +94,7 @@ void function PilotChip3_RegisterMods()
         mod.name = "Impending Impact"
         mod.abbreviation = "EG"
         mod.description = "<daze>Physical</> kills make your next hit a guranteed <cyan>headshot.</>"
-        mod.shortdesc = "<daze>Physical</> kills make your next hit a guranteed <cyan>headshot.</>"
+        mod.shortdesc = "<daze>Physical</> kills make your next hit\na guranteed <cyan>headshot.</>"
         mod.cost = 2
     }
     {
@@ -131,8 +131,8 @@ void function PilotChip3_RegisterMods()
     }
     {
         RoguelikeMod mod = NewMod("energy_spread")
-        mod.name = "Bounty Collector"
-        mod.abbreviation = "BC"
+        mod.name = "Explosive Energy"
+        mod.abbreviation = "EE"
         mod.description = "<cyan>Energy</> kills spread damage to nearby enemies."
         mod.shortdesc = "<cyan>Energy</> kills deal damage to nearby enemies."
         mod.cost = 2
@@ -157,7 +157,7 @@ void function PilotChip3_RegisterMods()
         RoguelikeMod mod = NewMod("force_dmg")
         mod.name = "Act of Physics"
         mod.abbreviation = "AoP"
-        mod.description = "<green>Movement tools</> gain increased damage against enemies."
+        mod.description = "<green>Movement tools</> gain <cyan>increased damage against enemies.</>"
         mod.shortdesc = "Increased <green>Movement Tool</> damage against enemies."
         mod.cost = 2
     }

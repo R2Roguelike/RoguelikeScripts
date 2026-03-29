@@ -10,10 +10,10 @@ int function Roguelike_GetLevelSeed()
     return Roguelike_GetRunSeed() + 0xa0b5146f * GetConVarInt("roguelike_levels_completed")
 }
 
-PRandom function NewPRandom(int seed)
+PRandom function NewPRandom(int seed, int iterations = 0)
 {
     PRandom rand;
-    rand.originalSeed = seed
+    rand.iterations = iterations
     rand.seed = seed
     return rand;
 }
@@ -23,23 +23,22 @@ PRandom function NewPRandom(int seed)
 // cant really use a proper algorithm - i could instead do this through native but who wants to bother amirite
 int function PRandomInt(PRandom x, int min = 0, int max = 2147483647)
 {
-    x.seed += 0x9e3779b9
-    int z = x.seed;
-    z = (z ^ (z >> 16)) * 0x85ebca6b;
-    z = (z ^ (z >> 13)) * 0xc2b2ae35;
-    z = z ^ (z >> 16);
+    int result = PRandomInt_Internal(x.seed, x.iterations) // mersenne twister
+    x.iterations += 1
 
-    if (min != 0 || max != 2147483647)
+    if (max == 2147483647 && min > 0)
     {
-        if (max != 2147483647)
-            return (z % (max - min)) + min
-        else
-            return (z % min)
+        max = min
+        min = 0
     }
-
-    return z
+    if (max == min)
+        return min
+    result = result % (max - min)
+    if (result < 0)
+        result *= -1 // force positive
+    return result + min
 }
 float function PRandomFloat(PRandom x, float min = 0, float max = 1)
 {
-    return PRandomInt(x) / pow(2,31) * (max - min) + min;
+    return float(PRandomInt(x)) / pow(2,31) * (max - min) + min;
 }

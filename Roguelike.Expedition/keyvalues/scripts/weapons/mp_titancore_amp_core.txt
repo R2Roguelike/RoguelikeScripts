@@ -32,8 +32,21 @@ WeaponData
 	// Behavior
 	"core_build_time"								"150"
 	"chargeup_time"									"1.85"
-	"core_duration"									"5.5"
+	"core_duration"									"5.25"
 	"passive"										"PAS_FUSION_CORE"
+	
+    "ability_duration_value_1"                  "core_duration"
+    "ability_duration_value_2"                  "burst_fire_count"
+	"ability_duration_base_value"				"core_duration"
+
+	"ability_power_value_1"							"script"
+	"ability_power_value_2"							"damage_near_value_titanarmor"
+	"ability_power_value_3"							"damage_far_value_titanarmor"
+	"ability_power_scalar_1"					"10"
+	"ability_power_scalar_2"					"0.5"
+	"ability_power_scalar_3"					"0.5"
+	"ability_power_format"						"Base DPS"
+	"ability_power_base_value"					"3000"
 
 	"ads_move_speed_scale"							"0.40"
 

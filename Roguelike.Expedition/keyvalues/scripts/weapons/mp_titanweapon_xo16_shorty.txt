@@ -11,16 +11,18 @@ WeaponData
 
 	SP_BASE
 	{
-		"damage_near_value_titanarmor"					"90"
-		"damage_far_value_titanarmor" 					"75"
+		"damage_near_value_titanarmor"					"100"
+		"damage_far_value_titanarmor" 					"80"
 	}
 
 	Mods
 	{
 		accelerator
 		{
-			"fire_rate_max"			"22"
+			"fire_rate"				"6"
+			"fire_rate_max"			"24"
 			"ammo_clip_size"		"60"
+			"fire_rate_max_time_speedup"	"3.0"
 		}
 	}
 }

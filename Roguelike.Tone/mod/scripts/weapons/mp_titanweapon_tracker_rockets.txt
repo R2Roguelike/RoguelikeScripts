@@ -1,10 +1,10 @@
 #base "mp_titanweapon_salvo_rockets.txt"
 WeaponData
 {
-	"printname"   									"#WPN_TITAN_TRACKER_ROCKETS"
+	"printname"   									"Hack"
 	"description" 									"#WPN_TITAN_TRACKER_ROCKETS_DESC"
-	"shortprintname"								"#WPN_TITAN_TRACKER_ROCKETS"
-	"longdesc"										"#WPN_TITAN_TRACKER_ROCKETS_LONGDESC"
+	"shortprintname"								"Hack"
+	"longdesc"										"Temporarily convert enemies <cyan>into allies."
 
 	"menu_icon"										"rui/titan_loadout/ordnance/tracking_rockets_menu"
 	"hud_icon"										"rui/titan_loadout/ordnance/tracking_rockets"
@@ -14,6 +14,7 @@ WeaponData
 
 	"fire_mode"   									"offhand"
 	"requires_lock"									"1"
+	"cooldown_type"                                 "ammo"
 
 	// Models
 	"viewmodel"   									"models/weapons/titan_bt_rocket_pod/atpov_titan_bt_rocket_pod_right.mdl"
@@ -70,11 +71,13 @@ WeaponData
 	"ammo_clip_size"   								"200"
 	"ammo_default_total"							"200"
 	"ammo_min_to_fire"								"200"
+	
+	"ability_duration_base_value"				 "15"
 
 	"reload_enabled"								"0"
 
 	// Regen Ammo
-	"regen_ammo_refill_rate"						"200.0"
+	"regen_ammo_refill_rate"						"13.333"
 	"regen_ammo_refill_start_delay"					"0.1"
 
 	MP_BASE
@@ -98,6 +101,10 @@ WeaponData
 		"burst_fire_count"								"6"
 		"damage_near_value"   							"300"
 		"damage_far_value"								"300"
+		"damage_near_value_titanarmor"   				"250"
+		"damage_far_value_titanarmor"			 		"250"
+		"damage_near_distance"							"4000"
+		"damage_far_distance" 							"4000"
 
 		"npc_damage_near_value"   						"150"
 		"npc_damage_far_value"							"150"
@@ -242,6 +249,24 @@ WeaponData
 	"smart_ammo_max_trackers_per_target"			"3"
 	"smart_ammo_allow_search_while_inactive"		"1"
 
+	// AP scaling
+
+	"ability_power_value_1"							"red_crosshair_range"
+	"ability_power_value_2"							"damage_far_distance"
+	"ability_power_base_value"					"red_crosshair_range"
+	"ability_power_scalar_1"					"10"
+	"ability_power_scalar_2"					"10"
+	"ability_power_format"						"range"
+
+	"ability_power_value_3"						"damage_near_value_titanarmor" // 300
+	"ability_power_value_4"						"damage_far_value_titanarmor"
+	"ability_power_scalar_3"						"2"
+	"ability_power_scalar_4"						"2"
+
+	"red_crosshair_range" 							"2000"
+	active_crosshair_count				"2"
+	rui_crosshair_index					"0"
+
 	Mods
 	{
 		dev_mod_low_recharge
@@ -260,6 +285,38 @@ WeaponData
 		{
 			"burst_fire_count"								"8"
 			"smart_ammo_max_targeted_burst"					"8"
+		}
+	}
+	
+	RUI_CrosshairData
+	{
+		DefaultArgs
+		{
+			isSprinting					player_is_sprinting
+			isReloading					weapon_is_reloading
+			teamColor					crosshair_team_color
+			isAmped						weapon_is_amped
+		    isActive					weapon_is_active
+			adsFrac 					"eWeaponVar.custom_float_0"
+		}
+
+		Crosshair_1
+		{
+			"ui"						"ui/crosshair_tracker_rockets"
+			"base_spread"				"0.0"
+			Args
+			{
+				isFiring				weapon_is_firing
+			}
+		}
+		Crosshair_2
+		{
+			"ui"						"ui/crosshair_wingman_n"
+			"base_spread"				"0.0"
+			Args
+			{
+				isFiring				weapon_is_firing
+			}
 		}
 	}
 }

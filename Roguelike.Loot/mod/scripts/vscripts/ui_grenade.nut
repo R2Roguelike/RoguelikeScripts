@@ -31,8 +31,8 @@ table function RoguelikeGrenade_Generate(PRandom rand)
 
     int levelsComplete = expect int(runData.levelsCompleted)
     int baseRarity = levelsComplete / 2
-    float chanceForBetterRarity = GraphCapped( levelsComplete % 2, 0, 2, 0, 1 )
-    if (RandomFloat(1) < chanceForBetterRarity)
+    int chanceForBetterRarity = levelsComplete % 2
+    if (PRandomInt(rand, 2) < chanceForBetterRarity)
         baseRarity++
 
     baseRarity = minint(RARITY_RADIANT, maxint(baseRarity, RARITY_COMMON))
@@ -48,7 +48,6 @@ table function RoguelikeGrenade_CreateWeapon( PRandom rand, string name, int rar
         type = "grenade",
         weapon = name,
         level = 0,
-        priceOffset = 0,
         rarity = rarity,
 		perk1 = "",
 		bonusStat = "",
@@ -59,8 +58,6 @@ table function RoguelikeGrenade_CreateWeapon( PRandom rand, string name, int rar
 	array<RoguelikeWeaponPerk> perkArr = Roguelike_GetWeaponPerksForSlotAndWeapon( PERK_SLOT_GRENADE, name )
     if (rarity > RARITY_UNCOMMON && perkArr.len() > 0)
         item.perk1 = perkArr[PRandomInt( rand, perkArr.len() )].uniqueName
-
-    item.priceOffset += rarity * 50
 
     return item
 }
@@ -94,7 +91,7 @@ void functionref(var, var) function RoguelikeGrenade_GetHoverFunc( var menu, boo
         {
             if (level < Roguelike_GetItemMaxLevel( data ))
             {
-                options.append( "%[X_BUTTON|MOUSE2]%Upgrade for " + hasEnoughMoney + price + "$" )
+                options.append( "%[X_BUTTON|MOUSE2]%Upgrade - " + hasEnoughMoney + price + "$" )
             }
             else
             {

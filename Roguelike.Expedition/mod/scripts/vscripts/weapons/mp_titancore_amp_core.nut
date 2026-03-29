@@ -20,6 +20,7 @@ void function AmpCore_Init()
 	PrecacheParticleSystem( FX_AMPED_XO16 )
 }
 
+
 bool function OnWeaponChargeBegin_AmpCore( entity weapon )
 {
 	weapon.s.hits <- 0

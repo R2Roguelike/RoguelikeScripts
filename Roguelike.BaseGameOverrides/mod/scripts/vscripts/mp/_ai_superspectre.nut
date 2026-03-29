@@ -103,6 +103,8 @@ void function SuperSpectreDeath( entity npc, var damageInfo )
 	EmitSoundAtPosition( npc.GetTeam(), origin, "ai_reaper_explo_3p" )
 	PlayFX( $"P_sup_spectre_death_nuke", origin, npc.GetAngles() )
 	//npc.Gib( DamageInfo_GetDamageForce( damageInfo ) )
+	npc.Hide()
+	npc.NotSolid()
 
 	SpawnTitanBatteryOnDeath( npc, damageInfo )
 }

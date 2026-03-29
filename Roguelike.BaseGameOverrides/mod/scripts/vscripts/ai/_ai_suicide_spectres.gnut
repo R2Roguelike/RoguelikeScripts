@@ -118,7 +118,14 @@ void function FragDroneDeath_Think( entity spectre, var damageInfo )
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
 	entity attackerEnt = GetNPCAttackerEnt( spectre, attacker )
 
-	printt(attacker, spectre)
+	int damage = 300
+	float radius = 300
+	if (attackerEnt.IsPlayer())
+	{
+		radius = 500
+		damage = 1000
+	}
+
 	int team = GetExplosionTeamBasedOnGamemode( spectre )
 
 	int damageDef = GetDamageDefForFragDrone( spectre )
@@ -128,9 +135,9 @@ void function FragDroneDeath_Think( entity spectre, var damageInfo )
    			attackerEnt,							// attacker
    			spectre,								// inflictor
    			90,										// damage
-   			300,									// damageHeavyArmor
-   			180,									// innerRadius
-   			300,									// outerRadius
+   			damage,									// damageHeavyArmor
+   			radius * 0.75,									// innerRadius
+   			radius,									// outerRadius
    			SF_ENVEXPLOSION_MASK_BRUSHONLY,			// flags
    			0,										// distanceFromAttacker
    			50000,									// explosionForce
@@ -148,6 +155,8 @@ void function FragDroneDeath_Think( entity spectre, var damageInfo )
 
 entity function GetNPCAttackerEnt( entity npc, entity attacker )
 {
+	if (IsValid(npc.GetOwner()))
+		return npc.GetOwner()
 	return GetEnt( "worldspawn" )
 }
 
@@ -237,6 +246,9 @@ void function SetSuicideSpectreExploding( entity spectre, entity attacker, float
 	Assert( spectre.ai.suicideSpectreExplodingAttacker == null )
 	spectre.ai.suicideSpectreExplodingAttacker = attacker
 	spectre.ai.suicideSpectreExplosionDelay = explodingTime
+
+	while (spectre.IsInvulnerable())
+		spectre.ClearInvulnerable()
 
 	spectre.Signal( "SuicideSpectreExploding" )
 }
@@ -531,11 +543,20 @@ void function SpectreSuicideOnDamaged( entity spectre, var damageInfo )
 	if ( !IsAlive( spectre ) || !IsValid( spectre ))
 		return
 
+	if (spectre.IsInvulnerable())
+		return
 
 	entity attacker 			= DamageInfo_GetAttacker( damageInfo )
 	entity inflictor 			= DamageInfo_GetInflictor( damageInfo )
 	float damage				= DamageInfo_GetDamage( damageInfo )
 	int damageSourceId 			= DamageInfo_GetDamageSourceIdentifier( damageInfo )
+
+	// fix these fuckers being terrible in bnr
+	if (damageSourceId == eDamageSourceId.toxic_sludge)
+	{
+		DamageInfo_ScaleDamage(damageInfo, 0)
+		return
+	}
 
 	// Calculate build time credit
 	if ( attacker.IsPlayer() )

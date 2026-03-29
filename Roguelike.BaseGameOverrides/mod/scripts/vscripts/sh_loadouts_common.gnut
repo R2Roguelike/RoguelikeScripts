@@ -575,7 +575,7 @@ void function ReplaceTitanLoadoutWhereDifferent( entity titan, TitanLoadoutDef l
 		if ( loadout.passive6 != "" )
 			GivePassive( soul, PassiveBitfieldFromEnum( loadout.passive6 ) )
 
-		if ( loadout.coreAbility != "" )
+		if ( loadout.coreAbility != "" && (!NPC_BANNED_CORES.contains(loadout.coreAbility) || IsMercTitan(titan)))
 		{
 			if ( shouldSwapCore )
 			{

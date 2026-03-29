@@ -6,7 +6,7 @@ resource/ui/menus/hovers/simple.res
 
         image			"vgui/hud/white"
 
-        drawColor	"36 36 36 255"
+        drawColor	"25 25 25 255"
         scaleImage			1
 
         wide				450
@@ -22,7 +22,7 @@ resource/ui/menus/hovers/simple.res
 
         image			"vgui/hud/white"
 
-        drawColor	"48 48 48 255"
+        drawColor	"40 40 40 255"
         scaleImage			1
 
         wide				450
@@ -31,11 +31,12 @@ resource/ui/menus/hovers/simple.res
         "xpos"			"0"
         "ypos"			"0"
     }
+    
 
     Title
     {
         ControlName				Label
-        xpos					-8
+        xpos					-14
         ypos				    2
         wide					2000
         tall					64
@@ -70,16 +71,92 @@ resource/ui/menus/hovers/simple.res
         //bgcolor_override 		"0 0 0 200"
         font					JetBrainsMono_18
 
-		wide				442
+		wide				418
         wrap                1
 
-		"xpos"			"-8"
-		"ypos"			"8"
+		"xpos"			"-16"
+		"ypos"			"16"
 
 		pin_to_sibling			TitleStrip
 		pin_corner_to_sibling	TOP_LEFT
 		pin_to_sibling_corner	BOTTOM_LEFT
     }
+
+    Box0
+    {
+        ControlName			CNestedPanel
+        Classname			GridButtonClass
+        controlSettingsFile	"resource/ui/menus/hovers/simple_box.res"
+        classname "ModSlot"
+        xpos            0
+        ypos			16
+        wide			418
+        tall			80 
+        visible			1
+        scaleImage		1
+
+        zpos			1
+		pin_to_sibling			Description
+		pin_corner_to_sibling	TOP_LEFT
+		pin_to_sibling_corner	BOTTOM_LEFT
+    }
+    Box1
+    {
+        ControlName			CNestedPanel
+        Classname			GridButtonClass
+        controlSettingsFile	"resource/ui/menus/hovers/simple_box.res"
+        classname "ModSlot"
+        xpos            0
+        ypos			16
+        wide			418
+        tall			80
+        visible			1
+        scaleImage		1
+
+        zpos			1
+		pin_to_sibling			Description
+		pin_corner_to_sibling	TOP_LEFT
+		pin_to_sibling_corner	BOTTOM_LEFT
+    }
+    Box2
+    {
+        ControlName			CNestedPanel
+        Classname			GridButtonClass
+        controlSettingsFile	"resource/ui/menus/hovers/simple_box.res"
+        classname "ModSlot"
+        xpos            0
+        ypos			16
+        wide			418
+        tall			80
+        visible			1
+        scaleImage		1
+
+        zpos			1
+		pin_to_sibling			Description
+		pin_corner_to_sibling	TOP_LEFT
+		pin_to_sibling_corner	BOTTOM_LEFT
+    }
+    Box3
+    {
+        ControlName			CNestedPanel
+        Classname			GridButtonClass
+        controlSettingsFile	"resource/ui/menus/hovers/simple_box.res"
+        classname "ModSlot"
+        xpos            0
+        ypos			16
+        wide			418
+        tall			80
+        visible			1
+        scaleImage		1
+
+        zpos			1
+		pin_to_sibling			Description
+		pin_corner_to_sibling	TOP_LEFT
+		pin_to_sibling_corner	BOTTOM_LEFT
+    }
+
+
+
     Footer
     {
         ControlName			ImagePanel
@@ -143,7 +220,7 @@ resource/ui/menus/hovers/simple.res
         tall                28
         wrap                0
 
-		"xpos"			"-8"
+		"xpos"			"-16"
 		"ypos"			"1"
 		pin_to_sibling			Footer
 		pin_corner_to_sibling	RIGHT

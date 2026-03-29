@@ -9,20 +9,20 @@ void function OnProjectileCollision_ClusterRocket( entity projectile, vector pos
 	#if SERVER
 		float explosionDelay = expect float( projectile.ProjectileGetWeaponInfoFileKeyField( "projectile_explosion_delay" ) )
 
-		if (IsValid(projectile.GetOwner()) && Roguelike_HasMod( projectile.GetOwner(), "500kg" ) && fabs(float(projectile.GetOwner().kv.gravity)) < 0.0001)
+		if (IsValid(projectile.GetOwner()) && Roguelike_HasMod( projectile.GetOwner(), "500kg" ))
 		{
 			PlayFX( TITAN_NUCLEAR_CORE_FX_3P, pos + Vector( 0, 0, -10 ), Vector(0,RandomInt(360),0) )
 
 			EmitSoundAtPosition( TEAM_ANY, pos, "titan_nuclear_death_explode" )
 
-			float titanDamage = 1000
+			float titanDamage = 1500
 			RadiusDamage( pos,			// origin
 				projectile.GetOwner(),						// owner
 				projectile,							// inflictor
 				1000,						// normal damage
 				titanDamage,					// heavy armor damage
-				500,						// inner radius
-				750,						// outer radius
+				500 + (Roguelike_GetStat(projectile.GetOwner(), "ability_power") * 8),						// inner radius
+				750 + (Roguelike_GetStat(projectile.GetOwner(), "ability_power") * 8),						// outer radius
 				SF_ENVEXPLOSION_MASK_BRUSHONLY, // flags
 				0,							// distFromAttacker
 				10000,						// force

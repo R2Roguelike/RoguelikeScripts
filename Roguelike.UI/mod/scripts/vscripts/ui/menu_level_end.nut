@@ -6,6 +6,8 @@ global function Roguelike_UnlockMods
 global function Roguelike_UnlockMod
 global function Roguelike_BackupRun
 global function Roguelike_UnlockModsForSection
+global function ClientCallback_StopTimer
+global function ClientCallback_StartLevelTimer
 
 struct {
     var menu
@@ -13,10 +15,12 @@ struct {
     int startPointIndex = 0
     int kills = 69
     float time = 370
+    bool doMenuAnimation = true
 } file
 
 void function AddLevelEndMenu()
 {
+    RegisterSignal("EndTimerThread")
 	AddMenu( "LevelEndMenu", $"resource/ui/menus/level_end.menu", InitLevelEndMenu )
 }
 
@@ -45,7 +49,9 @@ void function OnNavBack()
 
 void function OnLevelEndMenuOpen()
 {
-    thread MenuAnimation()
+    SetConVarString("roguelike_chests_opened", "")
+    if (file.doMenuAnimation)
+        thread MenuAnimation()
 }
 
 void function MenuAnimation()
@@ -111,7 +117,14 @@ void function MenuAnimation()
     runData.enemyDEF += enemyDEFGained
     runData.levelsCompleted <- levelsCompleted
 
-    int modsUnlocked = [3,2,1][timeRank]
+    int modsUnlocked = [2,1,0][timeRank]
+    switch (Roguelike_GetRunModifier("the_long_way"))
+    {
+        case 1:
+        case 2:
+            modsUnlocked = [2,1,0][timeRank]
+            break
+    }
     Roguelike_UnlockMods( modsUnlocked )
 
     NSSaveJSONFile( "run_backup.json", runData )
@@ -159,7 +172,7 @@ void function MenuAnimation()
 
     Hud_SetText(Hud_GetChild(file.menu, "TimeRank"), GetRankName(timeRank))
     Hud_GetChild(file.menu, "TimeRank").SetColor(GetColorForRank(timeRank))
-    Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), format("%i Mods Unlocked", modsUnlocked))
+    Hud_SetText(Hud_GetChild(file.menu, "TimeReward"), format("%i Mods Unlocked", modsUnlocked * 2))
 
     wait 0.2
 }
@@ -169,7 +182,7 @@ void function Roguelike_BackupRun( int startPoint )
     table runData = Roguelike_GetRunData()
     runData.map <- GetActiveLevel()
     runData.startPointIndex <- startPoint
-    runData.timestamp <- GetUnixTimestamp()
+    runData.backupTimestamp <- GetUnixTimestamp()
     runData.version <- RUNDATA_VERSION
     runData.titanHp <- GetConVarInt("memory_titan_hp")
     runData.titanSettings <- GetConVarString("memory_titan_settings")
@@ -183,28 +196,47 @@ void function Roguelike_UnlockMods( int count )
 {
     int titanMods = count
     Roguelike_UnlockModsForSection( titanMods, true )
-    //Roguelike_UnlockModsForSection( pilotMods, false )
+    Roguelike_UnlockModsForSection( titanMods, false )
 }   
 
 void function Roguelike_UnlockModsForSection( int count, bool isTitan )
 {
-    PRandom rand = NewPRandom(Roguelike_GetLevelSeed() + 17377)
+    PRandom rand = NewPRandom(Roguelike_GetRunSeed() + (isTitan ? 17377 : 17336))
+    int slot = PRandomInt( rand, 1, 5 )
     table runData = Roguelike_GetRunData()
-    array lockedMods = GetAllLockedMods(false)
-    
-    count = minint( count, lockedMods.len() )
+    array lockedMods = isTitan ? GetAllTitanModsInLootPool(-1) : GetAllPilotModsInLootPool(-1)
+
+    int lockedActualCount = 0
+    foreach (m in lockedMods)
+    {
+        RoguelikeMod mod = GetModByName(m)
+        if (!Roguelike_IsModUnlocked(mod) && IsModAvailable(mod) && mod.isTitan == isTitan)
+            lockedActualCount++
+    }
+
+    count = minint( count, lockedActualCount )
+    printt(count)
     RunStats_ModsUnlocked( count )
 
     for (int i = 1; i <= count;)
     {
-        int val = PRandomInt(rand, lockedMods.len())
-        RoguelikeMod mod = GetModByName(lockedMods[val])
+        int slot = PRandomInt( rand, 1, 5 )
+        printt(slot)
+        array lockedModsForSlot = isTitan ? GetAllTitanModsInLootPool(slot) : GetAllPilotModsInLootPool(slot)
+        int val = PRandomInt(rand, lockedModsForSlot.len())
+
+        if (lockedModsForSlot.len() <= 0)
+            continue
+            
+        RoguelikeMod mod = GetModByName(lockedModsForSlot[val])
+        
         if (!IsModAvailable(mod))
             continue
         if (Roguelike_IsModUnlocked(mod))
             continue
         if (mod.isTitan != isTitan)
             continue
+        printt(i)
 
         Roguelike_UnlockMod( mod )
         i++
@@ -215,21 +247,47 @@ void function Roguelike_UnlockMod( RoguelikeMod mod )
 {
     string uniqueName = mod.uniqueName
     table runData = Roguelike_GetRunData()
-    array lockedMods = expect array(mod.isTitan ? runData.lockedTitanMods : runData.lockedPilotMods)
+    string index = (mod.isTitan ? "lockedTitanMods" : "lockedPilotMods") + GetModChipSlotFlags( mod )
+    array lockedMods = expect array(runData[index])
     lockedMods.fastremovebyvalue(uniqueName)
     runData.unlockedMods.append(uniqueName)
     runData.newMods.append(uniqueName)
 }
 
+void function ClientCallback_StopTimer()
+{
+    Signal(uiGlobal.signalDummy, "EndTimerThread")
+}
+
+void function ClientCallback_StartLevelTimer()
+{
+    thread void function() : ()
+    {
+        Signal(uiGlobal.signalDummy, "EndTimerThread")
+        EndSignal(uiGlobal.signalDummy, "EndTimerThread")
+        while (1)
+        {
+            float t = Time()
+            wait 0.001
+            float dt = Time() - t
+
+            table runData = Roguelike_GetRunData() 
+            runData.time += dt
+
+            RunClientScript("Roguelike_SetSpeedrunTimer", Roguelike_GetRunData().time)
+        }
+    }()
+}
+
 void function ClientCallback_LevelEnded( string nextMap, int startPointIndex, int kills, float time )
 {
     // stupidly long starts at BT and goes thru all levels, no skipping
-    // long route adds BT and B3
+    // long route adds abyss 2 and B2
     int route = Roguelike_GetRunModifier("the_long_way")
     if (route != 2)
     {
         // replace abyss 2 with abyss 3
-        if (nextMap == "sp_boomtown")
+        if (nextMap == "sp_boomtown" && route == 0)
         {
             nextMap = "sp_boomtown_end"
             startPointIndex = 0
@@ -246,22 +304,49 @@ void function ClientCallback_LevelEnded( string nextMap, int startPointIndex, in
             nextMap = route > 0 ? "sp_beacon_spoke0" : "sp_beacon"
             startPointIndex = route > 0 ? 0 : 2
         }
-        // replace beacon 3 w/ trial by fire
-        if (nextMap == "sp_skyway_v1")
-        {
-            nextMap = "sp_skyway_v1"
-            startPointIndex = 1
-        }
     }
+    // replace beacon 3 w/ trial by fire
+    if (nextMap == "sp_skyway_v1")
+    {
+        nextMap = "sp_skyway_v1"
+        startPointIndex = 1
+    }
+    if (GetActiveLevel() == "sp_sewers1" && time < 420) // 7:00 game time
+    {
+        Roguelike_UnlockMod(GetModByName("ender_pearl")) // have fun!
+    }
+    // BT (ROUTE 1+) (20:00)
+    // BNR (10:00)
+    // ABYSS 1 (5:00)
+    // ABYSS 2 (ROUTE 1+)
+    // ABYSS 3 (6:00)
+    // ENC 1 (ROUTE 2+)
+    // ENC 2 (6:00)
+    // ENC 3 (ROUTE 2+)
+    // B1 (ROUTE 2+)
+    // B2 (ROUTE 1+)
+    // B3 (20:00)
+    // TBF (30:00)
+    // ARK (20:00)
+    // FOLD (20:00)
+    // TOTAL 
     file.nextMap = nextMap
     file.startPointIndex = startPointIndex
     file.kills = kills
     file.time = time
     
-    AdvanceMenu( file.menu )
-    if (GetActiveLevel() == "sp_boomtown_start")
+    // HACK
+    if (GetActiveLevel() == "sp_boomtown_start" && Roguelike_GetTitanLoadouts().len() < 2)
     {
+        file.doMenuAnimation = false
+        AdvanceMenu( file.menu )
         AdvanceMenu( GetMenu("LimitedLoadoutChoice"))
+        file.doMenuAnimation = true
+    }
+    else
+    {
+        file.doMenuAnimation = true
+        AdvanceMenu( file.menu )
     }
 }
 

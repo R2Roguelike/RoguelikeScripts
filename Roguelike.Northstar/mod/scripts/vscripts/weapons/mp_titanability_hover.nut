@@ -40,7 +40,7 @@ var function OnWeaponPrimaryAttack_TitanHover( entity weapon, WeaponPrimaryAttac
 			horizontalVelocity = 350.0
 		else
 			horizontalVelocity = 250.0
-		thread FlyerHovers( flyer, soundInfo, 3.0, horizontalVelocity )
+		thread FlyerHovers( flyer, soundInfo, 3.0 * (1.0 + Roguelike_GetStat(flyer, "ability_duration")), horizontalVelocity )
 	#endif
 
 	return weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )

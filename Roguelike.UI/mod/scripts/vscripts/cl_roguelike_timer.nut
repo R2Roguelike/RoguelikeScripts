@@ -6,6 +6,11 @@ global function Roguelike_MoneyGained
 global function ServerCallback_Roguelike_UnlockLoadout
 global function RoguelikeTimer_SetMoney
 global function Roguelike_UnlockLoadoutAnim
+global function RoguelikeTimer_SetStartTime
+global function ServerCallback_Roguelike_LoadingCheckpoint
+global function Roguelike_SetSpeedrunTimer
+global function __HideHud
+global function __ShowHud
 
 /*
 1 1 1
@@ -19,6 +24,7 @@ struct {
     float startTime = 0.0
     float lastItemAcquireTime = -99.9
     float lastMoneyGainTime = -99.9
+    int startTimeUnix = 0
 } file
 
 void function RoguelikeTimer_Init()
@@ -28,8 +34,16 @@ void function RoguelikeTimer_Init()
 
     delaythread(0.001) RoguelikeTimer_Think()
     AddServerToClientStringCommandCallback( "run_end", RunEnded )
+    AddServerToClientStringCommandCallback( "run_won", RunWon )
+    AddServerToClientStringCommandCallback( "STOPTHECOUNT", StopTimer )
     AddServerToClientStringCommandCallback( "run_backup", RunBackup )
     AddServerToClientStringCommandCallback( "level_end", LevelEnded )
+    RegisterServerVarChangeCallback( "startTime", SetLevelStartTime )
+}
+
+void function SetLevelStartTime()
+{
+    RunUIScript( "ClientCallback_StartLevelTimer" )
 }
 
 void function RoguelikeTimer_SetMoney( int money )
@@ -45,9 +59,22 @@ void function RoguelikeTimer_SetMoney( int money )
     Hud_SetText(heatLabel, heatText)
 }
 
+void function RoguelikeTimer_SetStartTime( int t )
+{
+    file.startTimeUnix = t
+}
+
 void function RunEnded( array<string> args )
 {
     RunUIScript( "RunEnded" )
+}
+void function RunWon( array<string> args )
+{
+    RunUIScript( "RunWon" )
+}
+void function StopTimer( array<string> args )
+{
+    RunUIScript( "ClientCallback_StopTimer" )
 }
 void function RunBackup( array<string> args )
 {
@@ -94,7 +121,14 @@ void function RoguelikeTimer_Think()
         if (clGlobal.isMenuOpen)
             file.lastItemAcquireTime = -9.9
         
-        alpha = MoveTowards( alpha, GetServerVar("timerVisible") ? 255.0 : 0.0, 128 * dt )
+        if (Roguelike_GetRunModifier("speedrun") > 0)
+        {
+            alpha = 255
+        }
+        else
+        {
+            alpha = MoveTowards( alpha, GetServerVar("timerVisible") ? 255.0 : 0.0, 128 * dt )
+        }
         timer.SetPanelAlpha( alpha )
         if (IsControllerModeActive())
         {
@@ -104,13 +138,11 @@ void function RoguelikeTimer_Think()
         {
             Hud_SetText(HudElement("ItemAcquired"), "Item Acquired - Press %titan_loadout_select% to open your inventory")
         }
-        if (IsValid(GetLocalClientPlayer()))
-        {
-        vector velocity = GetLocalClientPlayer().GetVelocity()
-        Hud_SetText(HudElement("Velocity"), format("^FF800000%i^ffffffff Heat\n%s\n<%.1f, %.1f, %.1f>\n%.1f", GetConVarInt("roguelike_run_heat"), DIFFICULTY_NAMES[GetConVarInt("sp_difficulty")],
-            velocity.x, velocity.y, velocity.z, Length(<velocity.x, velocity.y, 0>)))
-        }
         HudElement("ItemAcquired").SetAlpha(GraphCapped(Time() - file.lastItemAcquireTime, 4.5, 5.0, 255.0, 0.0))
+
+        Hud_SetVisible( HudElement("RewindLabel"), GetGlobalNetBool("canLoadCheckpoint") && Time() % 2 < 1.0 )
+        Hud_SetVisible( HudElement("RewindLabel2"), GetGlobalNetBool("canLoadCheckpoint") && Time() % 2 < 1.0 )
+        Hud_SetVisible( HudElement("RewindLabel3"), GetGlobalNetBool("canLoadCheckpoint") )
         if (IsValid(GetLocalClientPlayer()))
         {
             entity player = GetLocalClientPlayer()
@@ -126,7 +158,7 @@ void function RoguelikeTimer_Think()
         float displayTime = time
 
         if (GetMapName() == "sp_skyway_v1")
-            displayTime = (timeRequired[2]) * GetTimeRankMultiplier() - time
+            displayTime = (timeRequired[1]) * GetTimeRankMultiplier() - time
         int kills = expect int(GetServerVar("roguelikeKills"))
         
         if (GetConVarInt("roguelike_run_heat") >= 15)
@@ -165,7 +197,9 @@ void function RoguelikeTimer_Think()
             timeRank.SetColor( GetColorForRank(i) )
             Hud_SetText(timeRank, GetRankName(i) )
             Hud_SetText(timeLabel, "TIME" + (GetConVarBool("roguelike_timer_debug") ? format(" (%02i:%02i)", int(displayTime / 60), int(displayTime % 60)) : ""))
-            Hud_SetText(bigTimer, format("%02i:%02i ", int(displayTime / 60), int(displayTime % 60)))
+            
+            if (Roguelike_GetRunModifier("speedrun") <= 0)
+                Hud_SetText(bigTimer, format("%02i:%02i ", int(displayTime / 60), int(displayTime % 60)))
             break
         }
     }
@@ -174,6 +208,37 @@ void function RoguelikeTimer_Think()
 void function Roguelike_ItemGained()
 {
     file.lastItemAcquireTime = Time()
+}
+
+void function Roguelike_SetSpeedrunTimer( float time )
+{
+    var timer = HudElement("RoguelikeTimer")
+    int realTime = int(time)
+    int ms = int(time * 10 % 10)
+    string timeStr = string(realTime)
+    /*if (realTime > 3600)
+    {
+        timeStr = format("%i:%02i:%02i.%01i ", realTime / 3600, (realTime / 60) % 60, realTime % 60, ms)
+    }
+    else if (realTime > 60)
+    {*/
+        timeStr = format("%02i:%02i.%01i ", realTime / 60, realTime % 60, ms)
+    /*}
+    else
+    {
+        timeStr = format("%i.%01i ", realTime % 60, ms)
+    }*/
+    
+    string cheaterLabel = "^FF404000CHEATS ENABLED"
+    if (!GetConVarBool("sv_cheats") && !GetConVarBool("roguelike_unlock_all"))
+        cheaterLabel = ""
+        
+    if (Roguelike_GetRunModifier("speedrun") > 0)
+        Hud_SetText(Hud_GetChild(timer, "Time"), timeStr)
+    Hud_SetText(HudElement("Velocity"), format("^FF800000%i^ffffffff Heat\n%s\n%s", 
+    GetConVarInt("roguelike_run_heat"), 
+    DIFFICULTY_NAMES[GetConVarInt("sp_difficulty")], 
+    cheaterLabel))
 }
 
 void function Roguelike_MoneyGained( int amount )
@@ -186,9 +251,9 @@ void function ServerCallback_Roguelike_AddMoney( int amount )
     RunUIScript( "Roguelike_AddMoney", amount )
 }
 
-void function Roguelike_UnlockLoadoutAnim( string loadoutName )
+void function Roguelike_UnlockLoadoutAnim( string loadoutName, bool playerHint = false )
 {
-    thread UnlockLoadoutAnim_Internal( loadoutName )
+    thread UnlockLoadoutAnim_Internal( loadoutName, playerHint )
 }
 
 // this is like the third time im pasting this from sp_crashsite.nut. This should be global atp,
@@ -208,7 +273,7 @@ float function InverseLerp( float t, float a, float b )
     return clamp((t - a) / (b - a), 0, 1)
 }
 
-void function UnlockLoadoutAnim_Internal( string loadoutName )
+void function UnlockLoadoutAnim_Internal( string loadoutName, bool playerHint )
 {
     var animPanel = HudElement("UnlockAnim")
     var animPanelScreen = Hud_GetChild(animPanel, "Screen") // utility imagepanel for positioning elements
@@ -221,11 +286,15 @@ void function UnlockLoadoutAnim_Internal( string loadoutName )
     float endTime = Time() + 6.25 // 6s + sound delay
     float startTime = Time()
     delaythread(0.25) EmitSoundOnEntity(GetLocalClientPlayer(), "HUD_level_up_pilot_1P")
+    if (playerHint)
+    {
+		thread AddPlayerHint( 10.0, 1.0, $"", "Golden Chests unlock new Titan loadouts to be picked\nat the start of a new run." )
+    }
     while (Time() <= endTime)
     {
         wait 0.001
-        float maxWidth = max(90 + Hud_GetWidth( loadoutLabel ), 84 + Hud_GetWidth( loadoutText ))
-        float width = (Graph(QuadEaseInOut(InverseLerp(Time() - startTime, 1.25, 2.25)), 0.0, 1.0, 84, maxWidth))
+        float maxWidth = max(ContentScaledX(40) + Hud_GetWidth( loadoutLabel ), ContentScaledX(40) + Hud_GetWidth( loadoutText ))
+        float width = (Graph(QuadEaseInOut(InverseLerp(Time() - startTime, 1.25, 2.25)), 0.0, 1.0, ContentScaledX(32), maxWidth))
 
         Hud_SetWidth( animPanel, width )
         Hud_SetWidth( animPanelScreen, width )
@@ -246,4 +315,104 @@ void function UnlockLoadoutAnim_Internal( string loadoutName )
 void function ServerCallback_Roguelike_UnlockLoadout( int bit )
 {
     RunUIScript("Roguelike_UnlockLoadout", bit)
+}
+
+const array<string> checkpointModLines = [
+    "^FF404000DEATH AVOIDS YOU. FOR NOW.",
+    "^FF404000DEALS LIKE THIS NEVER END WELL.",
+    "^FF404000HOW [CENSORED]!",
+    "^FF404000LEARN TO TAKE A LOSS, WILL YOU?",
+    "^FF404000COWARD.",
+    "^FF404000BULLSHIT.",
+    "^FF404000LAST CHANCE.",
+    "^FF404000YOU DON'T DESERVE THIS.",
+    "^FF404000THE GUY WHO ADDED THIS? FUCK HIM.",
+    "^FF404000please fail.",
+    "^FF404000EAT SHIT!",
+    "^FF404000HOPE TO SEE YOU IN HELL!",
+    "^FF404000LOOK AT ME, I CAN'T HANDLE DYING! WAH WAH WAH!",
+    "^FF404000RIGGED!",
+    "^FF404000THIS IS BULLSHIT!",
+    "^FF404000HOPE YOUR GAME FREEZES AND THE SAVE GETS DELETED.",
+    "^FF404000PLEASE CRASH.",
+    "^FF404000HOW FUNNY.",
+    "^FF404000HOPE IT REWINDS YOU TO THE LAST LEVEL.",
+    "^FF404000NO GURANTEES.",
+    "^FF404000WATCH YOURSELF, NOW :)",
+
+    "^70ff7000ONE LAST CHANCE! NOW GO GET EM!",
+    "^70ff7000BREATHE. FOCUS. YOU GOT THIS.",
+    "^70ff7000HE NEEDS YOU, PILOT.",
+    "^70ff7000PROTOCOL THREE.",
+    "^70ff7000IT'S NOT OVER YET.",
+    "^70ff7000HE LIIIIIIIIIIIIIIIIIIIIVES!",
+    "^70ff7000NOTHING A TIME REWIND CAN'T SOLVE!",
+    "^70ff7000MRVNS WOULD NEVER LET YOU DO THIS!",
+    "^70ff7000GO GET EM, TIGER.",
+    "^70ff7000I DON'T HAVE ANY REFERENCES TO MAKE, BUT I BELIEVE IN YOU!",
+    "^70ff7000REMEMBER ME!!!!",
+    "^70ff7000THIS IS FOR ALL THE BUGS I DIDN'T FIX!",
+]
+const array<string> checkpointModFoolLines = [
+    "^FF404000AHAHAHAHAHAHA!",
+    "^FF404000YOU WASTED IT, YOU FOOL!",
+    "^FF404000PLEASE do that again :)",
+    "^FF404000NOW, **THAT**'S FUNNY.",
+]
+const array<string> checkpointNormalLines = [
+    "Woops.",
+    "Let's pretend no one saw that...",
+    "Boooo! We want DEATH! BY! COMBAT!",
+    "HAHA, THIS GUY FELL!",
+    "Slipped on a banana? No worries.",
+    "CHAT! LAUGH AT THIS GUY.",
+    "I mean, I don't blame you. (I totally blame you.)",
+    "FROM IVY, OUT MIDDLE, THROU- ohhhhhh shiiiiiiit.",
+    "These checkpoint rewinds are sponsored by #them.",
+    "Please, don't do this again.",
+    "That was funny. The fact this needs to exist is even funnier.",
+    "Millions must wallkick.",
+    "balls.... wait, what?",
+    "LMAOOOOOOOOOOOOOOOOOOOOOOO",
+    "Worst. Country. Ever.",
+    "Nobody likes me, so now I load checkpoints for people.",
+    "How's your sister?",
+    "Happens all the time. NOT!",
+    "\"IT'S NOT FUNNY!\" You say. And you're a godawful liar.",
+    "Let's keep this one a secret between you and me.",
+    "Falls in platforming sections, call him JustANormalUser.",
+    "Falls in platforming sections, call him JustANormalLoser.",
+    "I wrote HOW MANY LINES FOR THIS?",
+    "Watch, they'll fail this section again.",
+    "ROCK AND STONE!",
+    "Long ago, two races ruled over the earth: HUMANS and HEADS OF GOVERNMENTS.",
+    "HA.",
+    "... ever feel [CENSORED] over a line of text?"
+]
+
+void function __HideHud()
+{
+    Hud_Hide(HudElement("Velocity"))
+    Hud_Hide(HudElement("RoguelikeTimer"))
+    __p().ClientCommand("script AddCinematicFlag( __p(), CE_FLAG_HIDE_MAIN_HUD )")
+}
+void function __ShowHud()
+{
+    Hud_Show(HudElement("Velocity"))
+    Hud_Show(HudElement("RoguelikeTimer"))
+    __p().ClientCommand("script RemoveCinematicFlag( __p(), CE_FLAG_HIDE_MAIN_HUD )")
+}
+
+void function ServerCallback_Roguelike_LoadingCheckpoint( bool consumeCheckpointMod, bool allowCheckpoint )
+{
+    if (consumeCheckpointMod)
+    {
+        RunUIScript("Roguelike_ConsumeCheckpointMod") // consume!
+        if (allowCheckpoint)
+            Hud_SetText( HudElement("RewindLabel3"), checkpointModFoolLines.getrandom() )
+        else
+            Hud_SetText( HudElement("RewindLabel3"), checkpointModLines.getrandom() )
+        return
+    }
+    Hud_SetText( HudElement("RewindLabel3"), checkpointNormalLines.getrandom() )
 }

@@ -35,38 +35,40 @@ void function IonDischarge( entity ent, entity attacker, var damageInfo )
         throw "attacker is not a player"
 
     bool disorder = false
-    float scalar = DISCHARGE_SCALAR
+    float scalar = DISCHARGE_SCALAR + 0.01 * Roguelike_GetStat( attacker, "ability_power" )
     int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
     if (GetBurn( ent ) > 0.0)
     {
         disorder = true
         //
-        scalar += GetBurn( ent ) * 0.02 // +200% at 200%
+        scalar += 1 + 0.005 * Roguelike_GetStat( attacker, "ability_power" )
         RSE_Stop( ent, RoguelikeEffect.burn )
         RSE_Stop( ent, RoguelikeEffect.burn_flame_core )
     }
     if (GetDaze( ent ) > 0)
     {
         disorder = true
-        scalar += RSE_Get( ent, RoguelikeEffect.ronin_daze ) * 0.333
+        scalar += 1 + 0.005 * Roguelike_GetStat( attacker, "ability_power" )
         RSE_Stop( ent, RoguelikeEffect.ronin_daze )
     }
     if (GetWeaken( ent ) > 0)
     {
         disorder = true
-        scalar += RSE_Get( ent, RoguelikeEffect.expedition_weaken ) * 2
+        scalar += 1 + 0.005 * Roguelike_GetStat( attacker, "ability_power" )
         RSE_Stop( ent, RoguelikeEffect.expedition_weaken )
     }
     if (RSE_Get( ent, RoguelikeEffect.northstar_fulminate ) > 0)
     {
         disorder = true
-        scalar += RSE_Get( ent, RoguelikeEffect.northstar_fulminate )
+        float bonus = 1 + 0.005 * Roguelike_GetStat( attacker, "ability_power" )
+        scalar += bonus * max(1, RSE_Get( ent, RoguelikeEffect.northstar_fulminate ))
         RSE_Stop( ent, RoguelikeEffect.northstar_fulminate )
     }
     if (RSE_Get( ent, RoguelikeEffect.legion_puncture ) > 0)
     {
         disorder = true
-        scalar += RSE_Get( ent, RoguelikeEffect.legion_puncture )
+        float bonus = 1 + 0.005 * Roguelike_GetStat( attacker, "ability_power" )
+        scalar += bonus * max(1, RSE_Get( ent, RoguelikeEffect.legion_puncture ))
         RSE_Stop( ent, RoguelikeEffect.legion_puncture )
     }
     foreach (float functionref(entity,entity,var) callback in disorderCallbacks)

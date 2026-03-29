@@ -308,15 +308,15 @@ void function OnOpenInGameSPMenu()
 	switch ( currentDifficulty )
 	{
 		case 0:
-			newDifficultyString = "Difficulty [Normal]"
+			newDifficultyString = "Difficulty [Easy]"
 			break
 
 		case 1:
-			newDifficultyString = "Difficulty [Hard]"
+			newDifficultyString = "Difficulty [Normal]"
 			break
 
 		case 2:
-			newDifficultyString = "Difficulty [Master]"
+			newDifficultyString = "Difficulty [Hard]"
 			break
 
 		case 3:

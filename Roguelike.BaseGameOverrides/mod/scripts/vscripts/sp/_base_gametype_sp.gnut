@@ -393,7 +393,34 @@ function PostDeathThread_SP( entity player, damageInfo )
 	if ( showedDeathHint )
 		reloadExtraDelay = 3.2
 
-	ReloadForMissionFailure( reloadExtraDelay )
+	bool allowCheckpoint = false
+
+	switch (damageSource)
+	{
+		case eDamageSourceId.fall:
+		case eDamageSourceId.damagedef_crush:
+		case eDamageSourceId.damagedef_titan_fall:
+		case eDamageSourceId.damagedef_titan_hotdrop:
+		case eDamageSourceId.damagedef_reaper_fall:
+		case eDamageSourceId.droppod_impact:
+		case eDamageSourceId.wall_smash:
+		case eDamageSourceId.outOfBounds:
+		case eDamageSourceId.lasergrid:
+		case eDamageSourceId.stuck:
+		case eDamageSourceId.switchback_trap:
+		case eDamageSourceId.crushed:
+		case eDamageSourceId.splat:
+		case eDamageSourceId.invalid:
+		case eDamageSourceId.toxic_sludge:
+			if (Roguelike_GetRunModifier("checkpoints") != 1)
+				allowCheckpoint = true
+	}
+	//if (Roguelike_GetRunModifier("checkpoints") <= 0)
+	//	allowCheckpoint = true
+	printt("edamagesourceid", DamageSourceIDToString(damageSource) )
+	printt("allowCheckpoint", allowCheckpoint)
+
+	ReloadForMissionFailure( allowCheckpoint, reloadExtraDelay )
 }
 
 

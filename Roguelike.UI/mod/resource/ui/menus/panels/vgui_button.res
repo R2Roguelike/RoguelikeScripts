@@ -6,7 +6,7 @@ resource/ui/menus/panels/vgui_button.res
 
 		image			"vgui/hud/white"
 
-		drawColor	"0 0 0 135"
+		drawColor	"0 0 0 150"
 		scaleImage			1
 
 		wide                256

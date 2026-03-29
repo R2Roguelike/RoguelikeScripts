@@ -227,7 +227,7 @@ void function SPButton_Click( var button, int elemNum )
 void function Roguelike_ContinueRun()
 {
 	table runData = Roguelike_GetRunData()
-	if (runData.startPointIndex != -1)
+	if (runData.startPointIndex >= 0)
 	{
 		int startPointIndex = expect int(runData.startPointIndex)
 		string map = expect string(runData.map)

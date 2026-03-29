@@ -76,7 +76,8 @@ void function ModWeaponVars_ScaleDamage( entity weapon, float scalar )
 {
     const array<int> DAMAGE_VARS = [eWeaponVar.damage_near_value, eWeaponVar.damage_far_value, eWeaponVar.damage_near_value_titanarmor,
                                     eWeaponVar.damage_far_value_titanarmor, eWeaponVar.damage_very_far_value, eWeaponVar.explosion_damage,
-                                    eWeaponVar.explosion_damage_heavy_armor]
+                                    eWeaponVar.explosion_damage_heavy_armor, eWeaponVar.damage_additional_bullets_titanarmor, eWeaponVar.damage_additional_bullets,
+                                    eWeaponVar.melee_damage, eWeaponVar.melee_damage_heavyarmor]
 
     foreach (int weaponVar in DAMAGE_VARS)
     {
@@ -183,6 +184,7 @@ void function CodeCallback_ApplyModWeaponVars( entity weapon )
 
     if (!("lastPrint" in weapon.s))
         weapon.s.lastPrint <- 0.0
+
     //lastPrint = -90.0 // comment for modweaponvars debugging
     foreach (CallbackArray arr in file.weaponVarCallbacks)
     {
@@ -257,7 +259,7 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
             }
             if (Roguelike_HasDatacorePerk( player, "swap" ))
             {
-                RSE_Apply( player, RoguelikeEffect.swap, 1.0, Roguelike_GetDatacoreValue( player ), 0.0 )
+                RSE_Apply( player, RoguelikeEffect.swap, 1.0, 6.0, 0.0 )
             }
             Roguelike_ResetTitanLoadoutFromPrimary( player, player.GetActiveWeapon() )
             player.s.lastActiveWeapon <- player.GetActiveWeapon().GetWeaponClassName()
@@ -270,13 +272,21 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
 
             if (IsValid(railgun))
             {
-                if (!("railgunEndChargeTime" in railgun.s) || (lastPrimary.GetWeaponClassName() == PRIMARY_NORTHSTAR && player.GetZoomFrac() > 0))
+                if (!("railgunEndChargeTime" in railgun.s))
                 {
                     float chargeTime = railgun.GetWeaponSettingFloat( eWeaponVar.charge_time ) * 2.0 // x2 charge time
-
+                    
                     railgun.s.railgunEndChargeTime <- Time() + chargeTime * (1.0 - railgun.GetWeaponChargeFraction())
                     railgun.s.railgunStartChargeTime <- Time()
                     railgun.s.railgunStartChargeFrac <- railgun.GetWeaponChargeFraction()
+                }
+                if ((lastPrimary.GetWeaponClassName() == PRIMARY_NORTHSTAR && player.GetZoomFrac() > 0))
+                {
+                    float chargeTime = railgun.GetWeaponSettingFloat( eWeaponVar.charge_time ) * 2.0 // x2 charge time
+
+                    railgun.s.railgunEndChargeTime = Time() + chargeTime * (1.0 - railgun.GetWeaponChargeFraction())
+                    railgun.s.railgunStartChargeTime = Time()
+                    railgun.s.railgunStartChargeFrac = railgun.GetWeaponChargeFraction()
                 }
                 else
                 {
@@ -299,10 +309,19 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
     // we do it for the active weapon to not cause mispredictions
     // on the client. However, client does it every frame
     // for the active weapon, so we do too.
-    foreach (entity weapon in player.GetMainWeapons())
+    array<entity> weapons = player.GetMainWeapons()
+    foreach (entity weapon in weapons)
+    {
         ModWeaponVars_CalculateWeaponMods( weapon )
-    foreach (entity weapon in player.GetOffhandWeapons())
-        ModWeaponVars_CalculateWeaponMods( weapon )
+    }
+    weapons.clear()
+
+    for (int i = 0; i < 6; i++)
+    {
+        entity weapon = player.GetOffhandWeapon(i)
+        if (IsValid(weapon))
+            ModWeaponVars_CalculateWeaponMods( weapon )
+    }
     if (player.p.storedAbilities.len() > 0 && player.IsTitan())
         foreach (entity weapon in player.p.storedAbilities)
         {
@@ -315,8 +334,6 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
 
 void function Roguelike_ModifyTitanLoadout( entity player, RoguelikeLoadout loadout )
 {
-    if (Roguelike_HasMod( player, "always_sword" ))
-        loadout.melee = "melee_titan_sword"
 	if (loadout.utility == "mp_titanability_smoke")
 		loadout.utility = "mp_titanability_rearm"
 }
@@ -418,42 +435,39 @@ void function Roguelike_ResetTitanLoadoutFromPrimary( entity titan, entity prima
                     offhandWeapon.s.exploitFix <- Time()
             }
 
-            if (titan.p.storedAbilities[i] != null)
+            entity newOffhand = titan.p.storedAbilities[i]
+            if (!IsValid(newOffhand) || newOffhand.GetWeaponClassName() != GetOffhandWeaponBySlot( titanLoadout, i ))
             {
-                entity newOffhand = titan.p.storedAbilities[i]
-                if (!IsValid(newOffhand) || newOffhand.GetWeaponClassName() != GetOffhandWeaponBySlot( titanLoadout, i ))
+                if (IsValid(newOffhand))
+                    newOffhand.Destroy() // fixes more mem leaks ig
+                printt("new offhand", i)
+                titan.GiveOffhandWeapon( GetOffhandWeaponBySlot( titanLoadout, i ), i )
+                newOffhand = titan.GetOffhandWeapon(i)
+                ModWeaponVars_CalculateWeaponMods( newOffhand )
+                if (newOffhand.GetWeaponPrimaryClipCountMax() > 0)
                 {
-                    if (IsValid(newOffhand))
-                        newOffhand.Destroy() // fixes more mem leaks ig
-                    printt("new offhand", i)
-                    titan.GiveOffhandWeapon( GetOffhandWeaponBySlot( titanLoadout, i ), i )
-                    newOffhand = titan.GetOffhandWeapon(i)
-                    ModWeaponVars_CalculateWeaponMods( newOffhand )
-                    if (newOffhand.GetWeaponPrimaryClipCountMax() > 0)
-                    {
-                        newOffhand.SetWeaponPrimaryClipCountAbsolute(newOffhand.GetWeaponPrimaryClipCountMax())
-                    }
-                    if (newOffhand.IsChargeWeapon())
-                        newOffhand.SetWeaponChargeFractionForced(0.0)
+                    newOffhand.SetWeaponPrimaryClipCountAbsolute(newOffhand.GetWeaponPrimaryClipCountMax())
                 }
-                else
-                {
-                    if ("storedWeaponOwner" in newOffhand.s)
-                        delete newOffhand.s.storedWeaponOwner
-                    titan.GiveExistingOffhandWeapon( newOffhand, i )
-                }
+                if (newOffhand.IsChargeWeapon())
+                    newOffhand.SetWeaponChargeFractionForced(0.0)
+            }
+            else
+            {
+                if ("storedWeaponOwner" in newOffhand.s)
+                    delete newOffhand.s.storedWeaponOwner
+                titan.GiveExistingOffhandWeapon( newOffhand, i )
+            }
 
-                if ("exploitFix" in newOffhand.s)
-                {
-                    printt("exploit fix")
-                    float timePassed = Time() - expect float(newOffhand.s.exploitFix)
-                    delete newOffhand.s.exploitFix
-                    timePassed -= newOffhand.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_start_delay)
-                    float newAmmo = timePassed * newOffhand.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_rate)
-                    printt(newAmmo)
+            if ("exploitFix" in newOffhand.s)
+            {
+                printt("exploit fix")
+                float timePassed = Time() - expect float(newOffhand.s.exploitFix)
+                delete newOffhand.s.exploitFix
+                timePassed -= newOffhand.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_start_delay)
+                float newAmmo = timePassed * newOffhand.GetWeaponSettingFloat(eWeaponVar.regen_ammo_refill_rate)
+                printt(newAmmo)
 
-                    newOffhand.SetWeaponPrimaryClipCountAbsolute(clamp(newAmmo, 0, newOffhand.GetWeaponSettingInt(eWeaponVar.ammo_clip_size) + 0.0))
-                }
+                newOffhand.SetWeaponPrimaryClipCountAbsolute(clamp(newAmmo, 0, newOffhand.GetWeaponSettingInt(eWeaponVar.ammo_clip_size) + 0.0))
             }
             // maintain offhand index
             titan.p.storedAbilities[i] = offhandWeapon
@@ -534,6 +548,7 @@ void function RestoreCooldown( entity weapon, float frac )
     if (!IsValid(weapon) || weapon.GetWeaponClassName() == "")
         return
 
+    entity owner = weapon.GetWeaponOwner()
     switch (weapon.GetWeaponInfoFileKeyField("cooldown_type"))
     {
         case "ammo":
@@ -554,7 +569,6 @@ void function RestoreCooldown( entity weapon, float frac )
 
         case "shared_energy":
         case "shared_energy_drain":
-            entity owner = weapon.GetWeaponOwner()
             if (!IsValid(owner))
                 owner = GetPlayerArray()[0]
 
@@ -562,10 +576,18 @@ void function RestoreCooldown( entity weapon, float frac )
             break
 
         case "grapple":
-            entity owner = weapon.GetWeaponOwner()
             if (!IsValid(owner))
                 break
             owner.SetSuitGrapplePower( owner.GetSuitGrapplePower() + RoundToInt(frac * 100) )
+            break
+        case "shield":
+            entity soul = owner.GetTitanSoul()
+            int ammoPerShot = weapon.GetAmmoPerShot()
+            if (IsValid(soul))
+            {
+                int maxShield = soul.GetShieldHealthMax()
+                soul.SetShieldHealth( minint(soul.GetShieldHealth() + int(frac * ammoPerShot * 3), maxShield ) )
+            }
             break
 
         default:
@@ -617,7 +639,7 @@ entity function Roguelike_FindWeaponForDamageInfo( var damageInfo )
 
 entity function Roguelike_GetAlternateOffhand( entity player, int index )
 {
-    if (!("storedAbilities" in player.s))
+    if (player.p.storedAbilities.len() <= index)
         return null
 
     if (!IsValid(player.p.storedAbilities[index]))
@@ -655,6 +677,8 @@ entity function Roguelike_FindWeapon( entity player, string weapon )
             return w
     }
 
+    currentOffhandWeapons.clear() // HACK: clearing arrays after use seems to help??????
+
     return null
 }
 
@@ -679,6 +703,8 @@ entity function Roguelike_GetOffhandWeaponByName( entity player, string weapon )
             return w
     }
 
+    currentOffhandWeapons.clear() // HACK: clearing arrays after use seems to help??????
+
     return null
 }
 
@@ -694,10 +720,13 @@ void function ScaleCooldown( entity weapon, float scalar )
             ModWeaponVars_ScaleVar( weapon, eWeaponVar.ammo_min_to_fire, scalar )
             break
 
-        case "ammo":
         case "ammo_instant":
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.shared_energy_cost, scalar )
+            weapon.SetWeaponEnergyCost(weapon.GetWeaponSettingInt(eWeaponVar.shared_energy_cost))
+        case "ammo":
         case "ammo_deployed":
         case "ammo_timed":
+        case "ammo_per_shot":
             ModWeaponVars_ScaleVar( weapon, eWeaponVar.regen_ammo_refill_rate, 1.0 / scalar )
             break
 
@@ -710,6 +739,11 @@ void function ScaleCooldown( entity weapon, float scalar )
         case "shared_energy":
             ModWeaponVars_ScaleVar( weapon, eWeaponVar.shared_energy_cost, scalar )
             weapon.SetWeaponEnergyCost(weapon.GetWeaponSettingInt(eWeaponVar.shared_energy_cost))
+            break
+        
+        case "shared_energy_drain":
+            ModWeaponVars_ScaleVar( weapon, eWeaponVar.shared_energy_charge_cost, scalar )
+            //weapon.SetWeaponEnergyCost(weapon.GetWeaponSettingInt(eWeaponVar.shared_energy_cost_charge))
             break
 
         case "grapple":

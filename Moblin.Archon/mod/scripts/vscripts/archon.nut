@@ -3,6 +3,8 @@ global function Archon_Init
 global function ApplyShock
 #endif
 global array<int> archonDMGSources = []
+global const string ARCHON_BENEFIT_1 = "archon_shield_regen_rate"
+global const string ARCHON_BENEFIT_2 = "archon_shield_regen_delay"
 
 void function Archon_Init()
 {
@@ -63,12 +65,13 @@ void function ArchonUIInit()
 		"mp_titanweapon_charge_ball","mp_titanweapon_tesla_node", "mp_titancore_storm_core", "shock_dmg"])
 	
 	RoguelikeLoadout loadout
-	loadout.name = "#DEFAULT_TITAN_1" // name of titan
-	loadout.description = "<note>just dont get hit bro :)</>\n\n" +
-						  "Archon's abilities have <cyan>no cooldowns</>, but consume shields.\n\n" +
-						  "Archon's status effect is <fulm>Shock.</>\n\n" +
-						  "<fulm>Shock</> is filled up with <daze>Archon's kit,</> and when active, all hits trigger a <hack>Shock Proc</> that deals 100 base damage." +
-						  "\n\n<daze>Originally by GalacticMoblin, Hurbski, Dinorush, EXRILL, Peepeepoopoo man, and Spoon." // description
+	loadout.name = "Archon" // name of titan
+	loadout.description = "<note>A secret loadout? Who would've guessed?</>\n\n" +
+						"Archon's offensive and utility abilities have <cyan>no cooldowns</>, but <red>consume your shields</> instead.\n\n" +
+						"The Arc Cannon <cyan>restores shields on hit,</> and cooldown restorations grant <cyan>Shields</> and have increased effectiveness.\n\n" +
+						"Archon's status effect is <fulm>Shock.</>\n\n" +
+						"<fulm>Shock</> is applied with Archon's weapons, when active, <daze>all hits deal an additional 100 damage.</>\n\n" +
+						"<note>Original mod by GalacticMoblin.</>" // description
 	// weapon & abilities
 	loadout.primary = "mp_titanweapon_archon_arc_cannon"
 	loadout.defensive = "mp_titanweapon_shock_shield"
@@ -80,19 +83,24 @@ void function ArchonUIInit()
 	// element and role - display only but do make it match
 	// sidenote, its highly recommended to make all abilities of a titan deal the same damage element
 	loadout.element = RoguelikeElement.electric
-	loadout.role = "Shield Consumer"
+	loadout.role = "<red>Damage</>"
+	loadout.role2 = "<charge>Shields"
 	loadout.unlockBit = 6 // CHANGE THIS TO -1 WHEN MAKING YOUR OWN TO UNLOCK BY DEFAULT!
 	loadout.color = [32, 192, 255, 255]
 	Roguelike_AddLoadout(loadout)
 
-	const string BENEFIT_1 = "<cyan>+10% Shield Regen Rate.</>\n\n"
+	// TAGS can be applied to mods for them to have a stacking side benefit.
+	// you can get the amount of tags of a certain type thru Roguelike_GetTagCount( player, ARCHON_BENEFIT_1 ).
+	Roguelike_RegisterTag( ARCHON_BENEFIT_1, "+100 Max Shields.")
+	Roguelike_RegisterTag( ARCHON_BENEFIT_2, "-5% Shield Regen Delay.")
 	// -5% Shield Regen Delay
     {
         RoguelikeMod mod = NewMod("pylon_shield")
         mod.name = "Arc Shield"
         mod.abbreviation = "AS"
-        mod.description = "<cyan>+10% Shield Regen Rate.</>\n\nArc Pylons restore 20 shields on hit."
-        mod.shortdesc = "Arc Pylons restore shields on hit."
+        mod.description = "Arc Ball hits restore 100 shields per second."
+        mod.shortdesc = "Arc Balls hits restore shields."
+		mod.tags = [ARCHON_BENEFIT_2]
         mod.cost = 3
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -100,17 +108,19 @@ void function ArchonUIInit()
         RoguelikeMod mod = NewMod("health_convert")
         mod.name = "Health Converter"
         mod.abbreviation = "HC"
-        mod.description = "<cyan>+10% Shield Regen Rate.</>\n\nIf you do not have enough shields for Archon's abilities, <red>consume health instead.</> Shield regeneration delay reduced by <cyan>25%.</>"
+        mod.description = "If you do not have enough shields for Archon's abilities, <red>consume health instead.</> Shield regeneration delay reduced by <cyan>25%.</>"
         mod.shortdesc = "Health may be converted to shields.\nShield Regen Delay reduced."
+		mod.tags = [ARCHON_BENEFIT_1]
+		mod.statModifiers = [NewStatModifier("max_shields", 100)]
         mod.cost = 2
-        mod.chip = TITAN_CHIP_UTILITY
     }
     {
         RoguelikeMod mod = NewMod("shock_shield_shield")
         mod.name = "Shock Shield Converter"
         mod.abbreviation = "SSC"
-        mod.description = "<cyan>-5% Shield Regen Delay.</>\n\nShock Shield restores damage absorbed as shields."
+        mod.description = "Shock Shield restores damage absorbed as shields."
         mod.shortdesc = "Shock Shield restores shields."
+		mod.tags = [ARCHON_BENEFIT_1]
         mod.cost = 2
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -118,17 +128,27 @@ void function ArchonUIInit()
         RoguelikeMod mod = NewMod("shield_unprotect")
         mod.name = "Shield Loss"
         mod.abbreviation = "SL"
-        mod.description = "<cyan>-5% Shield Regen Delay.</>\n\n<red>Shields do not protect incoming damage.</> <cyan>+25% Crit Rate.</>"
-        mod.shortdesc = "<red>Shields don't take damage.</>\n+25% Crit Rate."
+        mod.description = "<red>Shields do not protect incoming damage.</> <cyan>+50% Crit Rate, +1000 Battery Healing.</>"
+        mod.shortdesc = "<red>Shields don't take damage.</>\n+50% Crit Rate, +1000 Battery Healing."
+		mod.tags = [ARCHON_BENEFIT_1]
+		mod.statModifiers = [NewStatModifier("max_shields", 100), NewStatModifier("crit_rate", 0.5),
+			NewStatModifier("battery_healing", 1000)]
+        {
+            HoverSimpleBox box
+            box.currentValue = "25%"
+            box.label = "Crit Rate"
+            mod.boxes.append(box)
+        }
         mod.cost = 2
-        mod.chip = TITAN_CHIP_UTILITY
     }
     {
         RoguelikeMod mod = NewMod("eye_of_the_storm")
         mod.name = "Eye of The Storm"
         mod.abbreviation = "ETS"
-        mod.description = "<cyan>-5% Shield Regen Delay.</>\n\nShock Shield produces a damaging arc field."
+        mod.description = "Shock Shield produces a damaging arc field."
         mod.shortdesc = "Shock Shield gets DoT while active."
+		mod.tags = [ARCHON_BENEFIT_1]
+		mod.statModifiers = [NewStatModifier("max_shields", 100)]
         mod.cost = 2
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -136,8 +156,9 @@ void function ArchonUIInit()
         RoguelikeMod mod = NewMod("charge_balls")
         mod.name = "Balling"
         mod.abbreviation = "Bln"
-        mod.description = "<cyan>-5% Shield Regen Delay.</>\n\nCharge Ball fires 2 more balls in all forms."
+        mod.description = "Charge Ball fires 2 more balls in all forms."
         mod.shortdesc = "Charge Ball fires more balls."
+		mod.tags = [ARCHON_BENEFIT_2]
         mod.cost = 1
         mod.chip = TITAN_CHIP_ABILITIES
     }
@@ -145,8 +166,10 @@ void function ArchonUIInit()
         RoguelikeMod mod = NewMod("chain_reaction")
         mod.name = "Chain Reaction"
         mod.abbreviation = "ChR"
-        mod.description = "<cyan>+10% Shield Regen Rate</>\n\nArc Cannon chains between targets."
-        mod.shortdesc = "Arc Cannon chains between targets."
+        mod.description = "Arc Cannon and Shock Shield <cyan>chain between targets."
+        mod.shortdesc = "Arc Cannon and Shock Shield\n<cyan>chain between targets."
+		mod.tags = [ARCHON_BENEFIT_1]
+		mod.statModifiers = [NewStatModifier("max_shields", 100)]
         mod.cost = 2
         mod.chip = TITAN_CHIP_WEAPON
     }
@@ -154,8 +177,9 @@ void function ArchonUIInit()
         RoguelikeMod mod = NewMod("arc_cannon_charge")
         mod.name = "Arc Charger"
         mod.abbreviation = "AC"
-        mod.description = "<cyan>+10% Shield Regen Rate</>\n\nArc Cannon charges 200% faster."
-        mod.shortdesc = "Arc Cannon charges faster."
+        mod.description = "<cyan>-10% Arc Cannon Charge Time.</>\n\nArc Cannon charge rate scales with fire rate, and is 400% more effective (100% fire rate = 500% faster charging)."
+        mod.shortdesc = "Arc Cannon charge rate scales with fire rate."
+		mod.tags = [ARCHON_BENEFIT_2]
         mod.cost = 2
         mod.chip = TITAN_CHIP_WEAPON
     }
@@ -163,8 +187,9 @@ void function ArchonUIInit()
         RoguelikeMod mod = NewMod("other_loadout_shield")
         mod.name = "ShieldSwap"
         mod.abbreviation = "SSw"
-        mod.description = "<cyan>+10% Shield Regen Rate</>\n\nRestore shields on loadout swap. <note>This may trigger every 2s.</>"
+        mod.description = "Restore shields on loadout swap. <note>This may trigger every 2s.</>"
         mod.shortdesc = "Restore shields on swap."
+		mod.tags = [ARCHON_BENEFIT_2]
         mod.cost = 2
         mod.chip = TITAN_CHIP_UTILITY
     }
@@ -172,8 +197,10 @@ void function ArchonUIInit()
         RoguelikeMod mod = NewMod("shield_buff")
         mod.name = "Backup Power"
         mod.abbreviation = "BP"
-        mod.description = "<cyan>-5% Shield Regen Delay</>\n\nWhile you don't have shields, <cyan>+25% DMG</>"
+        mod.description = "While you don't have shields, <cyan>+50% DMG and +50% Crit DMG.</>"
         mod.shortdesc = "<cyan>+DMG%</> when shields are empty."
+		mod.tags = [ARCHON_BENEFIT_1]
+		mod.statModifiers = [NewStatModifier("max_shields", 100)]
         mod.cost = 2
         mod.chip = TITAN_CHIP_WEAPON
     }
@@ -181,8 +208,9 @@ void function ArchonUIInit()
         RoguelikeMod mod = NewMod("shock_power")
         mod.name = "Shock Power"
         mod.abbreviation = "ShP"
-        mod.description = "<cyan>-5% Shield Regen Delay</>\n\nShock procs additionaly deal 25% damage of the original hit."
+        mod.description = "Shock hits additionaly deal 25% damage of the original hit."
         mod.shortdesc = "Shock hits scale with DMG."
+		mod.tags = [ARCHON_BENEFIT_2]
         mod.cost = 3
         mod.chip = TITAN_CHIP_WEAPON
     }
@@ -190,8 +218,10 @@ void function ArchonUIInit()
         RoguelikeMod mod = NewMod("shock_cycle")
         mod.name = "Shock Cycle"
         mod.abbreviation = "ShC"
-        mod.description = "<cyan>+10% Shield Regen Rate</>\n\nNon-shocked enemies provide <cyan>shields on hit.</> Shocked enemies provide <cyan>+35% DMG to your other loadout.</>"
+        mod.description = "Non-shocked enemies provide <cyan>shields on hit.</> Shocked enemies provide <cyan>+35% DMG to your other loadout.</>"
         mod.shortdesc = "Enemies cycle between debuffs\ndepending on Shock state."
+		mod.tags = [ARCHON_BENEFIT_1]
+		mod.statModifiers = [NewStatModifier("max_shields", 100)]
         mod.cost = 3
         mod.chip = TITAN_CHIP_WEAPON
     }
@@ -210,22 +240,20 @@ void function ArchonUIInit()
 			return
 
 		if (Roguelike_HasMod( owner, "arc_cannon_charge"))
-			ModWeaponVars_ScaleVar( weapon, eWeaponVar.charge_time, 0.333 )
+			ModWeaponVars_ScaleVar( weapon, eWeaponVar.charge_time, 0.9 / (1.0 + Roguelike_GetStat( owner, "fire_rate_titan") * 5))
 	})
 
 	#endif
 	#if SERVER
 	AddCallback_CritRate( float function( entity ent, entity player, var damageInfo ) : () {
 		float result = 0.0
-		if (Roguelike_HasMod( player, "shield_unprotect"))
-			result += 0.25 // +25%
 
 		return result
 	})
 	AddCallback_CritDMG( float function( entity ent, entity player, var damageInfo ) : () {
 		float result = 0.0
 		if (Roguelike_HasMod( player, "shield_buff") && (player.IsTitan() && player.GetTitanSoul().GetShieldHealth() < 50))
-			result += 0.25 // +25%
+			result += 0.5 // +25%
 
 		return result
 	})
@@ -239,6 +267,7 @@ void function ArchonUIInit()
 
 		if (Roguelike_HasMod( player, "health_convert"))
 			rate *= 0.75
+		rate *= 1.0 - 0.05 * Roguelike_GetTagCount( player, ARCHON_BENEFIT_2 )
 		
 		return rate
 	})
@@ -247,6 +276,7 @@ void function ArchonUIInit()
 		float rate = 1.0
 		
 		array<string> mods = []
+		//rate /= 1.0 + 0.1 * Roguelike_GetTagCount( player, ARCHON_BENEFIT_1 )
 		
 		return rate
 	})
@@ -265,6 +295,16 @@ void function ArchonUIInit()
 		}
 	)
 	AddCallback_OnPlayerRespawned( PlayerDidRespawn )
+	AddDisorderCallback( float function( entity ent, entity attacker, var damageInfo ) : ()
+	{
+		if (RSE_Get( ent, RoguelikeEffect.archon_shock_active ) > 0)
+		{
+			float bonus = 1 + 0.005 * Roguelike_GetStat( attacker, "ability_power" )
+			RSE_Stop( ent, RoguelikeEffect.archon_shock_active )
+			return bonus * max(1, RSE_Get( ent, RoguelikeEffect.archon_shock_active ))
+		}
+		return 0
+	})
 	#endif
 	#if CLIENT
 	AddCallback_DisplaySignatureStatusEffect( loadout.primary, void function( var bar, var text, var icon, entity ent, entity player ) : () {
@@ -276,9 +316,9 @@ void function ArchonUIInit()
 		}
 		Hud_SetBarProgress( bar, cur )
 		Hud_SetText( text, "Shock")
-		Hud_SetImage( icon, $"ui/daze")
-		Hud_SetColor( bar, active ? 255 : 32, active ? 255 : 128, 255, 255 )
-		Hud_SetColor( text, active ? 255 : 32, active ? 255 : 128, 255, 255 )
+		Hud_SetImage( icon, $"ui/status_effects/shock")
+		//Hud_SetColor( bar, active ? 255 : 32, active ? 255 : 128, 255, 255 )
+		Hud_SetColor( icon, active ? 255 : 32, active ? 255 : 128, 255, 255 )
 	})
 	#endif
 }
@@ -305,7 +345,7 @@ void function PlayerDealtDamage( entity ent, var damageInfo )
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
 	if (Roguelike_HasMod(attacker, "shield_buff") && attacker.IsTitan() && attacker.GetTitanSoul().GetShieldHealth() < 50)
 	{
-		DamageInfo_AddDamageBonus( damageInfo, 0.25 ) // +DMG%
+		DamageInfo_AddDamageBonus( damageInfo, 0.5 ) // +DMG%
 	}
 	if (Roguelike_HasMod( attacker, "shock_cycle") && attacker.IsTitan())
 	{
@@ -340,7 +380,7 @@ void function PlayerDidRespawn( entity player )
 		{
 			player.WaitSignal("LoadoutSwap")
 			if (player.IsTitan() && Roguelike_HasMod( player, "other_loadout_shield" ))
-				Archon_RestoreShield( player, 200 )
+				Archon_RestoreShield( player, 400 )
 			wait 2
 		}
 	}(player)
@@ -351,8 +391,9 @@ RoguelikeMod function NewMod(string uniqueName)
 {
     RoguelikeMod mod = Roguelike_NewMod(uniqueName)
 
-    mod.useLoadoutChipSlot = false
+    mod.useLoadoutChipSlot = true
     mod.loadouts = ["mp_titanweapon_archon_arc_cannon"]
+    mod.chip = 3
     mod.isTitan = true
 
     return mod

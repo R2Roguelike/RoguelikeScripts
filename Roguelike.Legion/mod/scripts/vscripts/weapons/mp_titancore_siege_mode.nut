@@ -106,7 +106,8 @@ void function SmartCoreThink( entity weapon, float coreDuration )
 		AddAmmoStatusEffect( owner )
 	}
 
-	int statusEffect = StatusEffect_AddEndless( soul, eStatusEffect.titan_damage_amp, 0.20 )
+	float powerScalar = SoftCastToFloat(weapon.GetWeaponInfoFileKeyField("ability_power_scalar_1"))
+	int statusEffect = StatusEffect_AddEndless( soul, eStatusEffect.titan_damage_amp, (20 + Roguelike_GetStat( owner, "ability_power") * powerScalar) / 255.0 )
 
 	OnThreadEnd(
 	function() : ( weapon, soul, owner, statusEffect, statusEffectSmartCore )

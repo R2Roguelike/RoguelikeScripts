@@ -233,7 +233,8 @@ void function SetupSarahAfterSpawn()
 {
 	wait 1.0
 
-	Assert( IsValid( file.sarahTitan ) )
+	if ( !IsValid( file.sarahTitan ) )
+		return
 	file.sarahTitan.SetSkin(2)
 	file.sarahTitan.SetTitle( "#NPC_SARAH_NAME" )
 	ShowName( file.sarahTitan )
@@ -311,7 +312,7 @@ void function StartPoint_TdayIntro( entity player )
 	CheckPoint_ForcedSilent()
 	printt( "sarah appears! " + Time() )
 	entity groundNode = GetEntByScriptName( "landing_node" )
-	if (GetSpDifficulty() <= DIFFICULTY_EASY)
+	if (GetSpDifficulty() <= 0)
 		thread PlayAnimTeleport( file.sarahTitan, "BT_TDay_drop_sarah_end_V2", groundNode )
 	else
 	{
@@ -341,6 +342,9 @@ void function StartPoint_Skipped_Intro( entity player )
 	FlagClear( "fx_tday_ship_interior" )
 	BTAutoFriendlyFollower( player, false )
 	FlagSet( "ShipIntroEnded" )
+
+	if (GetSpDifficulty() > 0)
+		file.sarahTitan.Destroy()
 }
 
 // -------------------------------------------------------------------------------------------------------------------------
@@ -1322,13 +1326,12 @@ void function TitanBaySequence( asset titanModel, asset pilotModel, string weapo
 		thread PlayAnimTeleport( pilot, pilotAnim, shipNode )
 	thread PlayAnimTeleport( marvin, marvinAnim, shipNode )
 	waitthread PlayAnimTeleport( titan, titanAnim, shipNode )
-
-	rack.Destroy()
-	titan.Destroy()
 	if ( IsValid( pilot ) )
 		pilot.Destroy()
-	marvin.Destroy()
-	weapon.Destroy()
+	if ( IsValid( pilot ) )
+		marvin.Destroy()
+	if ( IsValid( pilot ) )
+		weapon.Destroy()
 }
 
 void function IntroSequence( entity player )

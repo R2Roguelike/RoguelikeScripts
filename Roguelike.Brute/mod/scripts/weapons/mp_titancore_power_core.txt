@@ -1,0 +1,77 @@
+WeaponData
+{
+	"printname"										"Power Core"
+	"shortprintname"								"Power Core"
+	"description"									"Gain <cyan>50% cooldown reduction, quicker ability casting, and fire missiles for every hit you deal.</>"
+	"longdesc"										"Gain <cyan>50% cooldown reduction, quicker ability casting, and fire missiles for every hit you deal.</>"
+
+	"menu_icon"										"roguelike/brute/hud/power_core"
+	"hud_icon"										"roguelike/brute/hud/power_core"
+
+	// General
+	"weaponClass" 									"titan"
+	"weaponType"									"titan_core"
+	"fire_mode"   									"offhand_instant"
+
+	"OnWeaponPrimaryAttack"							"OnAbilityStart_Power_Core"
+	"OnWeaponChargeBegin"							"OnCoreCharge_Power_Core"
+	"OnWeaponChargeEnd"								"OnCoreChargeEnd_Power_Core"
+
+	"damage_type" 									"none"
+	"fire_rate"										"0.0"	// prevent triggering a fire animation event on client
+
+	// Ammo
+	"ammo_stockpile_max"							"200"
+	"ammo_clip_size"   								"200"
+	"ammo_default_total"							"200"
+
+	"damage_protection"								"0"
+
+	"play_offhand_charging_anim"  					"1"
+
+    "ability_duration_value_1"                  "core_duration"
+	"ability_duration_base_value"				"core_duration"
+
+	MP_BASE
+	{
+		"core_duration"								"12.0" //Needs to match charge_cooldown_delay
+		"charge_cooldown_delay"   					"12.0"
+		"charge_cooldown_time"						"13.0"
+	}
+
+	SP_BASE
+	{
+		"core_duration"								"15.0" //Needs to match charge_cooldown_delay
+		"charge_cooldown_delay"   					"15.0"
+		"charge_cooldown_time"						"16.0"
+	}
+
+
+	// Behavior
+	"core_build_time"								"120"
+	"chargeup_time"									"0.75"	// also update ACT_MP_OFFHAND_CHARGING time in qc
+	"passive"										"PAS_SMART_CORE"
+
+	"readymessage"									"POWER CORE ONLINE"
+	"readyhint"										"`1%ability 1% `0Activate Power Core"
+
+	// Charge settings
+	"charge_time" 									"0.75" // chargeup time // also update update ACT_MP_OFFHAND_CHARGING time in qc
+	"charge_end_forces_fire"  						"1"
+	"charge_require_input"							"0"
+
+	//"dialog_core_online"							"swordCoreOnline"
+	//"dialog_core_activated"							"swordCoreActivated"
+
+	"npc_rest_time_between_bursts_min"				"20"
+	"npc_rest_time_between_bursts_max"				"20"
+
+	Mods
+	{
+		fd_duration
+		{
+			"core_duration"								"24.0" //Needs to match charge_cooldown_delay
+			"charge_cooldown_delay"   					"24.0"
+		}
+	}
+}

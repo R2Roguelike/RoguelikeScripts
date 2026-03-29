@@ -341,6 +341,7 @@ function RemoteFunctions_Init()
 	Remote_RegisterFunction( "ServerCallback_ActiveSPTitanLoadout" )
 	Remote_RegisterFunction( "ServerCallback_UnlockedNewSPTitanLoadout" )
 	Remote_RegisterFunction( "ServerCallback_ClearFirstTitanLoadoutNagOnOpen" )
+	Remote_RegisterFunction( "ServerCallback_Roguelike_LoadingCheckpoint" )
 
 
 	// TITAN SHIELD BATTERY
@@ -798,6 +799,7 @@ function RemoteFunctions_Init()
 	RegisterNetworkedVariable( "coreAvailableFrac", SNDC_TITAN_SOUL, SNVT_FLOAT_RANGE, 0.0, 0.0, 1.0 )
 	RegisterNetworkedVariable( "coreExpireFrac", SNDC_TITAN_SOUL, SNVT_FLOAT_RANGE_OVER_TIME, 0.0, 0.0, 1.0 )
 	RegisterNetworkedVariable( "upgradeCount", SNDC_TITAN_SOUL, SNVT_INT, 0 )
+	RegisterNetworkedVariable( "canLoadCheckpoint", SNDC_GLOBAL, SNVT_BOOL, false )
 
 	RegisterServerVar( "startPointIndex", 0 )
 	RegisterServerVar( "startTime", 0.0 )
@@ -805,6 +807,7 @@ function RemoteFunctions_Init()
 	RegisterServerVar( "isTimerPaused", false )
 	RegisterServerVar( "timerVisible", false )
 	RegisterServerVar( "roguelikeKills", 0 )
+	RegisterServerVar( "roguelikeTitanKills", 0 )
 
 	// bnr
 	// a1

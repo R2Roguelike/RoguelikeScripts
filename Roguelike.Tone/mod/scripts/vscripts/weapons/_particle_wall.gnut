@@ -20,10 +20,12 @@ global const TURRET_SHIELD_WALL_FX = $"P_turret_shield_wall"
 global const AMPED_WALL_FX = $"P_xo_amped_wall"
 #if MP
 global const SHIELD_WALL_HEALTH = 2000
+global const NPC_SHIELD_WALL_HEALTH = 2000
 global const TURRET_SHIELD_WALL_HEALTH = 3500//1750
 #else
-global const SHIELD_WALL_HEALTH = 1750
-global const TURRET_SHIELD_WALL_HEALTH = 1750
+global const SHIELD_WALL_HEALTH = 2000
+global const NPC_SHIELD_WALL_HEALTH = 1500
+global const TURRET_SHIELD_WALL_HEALTH = 3000
 #endif
 global const PAS_TONE_WALL_HEALTH = 3000
 global const PAS_TONE_WALL_DURATION_MULTIPLIER = 1.5
@@ -103,6 +105,13 @@ void function CreateParticleWallForOwnerFromDirection( entity weaponOwner, float
 	{
 		health = SHIELD_WALL_HEALTH
 	}
+
+	if (weaponOwner.IsPlayer())
+		health += int(50 * (Roguelike_GetStat( weaponOwner, "ability_power" )))
+
+	if (!weaponOwner.IsPlayer())
+		health = NPC_SHIELD_WALL_HEALTH
+		
 	if ( Roguelike_HasMod( weaponOwner, "wall_locks" ) )
 		health *= 4
 	entity vortexSphere = CreateShieldWithSettings( origin + < 0, 0, -64 >, angles, SHIELD_WALL_RADIUS, SHIELD_WALL_RADIUS * 2, SHIELD_WALL_FOV, duration, health, SHIELD_WALL_FX, weaponOwner )
@@ -189,7 +198,7 @@ var function VortexHitBullet( entity vortexSphere, var damageInfo )
 				return
 		}
 		
-		thread AutoFireMissiles( trackerRockets, attacker, owner, false )
+		thread AutoFireMissiles( trackerRockets, attacker, owner, false, true )
 		RSE_Apply( attacker, RoguelikeEffect.wall_locks, 1.0, 2.0, 2.0 )
 	}
 	return true
@@ -213,7 +222,7 @@ bool function VortexHitProjectile( entity vortexSphere, entity attacker, bool ta
 				return true
 		}
 		
-		thread AutoFireMissiles( trackerRockets, attacker, owner, false )
+		thread AutoFireMissiles( trackerRockets, attacker, owner, false, true )
 		RSE_Apply( attacker, RoguelikeEffect.wall_locks, 1.0, 2.0, 2.0 )
 	}
 	return true

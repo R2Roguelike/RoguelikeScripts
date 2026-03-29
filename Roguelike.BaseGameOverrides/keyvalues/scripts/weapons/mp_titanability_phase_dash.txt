@@ -24,6 +24,10 @@ WeaponData
 
 	"sound_dryfire"   								"titan_dryfire"
 
+	"ability_power_base_value"						"1000"
+	"ability_power_scalar_1"						"7"
+	"ability_power_format"							"speed"
+
 	// Effects
 	"impact_effect_table" 							"exp_rocket_dumbfire"
 	"projectile_trail_effect_0" 					"Rocket_Smoke_SMALL_Titan_2"
@@ -51,7 +55,7 @@ WeaponData
 	"ammo_no_remove_from_clip"						"1"
 
 	//Regen Ammo
-	"regen_ammo_refill_rate"						"37.5"
+	"regen_ammo_refill_rate"						"20"
 	"regen_ammo_refill_start_delay"					"0.0"
 
 	MP_BASE

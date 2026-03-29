@@ -125,7 +125,7 @@ resource/ui/menus/inventory.menu
         {
             ControlName				Label
             xpos					0
-            ypos				    -64
+            ypos				    32
             wide					74
             tall					27
             visible					1

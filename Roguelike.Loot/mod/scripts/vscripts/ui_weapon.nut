@@ -34,8 +34,8 @@ table function RoguelikeWeapon_Generate(PRandom rand)
 
     int levelsComplete = expect int(runData.levelsCompleted)
     int baseRarity = levelsComplete / 2
-    float chanceForBetterRarity = GraphCapped( levelsComplete % 2, 0, 2, 0, 1 )
-    if (PRandomFloat(rand) < chanceForBetterRarity)
+    int chanceForBetterRarity = levelsComplete % 2
+    if (PRandomInt(rand, 2) < chanceForBetterRarity)
         baseRarity++
 
     baseRarity = minint(RARITY_RADIANT, maxint(baseRarity, RARITY_COMMON))
@@ -63,7 +63,6 @@ table function RoguelikeWeapon_CreateWeapon( PRandom rand, string name, int rari
         weapon = name,
 		slot = slot,
         level = 0,
-        priceOffset = 0,
         rarity = rarity,
 		perkInherited = "",
 		perk1 = "",
@@ -87,8 +86,6 @@ table function RoguelikeWeapon_CreateWeapon( PRandom rand, string name, int rari
 	perkArr = Roguelike_GetWeaponPerksForSlotAndWeapon( PERK_SLOT_STAT, name )
 	if (rarity > RARITY_COMMON)
 		item.bonusStat = perkArr.getrandom().uniqueName
-
-    item.priceOffset += rarity * 50
 
     return item
 }
@@ -122,7 +119,7 @@ void functionref (var, var) function RoguelikeWeapon_GetHoverFunc( var menu, boo
 		{
 			if (level < Roguelike_GetItemMaxLevel( data ) && isOwned)
 			{
-				options.append( "%[X_BUTTON|MOUSE2]%Upgrade for " + hasEnoughMoney + price + "$" )
+				options.append( "%[X_BUTTON|MOUSE2]%Upgrade - " + hasEnoughMoney + price + "$" )
 			}
 			else
 			{
@@ -181,7 +178,7 @@ void functionref (var, var) function RoguelikeWeapon_GetHoverFunc( var menu, boo
 			[ RARITY_EPIC ] = 15,
 			[ RARITY_LEGENDARY ] = 25
 		}
-		int valuePerLevel = 15
+		int valuePerLevel = 20
 		table<int, string> rarityNames = {
 			[ RARITY_COMMON ] = "Common",
 			[ RARITY_UNCOMMON ] = "Uncommon",
@@ -203,7 +200,8 @@ void functionref (var, var) function RoguelikeWeapon_GetHoverFunc( var menu, boo
 			valuePerLevel = 25
 
 			int damage = GetWeaponInfoFileKeyField_GlobalInt( weaponClassName, "explosion_damage" )
-			float selfDMGMult = Roguelike_GetPilotSelfDamageMult(Roguelike_GetStat( STAT_ENDURANCE ))
+			float selfDMGMult = Roguelike_GetStat( "self_dmg" )
+			
 			weaponDesc += "Explosion Damage: " + damage
 			if (weaponClassName == "mp_weapon_shotgun" || weaponClassName == "mp_weapon_mastiff")
 				weaponDesc += "x8"

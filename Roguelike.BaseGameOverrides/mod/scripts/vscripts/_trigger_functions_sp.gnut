@@ -620,9 +620,12 @@ void function TriggerQuickDeathOnTrigger( entity trigger )
 
 		if ( QuickDeathKillPlayer( player ) )
 		{
-			printt("quickdeath????")
-			Roguelike_QuickDeathInsteadOfKill( player )
-			continue
+			if ( player.p.quickDeathRealDeathFadesToBlack )
+				ScreenFade( player, 0,0,0, 255, 0.1, 999, FFADE_OUT | FFADE_PURGE )
+			wait 0.1
+			if ( IsAlive( player ) )
+				KillPlayer( player, eDamageSourceId.fall )
+			return
 		}
 
 		QuickDeathRestorePlayer( player, trigger )
@@ -728,7 +731,13 @@ void function QuickDeathRestorePlayer( entity player, entity trigger )
 
 bool function QuickDeathKillPlayer( entity player )
 {
-	return player.p.quickDeathOrigin == null || player.p.quickDeathAngles == null
+	if ( RecentlyAttackedOrHasEnemies( player ) )
+		return true
+
+	if ( player.p.quickDeathOrigin == null || player.p.quickDeathAngles == null )
+		return true
+
+	return !SafeToSpawnAtOrigin( player, expect vector( player.p.quickDeathOrigin ) )
 }
 
 void function TryQuickDeathCheckPoint( entity player )

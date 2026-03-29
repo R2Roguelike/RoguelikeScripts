@@ -27,7 +27,7 @@ const float LASER_TRIP_DAMAGE_HEAVY_ARMOR = 1500.0
 const float LASER_TRIP_MIN_ANGLE = 180.0
 const float LASER_TRIP_BIGZAP_RANGE = 1500.0
 
-const float LASER_TRIP_LIFETIME = 300.0
+const float LASER_TRIP_LIFETIME = 20.0
 const float LASER_TRIP_BUILD_TIME = 1.0
 const int LASER_TRIP_MAX = 2
 

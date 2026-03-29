@@ -15,8 +15,8 @@ void function DatacorePerks_Init()
         RoguelikeDatacorePerk mod = NewMod("ability_cd")
         mod.name = "Cooled"
         mod.description = "-%.0f%% ability cooldowns."
-        mod.baseValue = 10.0
-        mod.valuePerLevel = 3.0
+        mod.baseValue = 15.0
+        mod.valuePerLevel = 5.0
         mod.slot = 1
     }
     {
@@ -47,17 +47,17 @@ void function DatacorePerks_Init()
     {
         RoguelikeDatacorePerk mod = NewMod("tanky")
         mod.name = "Batterized"
-        mod.description = "Picking up batteries grants +%.0f%% DMG for 15s."
-        mod.baseValue = 25.0
+        mod.description = "Picking up batteries grants +25%% DMG for %.0fs. Stacks, but each stack is calculated separately."
+        mod.baseValue = 20.0
         mod.valuePerLevel = 5.0
         mod.slot = 2
     }
     {
         RoguelikeDatacorePerk mod = NewMod("swap")
         mod.name = "Divided"
-        mod.description = "Swapping loadouts grants +40%% DMG for %.0fs."
-        mod.baseValue = 5.0
-        mod.valuePerLevel = 1.0
+        mod.description = "Swapping loadouts grants +%.0f%% DMG for 6s."
+        mod.baseValue = 40.0
+        mod.valuePerLevel = 5.0
         mod.slot = 2
     }
     {
@@ -78,7 +78,7 @@ void function DatacorePerks_Init()
     {
         RoguelikeDatacorePerk mod = NewMod("dash+")
         mod.name = "Dashing"
-        mod.description = "Dashing grants +%.0f%% DMG for 2s."
+        mod.description = "Dashing grants +%.0f%% DMG for 3s."
         mod.baseValue = 50.0
         mod.valuePerLevel = 5.0
         mod.slot = 3
@@ -128,7 +128,7 @@ void function DatacorePerks_Init()
         RoguelikeDatacorePerk mod = NewMod("second_wind")
         mod.name = "Backed-Up"
         mod.description = "Titan kills while doomed undoom you. <red>Battery healing reduced by %.0f%%.</>"
-        mod.baseValue = 100.0
+        mod.baseValue = 90.0
         mod.valuePerLevel = -10.0
         mod.slot = 4
     }

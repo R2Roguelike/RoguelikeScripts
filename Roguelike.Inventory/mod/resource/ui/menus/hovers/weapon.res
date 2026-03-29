@@ -142,11 +142,11 @@ resource/ui/menus/hovers/armor_chip.res
         //bgcolor_override 		"0 0 0 200"
         font					JetBrainsMono_18
 
-		wide				384
+		wide				418
         wrap                1
 
-		"xpos"			"-8"
-		"ypos"			"8"
+		"xpos"			"-16"
+		"ypos"			"16"
 
 		pin_to_sibling			TitleStrip
 		pin_corner_to_sibling	TOP_LEFT

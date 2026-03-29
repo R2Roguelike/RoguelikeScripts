@@ -1,6 +1,12 @@
 WeaponData
 {
+    "longdesc"                       "Fires giant thermite grenades ignite the impact area.
+
+<daze>ALL</> of Scorch's damage applies <burn>Burn.</>
+
+Burn <cyan>increases <daze>ALL<cyan> types of damage."
 	"vortex_refire_behavior"  						"absorb"
+
     Mods
     {
         flamethrower

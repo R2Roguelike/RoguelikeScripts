@@ -107,6 +107,74 @@ Resource/UI/HudScripted_mp.res
 		pin_to_sibling_corner		TOP_LEFT
     }
 
+    RewindLabel
+    {
+		ControlName			Label
+		xpos				0
+		ypos				0
+
+		visible				1
+		zpos				200
+        wide                1280
+		tall				24
+		labelText			"<< REWIND AVAILABLE <<"
+		allCaps				0
+		font				JetBrainsMonoBold_27
+		auto_wide_tocontents	1
+        auto_tall_tocontents    1
+		textAlignment		west
+		fgcolor_override 	"255 255 255 255"
+
+		pin_to_sibling				Screen
+		pin_corner_to_sibling		BOTTOM
+		pin_to_sibling_corner		CENTER
+    }
+    RewindLabel2
+    {
+		ControlName			Label
+		xpos				0
+		ypos				0
+
+		visible				1
+		zpos				200
+        wide                1280
+		tall				24
+		labelText			"Loading Checkpoint..."
+		allCaps				0
+		font				JetBrainsMonoBold_27
+		auto_wide_tocontents	1
+        auto_tall_tocontents    1
+		textAlignment		west
+		fgcolor_override 	"255 255 255 255"
+
+		pin_to_sibling				Screen
+		pin_corner_to_sibling		TOP
+		pin_to_sibling_corner		CENTER
+    }
+    RewindLabel3
+    {
+		ControlName			Label
+		xpos				0
+		ypos				16
+
+		visible				1
+		zpos				200
+        wide                1280
+		tall				24
+		labelText			"Ending a run over this? Yeah nah."
+		allCaps				0
+		font				JetBrainsMono_18_Italic
+		auto_wide_tocontents	1
+        auto_tall_tocontents    1
+		textAlignment		west
+		fgcolor_override 	"160 160 160 255"
+
+		pin_to_sibling				RewindLabel2
+		pin_corner_to_sibling		TOP
+		pin_to_sibling_corner		BOTTOM
+    }
+
+
     ItemAcquired
     {
 		ControlName			Label

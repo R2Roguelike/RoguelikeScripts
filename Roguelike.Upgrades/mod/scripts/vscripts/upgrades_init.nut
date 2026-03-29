@@ -1,3 +1,19 @@
+global struct RoguelikeStatModifier
+{
+    string stat
+    float amount
+}
+
+global struct HoverSimpleBox
+{
+    asset icon
+    string initialValue
+    string currentValue
+    string label
+    bool newRow = true
+    bool abilityPowerBox
+}
+
 global struct RoguelikeMod
 {
     string uniqueName = "unnamed_mod"
@@ -11,14 +27,40 @@ global struct RoguelikeMod
     int chip = 0
     string colorTag = ""
     array<string> loadouts = []
+    array<string> tags = []
+    array<HoverSimpleBox> boxes = []
     bool isHidden = false
+    bool doNotUnlock = false
     bool isSwappable = true
+    array<RoguelikeStatModifier> statModifiers
     // uses the loadout-dedicated chip slots.
     // e.g. if you equip scorch and northstar, scorch mods will be available in chip 3
     // but if you equip tone and scorch, scorch mods will be available in chip 4
     bool useLoadoutChipSlot = false
+    float abilityPowerValue = 0.0
+    float abilityPowerScalar = 0.0
+    string abilityPowerFormat = "+%.0f%%"
+    string abilityPowerLabel = ""
 
     bool unlockedByDefault = false
+    int index = 0
+}
+
+global struct RoguelikeStat
+{
+    string uniqueName = "unnamed_mod"
+    string name = "UNNAMED MOD!!"
+    string description = "" // no description by default
+    //string description = "THERE IS NO DESCRIPTION DEVS DIDNT MAKE ONE" // consider
+    //asset icon = $"vgui/hud/missing" // consider as well
+    bool isTitan = false
+    float baseValue = 0.1 // initial value, without any increases 
+    float chipValue = 0.01 // a multiplier for chips to use
+    bool isPercentage = false
+    bool diminishingReturns = false // if the stat has diminishing returns
+                                    // a stat which should never reach 100% (e.g. -100% DMG Taken)
+    bool isHeader = false           // HACK: is this stat used as a header
+
     int index = 0
 }
 
@@ -32,6 +74,8 @@ global struct RoguelikeRunModifier
     int baseCost = 0
     int costPerLevel = 0
     int index = 0
+    int defaultValue = 0
+    int negativeCost = 0
 }
 
 global const int PERK_SLOT_STAT = 0
@@ -69,6 +113,10 @@ global struct UniqueTitanPassiveData
     string name
     string desc
 }
+global struct StatusEffectInfo
+{
+    array<RoguelikeStatModifier> statModifiers
+}
 
 global struct StatusEffectData
 {
@@ -87,15 +135,6 @@ global const bool MOD_TYPE_PILOT = false
 
 global const int STAT_COUNT = 8;
 global const int STAT_TITAN_COUNT = 4;
-
-global const int STAT_ARMOR     = 0;
-global const int STAT_ENERGY    = 1;
-global const int STAT_POWER     = 2;
-global const int STAT_COOLING   = 3;
-global const int STAT_TEMPER    = 4;
-global const int STAT_SPEED     = 5;
-global const int STAT_ENDURANCE = 6;
-global const int STAT_VISION = 7;
 
 global const int TITAN_CHIP_CHASSIS = 1;
 global const int TITAN_CHIP_UTILITY = 2;
@@ -124,9 +163,6 @@ global const int ENEMY_HP_PER_LEVEL        = 0;
 global const int ENEMY_HP_PER_LEVEL_HARD   = 0;
 global const int ENEMY_HP_PER_LEVEL_MASTER = 0;
 
-global const int CHIP_MAIN_STAT_MULT = 5;
-global const int CHIP_SUB_STAT_MULT = 5;
-
 global const array<string> DIFFICULTY_NAMES = [ "Easy", "Normal", "Hard", "Masochist" ]
 global const string NORMAL_DIFFICULTY_DESC = "Enemy health reduced, certain level modifications disabled.\n^F4D5A600For those who don't like, or can't take on a challenge."
 global const string HARD_DIFFICULTY_DESC = "The intended experience for those new here.\n^F4D5A600Good luck."
@@ -149,11 +185,15 @@ global const int ALL_CHIP_SLOTS = 0xFFFF
 global const int DAMAGEFLAG_DISCHARGE = 32
 global const int DAMAGEFLAG_DISORDER = 64
 global const int DAMAGEFLAG_ELECTRIC = 128
-global const int DAMAGEFLAG_FIRE = 256
+global const int DAMAGEFLAG_FIRE = 256 // aka DAMAGEFLAG_SCORCH
 global const int DAMAGEFLAG_CLONE = 512 // for tone's hacked enemy
 global const int DAMAGEFLAG_GREEN = 1024 // for green damage - used for procs
-global const int DAMAGEFLAG_LOADOUT1 = 2048 // for green damage - used for procs
-global const int DAMAGEFLAG_LOADOUT2 = 4096 // for green damage - used for procs
+global const int DAMAGEFLAG_LOADOUTBIT1 = 2048 // for green damage - used for procs
+global const int DAMAGEFLAG_LOADOUTBIT2 = 4096
+global const int DAMAGEFLAG_LOADOUTBIT3 = 8192 
+global const int DAMAGEFLAG_LOADOUTBIT4 = 16384
+global const int DAMAGEFLAG_LOADOUTBIT5 = 32768
+global const int DAMAGEFLAG_ARMED = 65536
 
 // maps which have saves disabled
 // if buffer overflows happen in a map, add them here
@@ -166,7 +206,12 @@ global const array<string> DISABLE_SAVE_MAPS = [
     "sp_beacon"
 ]
 
-global const int SHOP_MOD_PRICE = 500
+global const array<string> NPC_BANNED_CORES = [
+    "mp_titancore_laser_cannon"
+]
+
+global const int SHOP_MOD_PRICE = 300
+global const int SHOP_MOD_PRICE_PERLEVEL = 50
 global const int SHOP_LOOT_PRICE = 100
 global const int SHOP_LOOT_PRICE_PERRARITY = 100
 
@@ -220,11 +265,15 @@ global enum RoguelikeEffect
     master_electric,
     master_physical,
     explosive_start,
+    explosive_end,
     kill_self_dmg,
     physical_dmg,
     electric_dmg,
     fire_dmg,
     clone_lockons_generic,
+    clone_lockons_primary,
+    clone_lockons_offensive,
+    weapon_crit_cd,
     hit_locks,
     physical_spread,
     salvo_locks,
@@ -236,6 +285,15 @@ global enum RoguelikeEffect
     tanky_perk,
     buff_turret,
     mag_size_inf,
+    brute_arm,
+    brute_quickload_firerate,
+    brute_infinite_core,
+    dual_load,
+    infinite_ammo,
+    burst_load,
+    arm_load,
+    xo16_intensify,
+    tone_tracker_cooldown,
     count,
 }
 
@@ -245,6 +303,7 @@ global struct RoguelikeLoadout
     int index = -1
     string description = "PLACEHOLDER!"
     string role = "FUCK"
+    string role2 = "FUCK"
     int element = 0 // default to physical
     int unlockBit = -1
     string primary
@@ -260,6 +319,18 @@ global struct RoguelikeLoadout
     array color
 }
 
+global struct HoverSimpleData
+{
+    array<HoverSimpleBox> boxes = []
+    array color = [40, 40, 40, 255]
+    string subTitle = ""
+    string title = ""
+    string description = ""
+    string footerText = ""
+    string levelLabel = ""
+    float dismantleFrac = 0.0
+}
+
 global array<string> ROGUELIKE_FIRE_WEAPONS = [
     "mp_weapon_mastiff",
     "mp_weapon_shotgun_pistol",
@@ -269,17 +340,7 @@ global array<string> ROGUELIKE_FIRE_WEAPONS = [
     "mp_weapon_lstar",
     "mp_weapon_car",
     "molotov",
-    // all of scorch
-    "mp_titanweapon_meteor",
-    "mp_titanweapon_meteor_thermite",
-    "mp_titancore_flame_wave",
-    "mp_titanweapon_flame_wall",
-    "mp_titanweapon_heat_shield",
-    "mp_titanability_slow_trap",
-    "mp_titancore_salvo_core",
-    "mp_titanweapon_tracker_rockets",
-    //"mp_titanweapon_shoulder_rockets",
-    "mp_titanweapon_sticky_40mm"
+    "damagedef_nuclear_core"
 ]
 global array<string> ROGUELIKE_ELECTRIC_WEAPONS = [
     "mp_weapon_rspn101",
@@ -292,13 +353,6 @@ global array<string> ROGUELIKE_ELECTRIC_WEAPONS = [
     "mp_weapon_grenade_emp",
     "mp_weapon_grenade_electric_smoke",
     "mp_weapon_grenade_gravity",
-    "mp_titanweapon_leadwall",
-    "melee_titan_sword",
-    "mp_titancore_shift_core",
-    "mp_titanweapon_particle_accelerator",
-    "mp_titanweapon_laser_lite",
-    "mp_titanweapon_vortex_shield",
-    "mp_titanweapon_arc_wave",
     //"mp_titanweapon_sniper",
 ]
 global array<string> ROGUELIKE_PILOT_WEAPONS = [
@@ -322,13 +376,17 @@ global array<string> ROGUELIKE_PILOT_WEAPONS = [
 	"mp_weapon_doubletake",
 	"mp_weapon_dmr",
 	// shotguns
-	"mp_weapon_shotgun",
-	"mp_weapon_mastiff",
 	"mp_weapon_wingman_n",
 	//"mp_weapon_peacekraber",
 	// ???
 	"mp_weapon_arc_launcher",
 	// PISTOL
+]
+global array<string> ROGUELIKE_TITAN_EQUIPMENT = [
+    "mp_titanability_rearm",
+    "mp_titanability_craft_battery",
+    "mp_titanability_particle_wall",
+    ""
 ]
 
 global array<string> ROGUELIKE_GRENADES = [
@@ -356,11 +414,11 @@ global array<string> ROGUELIKE_MOVEMENT_TOOLS = [
 global struct RSEInstance
 {
     int effect
+    int instanceId
     float stacks
     float startTime
     float endTime
     float fadeOutTime
-    bool isEndless
 }
 
 global struct RStatusEffectData
@@ -370,6 +428,6 @@ global struct RStatusEffectData
 
 global struct PRandom
 {
-    int originalSeed
+    int iterations
     int seed
 }

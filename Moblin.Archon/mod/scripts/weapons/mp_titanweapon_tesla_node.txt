@@ -87,17 +87,22 @@ WeaponData
 	"explosion_inner_radius"						"140"
 	"impulse_force"   								"15000"
 
+	"ability_power_base_value"						"330"
+	"ability_duration_base_value"					"10"
+	"ability_power_scalar_1"					 "4"
+	"ability_power_format"						"range"
+
 	// Ammo
 	"ammo_display"									"bar"
 	"ammo_stockpile_max"							"1000"
 	"ammo_clip_size"   								"1000"
 	"ammo_default_total"							"1000"
-	"ammo_per_shot"									"600" // 750
-	"ammo_min_to_fire"								"600" // 750 base
+	"ammo_per_shot"									"750" // 750
+	"ammo_min_to_fire"								"750" // 750 base
 	"cooldown_type"                                 "shield"
 
 	//Regen Ammo
-	"regen_ammo_refill_rate"						"30" // 15s
+	"regen_ammo_refill_rate"						"100" // 15s
 	"regen_ammo_refill_start_delay"					"0.0"
 
 	// Behavior

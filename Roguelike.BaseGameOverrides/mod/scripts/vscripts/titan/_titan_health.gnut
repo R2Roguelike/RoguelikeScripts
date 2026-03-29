@@ -80,7 +80,7 @@ void function UndoomTitan( entity titan, int numSegments )
 	int segmentHealth = GetSegmentHealthForTitan( titan )
 	int restoreHealth = segmentHealth * numSegments
 	if (titan.IsPlayer())
-		restoreHealth = Roguelike_GetBatteryHealingMultiplier( Roguelike_GetStat( titan, STAT_ARMOR ) ) * numSegments
+		restoreHealth = int(Roguelike_GetStat( titan, "battery_healing" )) * numSegments
 	if ( titan.IsNPC() )
 	{
 		maxHealth = int( GetPlayerSettingsFieldForClassName_Health( settings ) )
@@ -950,6 +950,7 @@ void function AddCreditToTitanCoreBuilderForTitanDamageInflicted( entity titanAt
 
 	float rateRaw = CORE_BUILD_PERCENT_FROM_TITAN_DAMAGE_INFLICTED
 	float rate = (rateRaw * 0.01)
+	rate *= 500.0 / (500.0 + GetConVarInt("power_enemy_def"))
 	float credit = (rate * damage)
 	if ( credit > 0.0 )
 		AddCreditToTitanCoreBuilder( titanAttacker, credit )
@@ -998,10 +999,8 @@ void function AddCreditToTitanCoreBuilder( entity titan, float credit )
 
 	if ( titan.IsPlayer() )
 	{
-		int power = Roguelike_GetStat( bossPlayer, STAT_POWER )
 		float multiplier = 1.0
-		multiplier *= Roguelike_GetTitanCoreGain( power )
-		multiplier *= 500.0 / (500.0 + GetConVarInt("power_enemy_def"))
+		multiplier *= 1.0 + Roguelike_GetStat( bossPlayer, "core_gain" )
 		//if (VERBOSE_HEALTH_PRINTOUTS)
 		//	printt("Core Mult:", multiplier)
 

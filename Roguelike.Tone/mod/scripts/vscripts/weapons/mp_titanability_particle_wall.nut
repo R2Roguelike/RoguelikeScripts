@@ -34,6 +34,8 @@ var function OnWeaponPrimaryAttack_particle_wall( entity weapon, WeaponPrimaryAt
 		duration = SP_PARTICLE_WALL_DURATION
 	else
 		duration = MP_PARTICLE_WALL_DURATION
+
+	duration *= 1.0 + Roguelike_GetStat( weaponOwner, "ability_duration" )
 	CreateParticleWallFromOwner( weapon.GetWeaponOwner(), duration, attackParams )
 #endif
 	return weapon.GetWeaponInfoFileKeyField( "ammo_per_shot" )

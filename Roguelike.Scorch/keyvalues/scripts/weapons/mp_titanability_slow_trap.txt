@@ -1,14 +1,22 @@
 WeaponData
 {
-	"charge_wave_max_count"							"6"
+	"wave_max_count"							"3"
+	"wave_step_dist"							"75.0"
+	"charge_wave_max_count"							"3"
 	"charge_wave_step_dist"							"75.0"
 
 
-	"ammo_stockpile_max"							"270"
-	"ammo_clip_size"   								"270"
-	"ammo_default_total"							"270"
-	"ammo_per_shot"									"135"
-	"ammo_min_to_fire"								"135"
+	"ammo_stockpile_max"							"500"
+	"ammo_clip_size"   								"500"
+	"ammo_default_total"							"500"
+	"ammo_per_shot"									"250"
+	"ammo_min_to_fire"								"250"
 
-	"regen_ammo_refill_rate"						"9"
+	"regen_ammo_refill_rate"						"10"
+	"regen_ammo_refill_start_delay"					"0.3"
+
+	"ability_duration_base_value"					"9.1"
+	"ability_power_base_value"						"225"
+	"ability_power_scalar_1"					"2.25"
+	"ability_power_format"						"range"
 }

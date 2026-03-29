@@ -263,6 +263,10 @@ WeaponData
 	"sprintcycle_time"								"0.55"
 	"arc_switch_activator"							"1"
 
+	"ability_power_base_value"						"1250"
+	"ability_power_scalar_1"					"25"
+	"ability_power_format"						"range"
+
 	// Crosshair
 	"red_crosshair_range" 							"3000"
 

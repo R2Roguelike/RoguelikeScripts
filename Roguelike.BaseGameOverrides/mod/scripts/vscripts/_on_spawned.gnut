@@ -42,7 +42,24 @@ void function CodeCallback_PreSpawn( entity npc )
 		bool overrideTitan = GetConVarString("roguelike_force_titan")!="" && !isBT && !isMerc && npc.GetTeam() != TEAM_MILITIA
 		if (overrideTitan)
 		{
-			SetAISettingsWrapper( npc, GetConVarString("roguelike_force_titan") )
+			if (GetConVarString("roguelike_force_titan") == "rand")
+			{
+
+				array<string> validTitans = [
+					"npc_titan_ogre_meteor",
+					"npc_titan_ogre_minigun",
+					"npc_titan_atlas_tracker",
+					"npc_titan_atlas_stickybomb",
+					"npc_titan_stryder_leadwall",
+					"npc_titan_stryder_sniper"]
+					
+				vector origin = npc.GetOrigin()
+				int posSeed = int((origin.x + origin.y * 5 + origin.z * 17))
+				PRandom rand = NewPRandom(Roguelike_GetLevelSeed() + posSeed)
+				SetAISettingsWrapper( npc, validTitans[PRandomInt( rand, validTitans.len() )] )
+			}
+			else
+				SetAISettingsWrapper( npc, GetConVarString("roguelike_force_titan") )
 		}
 		if ( npc.ai.titanSettings.titanSetFile == "" )
 		{
@@ -74,6 +91,10 @@ void function CodeCallback_PreSpawn( entity npc )
 			npc.ai.titanSpawnLoadout.setFile = builtInLoadout
 			// OverwriteLoadoutWithDefaultsForSetFile_ExceptSpecialAndAntiRodeo( npc.ai.titanSpawnLoadout )
 			OverwriteLoadoutWithDefaultsForSetFile( npc.ai.titanSpawnLoadout ) // get the entire loadout, including defensive and tactical
+			if (NPC_BANNED_CORES.contains(npc.ai.titanSpawnLoadout.coreAbility) && !IsMercTitan(npc))
+			{
+				npc.ai.titanSpawnLoadout.coreAbility = "" // remove core from npc...
+			}
 
 			//Set camo, decal, and skin indices from npc settings.
 			//Using Dev_GetAISettingsByKeyField_Global because titan has not spawned yet, so the non-global version of this function does not work.
@@ -333,10 +354,10 @@ void function CodeCallback_OnSpawned( entity ent )
 	RunMySpawnFunctions( ent )
 	if (ent.IsNPC())
 	{
-	foreach (entity weapon in ent.GetOffhandWeapons())
-		ModWeaponVars_CalculateWeaponMods( weapon )
-	foreach (entity weapon in ent.GetMainWeapons())
-		ModWeaponVars_CalculateWeaponMods( weapon )
+		foreach (entity weapon in ent.GetOffhandWeapons())
+			ModWeaponVars_CalculateWeaponMods( weapon )
+		foreach (entity weapon in ent.GetMainWeapons())
+			ModWeaponVars_CalculateWeaponMods( weapon )
 	}
 }
 
@@ -397,7 +418,7 @@ function RunSpawnCallbacks( entity self )
 	{
 		if ( funcArray.entityClassname == classname )
 		{
-			foreach ( func in funcArray.callbackArray )
+			foreach ( index, func in funcArray.callbackArray )
 			{
 				func( self )
 			}

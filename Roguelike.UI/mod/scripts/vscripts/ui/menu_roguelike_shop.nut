@@ -33,7 +33,6 @@ void function Roguelike_OpenShopMenu(int seed)
 	file.gridData.paddingHorz = int( ContentScaledX( 8 ) )
 	file.gridData.initCallback = Slot_Init
     
-    GridMenuInit( file.menu, file.gridData )
     Grid_InitPage( file.menu, file.gridData )
 }
 
@@ -41,6 +40,18 @@ void function InitRoguelikeShopMenu()
 {
     file.menu = GetMenu("RoguelikeShop")
 
+	file.gridData.columns = 7
+	file.gridData.rows = 2
+	file.gridData.numElements = 16
+	file.gridData.pageType = eGridPageType.HORIZONTAL
+	file.gridData.tileWidth = ContentScaledXAsInt( 80 )
+	file.gridData.tileHeight = ContentScaledYAsInt( 80 )
+	file.gridData.paddingVert = int( ContentScaledX( 8 ) )
+	file.gridData.paddingHorz = int( ContentScaledX( 8 ) )
+	file.gridData.initCallback = Slot_Init
+    
+    GridMenuInit( file.menu, file.gridData )
+    Grid_InitPage( file.menu, file.gridData )
     AddMenuEventHandler( file.menu, eUIEvent.MENU_OPEN, OnMenuOpen )
 }
 
@@ -75,11 +86,7 @@ void function Reroll()
 
 int function GetShopSeed()
 {
-    table shopRerolls = GetShopRerollTable()
-    int rerolls = expect int(file.seed in shopRerolls ? shopRerolls[file.seed] : 0)
-    int rand = file.seed
-    rand += 0x9e3779b9 * rerolls // jump ahead
-    return rand
+    return file.seed
 }
 
 void function SetSlotPurchased( int slot )
@@ -112,7 +119,7 @@ void function RoguelikeShop_RefreshInventory()
     Grid_InitPage( file.menu, file.gridData )
 
     array lockedMods = []
-    lockedMods.extend(GetAllLockedTitanMods())
+    lockedMods.extend(GetAllTitanModsInLootPool(-1))
 
     array<RoguelikeMod> mods
     foreach (string s in lockedMods)
@@ -123,6 +130,7 @@ void function RoguelikeShop_RefreshInventory()
     bool unlockAll = GetConVarBool("roguelike_unlock_all")
     file.mods.clear()
     file.loot.clear()
+    printt(rand.seed, rand.iterations)
     for (int i = 0; i < 1;)
     {
         var slot = Hud_GetChild( file.menu, "ModSlot" + i )
@@ -139,19 +147,24 @@ void function RoguelikeShop_RefreshInventory()
             continue
         }
 
+        bool has2ndLoadout = Roguelike_GetTitanLoadouts().len() > 1
+        int chipSlot = PRandomInt( rand, 1, has2ndLoadout ? 5 : 4 )
+        
         int index = PRandomInt( rand, lockedMods.len() )
         
-        if (GetLockedPilotModsLeft().len() + GetLockedTitanModsLeft().len() - i <= 0)
+        if (GetLockedTitanModsLeft(chipSlot).len() - i <= 0)
         {
             Hud_SetVisible( slot, false )
             i++
             continue
         }
-        if (file.mods.contains(mods[index]) || Roguelike_IsModUnlocked( mods[index] ))
+        if (file.mods.contains(mods[index]) || Roguelike_IsModUnlocked( mods[index] ) 
+        || !Roguelike_IsModCompatibleWithSlot( mods[index], chipSlot, true ) )
         {
             continue
         }
 
+        printt(index, rand.seed, rand.iterations)
         RemoveHover( slot )
         if (!("data" in slot.s))
         {
@@ -165,7 +178,7 @@ void function RoguelikeShop_RefreshInventory()
 
         AddHover( slot, ModSlot_Hover, HOVER_SIMPLE )
         ModSlot_DisplayMod( Hud_GetChild( file.menu, "ModSlot" + i ), file.mods[i].isTitan, file.mods[i])
-        if (Roguelike_GetMoney() < 1500 && !unlockAll)
+        if (Roguelike_GetMoney() < Roguelike_GetModPrice() && !unlockAll)
         {
             Hud_SetLocked(Hud_GetChild(slot, "Button"), true)
         }
@@ -231,16 +244,24 @@ void function LootSlot_Click( var button )
 
     Roguelike_GetInventory().append(item)
     RunStats_ItemObtained()
+    Roguelike_GetRunData().maxRarityObtained = maxint(expect int(item.rarity), expect int(Roguelike_GetRunData().maxRarityObtained))
     Roguelike_TakeMoney(price)
     SetSlotPurchased( slot + 5 )
+    Roguelike_BackupRun(expect int(Roguelike_GetRunData().startPointIndex))
     EmitUISound("UI_InGame_FD_ArmoryPurchase")
     RoguelikeShop_RefreshInventory()
+}
+
+int function Roguelike_GetModPrice()
+{
+    return SHOP_MOD_PRICE + SHOP_MOD_PRICE_PERLEVEL * GetConVarInt("roguelike_levels_completed")
 }
 
 void function ModSlot_Click( var button )
 {
     bool unlockAll = GetConVarBool("roguelike_unlock_all")
-    if (Roguelike_GetMoney() < SHOP_MOD_PRICE && !unlockAll)
+    int modPrice = Roguelike_GetModPrice()
+    if (Roguelike_GetMoney() < modPrice && !unlockAll)
         return
 
     int slot = expect int(Hud_GetParent( button ).s.data)
@@ -250,8 +271,9 @@ void function ModSlot_Click( var button )
 
     Roguelike_UnlockMod(mod)
     RunStats_ModsUnlocked( 1 )
-    Roguelike_TakeMoney(SHOP_MOD_PRICE)
+    Roguelike_TakeMoney(modPrice)
     SetSlotPurchased( slot )
+    Roguelike_BackupRun(expect int(Roguelike_GetRunData().startPointIndex))
     EmitUISound("UI_InGame_FD_ArmoryPurchase")
     RoguelikeShop_RefreshInventory()
 }
@@ -272,16 +294,25 @@ void function MoneyDiff( int diff )
 
 void function ModSlot_Hover( var slot, var panel )
 {
+    HoverSimpleData data
     int modIndex = expect int(slot.s.data)
     table runData = Roguelike_GetRunData()
     
     RoguelikeMod mod = file.mods[modIndex]
-
+    int modPrice = Roguelike_GetModPrice()
+    
+    Hud_SetColor( Hud_GetChild(panel, "TitleStrip"), 40, 40, 40, 255 )
+    Hud_SetColor( Hud_GetChild(panel, "BG"), 25,25,25, 255 )
     Hud_SetText( Hud_GetChild(panel, "Title"), mod.name)
     bool unlockAll = GetConVarBool("roguelike_unlock_all")
-    string hasEnoughMoney = Roguelike_GetMoney() > SHOP_MOD_PRICE ? "^FFC04000" : "^FF404000"
-    Hud_SetText( Hud_GetChild(panel, "FooterText"), "%[A|MOUSE1]%Purchase for " + hasEnoughMoney + SHOP_MOD_PRICE + "$" )
-    Hud_SetText( Hud_GetChild(panel, "Description"), format("Energy Cost: ^FF800000%i^FFFFFFFF\n\n%s", mod.cost, FormatDescription(mod.description)) )
+    string hasEnoughMoney = Roguelike_GetMoney() > modPrice ? "^FFC04000" : "^FF404000"
+    data.footerText = "%[A|MOUSE1]%Purchase for " + hasEnoughMoney + modPrice + "$"
+    data.title = mod.name
+    data.color = GetModColor(mod)
+    data.description = Roguelike_GetModDescription(mod)
+    ModSlot_UpdateBoxes( mod )
+    data.boxes = mod.boxes
+    HoverSimple_SetData(data)
 }
  
 bool function Slot_Init( var button, int elemNum )
@@ -294,6 +325,8 @@ bool function Slot_Init( var button, int elemNum )
         Hud_AddEventHandler( Hud_GetChild( button, "Button" ), UIE_CLICK, InventorySlot_Click )
         button.s.clickCallback <- true
     }*/
+
+    button.s.canDismantle <- true
 
     RemoveHover( button )
     array inventory = Roguelike_GetInventory()

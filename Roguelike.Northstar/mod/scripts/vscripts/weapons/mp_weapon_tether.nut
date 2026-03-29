@@ -187,6 +187,8 @@ void function OnProjectileCollision_weapon_tether( entity projectile, vector pos
 		else
 		{
 			thread ProximityTetherThink( projectile, owner, isExplosiveTether )
+			SetVisibleEntitiesInConeQueriableEnabled( projectile, true )//WHERE IS IT?!
+			AddEntityCallback_OnDamaged( projectile, ConeDamageTethersException )
 		}
 	#endif
 }
@@ -265,6 +267,8 @@ void function ProximityTetherThink( entity projectile, entity owner, bool isExpl
 	if ( owner.IsNPC() )
 		TETHER_MINE_LIFETIME = 10.0
 
+	TETHER_MINE_LIFETIME *= 1.0 + Roguelike_GetStat( owner, "ability_duration" )
+
 	while ( IsValid( projectile ) && startTime + TETHER_MINE_LIFETIME > Time() )
 	{
 		array<entity> enemyTitans = GetNPCArrayEx( "npc_titan", TEAM_ANY, team, projectile.GetOrigin(), 450 )
@@ -281,6 +285,7 @@ void function ProximityTetherThink( entity projectile, entity owner, bool isExpl
 			if ( projectilePos.z > playerPos.z )
 				playerPos.z = min( player.EyePosition().z, projectilePos.z )
 
+			float range = 350 + Roguelike_GetStat( owner, "ability_power" ) * 2
 			if ( DistanceSqr( playerPos, projectile.GetOrigin() ) > 350 * 350 )
 				continue
 

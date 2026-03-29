@@ -21,7 +21,7 @@ void function CreatePilotSpeedometer( entity cockpit, entity player )
 	file.rui = CreateCockpitRui( $"ui/pilot_speedometer.rpak" )
 
 	RuiSetBool( file.rui, "useMetric", file.useMetric )
-	RuiSetGameTime( file.rui, "startTime", Time() + 9999.9 )
+	RuiSetGameTime( file.rui, "startTime", Time() )
 	RuiTrackFloat3( file.rui, "playerPos", player, RUI_TRACK_ABSORIGIN_FOLLOW )
 
 	player.EndSignal( "OnDeath" )
@@ -34,7 +34,11 @@ void function CreatePilotSpeedometer( entity cockpit, entity player )
 		}
 	)
 
-	WaitForever()
+	while (1)
+	{
+		//RuiSetFloat3( file.rui, "playerPos", player.GetOrigin() )
+		wait 0.016
+	}
 }
 
 void function DestroyPilotSpeedometer()

@@ -11,7 +11,7 @@ struct
     int selectedLoadout = 0
 } file
 
-global const array<string> LOCKED_LOADOUTS =  ["mp_titanweapon_rocketeer_rocketstream",
+global const array<string> LOCKED_LOADOUTS =  [//"mp_titanweapon_rocketeer_rocketstream",
                                          //"mp_titanweapon_particle_accelerator",
                                          //"mp_titanweapon_sniper"
                                           /*"mp_titanweapon_sticky_40mm"*/]
@@ -91,8 +91,12 @@ void function InitRoguelikeRunSetupMenu()
     RunModifier_Init( Hud_GetChild( file.menu, "Modifiers4" ), "enemy_hp" )
     RunModifier_Init( Hud_GetChild( file.menu, "Modifiers5" ), "defense" )
     RunModifier_Init( Hud_GetChild( file.menu, "Modifiers6" ), "cash_gain" )
-    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers7" ), "proj_speed" )
-    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers8" ), "elite_freq" )
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers7" ), "elite_freq" )
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers8" ), "core_gain" )
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers9" ), "rerolls" )
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers10" ), "checkpoints" )
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers11" ), "battery_healing" )
+    RunModifier_Init( Hud_GetChild( file.menu, "Modifiers12" ), "speedrun" )
 
     thread void function() : ()
     {
@@ -162,7 +166,10 @@ void function OnStartClicked( var panel )
     if (VGUIButton_GetState( panel ) == eVGUIButtonState.Locked)
         return
 
-    Roguelike_StartNewRun()
+    if (Hud_GetUTF8Text(Hud_GetChild(file.menu, "SeedText")) != "")
+        Roguelike_StartNewRun(int(Hud_GetUTF8Text(Hud_GetChild(file.menu, "SeedText"))))
+    else
+        Roguelike_StartNewRun()
     
     if (Roguelike_GetRunModifier("the_long_way") != 0)
     {
@@ -230,7 +237,7 @@ void function UpdateUpgradeBars()
             break
     }
     Hud_SetText(Hud_GetChild(file.menu, "DamageLoadoutDescRole"),
-        FormatDescription(format("%s // %s", elementStr, validLoadouts[ file.selectedLoadout ].role)))
+        FormatDescription(format("%s // %s", validLoadouts[ file.selectedLoadout ].role, validLoadouts[ file.selectedLoadout ].role2)))
 
     /*for (int i = 0; i < 4; i++)
     {

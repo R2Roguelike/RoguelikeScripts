@@ -26,21 +26,7 @@ void function ServerCallback_Tone_SetTrackedWeapon( int eHandle )
 
 bool function Tone_ShouldCreateTrackerHud( entity player )
 {
-	if ( !IsAlive( player ) )
-		return false
-
-	if ( !IsValid( toneTrackedWeapon ) /* || !trackerRockets.SmartAmmo_IsEnabled() */ )
-	{
-		toneTrackedWeapon = Roguelike_FindWeapon( player, "mp_titanweapon_tracker_rockets" )
-	}
-	entity ordnance = toneTrackedWeapon
-	if ( !IsValid( ordnance ) )
-		return false
-
-	if ( !ordnance.SmartAmmo_IsEnabled() )
-		return false
-
-	return true
+	return player.IsTitan() && Roguelike_GetTitanLoadouts().contains(PRIMARY_TONE)
 }
 
 void function Tone_HudThink( entity player )
@@ -62,7 +48,6 @@ void function Tone_HudThink( entity player )
 	function() : ( trackerInfoArray )
 		{
 			toneHudActive = false
-			toneTrackedWeapon = null
 			for ( int i = trackerInfoArray.len() - 1; i >= 0; i-- )
 			{
 				RuiDestroyIfAlive( trackerInfoArray[i].rui )
@@ -79,7 +64,6 @@ void function Tone_HudThink( entity player )
 		entity trackerRockets = toneTrackedWeapon
 		if ( !IsValid( trackerRockets ) /* || !trackerRockets.SmartAmmo_IsEnabled() */ )
 		{
-			toneTrackedWeapon = Roguelike_FindWeapon( player, "mp_titanweapon_tracker_rockets" )
 			WaitFrame()
 			continue
 		}

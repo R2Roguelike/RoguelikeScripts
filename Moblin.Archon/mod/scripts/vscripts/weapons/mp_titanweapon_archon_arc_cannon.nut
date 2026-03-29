@@ -58,7 +58,7 @@ global const ARCHON_CANNON_SCREEN_THRESHOLD		= 0.3385
 global const ARCHON_CANNON_3RD_PERSON_EFFECT_MIN_DURATION = 0.2
 
 // Damage
-global const ARCHON_CANNON_DAMAGE_FALLOFF_SCALER		= 0.5		// Amount of damage carried on to the next target in the chain lightning. If 0.75, then a target that would normally take 100 damage will take 75 damage if they are one chain deep, or 56 damage if 2 levels deep
+global const ARCHON_CANNON_DAMAGE_FALLOFF_SCALER		= 1.0		// Amount of damage carried on to the next target in the chain lightning. If 0.75, then a target that would normally take 100 damage will take 75 damage if they are one chain deep, or 56 damage if 2 levels deep
 global const ARCHON_CANNON_DAMAGE_CHARGE_RATIO		= 0.85		// What amount of charge is required for full damage.
 
 //Mods
@@ -1020,7 +1020,8 @@ void function ArcCannonOnDamage( entity ent, var damageInfo )
 
 
 	#if SERVER
-	Archon_RestoreShield( attacker, int(400 * damageMultiplier) )
+	int restore = 400 + int(4 * Roguelike_GetStat( attacker, "ability_power"))
+	Archon_RestoreShield( attacker, int(restore * damageMultiplier) )
 	
 	ApplyShock( ent, damageMultiplier * 0.25 )
 	PlayBodyGroupEffect( ent, weapon, 2.0, FX_EMP_BODY_HUMAN, FX_EMP_BODY_TITAN, damageInfo)
@@ -1098,7 +1099,7 @@ function EmpFXWithAi( asset effect, entity ent, string tag, float duration )
 	ent.EndSignal( "StartPhaseShift" )
 	ent.EndSignal( "EMP_FX" )
 
-	bool isPlayer = ent.IsPlayer()
+	bool player = ent.IsPlayer()
 
 	int fxId = GetParticleSystemIndex( effect )
 	int attachId = ent.LookupAttachment( tag )
@@ -1120,7 +1121,7 @@ function EmpFXWithAi( asset effect, entity ent, string tag, float duration )
 		}
 	)
 
-	if ( !isPlayer )
+	if ( !player )
 	{
 		EmitSoundOnEntity( ent, "Titan_Blue_Electricity_Cloud" )
 		EffectWake( fxHandle )

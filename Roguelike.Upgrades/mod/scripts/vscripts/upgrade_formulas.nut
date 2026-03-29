@@ -1,93 +1,12 @@
 globalize_all_functions
 
-float function Roguelike_GetPilotHealthBonus( int endurance )
+RoguelikeStatModifier function NewStatModifier(string stat, float val)
 {
-    return endurance / 100.0
-}
+    RoguelikeStatModifier mod
+    mod.stat = stat
+    mod.amount = val
 
-float function Roguelike_GetPilotSelfDamageMult( int endurance )
-{
-    return 100.0 / (100.0 + endurance)
-}
-
-float function Roguelike_GetPilotSpeedBonus( int speed )
-{
-    return speed / 150.0 * 0.8
-}
-
-float function Roguelike_GetTitanDamageMultiplier( int armor )
-{
-    float base = 250
-    base += 1 * min(armor, 50)
-    base += 0.25 * max(armor - 50, 0)
-    return 200.0 / (200.0 + armor)
-}
-
-float function Roguelike_GetTitanDamageResist( int armor )
-{
-    float resist = 1.0 - Roguelike_GetTitanDamageMultiplier( armor )
-    return resist
-}
-
-int function Roguelike_GetBatteryHealingMultiplier( int armor )
-{
-    int base = 800
-    base += 4 * minint(armor, 100)
-    base += 2 * maxint(armor - 100, 0)
-    return base
-}
-
-// -90% dash cooldown? why the fuck not...
-float function Roguelike_GetDashCooldownMultiplier( int energy )
-{
-    //return Graph( energy, 0, 150, 1.2, 0.1 )
-    return 1.0 * pow(0.5, energy / 100.0) // +20% cd when low, -90% when max
-}
-
-float function Roguelike_BaseCritRate( int energy )
-{
-    //return Graph( energy, 0, 150, 1.2, 0.1 )
-    return (5.0 + energy / 2.0) / (100.0)
-}
-
-float function Roguelike_BaseCritDMG( int energy )
-{
-    //return Graph( energy, 0, 150, 1.2, 0.1 )
-    return 0.25 + 0.01 * energy
-}
-
-float function Roguelike_GetPilotCooldownReduction( int power )
-{
-    return 1.25 * pow(0.5, power / 100.0) // +50% cd when low, -40% when max
-}
-
-float function Roguelike_GetPilotCloakDuration( int power )
-{
-    return 1.0 + 0.005 * power // +50% cd when low, -40% when max
-}
-
-float function Roguelike_GetGrenadeDamageBoost( int power )
-{
-    // +233%
-    return 1.0 + power * 0.008 // +50% cd when low, -40% when max
-}
-
-float function Roguelike_GetTitanCoreGain( int power )
-{
-    return 0.5 + 0.01 * power // -20% when low
-}
-
-float function Roguelike_GetTitanCooldownReduction( int power )
-{
-    float base = 1.5
-    base *= pow(0.666, (power) / 50.0)
-    return base // -20% when low
-}
-
-float function Roguelike_GetTitanReloadSpeedBonus( int power )
-{
-    float base = 1.0 + 0.004 * power
-    return base // -20% when low
+    return mod
 }
 
 bool function Roguelike_HasTitanLoadout(string weapon)
@@ -98,16 +17,12 @@ bool function Roguelike_HasTitanLoadout(string weapon)
 int function Roguelike_GetUpgradePrice( table item )
 {
     int level = expect int(item.level)
-    int price = 100 + (level * 50) + expect int(item.priceOffset)
+    int price = 100 + (level * 50) + expect int(item.rarity) * 50
+
+    if (item.type == "armor_chip" && item.level == 3)
+        return 200
 
     return price
-}
-
-int function Roguelike_GetTitanMaxHealth()
-{
-    int base = 12500
-
-    return base
 }
 
 int function Roguelike_GetPurchasePrice( table item )
@@ -158,6 +73,10 @@ array function GetModColor( RoguelikeMod mod )
         expect RoguelikeLoadout( loadout )
         return loadout.color
     }
+    if (mod.loadouts.len() == 2)
+    {
+        return [151, 255, 33, 255]
+    }
 
     return [255,255,255,255]
 }
@@ -182,7 +101,7 @@ array function GetTitanColor(string primary)
         case "mp_titanweapon_sticky_40mm":
             return [32, 200, 32, 255]
         case "empty":
-            return [127, 127, 127, 255]
+            return [255, 255, 255, 255]
     }
 
     return [255,255,255,255]

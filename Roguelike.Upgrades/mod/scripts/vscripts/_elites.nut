@@ -112,13 +112,13 @@ void function Elite_Enraged( entity npc )
         //npc.TakeOffhandWeapon(0)
         if (IsAlive(npc))
         {
-            if (IsValid(player) && player != lastPlayer && !IsTurret(npc))
+            if (IsValid(player) && player != lastPlayer && !IsTurret(npc) && Distance(npc.GetOrigin(), player.GetOrigin()) > 200)
             {
-                npc.AssaultSetGoalRadius( 100 )
+                npc.AssaultSetGoalRadius( 200 )
                 npc.AssaultSetGoalHeight( 500 )
                 npc.AssaultSetArrivalTolerance( 100 )
                 npc.AssaultPoint( player.GetOrigin() )
-                npc.AssaultSetFightRadius( 100 )
+                npc.AssaultSetFightRadius( 200 )
             }
         }
 
@@ -127,7 +127,7 @@ void function Elite_Enraged( entity npc )
 
         if (!IsValid(player) || Distance2D( npc.GetOrigin(), player.GetOrigin() ) > 300)
             continue
-        
+
         npc.ClearInvulnerable()
         if(npc.IsTitan())
             AutoTitan_SelfDestruct( npc )

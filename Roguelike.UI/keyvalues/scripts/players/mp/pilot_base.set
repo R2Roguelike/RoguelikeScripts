@@ -15,7 +15,7 @@
         dodgeHeight			20
         dodgeHeightMax		20
         dodgePowerDrain		100
-        powerregenrate 		6.7
+        powerregenrate 		5
         dodgePowerDelay		0.0
         dodgeKeepSpeedFrac 	0.0
 
@@ -52,15 +52,12 @@
 			}
 			75_speed
 			{
-				speed				*0.85
 			}
 			50_speed
 			{
-				speed				*0.7
 			}
 			25_speed
 			{
-				speed				*0.55
 			}
 		}
 	}

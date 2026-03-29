@@ -4,8 +4,8 @@ resource/ui/menus/panels/inventory_switch.res
     {
         ControlName		ImagePanel
         image           "vgui/hud/white"
-        wide			512
-        tall			256
+        wide			384
+        tall			200
         visible			1
         scaleImage		1
         fillColor		"0 0 0 0"
@@ -106,7 +106,7 @@ resource/ui/menus/panels/inventory_switch.res
         enabled					1
         auto_wide_tocontents	1
         auto_tall_tocontents	1
-        labelText				"Click to switch..."
+        labelText				"%[E]% Switch"
         fgcolor_override		"120 120 120 255"
         textAlignment			east
         //fgcolor_override 		"255 255 255 255"
@@ -124,11 +124,11 @@ resource/ui/menus/panels/inventory_switch.res
         ypos				    -6
         wide					74
         tall					27
-        visible					1
+        visible					0
         enabled					1
         auto_wide_tocontents	1
         auto_tall_tocontents	1
-        labelText				"Click to switch..."
+        labelText				"%[Q]% Switch"
         fgcolor_override		"120 120 120 255"
         textAlignment			center
         //fgcolor_override 		"255 255 255 255"

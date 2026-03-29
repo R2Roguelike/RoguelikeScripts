@@ -100,9 +100,9 @@ void function OnHit_TitanWeaponSniper_Internal( entity victim, var damageInfo )
 	{
 		damage += f_extraDamage
 
-		if (Roguelike_HasMod( attacker, "pierce_dmg" ) && IsValid(attacker.GetTitanSoul()))
+		if (Roguelike_HasMod( attacker, "pierce_dmg" ) && attacker.IsPlayer())
 		{
-			damage += 0.25 * attacker.GetTitanSoul().GetShieldHealthMax() // in b4 this goes kind of insane?????????????
+			damage += Roguelike_GetStat( attacker, "ability_power" ) * 15 // in b4 this goes kind of insane?????????????
 		}
 
         array<string> dmgMods = ["cluster_core", "big_finish", "railgun_hp", "tether_crit", "crit_charge"]
@@ -113,7 +113,7 @@ void function OnHit_TitanWeaponSniper_Internal( entity victim, var damageInfo )
                 count++
         }
 
-		DamageInfo_SetDamage( damageInfo, damage * (1 + 0.05 * count) )
+		DamageInfo_SetDamage( damageInfo, damage * (1 + 0.1001 * count) )
 	}
 
 	if (IsValid(attacker) && Roguelike_HasMod( attacker, "railgun_hp" ))
@@ -224,9 +224,12 @@ function FireSniper( entity weapon, WeaponPrimaryAttackParams attackParams, bool
 	
 	float bgChargeTime = weapon.GetWeaponSettingFloat( eWeaponVar.charge_time ) * 2.0 // x2 charge time
 
-	weapon.s.railgunEndChargeTime <- (Time() + bgChargeTime * 1.0) + 1.0
-	weapon.s.railgunStartChargeTime <- Time() + 1.0
-	weapon.s.railgunStartChargeFrac <- weapon.GetWeaponChargeFraction()
+	if ((weaponOwner.IsPlayer() && weaponOwner.GetZoomFrac() > 0.0) || !Roguelike_HasMod( weaponOwner, "super_spread" ))
+	{
+		weapon.s.railgunEndChargeTime <- (Time() + bgChargeTime * 1.0) + 1.0
+		weapon.s.railgunStartChargeTime <- Time() + 1.0
+		weapon.s.railgunStartChargeFrac <- weapon.GetWeaponChargeFraction()
+	}
 
 	if ( !shouldCreateProjectile )
 		return 1

@@ -71,6 +71,8 @@ void function InventorySlot_Display( var slot, var content )
 
         Hud_SetBarProgress( energyBarPilot, expect int(content.level) / float(Roguelike_GetItemMaxLevel( content ))  )
         Hud_SetBarProgress( energyBarTitan, 1 )
+        Hud_SetVisible( energyBarPilot, expect int(content.level) > 0 )
+        Hud_SetVisible( energyBarTitan, segmentCount > expect int(content.level) )
     }
 
     switch (content.type)
@@ -84,7 +86,7 @@ void function InventorySlot_Display( var slot, var content )
         case "armor_chip":
             bool isTitan = expect bool(content.isTitan)
             Hud_SetImage( icon, isTitan ? $"ui/armor_chip_titan" : $"ui/armor_chip_pilot" )
-            Hud_SetColor( icon, 25, 25, 25, 255 )
+            Hud_SetColor( icon, 20, 20, 20, 255 )
             Hud_SetVisible( slotLabel, true )
 
             int slot = expect int(content.slot)
@@ -134,7 +136,7 @@ void function InventorySlot_Display( var slot, var content )
             
             Hud_SetColor( icon, 255, 255, 255, 255 )
             Hud_SetImage( icon, GetWeaponInfoFileKeyFieldAsset_Global( content.weapon, "hud_icon" ) )
-            Hud_SetColor( slotLabel, 25, 25, 25, 255 )
+            Hud_SetColor( slotLabel, 20, 20, 20, 255 )
             break
     }
 }

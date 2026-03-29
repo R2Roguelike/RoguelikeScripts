@@ -18,10 +18,17 @@
 		health				12500 // not used by segmented health
 		healthShield		1000
 		healthDoomed		2500
+		slide						1
+		slideEffectTable			"pilot_slide"
+		sound_slide_prefix			"pilotslide"
+		slideRequiredStartSpeed		825 //200
+		slidevelocitydecay			0.95 //0.7
+		slideSpeedBoost				100 // 150
+		slidedecel					10
 
-		sharedEnergyTotal 20000
-		sharedEnergyRegenDelay 0.2
-		sharedEnergyRegenRate 750.0
+		sharedEnergyTotal 10000
+		sharedEnergyRegenDelay 0.5
+		sharedEnergyRegenRate 500.0
 
         ClassMods
         {

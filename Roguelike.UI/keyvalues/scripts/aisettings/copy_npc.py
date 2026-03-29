@@ -10,7 +10,7 @@ toPaste = '''{
 
 	evasiveCombatShieldPct					0.0
 
-	evasiveCombatHealthSegmentPct			1.0
+	evasiveCombatHealthSegmentPct			0.0
 	aggressiveCombatHealthSegmentPct		0.0
 
 	evasiveCombatHealthChangeRateDiff		-10000

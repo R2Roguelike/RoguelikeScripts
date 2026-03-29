@@ -3,7 +3,10 @@ WeaponData
 	"printname"   									"#WPN_TITAN_POWER_SHOT"
 	"description" 									"#WPN_TITAN_POWER_SHOT_DESC"
 	"shortprintname"								"#WPN_TITAN_POWER_SHOT_SHORT"
-	"longdesc"										"#WPN_TITAN_POWER_SHOT_LONGDESC"
+	"longdesc"										"^F4D5A600Close-Range:^ Knocks back nearby enemies.
+^F4D5A600Long-Range:^ Damages all enemies in its path.
+
+This deals <daze>Weapon DMG</>, <red>NOT</> Ability DMG."
 
 	"menu_icon"										"rui/titan_loadout/ordnance/concussive_shot_short_menu"
 	"hud_icon"										"rui/titan_loadout/ordnance/concussive_shot_short"
@@ -40,17 +43,21 @@ WeaponData
 	"projectile_adjust_to_gun_barrel"				"0"
 	"bolt_hitsize"									"10.0"
 
+	"ability_power_base_value"				 "1500"
+	"ability_power_scalar_1"					"10"
+	"ability_power_format"						"Base DMG"
+
 	"critical_hit"									"1"
 	"critical_hit_damage_scale"						"1.5"
 
 	// Ammo
 	"cooldown_type"									"ammo"
 	"ammo_display"									"bar"
-	"ammo_stockpile_max"							"80"
-	"ammo_clip_size"   								"80"
-	"ammo_default_total"							"80"
-	"ammo_per_shot"									"80"
-	"ammo_min_to_fire"								"80"
+	"ammo_stockpile_max"							"120"
+	"ammo_clip_size"   								"120"
+	"ammo_default_total"							"120"
+	"ammo_per_shot"									"120"
+	"ammo_min_to_fire"								"120"
 
 	"reload_enabled"								"0"
 	"sound_dryfire"									"titan_dryfire"

@@ -5,13 +5,15 @@ WeaponData
 	"printname"   									"#WPN_TITANABILITY_REARM"
 	"shortprintname"   								"#WPN_TITANABILITY_REARM"
 	"description" 									"#WPN_TITANABILITY_REARM_DESC"
-	"longdesc" 										"#WPN_TITANABILITY_REARM_LONGDESC"
+	"longdesc" 										"<cyan>Reset cooldowns</> for all abilities in all loadouts. <note>(except this ability.)</>"
 
 	"menu_icon"										"rui/titan_loadout/tactical/titan_tactical_rearm_menu"
 	"hud_icon"										"rui/titan_loadout/tactical/titan_tactical_rearm"
 
 	"damage_type" 									"bullet"
 	"damage_flags"									"DF_NO_INDICATOR | DF_NO_HITBEEP"
+
+	"instant_swap_to"								"1"
 
 	// General
 	"weaponClass" 									"titan"
@@ -22,14 +24,14 @@ WeaponData
 
 	// Ammo
     "cooldown_type"                                 "ammo_instant"
-	"ammo_clip_size"   								"200"
-	"ammo_default_total"							"200"
+	"ammo_clip_size"   								"300"
+	"ammo_default_total"							"300"
 	//"ammo_display"								"bar"
-	"ammo_min_to_fire"								"200"
-	"ammo_per_shot"									"200"
-	"ammo_stockpile_max"							"200"
-	"fire_rate"   									"2"
-	"regen_ammo_refill_rate"						"11.333"
+	"ammo_min_to_fire"								"300"
+	"ammo_per_shot"									"300"
+	"ammo_stockpile_max"							"300"
+	"fire_rate"   									"3"
+	"regen_ammo_refill_rate"						"10"
 	"regen_ammo_refill_start_delay"					"0.0"
 
 	"offhand_keep_primary_in_hand" 					"1"
@@ -56,9 +58,9 @@ WeaponData
 	"sound_trigger_pull"							"Weapon_ChargeRifle_TriggerOn"
 	"sound_trigger_release" 						"Weapon_ChargeRifle_TriggerOff"
 
-	"charge_time" 									"0.3"
+	"charge_time" 									"0.2"
 	"deploy_time"									"0.3"
-	"holster_time"									"0.5"
+	"holster_time"									"0.333"
 	"charge_cooldown_time"							"0.0"
 	"charge_cooldown_delay"   						"0.0"
 	"charge_end_forces_fire"  						"1"

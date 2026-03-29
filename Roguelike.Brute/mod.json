@@ -1,0 +1,39 @@
+{
+	"Name": "Roguelike.Brute",
+	"Description": "broote",
+	"LoadPriority": 6,
+	"RequiredOnClient": false,
+	"Version": "1.0.0",
+
+	"Scripts": [
+		{
+			"Path": "weapons/mp_titanweapon_arm_laser.nut",
+			"RunOn": "CLIENT || SERVER",
+            "ClientCallback": {
+                "After": "MpTitanWeaponArmLaser_Init"
+            },
+            "ServerCallback": {
+                "After": "MpTitanWeaponArmLaser_Init"
+            }
+		},
+		{
+			"Path": "weapons/mp_titanability_rearm_brute.nut",
+			"RunOn": "CLIENT || SERVER"
+		},
+		{
+			"Path": "weapons/mp_titanability_craft_battery.nut",
+			"RunOn": "CLIENT || SERVER"
+		},
+		{
+			"Path": "weapons/mp_titancore_power_core.nut",
+			"RunOn": "CLIENT || SERVER"
+		},
+		{
+			"Path": "mods/brute_mods.nut",
+			"RunOn": "CLIENT || SERVER || UI"
+		}
+	],
+
+	"ConVars": [
+	]
+}

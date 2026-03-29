@@ -146,6 +146,13 @@ global struct ServerEntityStruct
 	entity lastSyncedMeleeAttacker
 	bool markedForExecutionDeath
 	array<RSEInstance> rseData
+	// brute
+	array<entity> armedTargets
+	// tone
+	array<entity> hackedTargets
+	// roguelike general
+	array<string> mods
+	entity hacker
 
 	bool proto_weakToPilotWeapons
 

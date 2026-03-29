@@ -23,97 +23,79 @@
 	"ConVars": [
 		{
 			"Name": "roguelike_titan_loadout",
-			"Flags": "CHEAT",
 			"DefaultValue": ""
 		},
 		{
 			"Name": "roguelike_run_modifiers",
-			"Flags": "CHEAT",
 			"DefaultValue": ""
 		},
 		{
 			"Name": "roguelike_run_heat",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "roguelike_run_seed",
-			"Flags": "CHEAT",
-			"DefaultValue": "0"
+			"DefaultValue": "0",
+			"Flags": "CHEAT"
 		},
 		{
 			"Name": "meta_helmets_0",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_1",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_2",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_3",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_4",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_5",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_6",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_7",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_8",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_9",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_10",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_11",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_12",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_13",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		},
 		{
 			"Name": "meta_helmets_14",
-			"Flags": "CHEAT",
 			"DefaultValue": "0"
 		}
 	]

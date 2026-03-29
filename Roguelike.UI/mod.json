@@ -109,17 +109,18 @@
 			"RunOn": "CLIENT || UI || SERVER"
 		}
 	],
-
+	"Dependencies": {
+        // sets the constant to 0 or 1, depending if the mod with the name "Mod Name" exists and is enabled
+        "BRUTE_ENABLED": "Roguelike.Brute"
+    },
 	"ConVars": [
         {
             "Name": "roguelike_timer_debug",
-            "DefaultValue": "0",
-            "Flags": "FCVAR_CHEAT"
+            "DefaultValue": "0"
         },
 		{
             "Name": "roguelike_levels_completed",
-            "DefaultValue": "0",
-            "Flags": "FCVAR_CHEAT"
+            "DefaultValue": "0"
 		},
 		{
             "Name": "barchangestyle",
@@ -128,8 +129,11 @@
 		},
 		{
             "Name": "roguelike_force_titan",
-            "DefaultValue": "",
-            "Flags": "FCVAR_CHEAT"
+            "DefaultValue": ""
+		},
+		{
+            "Name": "roguelike_chests_opened",
+            "DefaultValue": ""
 		}
 	]
 }

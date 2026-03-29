@@ -14,8 +14,9 @@ void function PilotChip1_RegisterMods()
         RoguelikeMod mod = NewMod("endurance_2")
         mod.name = "Endurance+2"
         mod.abbreviation = "E+2"
-        mod.description = "+10 <cyan>Endurance.</>"
-        mod.shortdesc = "+10 <cyan>Endurance."
+        mod.description = "+10% <cyan>Max HP.</>"
+        mod.shortdesc = "+10% <cyan>Max HP."
+        mod.statModifiers = [NewStatModifier("max_hp", 0.1)]
         mod.cost = 2
     }
     {
@@ -57,6 +58,7 @@ void function PilotChip1_RegisterMods()
         mod.abbreviation = "QR"
         mod.description = "Health regeneration rate increased by 100%."
         mod.shortdesc = "Health regenerates faster."
+        mod.statModifiers = [NewStatModifier("regen_rate", 1)]
         mod.cost = 2
     }
     {
@@ -65,6 +67,7 @@ void function PilotChip1_RegisterMods()
         mod.abbreviation = "IR"
         mod.description = "Regeneration delay reduced by 50%. Regeneration rate reduced by 25%."
         mod.shortdesc = "Health regenerates <cyan>sooner,</> but <red>slower.</>"
+        mod.statModifiers = [NewStatModifier("regen_rate", -0.25), NewStatModifier("regen_delay", 1)]
         mod.cost = 2
     }
 }

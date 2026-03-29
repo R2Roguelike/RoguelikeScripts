@@ -14,6 +14,7 @@ global function GetMercCharacterID
 global function BossTitanIntro
 global function BossTitanVDUEnabled
 global function BossTitanPlayerView
+global function OnBossTitanCoreMitigation
 
 global function MakeMidHealthTitan
 
@@ -120,7 +121,9 @@ void function OnBossTitanCoreMitigation( entity titan, var damageInfo )
 	array<string> weaponMods = GetWeaponModsFromDamageInfo( damageInfo )
 	if ( weaponMods.contains( "Smart_Core" ) )
 	{
-		DamageInfo_AddDamageBonus( damageInfo, 0.2 )
+		if (Roguelike_HasDatacorePerk( attacker, "core_dmg" ))
+			DamageInfo_AddDamageBonus( damageInfo, Roguelike_GetDatacoreValue(attacker) / 100.0 )
+		DamageInfo_AddDamageBonus( damageInfo, 0.2 + Roguelike_GetStat(attacker,"ability_power") * 0.005 )
 		return
 	}
 }
@@ -129,7 +132,6 @@ void function NPCTitanSpawned( entity titan )
 {
 	Assert( !IsMultiplayer() )
 
-	printt("NPCTitanSpawned")
 	thread void function() : (titan)
 	{
 		wait 0.001
@@ -158,9 +160,6 @@ void function NPCTitanSpawned( entity titan )
 				RegisterBossTitan( titan )
 				ApplyTitanDamageState( titan )
 
-				if ( titan.ai.bossTitanType == TITAN_BOSS )
-					AddEntityCallback_OnDamaged( titan, OnBossTitanCoreMitigation )
-
 				if ( titan.HasKey( "skip_boss_intro" ) && titan.GetValueForKey( "skip_boss_intro" ) == "1" )
 					return
 				thread BossTitanNoIntro( titan )
@@ -172,8 +171,6 @@ void function NPCTitanSpawned( entity titan )
 				titan.SetSkin( 1 ) // all titan models have a boss titan version of the skin at index 1
 				RegisterBossTitan( titan )
 				ApplyTitanDamageState( titan )
-
-				AddEntityCallback_OnDamaged( titan, OnBossTitanCoreMitigation )
 
 				if ( titan.HasKey( "skip_boss_intro" ) && titan.GetValueForKey( "skip_boss_intro" ) == "1" )
 					return
@@ -723,14 +720,12 @@ void function SetHealthValuesForMidHealth( entity soul )
 
 	entity titan = soul.GetTitan()
 	int numSegments = ( titan.GetMaxHealth() / 1500 ) - 2
-	printt("numSegments", numSegments)
 	Assert( numSegments > 0 )
 	SetSoulBatteryCount( soul, numSegments )
 	if ( IsAlive( titan ) )
 	{
 		soul.soul.skipDoomState = true
 		int segmentHealth = 1500 * numSegments
-		printt("segmentHealth", segmentHealth)
 		titan.SetMaxHealth( segmentHealth )
 		titan.SetHealth( segmentHealth )
 		titan.kv.healthEvalMultiplier = 2

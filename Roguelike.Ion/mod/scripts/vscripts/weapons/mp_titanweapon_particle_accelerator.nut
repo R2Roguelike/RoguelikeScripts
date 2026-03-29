@@ -51,9 +51,20 @@ function MpTitanWeaponParticleAccelerator_Init()
 	PrecacheParticleSystem( TPA_ADS_EFFECT_1P )
 	PrecacheParticleSystem( TPA_ADS_EFFECT_3P )
 
+	AddCallback_ApplyModWeaponVars( WEAPON_VAR_PRIORITY_OVERRIDE, ParticleAccelerator_ApplyModWeaponVars )
+
 	#if SERVER
 	AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_particle_accelerator, OnHit_TitanWeaponParticleAccelerator )
 	#endif
+}
+
+void function ParticleAccelerator_ApplyModWeaponVars( entity weapon )
+{
+	if (weapon.GetWeaponClassName() != "mp_titanweapon_particle_accelerator")
+		return
+	entity owner = weapon.GetWeaponOwner()
+	if (!IsValid(owner) || !owner.IsPlayer())
+		return
 }
 
 void function OnWeaponStartZoomIn_titanweapon_particle_accelerator( entity weapon )
@@ -104,8 +115,8 @@ void function OnWeaponActivate_titanweapon_particle_accelerator( entity weapon )
 		weapon.s.initialized <- true
 	}
 	#if SERVER
-	entity owner = weapon.GetWeaponOwner()
-	owner.SetSharedEnergyRegenDelay( 0.5 )
+	//entity owner = weapon.GetWeaponOwner()
+	//owner.SetSharedEnergyRegenDelay( 0.5 )
 	#endif
 }
 
@@ -180,7 +191,7 @@ function FireWeaponPlayerAndNPC( entity weapon, WeaponPrimaryAttackParams attack
 				weapon.SetWeaponEnergyCost( cost )
 			shotCount = ADS_SHOT_COUNT
 			if (Roguelike_HasMod( owner, "energy_split" ))
-				shotCount = minint(shotCount + Roguelike_GetStat( owner, STAT_ENERGY ) / 30, 7)
+				shotCount = minint(shotCount + int(Roguelike_GetStat( owner, "ability_power" ) / 10), 7)
 			//Split Shots
 			weapon.EmitWeaponSound_1p3p( "Weapon_Particle_Accelerator_AltFire_1P", "Weapon_Particle_Accelerator_AltFire_SecondShot_3P" )
 		}
@@ -272,30 +283,12 @@ void function OnHit_TitanWeaponParticleAccelerator( entity victim, var damageInf
 	float cur = RSE_Get( victim, RoguelikeEffect.ion_charge )
 	array<string> mods = inflictor.ProjectileGetMods()
 	float add = 0.03
-	if (mods.contains("proto_particle_accelerator") || "turretBolt" in inflictor.s || "snakesplitter" in inflictor.s)
+	if (mods.contains("proto_particle_accelerator") || "snakesplitter" in inflictor.s)
 	{
-		if ("turretBolt" in inflictor.s)
-		{
-			int base = 30
-			array<string> turretMods = ["pylon_charge", "orbital_strike", "snakesplitter_energy", "energy_split", "energy_conversion"]
-			foreach (string mod in turretMods)
-			{
-				if (Roguelike_HasMod( attacker, mod ))
-					base += 3
-			}
-			DamageInfo_SetDamage( damageInfo, base )
-			add = 0.01
-		}
 		add = 0.015
 	}
 
-    int count = 0
-    array<string> chargeMods = ["laser_disorder", "discharge_battery", "discharge_crit"]
-    foreach (string mod in chargeMods)
-    {
-        if (Roguelike_HasMod( attacker, mod ))
-            count++
-    }
+    int count = Roguelike_GetTagCount( attacker, ION_DISCHARGE_RATE_TAG )
 	add *= 1.0 + 0.15 * count // balls...?
 
 	RSE_Apply( victim, RoguelikeEffect.ion_charge, min(cur + add, 1.0) )
@@ -318,17 +311,19 @@ void function OnHit_TitanWeaponParticleAccelerator( entity victim, var damageInf
 }
 #endif
 
-// sidenote - this is not how you are supposed to do this, im just too unbothered to do the math
+// ok so someone did the proper math it seems
 vector function LeadPosition( vector pos, vector target, vector targetVelocity, float projSpeed )
 {
-	float travelTime = 0.0
-	travelTime = Distance(target, pos) / projSpeed
-	for (int i = 0; i < 3; i++)
-	{
-		vector newPos = target + targetVelocity * travelTime
-		float offset = Distance(target, newPos) / projSpeed - travelTime
-		travelTime -= offset
-	}
+	vector relativePos = pos - target
+	float theta = acos(DotProduct(Normalize(relativePos), Normalize(targetVelocity)))
 
-	return Normalize(target - pos)
+	float a = LengthSqr(targetVelocity) - (projSpeed * projSpeed)
+	float b = -2 * cos(theta) * Length(relativePos) * Length(targetVelocity)
+	float c = LengthSqr(relativePos)
+	float delta = sqrt(b * b - (4 * a * c))
+	float t = -(b + delta) / (2 * a)
+
+	vector prediction = target + targetVelocity * t
+
+	return prediction
 }

@@ -1,0 +1,8 @@
+"LightmappedGeneric"
+{
+	"$basetexture" "ui/status_effects/arm"
+	$translucent		"1"
+	"$vertexcolor" 1
+	"$vertexalpha" 1
+	"$no_fullbright" 1
+}

@@ -25,7 +25,7 @@ global function OnWeaponNpcPrimaryAttack_titanweapon_shock_shield
 global function OnClientAnimEvent_titanweapon_shock_shield
 #endif // #if CLIENT
 
-const ACTIVATION_COST_FRAC = 0.40
+const ACTIVATION_COST_FRAC = 1.5
 const SHOCK_ARM_EFFECT_FP = $"wpn_arc_cannon_electricity_fp"
 const SHOCK_ARM_EFFECT = $"wpn_arc_cannon_electricity"
 const SHOCK_HOLD_EFFECT_FP = $"arcTrap_CH_arcs_large"
@@ -227,13 +227,13 @@ function ApplyActivationCost( entity weapon, float frac )
 		#if SERVER
 		weapon.ForceRelease()
 
-		weapon.SetWeaponChargeFraction( 1.0 )
+		weapon.SetWeaponChargeFractionForced( 1.0 )
 		#endif
 	}
 	else
 	{
 		#if SERVER
-		weapon.SetWeaponChargeFraction( fracLeft + frac )
+		weapon.SetWeaponChargeFractionForced( fracLeft + frac )
 		#endif
 	}
 }
@@ -317,7 +317,8 @@ var function OnWeaponPrimaryAttack_titanweapon_shock_shield( entity weapon, Weap
 	attackSound3p = "Vortex_Shield_Deflect_Amped"
 
 	weapon.EmitWeaponSound_1p3p( attackSound1p, attackSound3p )
-	float activationCost = ACTIVATION_COST_FRAC
+	float activationCost = ACTIVATION_COST_FRAC / weapon.GetWeaponSettingFloat(eWeaponVar.charge_time)
+	printt(activationCost)
 
 	ApplyActivationCost( weapon, activationCost )
 
@@ -397,7 +398,7 @@ void function OnWeaponChargeEnd_titanweapon_shock_shield( entity weapon )
 	entity owner = weapon.GetWeaponOwner()
 	owner.Signal( "OnShieldDestroy" )
 
-	float activationCost = ACTIVATION_COST_FRAC
+	float activationCost = ACTIVATION_COST_FRAC / weapon.GetWeaponSettingFloat(eWeaponVar.charge_time)
 
 	if ( weapon.HasMod( "bolt_from_the_blue" ) )
 	{
@@ -454,12 +455,10 @@ void function Archon_ConsumeShield( entity weaponOwner, int amount )
 	soul.SetShieldHealth(maxint(0, soul.GetShieldHealth() - remove))
 	soul.nextRegenTime = Time() + GetShieldRegenDelay( soul )
 	
-	if (Roguelike_HasMod( weaponOwner, "health_convert"))
-	{
-		remove = minint(weaponOwner.GetHealth() - 1, shieldToConsume)
-		shieldToConsume -= remove
-		weaponOwner.SetHealth( weaponOwner.GetHealth() - remove )
-	}
+	// consume health if you dont have enough shields
+	remove = minint(weaponOwner.GetHealth() - 1, shieldToConsume)
+	shieldToConsume -= remove
+	weaponOwner.SetHealth( weaponOwner.GetHealth() - remove )
 	#endif
 
 }
@@ -485,7 +484,7 @@ bool function OnWeaponAttemptOffhandSwitch_titanweapon_shock_shield( entity weap
 	Assert( IsValid( soul ) )
 	entity activeWeapon = weaponOwner.GetActiveWeapon()
 
-	float activationCost = ACTIVATION_COST_FRAC
+	float activationCost = ACTIVATION_COST_FRAC / weapon.GetWeaponSettingFloat(eWeaponVar.charge_time)
 
 	if ( weapon.HasMod( "bolt_from_the_blue" ) )
 	{
@@ -643,6 +642,7 @@ function ShockShieldFieldDamage( entity weapon, vector origin )
 {
 	int flags = DF_STOPS_TITAN_REGEN | DF_SKIP_DAMAGE_PROT
 
+	float radiusBonus = Roguelike_GetStat( weapon.GetWeaponOwner(), "ability_power" ) * 15
 	RadiusDamage(
 		origin,									// center
 		weapon.GetWeaponOwner(),									// attacker

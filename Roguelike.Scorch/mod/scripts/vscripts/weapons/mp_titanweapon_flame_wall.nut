@@ -89,14 +89,18 @@ var function OnWeaponPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAttack
 		#endif
 	}
 	#if SERVER
-	if (weaponOwner.IsPlayer() && Roguelike_HasMod( weaponOwner, "dash_wall" ) && Time() - GetLastDodgeTime() < 0.8)
+	if (weaponOwner.IsPlayer() && Roguelike_HasMod( weaponOwner, "high_wall" ) && Time() - GetLastDodgeTime() < 1.0)
 	{
-		ammoPerShot = ammoPerShot * 3 / 4
+		inflictor.s.highWall <- true
+	}
+	if (weaponOwner.IsPlayer() && Roguelike_HasMod( weaponOwner, "dash_wall" ))
+	{
 		inflictor.s.dashWall <- true
-		for (int i = 0; i < 2; i++)
+		int splits = minint(2 * int(Roguelike_GetStat(weaponOwner, "ability_power") / 10) + 2, 8)
+		for (int i = 0; i < splits; i++)
 		{
 			vector dir = attackParams.dir
-			dir = VectorRotate( dir, (i == 0 ? <0, 15, 0> : <0, -15, 0>))
+			dir = VectorRotate( dir, (i % 2 == 0 ? <0, 10 * (i / 2 + 1), 0> : <0, -10 * (i / 2 + 1), 0>))
 
 			entity projectile = weapon.FireWeaponGrenade( attackParams.pos, dir, < 0,0,0 >, FUSE_TIME, damageTypes.projectileImpact, damageTypes.explosive, shouldPredict, true, true )
 			if ( projectile )
@@ -146,10 +150,12 @@ void function BeginFlameWave( entity projectile, int projectileCount, entity inf
 bool function CreateThermiteWallSegment( entity projectile, int projectileCount, entity inflictor, entity movingGeo, vector pos, vector angles, int waveCount )
 {
 	entity owner = projectile.GetOwner()
-	if (waveCount != -1 && owner.IsPlayer() && Roguelike_HasMod( owner, "high_wall" ))
+	if (waveCount != -1 && owner.IsPlayer() && "highWall" in inflictor.s)
 	{
 		int maxSegments = expect int( projectile.ProjectileGetWeaponInfoFileKeyField( "wave_max_count" ) )
-		inflictor.s.highWall <- true
+		float powerScalar = SoftCastToFloat(projectile.ProjectileGetWeaponInfoFileKeyField("ability_power_scalar_1"))
+		float step = expect float( projectile.ProjectileGetWeaponInfoFileKeyField( "wave_step_dist" ) )
+		maxSegments = int(maxSegments + Roguelike_GetStat( owner, "ability_power" ) * powerScalar / step)
 		if (waveCount != maxSegments - 1 && waveCount != 0)
 		{
 			CreateThermiteWallSegment( projectile, projectileCount, inflictor, movingGeo, pos + <0, 0, 100>, angles, -1 )
@@ -217,6 +223,7 @@ bool function CreateThermiteWallSegment( entity projectile, int projectileCount,
 
 		//EmitSoundOnEntity( thermiteParticle, FLAME_WALL_GROUND_SFX )
 		int maxSegments = expect int( projectile.ProjectileGetWeaponInfoFileKeyField( "wave_max_count" ) )
+		maxSegments = int(maxSegments + Roguelike_GetStat( owner, "ability_power" ))
 		//figure out why it's starting at 1 but ending at 14.
 		if ( waveCount == 1 )
 			EmitSoundOnEntity( thermiteParticle, FLAME_WALL_GROUND_BEGINNING_SFX )

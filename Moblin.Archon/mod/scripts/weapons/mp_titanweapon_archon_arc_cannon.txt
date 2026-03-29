@@ -40,6 +40,10 @@ WeaponData
 	"adjust_to_gun_barrel"							"1"
 	"fx_muzzle_flash_attach"						"muzzle_flash"
 
+	"ability_power_base_value"						"400"
+	"ability_power_scalar_1"						"4"
+	"ability_power_format"							"Shields Restored (Max Charge)"
+
 	// Damage - When Used by Players
 	"damage_type" 									"bullet"
 	"damage_flags"									"DF_STOPS_TITAN_REGEN | DF_BULLET | DF_NO_SELF_DAMAGE | DF_KNOCK_BACK"

@@ -6,6 +6,8 @@ global function CodeCallback_DamagePlayerOrNPC
 global function GameModeRulesShouldGiveTimerCredit
 global function SetGameModeRulesShouldGiveTimerCredit
 global function SetGameModeRulesEarnMeterOnDamage
+global function GameModeRulesRegisterTimerCreditExceptions
+global function GameModeRulesRegisterTimerCreditException
 global function GetDamageOrigin
 global function CodeCallBack_ShouldTriggerSniperCam
 global function CodeCallback_ForceAIMissPlayer
@@ -30,6 +32,14 @@ struct
 	bool functionref( entity, entity, var ) ShouldGiveTimerCreditGameModeRules
 	void functionref( entity, entity, TitanDamage, float ) earnMeterOnDamageGameModeRulesCallback
 
+	array<int> gameModeRulesTimerCreditExceptions = [
+		eDamageSourceId.mp_titancore_flame_wave,
+		eDamageSourceId.mp_titancore_flame_wave_secondary,
+		eDamageSourceId.mp_titancore_salvo_core,
+		damagedef_titan_fall,
+		damagedef_nuclear_core
+	]
+	
 	table<entity, AccumulatedDamageData> playerAccumulatedDamageData
 } file
 
@@ -51,17 +61,36 @@ void function OnClientConnected( entity player )
 	thread void function() : (player)
 	{
 		player.EndSignal("OnDestroy")
+		player.EndSignal("OnDeath")
 		while (true)
 		{
 			wait 0.001
-			if (player.IsOnGround() && !player.IsWallRunning()
-				&& !player.IsWallHanging()
-				&& !player.p.doingQuickDeath
-				&& !player.IsTraversing()
-				&& player.GetGroundEntity() == GetEntByIndex( 0 ))
+			if (Roguelike_HasMod( player, "hit_locks" ) && RSE_Get( player, RoguelikeEffect.hit_locks ) <= 0)
 			{
-				player.s.lastGroundPosition <- player.GetOrigin()
-				player.s.lastGroundAngles <- player.GetAngles()
+				array<entity> enemies = GetNPCArrayEx( "npc_titan", TEAM_IMC, TEAM_ANY, player.GetOrigin(), 3000 )
+				
+				foreach (entity enemy in enemies)
+				{
+					if (IsAlive(enemy))
+						ApplyTrackerMark( player, enemy )
+				}
+
+				RSE_Apply( player, RoguelikeEffect.hit_locks, 1.0, 1.0 * Roguelike_GetStat( player, "cd_reduction" ), 1.0 * Roguelike_GetStat( player, "cd_reduction" ) )
+			}
+			
+			if (Roguelike_HasMod( player, "titan_slide" ) && player.IsTitan())
+			{
+				if (player.IsSliding() && !("sliding" in player.s))
+				{
+					player.SetInvulnerable()
+					player.s.sliding <- true
+				}
+			}
+			// im not letting people pilot the entire game ty
+			if ((!player.IsSliding() || !player.IsOnGround()) && ("sliding" in player.s))
+			{
+				player.ClearInvulnerable()
+				delete player.s.sliding
 			}
 		}
 	}()
@@ -174,9 +203,9 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		HandleFootstepDamage( ent, damageInfo )
 
 	// HACK for enemy pets
-	if ( IsValid( attacker ) && "hacker" in attacker.s )
+	if ( IsValid( attacker ) && IsValid(attacker.e.hacker) )
 	{
-		local ogOwner = attacker.s.hacker
+		entity ogOwner = attacker.e.hacker
 		//printt(ogOwner)
 		if ( IsValid( ogOwner ) && ent != ogOwner )
 		{
@@ -217,23 +246,37 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		if (Roguelike_HasMod( attacker, "hack_dmg") )
 			DamageInfo_AddDamageBonus( damageInfo, 0.5 )
 		
-		if (Roguelike_HasMod( attacker, "clone_lockons_generic" ) && attacker.IsTitan())
+		if (attacker.IsTitan())
 		{
 			if (RSE_Get( attacker, RoguelikeEffect.clone_lockons_generic ) <= 0 && damageSourceId != eDamageSourceId.mp_titanweapon_sticky_40mm)
 			{
 				ApplyTrackerMark( attacker, ent )
-				RSE_Apply( attacker, RoguelikeEffect.clone_lockons_generic, 1.0, 1.0, 1.0 )
+				RSE_Apply( attacker, RoguelikeEffect.clone_lockons_generic, 0.5, 1.0, 1.0 )
 			}
 		}
 	}
 
-	if (Roguelike_HasMod( attacker, "hit_locks" ) && RSE_Get( ent, RoguelikeEffect.hit_locks ) <= 0 && attacker.IsTitan())
+	if (Roguelike_HasMod( attacker, "clone_lockons_primary" ) && attacker.IsTitan())
 	{
 		int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
-		if (damageSourceId != eDamageSourceId.mp_titanweapon_sticky_40mm)
+		if (//RSE_Get( attacker, RoguelikeEffect.clone_lockons_primary ) <= 0
+			/*&&*/ damageSourceId != eDamageSourceId.mp_titanweapon_sticky_40mm
+			&& Roguelike_IsWeaponDamage( damageInfo ))
 		{
+			printt("mark!")
 			ApplyTrackerMark( attacker, ent )
-			RSE_Apply( ent, RoguelikeEffect.hit_locks, 1.0, 0.5, 0.5 )
+			//RSE_Apply( attacker, RoguelikeEffect.clone_lockons_primary, 1.0, 0.66 * Roguelike_GetStat( attacker, "cd_reduction" ), 0.66 * Roguelike_GetStat( attacker, "cd_reduction" ) )
+		}
+	}
+	if (Roguelike_HasMod( attacker, "clone_lockons_offensive" ) && attacker.IsTitan())
+	{
+		int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
+		entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
+		if (damageSourceId != eDamageSourceId.mp_titanweapon_tracker_rockets
+			&& IsValid( sourceWeapon ) && sourceWeapon.IsWeaponOffhand() && sourceWeapon.GetInventoryIndex() == 0)
+		{
+			printt("mark!")
+			ApplyTrackerMark( attacker, ent )
 		}
 	}
 
@@ -310,7 +353,7 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		}
 	}
 
-	if (Roguelike_IsWeaponDamage( damageInfo ))
+	if (Roguelike_IsWeaponDamage( damageInfo ) && attacker.IsTitan())
 	{
 		if (Roguelike_HasDatacorePerk( attacker, "weapon_dmg" ))
 			DamageInfo_AddDamageBonus( damageInfo, Roguelike_GetDatacoreValue(attacker) / 100.0 )
@@ -319,18 +362,18 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	}
 	else
 	{
-		if (Roguelike_HasDatacorePerk( attacker, "ability_dmg" ))
+		if (Roguelike_HasDatacorePerk( attacker, "ability_dmg" ) && attacker.IsTitan())
 			DamageInfo_AddDamageBonus( damageInfo, Roguelike_GetDatacoreValue(attacker) / 100.0 )
 	}
 	if (Roguelike_HasDatacorePerk( attacker, "tanky" ) && RSE_Get( attacker, RoguelikeEffect.tanky_perk ) > 0.0)
-		DamageInfo_AddDamageBonus( damageInfo, Roguelike_GetDatacoreValue(attacker) / 100.0 )
+		DamageInfo_AddDamageBonus( damageInfo, 0.25 * RSE_Get( attacker, RoguelikeEffect.tanky_perk ) )
 
 	if (verboseDamagePrintouts)
 		printt( "    after damageSourceID callbacks:", DamageInfo_GetDamage( damageInfo ) )
 
 	if (attackerIsPlayer && attacker != ent)
 	{
-		if (Time() - GetLastDodgeTime() < 2.0 && Roguelike_HasDatacorePerk( attacker, "dash+"))
+		if (Time() - GetLastDodgeTime() < 4.0 && Roguelike_HasDatacorePerk( attacker, "dash+") && attacker.IsTitan())
 		{
 			DamageInfo_AddDamageBonus( damageInfo, Roguelike_GetDatacoreValue( attacker ) / 100.0 )
 		}
@@ -392,7 +435,7 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 			{
 				float damageAmpScale = StatusEffect_Get( soul, eStatusEffect.titan_damage_amp )
 				if ( damageAmpScale > 0.0 )
-					DamageInfo_AddDamageBonus( damageInfo, damageAmpScale )
+					DamageInfo_AddDamageBonus( damageInfo, damageAmpScale * 255.0 / 100.0 )
 			}
 		}
 
@@ -408,6 +451,7 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		}
 	}
 
+	// 
 	if (attackerIsPlayer && attacker.IsTitan())
 	{
 
@@ -421,6 +465,17 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 			DamageInfo_AddDamageBonus( damageInfo, 0.2 )
 		if (RSE_Get( attacker, RoguelikeEffect.segment_sacrifice_2 ) > 0.0)
 			DamageInfo_AddDamageBonus( damageInfo, 0.4 )
+		if (RSE_Get( attacker, RoguelikeEffect.dual_load ) > 0.0)
+			DamageInfo_AddDamageBonus( damageInfo, 0.5 )
+		if (RSE_Get( attacker, RoguelikeEffect.arm_load ) > 0.0)
+			DamageInfo_AddDamageBonus( damageInfo, 0.35 )
+		// script RSE_Apply( __p(), RoguelikeEffect.xo16_intensify, 100.0 )
+		// script print(GetServerVar("roguelikeTitanKills"))
+		if (damageSourceId == eDamageSourceId.mp_titanweapon_xo16_shorty && Roguelike_HasMod(attacker, "xo16_intensify"))
+		{
+			RSE_Apply( attacker, RoguelikeEffect.xo16_intensify, RSE_Get(attacker, RoguelikeEffect.xo16_intensify) + 1.0, 3.0, 0.0 )
+		}
+		DamageInfo_AddDamageBonus( damageInfo, RSE_Get( attacker, RoguelikeEffect.xo16_intensify ) * 0.01 )
 	}
 	if (attackerIsPlayer && attacker != ent && !attacker.IsTitan())
 	{
@@ -433,7 +488,7 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		if (RSE_Get( attacker, RoguelikeEffect.fire_dmg ) > 0.0 && Roguelike_GetDamageInfoElement( damageInfo ) == RoguelikeElement.fire)
 			DamageInfo_AddDamageBonus( damageInfo, 0.2 )
 		if (IsCloaked( attacker ) && Roguelike_HasMod( attacker, "cloak_damage" ) )
-			DamageInfo_AddDamageBonus( damageInfo, 0.2 )
+			DamageInfo_AddDamageBonus( damageInfo, 0.3 )
 	}
 	if (attackerIsPlayer && attacker != ent)
 	{
@@ -458,20 +513,11 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 	if ("damageMult" in attacker.s)
 		DamageInfo_ScaleDamage( damageInfo, expect float(attacker.s.damageMult) )
 
-	bool isValidDamageSource = (attackerIsPlayer && Roguelike_HasMod( attacker, "burn_dmg" )) || Roguelike_GetDamageInfoElement(damageInfo) != RoguelikeElement.fire
+	bool isValidDamageSource = attackerIsPlayer
 	if (burn > 0 && isValidDamageSource)
 	{
 		float damage = DamageInfo_GetDamage( damageInfo )
 		DamageInfo_ScaleDamage( damageInfo, 1.0 + burn * 0.01 )
-		float restore = min(damage * min(burn * 0.004, 0.2), burn) // 25 burn = 10% shieldsteal, up to 20%
-		if (attackerIsPlayer &&  Roguelike_HasMod( attacker, "burn_shield" ))
-		{
-			entity soul = attacker.GetTitanSoul()
-			if (IsValid(soul))
-			{
-				soul.SetShieldHealth(min(soul.GetShieldHealth() + restore, soul.GetShieldHealthMax()))
-			}
-		}
 	}
 
 	if (RSE_Get( ent, RoguelikeEffect.ion_charge ) > 0.99)
@@ -492,34 +538,41 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		DamageInfo_AddDamageBonus( damageInfo, 0.35 * blockIntensity )
     }
 
-	if (Roguelike_HasDatacorePerk( attacker, "unlocalized" ))
+	if (Roguelike_HasDatacorePerk( attacker, "unlocalized" ) && attacker.IsTitan())
 		DamageInfo_AddDamageBonus( damageInfo, Roguelike_GetDatacoreValue( attacker ) / 100.0 )
+	if (RSE_Get( ent, RoguelikeEffect.ronin_daze ) > 0.0 && Roguelike_HasMod( attacker, "daze_dmg" ))
+		DamageInfo_AddDamageBonus( damageInfo, 0.35 )
 	if (RSE_Get( attacker, RoguelikeEffect.swap ) > 0.0 && Roguelike_HasDatacorePerk( attacker, "swap" ))
-		DamageInfo_AddDamageBonus( damageInfo, 0.4 )
+		DamageInfo_AddDamageBonus( damageInfo, Roguelike_GetDatacoreValue( attacker ) / 100.0 )
 	if (RSE_Get( attacker, RoguelikeEffect.rearm_reload ) > 0.0 && Roguelike_HasMod( attacker, "rearm_reload" ))
 		DamageInfo_AddDamageBonus( damageInfo, 0.25 )
 	if (RSE_Get( attacker, RoguelikeEffect.gun_shield_shield ) > 0.0)
 		DamageInfo_AddDamageBonus( damageInfo, 0.2 )
 	if (RSE_Get( attacker, RoguelikeEffect.offense_canister ) > 0.0)
 		DamageInfo_AddDamageBonus( damageInfo, 0.5 )
+	if (DamageInfo_GetDamageSourceIdentifier( damageInfo ) == eDamageSourceId.damagedef_frag_drone_explode)
+	{
+		if (IsValid( attacker.GetOwner() ) && attacker.GetOwner().IsPlayer())
+			DamageInfo_ScaleDamage( damageInfo, 10 )
+	}
 
 	// WEAK -
 	if ( attackerIsPlayer && GetWeaken( ent ) > 0 )
 	{
-		float bonus = 0.35
-		array<string> mods = []
+		float bonus = 0.35 + 0.1 * Roguelike_GetTagCount( attacker, EXPEDITION_WEAKEN_TAG )
+		bonus += Roguelike_GetStat( attacker, "ability_power" ) * 0.003
 		DamageInfo_AddDamageBonus( damageInfo, bonus )
 	}
 
 	if ( GetWeaken( attacker ) > 0 )
-		DamageInfo_ScaleDamage( damageInfo, 0.75 )
+		DamageInfo_ScaleDamage( damageInfo, 0.5 )
 
 	if ( RSE_Get( attacker, RoguelikeEffect.railgun_trauma ) > 0.0 )
 		DamageInfo_ScaleDamage( damageInfo, 0.5 )
 
 	float damageMultiplier = 1.0 + StatusEffect_Get( ent, eStatusEffect.damage_received_multiplier )
 	if ( damageMultiplier != 1.0 )
-		DamageInfo_AddDamageBonus( damageInfo, StatusEffect_Get( ent, eStatusEffect.damage_received_multiplier ) )
+		DamageInfo_AddDamageBonus( damageInfo, StatusEffect_Get( ent, eStatusEffect.damage_received_multiplier ) * 255.0 / 100.0 )
 
 	RunClassDamageFinalCallbacks( ent, damageInfo )
 	if (verboseDamagePrintouts)
@@ -570,10 +623,7 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		entity soul = attacker.GetTitanSoul()
 		if (IsValid(soul)) //&& DistanceSqr(attacker.GetOrigin(), ent.GetOrigin()) < pow(1181, 2))
 		{
-			int shieldHealth = soul.GetShieldHealth()
-			int shieldHealthMax = soul.GetShieldHealthMax()
-			int restore = int(min(DamageInfo_GetDamage( damageInfo ), ent.GetHealth()) * 0.2)
-			soul.SetShieldHealth( minint(shieldHealth + restore, shieldHealthMax) )
+			soul.nextRegenTime = Time()
 		}
 	}
 	
@@ -592,19 +642,20 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 			return
 		}
 	}
-	if (Roguelike_HasDatacorePerk( attacker, "damage_cap" ))
+	if (Roguelike_HasDatacorePerk( attacker, "damage_cap" ) && attacker.IsTitan())
 	{
 		DamageInfo_AddDamageBonus( damageInfo, Roguelike_GetDatacoreValue(attacker) / 100.0 )
 	}
 
-	if (RSE_Get( attacker, RoguelikeEffect.dash_plus ) > 0)
+	if (RSE_Get( attacker, RoguelikeEffect.dash_plus ) > 0 && attacker.IsTitan())
 	{
 		DamageInfo_AddDamageBonus( damageInfo, Roguelike_GetDatacoreValue( attacker ) / 100.0 )
 	}
 	
+	DamageInfo_ScaleDamage( damageInfo, pow(0.85, Roguelike_GetModCount( attacker, "checkpoint_used" )) )
 	DamageInfo_ScaleDamage( damageInfo, additiveDMGBonus )
 
-	if (Roguelike_HasDatacorePerk( attacker, "damage_cap" ))
+	if (Roguelike_HasDatacorePerk( attacker, "damage_cap" ) && attacker.IsTitan())
 	{
 		DamageInfo_SetDamage( damageInfo, min(DamageInfo_GetDamage(damageInfo), 1000.0) )
 	}
@@ -963,15 +1014,8 @@ bool function ShouldGiveTimerCredit_Default( entity player, entity victim, var d
 		return false
 
 	int damageSourceID = DamageInfo_GetDamageSourceIdentifier( damageInfo )
-	switch ( damageSourceID )
-	{
-		case eDamageSourceId.mp_titancore_flame_wave:
-		case eDamageSourceId.mp_titancore_flame_wave_secondary:
-		case eDamageSourceId.mp_titancore_salvo_core:
-		case damagedef_titan_fall:
-		case damagedef_nuclear_core:
-			return false
-	}
+	if ( file.gameModeRulesTimerCreditExceptions.contains( damageSourceID ) )
+		return false
 
 	return true
 }
@@ -984,6 +1028,18 @@ bool function GameModeRulesShouldGiveTimerCredit( entity player, entity victim, 
 void function SetGameModeRulesShouldGiveTimerCredit( bool functionref( entity, entity, var ) rules )
 {
 	file.ShouldGiveTimerCreditGameModeRules = rules
+}
+
+void function GameModeRulesRegisterTimerCreditExceptions( array<int> ids )
+{
+	foreach( id in ids )
+		GameModeRulesRegisterTimerCreditException( id )
+}
+
+void function GameModeRulesRegisterTimerCreditException( int id )
+{
+	if ( !file.gameModeRulesTimerCreditExceptions.contains( id ) )
+		file.gameModeRulesTimerCreditExceptions.append( id )
 }
 
 function TitanDamageFlinch( entity ent, damageInfo )

@@ -2,9 +2,9 @@ untyped
 global function Chests_Init
 global function Roguelike_SetIgnoreBan
 
-const float TRACE_DIST = 80 // lowering this makes the function more likely to generate at lower ceilings, at cost of load time
+const float TRACE_DIST = 100 // lowering this makes the function more likely to generate at lower ceilings, at cost of load time
 const float HULL_EXTENTS = 80 // lowering this makes the funtion find a navmesh point nearer to the random point, at cost of load time
-
+global entity s2s_mover = null
 
 void function Chests_Init()
 {
@@ -44,12 +44,30 @@ void function EntitiesDidLoad()
 {
 	array<entity> hurtTriggers = GetEntArrayByClass_Expensive( "trigger_hurt" )
     hurtTriggers.extend( GetEntArrayByClass_Expensive("trigger_out_of_bounds") )
+    foreach ( entity trig in GetEntArrayByClass_Expensive("trigger_multiple") )
+    {
+        if (GetEditorClass(trig) == "trigger_quickdeath")
+        {
+            hurtTriggers.append(trig)
+            continue
+        }
+        if (GetEditorClass(trig) == "trigger_quickdeath_checkpoint")
+        {
+            hurtTriggers.append(trig)
+            continue
+        }
+    }
+    int attempts = 0;
     int failedToNoTrace = 0;
     int failedToNoNav = 0;
     int failedToOOB = 0;
     int failedToTriggerHurt = 0;
+    int failedToSkyBelowUs = 0
     try { TimerEnd() } catch (eeee) {}
     TimerStart()
+
+    //if (GetMapName() == "sp_s2s")
+    //    return
 
     entity worldspawn = GetEnt( "worldspawn" )
 
@@ -82,7 +100,7 @@ void function EntitiesDidLoad()
     if (GetMapName() == "sp_beacon")
     {
         vector c = loc[0]
-        for (int i = 0; i < 30; i++)
+        for (int i = 0; i < 2; i++)
         {
             entity chest = CreatePropDynamic( $"models/containers/pelican_case_large.mdl", c, <0, (32 + 521 * i) % 360.0, 0>, SOLID_VPHYSICS )
             c = <c.x, c.y, c.z + 30>
@@ -91,7 +109,7 @@ void function EntitiesDidLoad()
     }
     if (loc.len() == 2 && !alreadyUnlocked)
     {
-        entity legendaryChest = CreatePropDynamic( $"models/containers/pelican_case_large.mdl", loc[0], loc[1], SOLID_VPHYSICS )
+        entity legendaryChest = CreatePropDynamic( $"models/containers/pelican_case_large.mdl", loc[0], loc[1], SOLID_VPHYSICS, 30000 )
         Highlight_SetNeutralHighlight( legendaryChest, "roguelike_legendary_chest" )
         legendaryChest.Solid()
         legendaryChest.SetUsable()
@@ -114,14 +132,35 @@ void function EntitiesDidLoad()
         }
     }
 
+    array<string> openedChests = split( GetConVarString("roguelike_chests_opened"), " " )
     PRandom rand = NewPRandom(Roguelike_GetLevelSeed())
-    for (int i = 0; i < 100;)
+
+    int chestCount = 120
+    if (GetMapName() == "sp_sewers1")
+        chestCount = 180
+    if (GetMapName() == "sp_s2s")
+        chestCount = 75
+    if (GetMapName() == "sp_beacon")
+        chestCount = 90
+    if (GetMapName() == "sp_crashsite")
+        chestCount = 90
+    table<string, int> surfaceCount = {}
+    //if (GetMapName() == "sp_beacon" && Roguelike_GetRunModifier("the_long_way") == 2)
+    //    chestCount = 90
+    for (int i = 0; i < chestCount;)
     {
         vector pos = <PRandomFloat(rand, -30000, 30000), PRandomFloat(rand, -30000, 30000), PRandomFloat(rand, -30000, 30000)>
+        if (s2s_mover != null)
+            pos += s2s_mover.GetOrigin()
+        bool isShop = PRandomInt(rand, 0, 100) < 15
+        float rotation = PRandomFloat(rand, -180, 180)
+        attempts++
+        //if (attempts % 10000 == 0)
+        //    printt(attempts)
         //                                                           vvv lowering this makes func more likely
         //
         TraceResults tr = TraceHull( pos, <pos.x, pos.y, pos.z - TRACE_DIST>, < -HULL_EXTENTS / 2, -HULL_EXTENTS / 2, 0>, < HULL_EXTENTS / 2, HULL_EXTENTS / 2, 90>, [], TRACE_MASK_PLAYERSOLID, TRACE_COLLISION_GROUP_PLAYER )
-        if (!IsValid(tr.hitEnt))
+        if (!IsValid(tr.hitEnt) || tr.startSolid || DotProduct(tr.surfaceNormal, <0,0,1>) < 0 || tr.fraction < 0.25)
         {
             failedToNoTrace++
             continue
@@ -137,21 +176,19 @@ void function EntitiesDidLoad()
 
         expect vector( navPoint )
 
-        if (TraceLine(navPoint, <navPoint.x, navPoint.y, 65535>, [], TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE).endPos.z > 30000)
         {
-            failedToOOB++
-            continue
-        }
-        if (TraceLine(navPoint, <navPoint.x, navPoint.y, -65535>, [], TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE).endPos.z < -30000)
-        {
-            failedToOOB++
-            continue
+            TraceResults tr2 = TraceLine(navPoint, <navPoint.x, navPoint.y, -65535>, [], TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE)
+            if (tr.hitSky || DistanceSqr(tr2.endPos, tr.endPos) > 10)
+            {
+                failedToSkyBelowUs++
+                continue
+            }
         }
 
         bool invalidLocation = false
         foreach (entity trigger in hurtTriggers)
         {
-            if (trigger.ContainsPoint( navPoint ))
+            if (trigger.ContainsPoint( navPoint + <0,0,32> ))
             {
                 invalidLocation = true
                 failedToTriggerHurt++
@@ -159,33 +196,86 @@ void function EntitiesDidLoad()
             }
         }
 
+        entity parentEnt = tr.hitEnt
+        if (parentEnt != GetEnt("worldspawn"))
+        {
+            //print((parentEnt))
+        }
+
         if (invalidLocation)
             continue
 
-        bool isShop = PRandomInt(rand, 0, 5) == 1
+        if (!(tr.surfaceName in surfaceCount))
+            surfaceCount[tr.surfaceName] <- 0
+        surfaceCount[tr.surfaceName]++
 
-        // to help with determinism, dont use the PRandom func here, since its pretty much only visual anyways
-        asset model = isShop ?  $"models/beacon/beacon_crane_monitor.mdl" : $"models/containers/pelican_case_large.mdl" 
-        vector offset = isShop ? <0,0,64> : <0,0,1>
-        entity prop = CreatePropDynamic( model, navPoint + offset, <0,RandomFloatRange(-180, 180),0>, SOLID_VPHYSICS )
+        asset model = isShop ? $"models/beacon/crane_room_monitor_console.mdl" : $"models/containers/pelican_case_large.mdl" 
+        vector offset = isShop ? <0,0,1> : <0,0,1>
+        entity prop = CreatePropDynamic( model, navPoint + offset, <0,rotation,0>, SOLID_VPHYSICS )
         Highlight_SetNeutralHighlight( prop, "roguelike_chest" )
         prop.Solid()
         prop.SetUsable( )
+        if (parentEnt != GetEnt("worldspawn"))
+            prop.SetParent(parentEnt)
         prop.s.seed <- PRandomInt(rand)
         prop.SetUsableRadius( 200 )
         if (isShop)
             prop.SetUsePrompts( "Hold %use% to open the shop", "Press %use% to open the shop" )
         else
             prop.SetUsePrompts( "Hold %use% to open chest", "Press %use% to open chest" )
+
+        
+        //printt(navPoint + offset, i)
         //prop.SetParent(tr.hitEnt)
         //DispatchSpawn( prop )
-         printt("<", navPoint.x, ",", navPoint.y, ",", navPoint.z, ">")
 
-        thread void function() : (prop, isShop)
+        thread void function() : (prop, isShop, i, openedChests)
         {
+            prop.EndSignal("OnDestroy")
             int times = 0
             while (true)
             {
+                wait 0.001
+                if (GetPlayerArray().len() < 1)
+                    continue
+                entity player = GetPlayerArray()[0]
+                if (!IsValid(player))   
+                    continue
+
+                bool xray = true
+                if (DistanceSqr(player.CameraPosition(), prop.GetWorldSpaceCenter()) > 1000 * 1000)
+                    xray = false
+                
+                if (!Roguelike_HasMod( player, "xray" ))
+                    xray = false
+
+                if ("open" in prop.s)
+                    return
+
+                if (xray)
+                {
+                    Highlight_SetNeutralHighlight( prop, "roguelike_chest_xray" )
+                }
+                else
+                {
+                    Highlight_SetNeutralHighlight( prop, "roguelike_chest" )
+                }
+            }
+        }()
+
+        thread void function() : (prop, isShop, i, openedChests)
+        {
+            prop.EndSignal("OnDestroy")
+            int times = 0
+            while (true)
+            {
+                if (openedChests.contains(string(i)))
+                {
+                    Highlight_ClearNeutralHighlight( prop )
+                    prop.SetModel( $"models/containers/pelican_case_large_open.mdl" )
+                    prop.UnsetUsable()
+                    return
+                }
                 var playerActivator = prop.WaitSignal("OnPlayerUse").player
                 expect entity( playerActivator )    
 
@@ -201,12 +291,13 @@ void function EntitiesDidLoad()
                 }
                 else
                 {
+                    prop.s.open <- true
                     Highlight_ClearNeutralHighlight( prop )
                     prop.SetModel( $"models/containers/pelican_case_large_open.mdl" )
                     prop.UnsetUsable()
                     EmitSoundOnEntity( playerActivator, "UI_PostGame_FDSlideStop" )
                     EmitSoundOnEntity( playerActivator, "UI_PostGame_CoinPlace" )
-                    Remote_CallFunction_UI( playerActivator, "Roguelike_GenerateLoot", expect int(prop.s.seed) )
+                    Remote_CallFunction_UI( playerActivator, "Roguelike_GenerateLoot", expect int(prop.s.seed), i )
                     return
                 }
             }
@@ -217,6 +308,13 @@ void function EntitiesDidLoad()
     printt("failedToNoTrace", failedToNoTrace)
     printt("failedToNoNav", failedToNoNav)
     printt("failedToOOB", failedToOOB)
+    printt("failedToSkyBelowUs", failedToSkyBelowUs)
     printt("failedToTriggerHurt", failedToTriggerHurt)
+    printt("attempts", attempts)
     printt("Total Time:", TimerEnd() / 1000.0)
+    
+    foreach (string t, int c in surfaceCount)
+    {
+        printt(t, c)
+    }
 }

@@ -3,8 +3,8 @@ WeaponData
 	// General
 	"printname"   									"Charge Ball"
 	"shortprintname"   								"Charge Ball"
-	"description" 									"haha gottem"
-	"longdesc"										"deez nuts"
+	"description" 									"#WPN_TITAN_CHARGE_BALL_DESC"
+	"longdesc"										"#WPN_TITAN_CHARGE_BALL_LONGDESC"
 
 	"menu_icon"										"archon/menu/charge_ball"
 	"hud_icon"										"archon/hud/charge_ball"
@@ -45,6 +45,13 @@ WeaponData
 	"projectile_straight_radius_max"				"1"
 
 	"projectile_first_person_offset_fraction"		"1.0"
+
+    "ability_power_value_1"                  "explosionradius"
+    "ability_power_value_2"                  "explosion_inner_radius"
+	"ability_power_base_value"				 "explosionradius"
+	"ability_power_scalar_1"					 "3"
+	"ability_power_scalar_2"					"3"
+	"ability_power_format"						"range"
 
 	// Menu Stats
 	"stat_damage" 									"90"
@@ -104,11 +111,11 @@ WeaponData
 
 	// Ammo
 	"cooldown_type"                                 "shield"
-	"ammo_clip_size"   								"500"
-	"ammo_default_total"							"500"
+	"ammo_clip_size"   								"333"
+	"ammo_default_total"							"333"
 	"ammo_min_to_fire"								"333"
 	"ammo_per_shot"									"333"
-	"ammo_stockpile_max"							"500"
+	"ammo_stockpile_max"							"333"
 	"ammo_drains_to_empty_on_fire"					"0"
 	"ammo_no_remove_from_clip"						"0"
 

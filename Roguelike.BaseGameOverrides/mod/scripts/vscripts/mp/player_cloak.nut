@@ -148,15 +148,16 @@ void function HandleCloakEnd( entity player )
 			if ( PlayerHasBattery( player ) )
 				Battery_StartFX( GetBatteryOnBack( player ) )
 
+			if ("cloakSpeedStatusEffectID" in player.s)
+			{
+				StatusEffect_Stop( player, expect int(player.s.cloakSpeedStatusEffectID) )
+			}
+			
 			StopSoundOnEntity( player, "cloak_sustain_loop_1P" )
 			StopSoundOnEntity( player, "cloak_sustain_loop_3P" )
 			if ( !IsCloaked( player ) )
 				return
 
-			if ("cloakSpeedStatusEffectID" in player.s)
-			{
-				StatusEffect_Stop( player, expect int(player.s.cloakSpeedStatusEffectID) )
-			}
 		
 			if ( !IsAlive( player ) || !player.IsHuman() )
 			{

@@ -12,7 +12,7 @@ var function OnWeaponPrimaryAttack_titanability_phase_dash( entity weapon, Weapo
 	//PlayWeaponSound( "fire" )
 	entity player = weapon.GetWeaponOwner()
 
-	float shiftTime =  1.0
+	float shiftTime = 1.0 + Roguelike_GetStat( player, "ability_duration" )
 
 	if ( IsAlive( player ) )
 	{
@@ -71,6 +71,8 @@ void function PhaseDash( entity weapon, entity player )
 		moveSpeed = PHASE_DASH_SPEED * movestunEffect * 1.5
 	else
 		moveSpeed = PHASE_DASH_SPEED * movestunEffect
+	float powerScalar = SoftCastToFloat(weapon.GetWeaponInfoFileKeyField("ability_power_scalar_1"))
+	moveSpeed += Roguelike_GetStat( player, "ability_power" ) * powerScalar
 	SetPlayerVelocityFromInput( player, moveSpeed, <0,0,200> )
 }
 

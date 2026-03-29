@@ -192,6 +192,7 @@ bool function UICodeCallback_LevelLoadingStarted( string levelname )
 
 	uiGlobal.loadingLevel = levelname
 	uiGlobal.isLoading = true
+	Signal(uiGlobal.signalDummy, "EndTimerThread")
 
 	StopMusic()
 
@@ -383,6 +384,7 @@ void function UICodeCallback_LevelShutdown()
 	if ( uiGlobal.loadedLevel != "" )
 		CleanupInGameMenus()
 
+	Signal( uiGlobal.signalDummy, "EndTimerThread")
 	uiGlobal.loadedLevel = ""
 	uiGlobal.mapSupportsMenuModelsUpdated = false
 	uiGlobal.sp_showAlternateMissionLog = false

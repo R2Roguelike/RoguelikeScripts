@@ -226,6 +226,8 @@ void function Player_AddClient( entity player )
 	RegisterConCommandTriggeredCallback( "scoreboard_focus", Pressed_SwapLoadouts )
 	RegisterConCommandTriggeredCallback( "+speed", Pressed_Sprint )
 	RegisterConCommandTriggeredCallback( "-speed", Released_Sprint )
+	RegisterConCommandTriggeredCallback( "+offhand2", Pressed_Offhand2 )
+	RegisterConCommandTriggeredCallback( "-offhand2", Released_Offhand2 )
 	//RegisterConCommandTriggeredCallback( "scoreboard_toggle_focus", Pressed_TitanLoadoutSelect )
 
 	Create_DamageIndicatorHUD()
@@ -245,13 +247,24 @@ void function Player_AddClient( entity player )
 
 void function Pressed_Sprint( entity player )
 {
-	printt("shit")
 	if (!player.IsTitan() && Roguelike_GetRunModifier("vanilla_movement") == 0)
 		player.ClientCommand( "+dodge" )
 }
 void function Released_Sprint( entity player )
 {
-	print("unshit")
+	if (!player.IsTitan() && Roguelike_GetRunModifier("vanilla_movement") == 0)
+		player.ClientCommand( "-dodge" )
+}
+
+void function Pressed_Offhand2( entity player )
+{
+	return
+	if (!player.IsTitan() && Roguelike_GetRunModifier("vanilla_movement") == 0)
+		player.ClientCommand( "+dodge" )
+}
+void function Released_Offhand2( entity player )
+{
+	return
 	if (!player.IsTitan() && Roguelike_GetRunModifier("vanilla_movement") == 0)
 		player.ClientCommand( "-dodge" )
 }

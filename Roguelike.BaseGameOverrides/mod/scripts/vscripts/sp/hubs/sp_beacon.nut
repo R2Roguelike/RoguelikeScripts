@@ -446,6 +446,7 @@ void function StartPoint_Setup_GotChargeTool( entity player )
 
 void function StartPoint_Skipped_GotChargeTool( entity player )
 {
+	Roguelike_PauseTimer()
 	entity arms = GetEntByScriptName( "dish_arms2" )
 	arms.Anim_Play( "open" )
 
@@ -505,6 +506,8 @@ void function StartPoint_Skipped_PowerRelaysOnline( entity player )
 {
 	// Shutters are open
 	OpenShutters( true )
+
+	Roguelike_UnpauseTimer()
 
 	// Door is open
 	FlagSet( "ControlRoomDoorOpen" )
@@ -1417,7 +1420,9 @@ void function StartPoint_Final_Battle( entity player )
 	CheckPoint()
 	UnlockAchievement( player, achievements.BEAT_RICHTER )
 
-	wait 6.0
+	PickStartPoint("sp_tday", "Intro")
+
+	wait 10.0
 
 	//###############################################
 	// Open the control room door and shutters again
@@ -1697,13 +1702,14 @@ void function StartPoint_Send_Signal( entity player )
 	Objective_Clear()
 
 	// Move the elevator up
-	Roguelike_PauseTimer() // long cutscene, just pause the timer so player doesnt get frustrated
+	//Roguelike_PauseTimer() // long cutscene, just pause the timer so player doesnt get frustrated
 	ElevatorUp( 3.5 )
 
 	ControlRoomSceneC( player )
 	
 	ScreenFadeToBlackForever( player )
 
+	PickStartPoint( "sp_tday", "Intro" )
 	wait 3.0
 }
 
@@ -2884,10 +2890,10 @@ void function ControlRoomBScene_BeforePower( entity player )
 	//###################################
 
 	// Caution: high radiation levels detected. Your suit will only protect you for a limited time. I suggest you move quickly.
-	waitthread PlayDialogue( "BT_RadiationVeryHigh", bt )
+	//waitthread PlayDialogue( "BT_RadiationVeryHigh", bt )
 
 	// I wouldn't stay in there too long unless you want to be burnt to a crisp.
-	waitthread PlayDialogue( "Mike_WouldntStayTooLong", file.mike )
+	//waitthread PlayDialogue( "Mike_WouldntStayTooLong", file.mike )
 
 	// Nag and wait for player to have arc tool equipped
 	thread NagPlayerToEquipArcToolAtInnerHatch( player )
@@ -2902,13 +2908,19 @@ void function ControlRoomBScene_BeforePower( entity player )
 	//#######################################
 
 	// Ok, opening the hatch in 3...
-	PlayDialogue( "Mike_OkOpeningHatch", player )
+	thread PlayDialogue( "Mike_OkOpeningHatch", player )
+
+	wait 2.25
 
 	// 2...
 	PlayDialogue( "Mike_2", player )
 
+	//wait 1.25
+
 	// 1...
 	PlayDialogue( "Mike_1", player )
+
+	//wait 1.25
 
 	// Go!
 	thread PlayDialogue( "Mike_Go", player )
@@ -3027,7 +3039,7 @@ void function ControlRoomB_BootupDialogue( entity player, entity bt )
 	wait 1.0
 
 	// Diagnostic complete. Power 100%.
-	PlayDialogue( "Facility_DiagnosticsComplete", 	loudspeaker )
+	thread PlayDialogue( "Facility_DiagnosticsComplete", 	loudspeaker )
 
 	UnlockAchievement( player, achievements.POWER_BEACON )
 
@@ -3039,15 +3051,16 @@ void function ControlRoomB_BootupDialogue( entity player, entity bt )
 	// Yes, sir! Initiating reset.
 	//thread PlayDialogue( "Grunt1_InitiatingReset", 		grunt1 )
 
-	// Uplink Targeting Module reset intiated.
-	thread PlayDialogue( "Facility_TargetingInitiated", 	loudspeaker )
-
 	PlayMusic( "Music_Beacon_11_DishStartAndFail" )
+
+	// Uplink Targeting Module reset intiated.
+	PlayDialogue( "Facility_TargetingInitiated", 	loudspeaker )
+
 	thread ControlRoomBScene_AfterPower_FX()
 	SetDishAngle( 0, 10.0 )
 	FlagSet( "DishRingsActivate" )
 
-	wait 1.0
+	//wait 1.0
 
 	// 60%
 	PlayDialogue( "Grunt1_60Percent", 				grunt1 )
@@ -3072,7 +3085,7 @@ void function ControlRoomB_BootupDialogue( entity player, entity bt )
 	PlayDialogue( "Mikes_WhatsGoingOn", 		file.mike )
 
 	// Not sure. Some sort of fail safe!
-	PlayDialogue( "Grunt3_NotSure", 				grunt3 )
+	//PlayDialogue( "Grunt3_NotSure", 				grunt3 )
 
 	// Scans indicate the Uplink Targeting Module is offline.
 	PlayDialogue( "BT_TargetingModuleOffline", 		bt )
@@ -3088,7 +3101,7 @@ void function ControlRoomB_BootupDialogue( entity player, entity bt )
 	PlayDialogue( "Mike_IMCOnTheirWay", 			file.mike )
 
 	// That is a reasonable bet.
-	PlayDialogue( "BT_ReasonableBet", 				bt )
+	//PlayDialogue( "BT_ReasonableBet", 				bt )
 
 	// McCord, can we bypass the module?
 	int yawID 		= file.mike.LookupPoseParameterIndex( "head_yaw" )
@@ -3115,7 +3128,7 @@ void function ControlRoomB_BootupDialogue( entity player, entity bt )
 	file.mike.SetPoseParameterOverTime( yawID, 0, 0.5 )
 
 	// Pilot, this situation could use your skills.
-	PlayDialogue( "BT_SituationForPilot", 			bt )
+	//PlayDialogue( "BT_SituationForPilot", 			bt )
 
 	// I hope you're up for another trip to hell, Pilot. You'll need to repair beacon on-site and get back here as fast as possible.
 	looktime = 5.4
@@ -3139,7 +3152,7 @@ void function ControlRoomBScene_AfterPower_FX()
 	wait 3
 	FlagSet( "fx_Beacon_beam" )
 
-	wait 8
+	wait 4
 
 	FlagSet( "fx_beacon_explode" )
 
@@ -3208,6 +3221,15 @@ void function ControlRoomB_BeforePower_Grunts( entity player )
 	thread PlayAnim( file.ike, "pt_control_roomB_gruntB_idle", controlRoomNode )*/
 }
 
+void function Roguelike_BTAnimSpoke1( entity bt, entity controlRoomNode )
+{
+	thread PlayAnimTeleport( file.controlRoomCable, "cable_beacon_controlroom_b", controlRoomNode )
+	PlayAnim( bt, "bt_beacon_controlroom_b_pipeA", controlRoomNode )
+	PlayAnim( bt, "bt_beacon_controlroom_b_pipeA_idle", controlRoomNode )
+	PlayAnim( bt, "bt_beacon_controlroom_b_pipeB", controlRoomNode )
+	PlayAnim( bt, "bt_beacon_controlroom_b_wait", controlRoomNode )
+}
+
 void function ControlRoomB_BeforePower_Scene( entity player, entity bt )
 {
 	// Guard stands at the relay chamber door
@@ -3231,11 +3253,9 @@ void function ControlRoomB_BeforePower_Scene( entity player, entity bt )
 	thread PlayDialogue( "BT_GoodWorkCooper", bt )
 
 	// BT pushes the pipe into position then idles
-	thread PlayAnimTeleport( file.controlRoomCable, "cable_beacon_controlroom_b", controlRoomNode )
-	thread PlayAnim( bt, "bt_beacon_controlroom_b_pipeA", controlRoomNode )
-	thread PlayAnimOnAnimDone( bt, "bt_beacon_controlroom_b_pipeA_idle", controlRoomNode )
+	thread Roguelike_BTAnimSpoke1( bt, controlRoomNode )
 
-	wait 9
+	//wait 9
 
 	// Wait for player to have entered the control room if they were still in the cooridor
 	FlagWait( "PlayerEnteredControlRoomWithArcTool" )
@@ -3251,16 +3271,14 @@ void function ControlRoomB_BeforePower_Scene( entity player, entity bt )
 	file.ike.Anim_SetInitialTime( looktime )
 	wait lookdelay
 	file.mike.Anim_ScriptedAddGestureSequence( "face_BE341_02_01_mcor_gcaptain", true )
-	waitthread PlayDialogue( "Mike_WeNeedSomePower", file.mike )
+	//waitthread PlayDialogue( "Mike_WeNeedSomePower", file.mike )
 
 	wait 0.5
 
 	// Pilot, the power chamber relays are offline. The Arc Tool should be able to jump start them manually.
-	thread PlayDialogue( "BT_RelaysAreOffline", bt )
-	thread PlayAnim( bt, "bt_beacon_controlroom_b_pipeB", controlRoomNode )
-	thread PlayAnimOnAnimDone( bt, "bt_beacon_controlroom_b_wait", controlRoomNode )
+	//thread PlayDialogue( "BT_RelaysAreOffline", bt )
 
-	wait 5.5
+	//wait 5.5
 
 	Objective_Set( "#BEACON_OBJECTIVE_ACTIVATE_POWER_RELAYS", GetEntByScriptName( "objective_relays_location" ).GetOrigin() )
 
@@ -3294,9 +3312,9 @@ void function ControlRoomB_BeforePower_Scene( entity player, entity bt )
 
 void function CableSecureVO()
 {
-	wait 7.0
+	//wait 7.0
 	// The cable is secure, Captain.
-	thread PlayGabbyDialogue( "Grunt_CableSecure", file.ike )
+	//thread PlayGabbyDialogue( "Grunt_CableSecure", file.ike )
 }
 
 void function PlayAnimOnAnimDone( entity guy, string animation_name, entity ornull reference = null, string ornull optionalTag = null, float blendTime = DEFAULT_SCRIPTED_ANIMATION_BLEND_TIME )

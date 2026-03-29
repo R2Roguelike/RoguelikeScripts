@@ -45,6 +45,11 @@ WeaponData
 	"fire_rate"   									"1.0"
 	"fire_duration"									"12.0"
 
+	"ability_duration_value_1"						"fire_duration"
+	"ability_power_base_value"						"2500"
+	"ability_power_scalar_1"						"25"
+	"ability_power_format"							"Health"
+
 	// NPC
 	"npc_use_min_damage"							"500"
 	"npc_use_max_damage"							"1000"

@@ -11,6 +11,20 @@ void function Weaken_Init()
     AddDamageCallbackSourceID( eDamageSourceId.mp_titancore_amp_core, CoreDamage )
 }
 
+void function DamageOverTime( entity ent, entity attacker, float dps, float ticksPerSecond, float duration )
+{
+    ent.EndSignal("OnDeath")
+    ent.EndSignal("OnDestroy")
+    attacker.EndSignal("OnDeath")
+    attacker.EndSignal("OnDestroy")
+    int count = int(ceil(duration * ticksPerSecond))
+    for ( int i = 0; i < count; i++ )
+    {
+        ent.TakeDamage( dps / ticksPerSecond, attacker, attacker, { damageSourceId=eDamageSourceId.mp_titanability_rearm }) // hack to make it appear as expedition dmg
+        wait 1.0 / ticksPerSecond
+    }
+}
+
 void function RocketDamage( entity ent, var damageInfo )
 {
     entity attacker = DamageInfo_GetAttacker( damageInfo )
@@ -26,6 +40,8 @@ void function RocketDamage( entity ent, var damageInfo )
     }
     if (attacker != ent)
     {
+        if (Roguelike_HasMod( attacker, "crippling_missiles" ))
+            thread DamageOverTime( ent, attacker, 10.0, 2.0, 5.0 * (1.0 + Roguelike_GetStat( attacker, "ability_duration" )))
         if (Roguelike_HasMod( attacker, "dumbfire_rockets" ))
             AddWeaken( ent, attacker, 2.0 / 9.0 )
         else
@@ -68,7 +84,9 @@ void function AddWeaken( entity ent, entity attacker, float amount )
 
     float cur = GetWeaken( ent )
     cur = cur + amount
-    RSE_Apply( ent, RoguelikeEffect.expedition_weaken, cur, 16.0 * cur, 16.0 * cur )
+    float duration = 16.0
+    duration *= 1.0 + Roguelike_GetStat( attacker, "ability_duration" )
+    RSE_Apply( ent, RoguelikeEffect.expedition_weaken, cur, duration * cur, duration * cur )
 }
 
 void function RemoveWeaken( entity ent, entity attacker, float amount )

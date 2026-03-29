@@ -27,6 +27,9 @@ void function ArchonPrecache()
 	TeslaNode_Init()
 	StormCore_Init()
 	#if SERVER
+		GameModeRulesRegisterTimerCreditException( eDamageSourceId.mp_titancore_storm_core )
+		GameModeRulesRegisterTimerCreditException( eDamageSourceId.mp_titancore_storm_core_smoke )
+		
 		//AddCallback_OnPilotBecomesTitan( OnArchonChange )
 		//AddCallback_OnTitanBecomesPilot( OnArchonChange )
 	#endif

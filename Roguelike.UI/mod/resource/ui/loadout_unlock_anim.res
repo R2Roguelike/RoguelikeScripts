@@ -71,7 +71,7 @@ resource/ui/loadout_unlock_anim.res
 		enabled					1
 		//auto_tall_tocontents	1
 		auto_wide_tocontents	1
-		labelText				"UNLOCKED LOADOUT"
+		labelText				"LOADOUT DISCOVERED"
 		textAlignment			east
 		fgcolor_override 		"255 255 255 255"
 		//bgcolor_override 		"0 0 0 200"

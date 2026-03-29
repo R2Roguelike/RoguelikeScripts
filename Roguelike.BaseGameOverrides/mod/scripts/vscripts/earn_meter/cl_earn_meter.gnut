@@ -512,28 +512,17 @@ void function Cl_SP_UpdateCoreIcon( int loadoutIndex )
 	if ( IsValid( player.GetTitanSoul() ) && IsTitanCoreFiring( player ) ) // we want the player to know which titan core is firing
 		return
 
-	if ( loadoutIndex == -1 )
+	asset coreIcon = $"rui/hud/titan_core"
+	entity coreWeapon = player.GetOffhandWeapon(3)
+	if (IsValid(coreWeapon) && coreWeapon.GetWeaponClassName() != "")
 	{
-		array<entity> weapons = player.GetMainWeapons()
-
-		if ( weapons.len() <= 0 ) // JFS
-			return
-
-		entity primaryWeapon = player.GetLatestPrimaryWeapon()
-		primaryWeaponName = primaryWeapon.GetWeaponClassName()
-		if (primaryWeaponName == "melee_titan_sword")
-			primaryWeaponName = "mp_titanweapon_leadwall"
-	}
-	else
-	{
-		primaryWeaponName = GetSPTitanLoadoutForIndex_PrimaryWeapon( loadoutIndex )
+		string iconStr = coreWeapon.GetWeaponSettingString(eWeaponVar.hud_icon)
+		if (iconStr.len() > 0) // sometimes iconStr may be an invalid string with length -1. dont ask.
+			coreIcon = StringToAsset( coreWeapon.GetWeaponSettingString(eWeaponVar.hud_icon) ) // hud_icon is a string, bruh
 	}
 
-	asset coreBuildingIcon = SP_GetIconForTitanWeapon( primaryWeaponName, "coreBuildingIcon" )
-	asset coreReadyIcon = SP_GetIconForTitanWeapon( primaryWeaponName, "coreReadyIcon" )
-
-	RuiSetImage( file.earnMeterRui, "goalBuildingIcon", coreBuildingIcon )
-	RuiSetImage( file.earnMeterRui, "goalReadyIcon", coreReadyIcon )
+	RuiSetImage( file.earnMeterRui, "goalBuildingIcon", coreIcon )
+	RuiSetImage( file.earnMeterRui, "goalReadyIcon", coreIcon )
 	#endif
 }
 

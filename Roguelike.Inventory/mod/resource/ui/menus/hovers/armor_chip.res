@@ -7,7 +7,7 @@ resource/ui/menus/hovers/armor_chip.res
 
         image			"vgui/hud/white"
 
-        drawColor	"25 25 200 255"
+        drawColor	"40 40 40 255"
         scaleImage			1
 
         wide				450
@@ -23,11 +23,11 @@ resource/ui/menus/hovers/armor_chip.res
 
         image			"vgui/hud/white"
 
-        drawColor	"60 60 60 255"
+        drawColor	"25 25 25 255"
         scaleImage			1
 
         wide				450
-        tall			    200
+        tall			    288
 
         "xpos"			"0"
         "ypos"			"0"
@@ -76,15 +76,15 @@ resource/ui/menus/hovers/armor_chip.res
 		fgcolor_override	"25 25 25 255`"
 		scaleImage			1
 
-		wide				430
+		wide				434
 		tall				12
 
-		"xpos"			"0"
+		"xpos"			"-7"
 		"ypos"			"-7"
 
 		pin_to_sibling "TitleStrip"
-		pin_corner_to_sibling	BOTTOM
-		pin_to_sibling_corner	BOTTOM
+		pin_corner_to_sibling	BOTTOM_RIGHT
+		pin_to_sibling_corner	BOTTOM_RIGHT
 	}
 	EnergyBar1
 	{
@@ -102,7 +102,7 @@ resource/ui/menus/hovers/armor_chip.res
 		fgcolor_override	"15 15 15 255"
 		scaleImage			1
 
-		wide				430
+		wide				434
 		tall				12
 
 		"xpos"			"0"
@@ -112,6 +112,27 @@ resource/ui/menus/hovers/armor_chip.res
 		pin_corner_to_sibling	BOTTOM_RIGHT
 		pin_to_sibling_corner	BOTTOM_RIGHT
 	}
+
+    EnergyIcon
+    {
+        ControlName			ImagePanel
+
+        image			"ui/lightning"
+
+        drawColor	"25 25 25 255"
+        scaleImage			1
+
+        wide				12
+        tall			    12
+
+        "xpos"			"1"
+        "ypos"			"2"
+
+		pin_to_sibling "EnergyBar1"
+		pin_corner_to_sibling	BOTTOM_LEFT
+		pin_to_sibling_corner	TOP_LEFT
+    }
+
 
 	EnergyCount
 	{
@@ -142,9 +163,9 @@ resource/ui/menus/hovers/armor_chip.res
         Classname			GridButtonClass
         controlSettingsFile	"resource/ui/menus/hovers/stat_bar.res"
         xpos            0
-        ypos			8
-        wide			434
-        tall			24
+        ypos			16
+        wide			418
+        tall			36
         visible			1
         scaleImage		1
 
@@ -153,6 +174,42 @@ resource/ui/menus/hovers/armor_chip.res
 		pin_to_sibling			TitleStrip
 		pin_corner_to_sibling	TOP
 		pin_to_sibling_corner	BOTTOM
+	}
+    Stat1
+	{
+        ControlName			CNestedPanel
+        Classname			GridButtonClass
+        controlSettingsFile	"resource/ui/menus/hovers/stat_bar.res"
+        xpos            0
+        ypos			0
+        wide			418
+        tall			36
+        visible			1
+        scaleImage		1
+
+        zpos			1
+
+		pin_to_sibling			Stat0
+		pin_corner_to_sibling	TOP_LEFT
+		pin_to_sibling_corner	BOTTOM_LEFT
+	}
+    Stat2
+	{
+        ControlName			CNestedPanel
+        Classname			GridButtonClass
+        controlSettingsFile	"resource/ui/menus/hovers/stat_bar.res"
+        xpos            0
+        ypos			0
+        wide			418
+        tall			36
+        visible			1
+        scaleImage		1
+
+        zpos			1
+
+		pin_to_sibling			Stat1
+		pin_corner_to_sibling	TOP_LEFT
+		pin_to_sibling_corner	BOTTOM_LEFT
 	}
     SubStats
     {
@@ -168,13 +225,13 @@ resource/ui/menus/hovers/armor_chip.res
         //bgcolor_override 		"0 0 0 200"
         font					JetBrainsMonoBold_20
 
-		wide				370
+		wide				418
         tall                28
         wrap                0
 
 		"xpos"			"-7"
-		"ypos"			"8"
-		pin_to_sibling			Stat0
+		"ypos"			"0"
+		pin_to_sibling			Stat2
 		pin_corner_to_sibling	TOP_LEFT
 		pin_to_sibling_corner	BOTTOM_LEFT
     }

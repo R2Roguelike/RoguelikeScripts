@@ -46,5 +46,10 @@
 	],
 
 	"ConVars": [
+		{
+			"Name": "roguelike_save_backup",
+			"DefaultValue": "0",
+			"Flags": "CHEAT"
+		},
 	]
 }

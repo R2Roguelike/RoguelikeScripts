@@ -347,6 +347,25 @@ void function WeaponPerks_Init()
         }
         #endif
     }
+    {
+        RoguelikeWeaponPerk mod = NewMod("glock-switch")
+        mod.name = "Glock Switch"
+        mod.description = "Full Auto."
+        mod.slot = PERK_SLOT_PERK
+        mod.allowedWeapons = ["mp_weapon_semipistol"]
+        #if SERVER || CLIENT
+        mod.mwvCallback = void function( entity weapon, entity owner, int weaponLevel ) : (mod)
+        {
+            if (weapon.GetWeaponPrimaryClipCount() == 1)
+            {
+                #if SERVER
+                owner.TakeDamage( 5, owner, owner, { damageSourceId = eDamageSourceId.mp_weapon_lstar })
+                #endif
+                weapon.SetWeaponPrimaryClipCount(2)
+            }
+        }
+        #endif
+    }
 
     // GRENADE PERKS
     {
@@ -393,21 +412,6 @@ void function WeaponPerks_Init()
         mod.description = "-50% DMG, +25% knockback."
         mod.slot = PERK_SLOT_GRENADE
         mod.allowedWeapons = ["mp_weapon_frag_grenade", "mp_weapon_satchel"]
-        #if SERVER || CLIENT
-        mod.mwvCallback = void function( entity weapon, entity owner, int weaponLevel ) : (mod)
-        {
-            ModWeaponVars_ScaleVar( weapon, eWeaponVar.explosion_damage, 0.5 )
-            ModWeaponVars_ScaleVar( weapon, eWeaponVar.impulse_force, 1.25 )
-            ModWeaponVars_ScaleVar( weapon, eWeaponVar.impulse_force_explosions, 1.25 )
-        }
-        #endif
-    }
-    {
-        RoguelikeWeaponPerk mod = NewMod("multi-star")
-        mod.name = "Multi-Star"
-        mod.description = "Throw 3 stars at once for each charge."
-        mod.slot = PERK_SLOT_GRENADE
-        mod.allowedWeapons = ["mp_weapon_thermite_grenade", "mp_weapon_grenade_gravity"]
         #if SERVER || CLIENT
         mod.mwvCallback = void function( entity weapon, entity owner, int weaponLevel ) : (mod)
         {

@@ -1677,6 +1677,21 @@ string function JoinIntArray( array<int> ints, string separator )
 	return output;
 }
 
+string function JoinFloatArray( array<float> ints, string separator )
+{
+	string output = "";
+
+	foreach( int i, float val in ints )
+	{
+		if (i == 0)
+			output += string( val )
+		else
+			output += separator + val
+	}
+
+	return output;
+}
+
 bool function StartsWith( string target, string startsWith )
 {
 	return target.find( startsWith ) == 0
@@ -1727,28 +1742,109 @@ table<string, int> function Roguelike_GetRunModifiers()
 	{
 		string key = list[i]
 		int val = int(list[i+1])
-		printt(key, val)
-		if (val > 0)
-			cachedResultModifiers[key] <- val
+		
+		cachedResultModifiers[key] <- val
 	}
 	return cachedResultModifiers
 }
 int function Roguelike_GetRunModifier( string key )
 {
+	#if UI
+	if (Roguelike_HasMod( "checkpoint_used_2" ))
+	#else
+	if (GetPlayerArray().len() > 0 && Roguelike_HasMod( GetPlayerArray()[0], "checkpoint_used_2" ))
+	#endif
+	{
+		try
+		{
+			return GetRunModifierDataByName(key).options.len() - 1
+		}
+		catch (e)
+		{
+		}
+		throw "fuck"
+	}
 	if (!(key in Roguelike_GetRunModifiers()))
-		return 0
+		return GetRunModifierDataByName(key).defaultValue
 	
 	return Roguelike_GetRunModifiers()[key]
 }
+
+#if UI
+array<string> modCache = []
+string modVal = ""
+
+array<string> function Roguelike_GetModList()
+{
+    if (modVal != GetConVarString("player_mods"))
+    {
+        modVal = GetConVarString("player_mods")
+        modCache = split( GetConVarString("player_mods"), " " )
+        print("alloc")
+    }
+
+    return modCache
+}
+bool function Roguelike_HasMod( string mod )
+{
+    if (modVal != GetConVarString("player_mods"))
+    {
+        modVal = GetConVarString("player_mods")
+        modCache = split( GetConVarString("player_mods"), " " )
+        print("alloc")
+    }
+
+    int modIndex = GetModByName(mod).index
+    return modCache.contains(string(modIndex))
+}
+
+int function Roguelike_GetTagCount( string tag )
+{
+    if (modVal != GetConVarString("player_mods"))
+    {
+        modVal = GetConVarString("player_mods")
+        modCache = split( GetConVarString("player_mods"), " " )
+        print("alloc")
+    }
+
+    int result = 0
+    foreach (string m in modCache)
+    {
+        RoguelikeMod mod = GetModForIndex(int(m))
+        if (mod.tags.contains(tag))
+            result++
+    }
+    return result
+}
+#endif
 
 array<string> function Roguelike_GetPilotLoadouts()
 {
 	return split( GetConVarString("roguelike_pilot_loadout"), " " )
 }
 
+float function SoftCastToFloat( var f, float defaultVal = -9999999 )
+{
+	if (typeof(f) == "float")
+		return expect float(f)
+		
+	if (defaultVal == -9999999)
+		return float(f)
+
+	try
+	{
+		return float(f)
+	}
+	catch (e)
+	{
+		return defaultVal
+	}
+}
+
+
 int function RoundToInt( float f )
 {
-	// slightly more so we dont end up rounding 4.999999 to 4
+	// slightly more so we dont end up rounding 4.499999 to 4
 	return int(f + 0.500001)
 }
 

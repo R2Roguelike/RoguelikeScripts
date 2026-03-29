@@ -23,7 +23,7 @@ void function GrenadeDamage( entity ent, var damageInfo )
         return
     }
 
-    DamageInfo_ScaleDamage( damageInfo, Roguelike_GetGrenadeDamageBoost( Roguelike_GetStat( attacker, STAT_TEMPER ) ) )
+    DamageInfo_ScaleDamage( damageInfo, 1.0 + Roguelike_GetStat( attacker, "grenade_dmg" ) )
 
     
     entity sourceWeapon = Roguelike_FindWeaponForDamageInfo( damageInfo )
@@ -56,7 +56,7 @@ void function Grenades_ApplyModWeaponVars( entity weapon )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_default_total, 300 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_stockpile_max, 300 )
     ModWeaponVars_SetString( weapon, eWeaponVar.ammo_display, "bar" )
-    ModWeaponVars_SetFloat( weapon, eWeaponVar.regen_ammo_refill_rate, 10.0 )
+    ModWeaponVars_SetFloat( weapon, eWeaponVar.regen_ammo_refill_rate, 5.0 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_min_to_fire, 150 )
     ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_per_shot, 150 )
 

@@ -60,15 +60,8 @@ void function PilotHealthRegenThinkSP( entity player )
 		float healthRegenStartDelay = 3.0
 		float healthRegenRate = 1.75
 
-		if (Roguelike_HasMod(player, "always_regen"))
-		{
-			healthRegenRate *= 0.75
-			healthRegenStartDelay *= 0.5
-		}
-		if (Roguelike_HasMod(player, "quick_regen"))
-		{
-			healthRegenRate *= 2.0
-		}
+		healthRegenRate *= 1.0 + Roguelike_GetStat( player, "regen_rate" )
+		healthRegenStartDelay *= Roguelike_GetStat( player, "regen_delay" )
 
 		//printt( "recentDamage " + recentDamage + " delay " + healthRegenStartDelay + " rate " + healthRegenRate )
 

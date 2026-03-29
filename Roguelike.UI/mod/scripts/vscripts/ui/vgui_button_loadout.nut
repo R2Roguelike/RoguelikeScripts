@@ -73,8 +73,8 @@ void function OnGetFocus( var button )
     {
         case eVGUIButtonLoadoutState.None:
             Hud_GetChild( panel, "BG" ).SetColor( 220, 220, 220, 255 )
-            Hud_GetChild( panel, "Label" ).SetColor( 25, 25, 25, 255 )
-            Hud_GetChild( panel, "Value" ).SetColor( 25, 25, 25, 255 )
+            Hud_GetChild( panel, "Label" ).SetColor( 20, 20, 20, 255 )
+            Hud_GetChild( panel, "Value" ).SetColor( 20, 20, 20, 255 )
             Hud_SetNew( button, true )
             break
         case eVGUIButtonLoadoutState.Selected:
@@ -88,7 +88,7 @@ void function OnGetFocus( var button )
         case eVGUIButtonLoadoutState.Disabled:
             Hud_SetLocked( button, true )
             Hud_GetChild( panel, "BG" ).SetColor( 220, 220, 220, 255 )
-            Hud_GetChild( panel, "Label" ).SetColor( 25, 25, 25, 255 )
+            Hud_GetChild( panel, "Label" ).SetColor( 20, 20, 20, 255 )
             Hud_GetChild( panel, "Overlay" ).SetVisible( true )
             break
     }

@@ -7,6 +7,7 @@ global function OnWeaponPrimaryAttack_titanweapon_predator_cannon
 global function OnWeaponStartZoomIn_titanweapon_predator_cannon
 global function OnWeaponStartZoomOut_titanweapon_predator_cannon
 global function OnWeaponOwnerChanged_titanweapon_predator_cannon
+global function OnProjectileCollision_titanweapon_predator_cannon
 global function IsPredatorCannonActive
 
 #if SERVER
@@ -42,15 +43,7 @@ void function PowerShot_ApplyModWeaponVars( entity weapon )
 	if (!IsValid(owner) || !owner.IsPlayer())
 		return
 
-	array<string> bonusChargeMods = ["swap_load", "stat_belt", "mag_dump",
-									"charge_power", "shield_threat", "support_puncture"]
-
-	int extraCharges = 0
-	foreach (string mod in bonusChargeMods)
-	{
-		if (Roguelike_HasMod( owner, mod ))
-			extraCharges++
-	}
+	int extraCharges = Roguelike_GetTagCount( owner, LEGION_POWER_SHOT_CHARGE ) * 2
 
 	int ammo_per_shot = weapon.GetAmmoPerShot()
 	ModWeaponVars_AddToVar( weapon, eWeaponVar.ammo_clip_size, ammo_per_shot * extraCharges )
@@ -69,10 +62,6 @@ void function PredatorCannon_MagSizeBonuses( entity weapon )
 		return
 
 	int mag = weapon.GetWeaponSettingInt(eWeaponVar.ammo_clip_size)
-
-	if (Roguelike_HasMod( owner, "ready_up" ))
-		foreach (int weaponVar in RELOAD_TIME_VARS)
-			ModWeaponVars_ScaleVar( weapon, weaponVar, 100.0 / (mag) )
 }
 
 void function PredatorCannon_ApplyModWeaponVars( entity weapon )
@@ -90,35 +79,27 @@ void function PredatorCannon_ApplyModWeaponVars( entity weapon )
 	bool PowerShot = CloseRangePowerShot || LongRangePowerShot
 	bool LongRangeAmmo = weapon.HasMod("LongRangeAmmo")
 
-	array<string> magSizeMods = ["focus_crystal", "shotgun_mode", "marksman_mode", "consumption", "mag_cap", "puncture_crit_dmg", "gun_shield_shield", "ready_up",
-								"long_range_ammo"]
-	int bonusMag = 0
-	foreach (string mod in magSizeMods)
+	ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_clip_size, 100 )
+	if (PowerShot)
 	{
-		if (Roguelike_HasMod( owner, mod ))
-			bonusMag += 25
-	}
-
-	if (Roguelike_HasMod(owner, "stat_belt"))
-	{
-		int energy = Roguelike_GetStat( owner, STAT_ENERGY )
-		bonusMag += minint(energy, 30) + maxint((energy - 30) / 2, 0)
-	}
-
-	ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_clip_size, 100 + bonusMag )
-	if (!PowerShot)
-	{
-		ModWeaponVars_SetInt( weapon, eWeaponVar.damage_near_value_titanarmor, 100)
-		ModWeaponVars_SetInt( weapon, eWeaponVar.damage_far_value_titanarmor, 70)
+		float powerScalar = SoftCastToFloat(GetWeaponInfoFileKeyField_Global("mp_titanability_power_shot", "ability_power_scalar_1"))
+		ModWeaponVars_SetInt( weapon, eWeaponVar.damage_near_value_titanarmor, int(1500 + powerScalar * Roguelike_GetStat( owner, "ability_power" )))
+		ModWeaponVars_SetInt( weapon, eWeaponVar.damage_far_value_titanarmor, int(1500 + powerScalar * Roguelike_GetStat( owner, "ability_power" )))
 	}
 	else
 	{
+		ModWeaponVars_SetInt( weapon, eWeaponVar.damage_near_value_titanarmor, 100)
+		ModWeaponVars_SetInt( weapon, eWeaponVar.damage_far_value_titanarmor, 70)
 	}
 
 	if (LongRangeAmmo)
 		ModWeaponVars_SetInt( weapon, eWeaponVar.ammo_per_shot, 2 )
 	if (LongRangeAmmo && Roguelike_HasMod( owner, "long_range_ammo" ))
-		ModWeaponVars_ScaleVar( weapon, eWeaponVar.ammo_per_shot, 0.5 )
+	{
+		ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_near_value_titanarmor, 1.0 + 0.01 * Roguelike_GetStat( owner, "ability_power" ) )
+		ModWeaponVars_ScaleVar( weapon, eWeaponVar.damage_far_value_titanarmor, 1.0 + 0.01 * Roguelike_GetStat( owner, "ability_power" ) )
+		//ModWeaponVars_ScaleVar( weapon, eWeaponVar.ammo_per_shot, 0.5 )
+	}
 
 	ModWeaponVars_SetFloat( weapon, eWeaponVar.zoom_time_in, 1.1 )
 	if (Roguelike_HasMod( owner, "ready_up" ))
@@ -309,7 +290,7 @@ var function OnWeaponPrimaryAttack_titanweapon_predator_cannon( entity weapon, W
 			}
 			#endif
 
-			return magDump ? weapon.GetWeaponPrimaryClipCount() * 3 / 10 : weapon.GetAmmoPerShot()
+			return magDump ? 50 : weapon.GetAmmoPerShot()
 		}
 		else
 		{
@@ -335,7 +316,7 @@ var function OnWeaponPrimaryAttack_titanweapon_predator_cannon( entity weapon, W
 
 		PowerShotCleanup( owner, weapon, ["LongRangePowerShot","fd_LongRangePowerShot","pas_LongRangePowerShot"], [ "LongRangeAmmo" ] )
 
-		return magDump ? weapon.GetWeaponPrimaryClipCount() / 2 : weapon.GetAmmoPerShot()
+		return magDump ? 50 : weapon.GetAmmoPerShot()
 	}
 	else
 	{
@@ -486,6 +467,10 @@ void function Roguelike_PredatorCannon_DamagedTarget( entity ent, var damageInfo
 			bullets = inflictor.GetProjectileWeaponSettingInt( eWeaponVar.ammo_clip_size )
 		overcap = inflictor.GetProjectileWeaponSettingInt( eWeaponVar.custom_int_3 )
 	}
+	if (Roguelike_HasMod( attacker, "lucky_shot" ) && (DamageInfo_GetCustomDamageType( damageInfo ) & DF_CRITICAL) != 0)
+	{
+		DamageInfo_AddDamageBonus( damageInfo, 0.5 )
+	}
 	isPowerShot = mods.contains("LongRangePowerShot") || mods.contains("CloseRangePowerShot")
 	if (mods.contains("LongRangePowerShot") && Roguelike_HasMod( attacker, "charge_power"))
 	{
@@ -503,7 +488,7 @@ void function Roguelike_PredatorCannon_DamagedTarget( entity ent, var damageInfo
 	}
 	if (Roguelike_HasMod( attacker, "mag_dump") && isPowerShot)
 	{
-		DamageInfo_AddDamageBonus( damageInfo, 0.2 + 0.005 * bullets )
+		DamageInfo_AddDamageBonus( damageInfo, 0.2 + 0.004 * bullets )
 	}
 	if (Roguelike_HasMod( attacker, "mag_cap"))
 	{
@@ -534,3 +519,61 @@ bool function IsDamageSourcePowerShot( var damageInfo )
 	return mods.contains("LongRangePowerShot") || mods.contains("CloseRangePowerShot")
 }
 #endif
+
+void function OnProjectileCollision_titanweapon_predator_cannon( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
+{
+
+	#if SERVER
+	if( IsValid( projectile ) )
+	{
+		entity owner = projectile.GetOwner()
+
+		if (!IsValid(owner))
+			return
+
+		if (!("damagedEntities" in projectile.s))
+			projectile.s.damagedEntities <- []
+		
+		if (!IsValid(hitEnt) || !hitEnt.IsNPC())
+			return
+
+		if (projectile.s.damagedEntities.contains(hitEnt))
+			return
+		
+		if (hitEnt.IsNPC())
+			projectile.s.damagedEntities.append(hitEnt)
+
+		if( Roguelike_HasMod( owner, "lrm_bounce" ) )
+		{
+			array<entity> enemies = GetNPCArrayEx( "npc_titan", TEAM_ANY, owner.GetTeam(), projectile.GetOrigin(), 5000 )
+			enemies.extend( GetNPCArrayEx( "npc_super_spectre", TEAM_ANY, owner.GetTeam(), projectile.GetOrigin(), 5000 ) )
+
+			array<ArrayDistanceEntry> allResults = ArrayDistanceResults( enemies, projectile.GetOrigin() )
+			allResults.sort( DistanceCompareClosest )
+
+
+			foreach (ArrayDistanceEntry entry in allResults)
+			{
+				entity enemy = entry.ent
+				if (!projectile.s.damagedEntities.contains(enemy) && hitEnt != enemy)
+				{
+					float projSpeed = 8000
+					vector shootPos = LeadPosition(projectile.GetOrigin(), enemy.GetWorldSpaceCenter(), enemy.GetVelocity(), projSpeed )
+					vector dir = Normalize(shootPos - projectile.GetOrigin())
+
+					TraceResults results = TraceLine(projectile.GetOrigin(), shootPos, projectile.s.damagedEntities, TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE)
+					if (results.fraction < 1.0 && results.hitEnt != enemy)
+					{
+						printt("trace fail", results.fraction, results.hitEnt)
+						continue
+					}
+
+					projectile.SetVelocity(dir * projSpeed)
+					print("redirect!")
+					return
+				}
+			}
+		}
+	}
+	#endif
+}

@@ -27,6 +27,13 @@ WeaponData
 	"chargeup_time"									"0.85"
 	"core_duration"									"0.45"
 
+    "ability_power_value_1"                  "explosionradius"
+    "ability_power_value_2"                  "explosion_inner_radius"
+	"ability_power_base_value"				 "explosionradius"
+	"ability_power_scalar_1"					 "4"
+	"ability_power_scalar_2"					"4"
+	"ability_power_format"						"range"
+	
 	"readymessage"									"#HUD_CORE_ONLINE_ATLAS_ARC"
 	"readyhint"										"#HUD_CORE_ONLINE_ATLAS_ARC_HINT"
 

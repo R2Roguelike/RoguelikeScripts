@@ -22,7 +22,7 @@ global function OnClientAnimEvent_titanweapon_vortex_shield
 #endif // #if CLIENT
 
 
-const ACTIVATION_COST_FRAC = 0.05 //0.2 //R1 was 0.1
+const ACTIVATION_COST_FRAC = 0.2 //0.2 //R1 was 0.1
 
 function MpTitanweaponVortexShield_Init()
 {
@@ -97,6 +97,9 @@ void function OnWeaponActivate_titanweapon_vortex_shield( entity weapon )
 void function OnWeaponDeactivate_titanweapon_vortex_shield( entity weapon )
 {
 	EndVortex( weapon )
+	entity weaponOwner = weapon.GetWeaponOwner()
+	if (weaponOwner.IsPlayer())
+		printt(weapon.GetWeaponOwner().GetSharedEnergyCount(), (Time() - weapon.w.startChargeTime))
 
 	if ( weapon.GetWeaponSettingBool( eWeaponVar.is_burn_mod ) )
 		weapon.Signal( "DisableAmpedVortex" )
@@ -195,6 +198,8 @@ function ApplyActivationCost( entity weapon, float frac )
 {
 	if ( weapon.HasMod( "vortex_extended_effect_and_no_use_penalty" ) )
 		return
+	
+	frac /= weapon.GetWeaponSettingFloat(eWeaponVar.charge_time)
 
 	float fracLeft = weapon.GetWeaponChargeFraction()
 
@@ -386,10 +391,11 @@ void function OnClientAnimEvent_titanweapon_vortex_shield( entity weapon, string
 bool function OnWeaponChargeBegin_titanweapon_vortex_shield( entity weapon )
 {
 	entity weaponOwner = weapon.GetWeaponOwner()
-
+	weapon.w.startChargeTime = Time()
 	// just for players
 	if ( weaponOwner.IsPlayer() )
 	{
+		printt(weaponOwner.GetSharedEnergyCount())
 		PlayerUsedOffhand( weaponOwner, weapon )
 		StartVortex( weapon )
 	}

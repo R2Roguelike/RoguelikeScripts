@@ -24,6 +24,7 @@ WeaponData
 	"OnWeaponStartZoomOut"							"OnWeaponStartZoomOut_titanweapon_predator_cannon"
 	"OnWeaponOwnerChanged"							"OnWeaponOwnerChanged_titanweapon_predator_cannon"
 	"OnWeaponNpcPreAttack"							"OnWeaponNpcPreAttack_titanweapon_predator_cannon"
+  	"OnProjectileCollision"							"OnProjectileCollision_titanweapon_predator_cannon"
 
 	// Menu Stats
 	"stat_damage" 									"65"
@@ -56,7 +57,7 @@ WeaponData
 		"deploy_time" 									"0.85"
 
 		"ammo_min_to_fire"								"1"
-		"ammo_clip_size"   								"100"
+		"ammo_clip_size"   								"10"
 
 		"enable_highlight_networking_on_creation"		"<KEEP_DEFAULT>"
 	}
@@ -139,6 +140,11 @@ WeaponData
 	// Damage - When Used by Players
 	"damage_type" 									"bullet"
 
+    "ability_power_value_1"                  "damage_near_distance"
+    "ability_power_value_2"                  "damage_far_distance"
+	"ability_power_scalar_1"					 "12"
+	"ability_power_scalar_2"					"12"
+	"ability_power_format"						"range"
 
 	// Damage - When Used by NPCs
 	"npc_damage_near_distance"						"1200"
@@ -532,7 +538,7 @@ WeaponData
 			"damage_near_value_titanarmor"					"1500"
 			"damage_far_value_titanarmor"					"1500"
 			"damage_near_distance"							"800"
-			"damage_far_distance" 							"1600"
+			"damage_far_distance" 							"1200"
 			"anim_alt_idleAttack"							"1"
 			"fire_rate"										"1.0"
 			"reload_enabled"								"0"

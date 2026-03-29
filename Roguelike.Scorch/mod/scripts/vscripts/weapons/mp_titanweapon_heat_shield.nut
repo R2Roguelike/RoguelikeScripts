@@ -23,7 +23,7 @@ const asset HEAT_SHIELD_ABSORB_FX		= $"P_wpn_HeatShield_impact"
 const asset HEAT_SHIELD_IMPACT_TITAN 	= $"P_wpn_HeatSheild_burn_titan"
 const asset HEAT_SHIELD_IMPACT_HUMAN 	= $"P_wpn_HeatSheild_burn_human"
 
-const ACTIVATION_COST_FRAC = 0.05
+const ACTIVATION_COST_FRAC = 0.2
 const int HEAT_SHIELD_FOV = 120
 
 function MpTitanAbilityHeatShield_Init()
@@ -159,6 +159,8 @@ function ApplyActivationCost( entity weapon, float frac )
 {
 	float fracLeft = weapon.GetWeaponChargeFraction()
 
+	frac /= weapon.GetWeaponSettingFloat(eWeaponVar.charge_time)
+
 	if ( fracLeft + frac >= 1 )
 	{
 		weapon.ForceRelease()
@@ -262,6 +264,10 @@ void function HeatShieldDamage_Think( entity weapon )
 	weaponOwner.EndSignal( "OnDestroy" )
 	int damageFarValue = weapon.GetWeaponSettingInt( eWeaponVar.damage_far_value )
 	int damageFarValueTitanArmor = weapon.GetWeaponSettingInt( eWeaponVar.damage_far_value_titanarmor )
+	if (weaponOwner.IsNPC())
+	{
+		damageFarValueTitanArmor = int(damageFarValueTitanArmor * 0.4)
+	}
 	float explosionRadius = weapon.GetWeaponSettingFloat( eWeaponVar.explosionradius )
 	int	attach_id = weapon.LookupAttachment( "muzzle_flash" )
 	while( true )

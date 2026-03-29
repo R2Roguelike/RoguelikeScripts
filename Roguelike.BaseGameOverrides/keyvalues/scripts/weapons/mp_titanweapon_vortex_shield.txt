@@ -8,4 +8,8 @@ WeaponData
     }
     "npc_rest_time_between_bursts_min"          "7"
     "npc_rest_time_between_bursts_max"          "8"
+
+    "ability_duration_value_1"                  "charge_time"
+	"ability_duration_base_value"				"charge_time"
+	
 }

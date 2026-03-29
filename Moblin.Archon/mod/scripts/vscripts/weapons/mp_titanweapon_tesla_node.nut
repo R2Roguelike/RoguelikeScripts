@@ -288,7 +288,7 @@ function DeployArcPylon( entity projectile )
 
   	string attachment = ""
 	int attachID = pylon.LookupAttachment( attachment )
-  	thread CreateArcPylonField( pylon, projectile, pylonOrigin, attachment, attachID, FX_EMP_FIELD, FX_NODE_RING, ARC_PYLON_LIFETIME )
+  	thread CreateArcPylonField( pylon, projectile, pylonOrigin, attachment, attachID, FX_EMP_FIELD, FX_NODE_RING, ARC_PYLON_LIFETIME * (1.0 + Roguelike_GetStat( owner, "ability_duration" )) )
 
 	PlayLoopFXOnEntity( LASER_TRIP_FX_ALL, pylon )
 
@@ -360,14 +360,12 @@ void function ArcPylon_DamagedPlayerOrNPC( entity ent, var damageInfo )
 	local empFxLow 	= ( ARC_TITAN_SCREEN_EFFECTS * 0.15 )
 	float screenEffectAmplitude = GraphCapped( distSqr, ARC_TITAN_EMP_FIELD_INNER_RADIUS, ARC_TITAN_EMP_FIELD_RADIUS, empFxHigh, empFxLow )
 
-	ApplyShock( ent, 0.02 )
+	//ApplyShock( ent, 0.02 )
 	StatusEffect_AddTimed( ent, eStatusEffect.emp, screenEffectAmplitude, ARC_TITAN_EMP_DURATION, ARC_TITAN_EMP_FADEOUT_DURATION )
 
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
 	entity mainWeapon = attacker.GetOffhandWeapon( OFFHAND_SPECIAL )
 
-	if (Roguelike_HasMod( attacker, "pylon_shield"))
-		Archon_RestoreShield( attacker, 20 )
 
 	if(IsValid(mainWeapon)){
 		if ( mainWeapon.HasMod( "fd_terminator" ) )
@@ -468,7 +466,7 @@ void function UpdateArcPylonField( entity owner, entity pylon, entity weapon, ve
 
 	while ( Time() < endTime )
 	{
-		WaitFrame()
+		wait 0.049
 		origin = pylon.GetOrigin()
 		ArcPylonFieldDamage( owner, pylon, origin )
 	}
@@ -476,14 +474,15 @@ void function UpdateArcPylonField( entity owner, entity pylon, entity weapon, ve
 
 function ArcPylonFieldDamage( entity owner, entity pylon, vector origin )
 {
+	float powerScalar = SoftCastToFloat(GetWeaponInfoFileKeyField_Global("mp_titanweapon_tesla_node", "ability_power_scalar_1"))
     RadiusDamage(
         origin,									// center
         owner,									// attacker
         pylon,									// inflictor
         DAMAGE_AGAINST_PILOTS,					// damage
         DAMAGE_AGAINST_TITANS,					// damageHeavyArmor
-        ARC_TITAN_EMP_FIELD_INNER_RADIUS,		// innerRadius
-        ARC_TITAN_EMP_FIELD_RADIUS,				// outerRadius
+        ARC_TITAN_EMP_FIELD_INNER_RADIUS + Roguelike_GetStat( owner, "ability_power" ) * powerScalar,		// innerRadius
+        ARC_TITAN_EMP_FIELD_RADIUS + Roguelike_GetStat( owner, "ability_power" ) * powerScalar,				// outerRadius
         SF_ENVEXPLOSION_NO_DAMAGEOWNER,			// flags
         0,										// distanceFromAttacker
         0,					                    // explosionForce

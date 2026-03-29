@@ -251,7 +251,7 @@ void function GiveWeaponsFromStoredArray( entity player, array<StoredWeapon> sto
 				weapon.SetNextAttackAllowedTime( storedWeapon.nextAttackTime )
 				weapon.SetWeaponPrimaryAmmoCount( storedWeapon.ammoCount )
 				if ( weapon.GetWeaponPrimaryClipCountMax() > 0 )
-					weapon.SetWeaponPrimaryClipCount( storedWeapon.clipCount )
+					weapon.SetWeaponPrimaryClipCount( minint(storedWeapon.clipCount, weapon.GetWeaponPrimaryClipCountMax()) )
 				#if MP
 				weapon.e.burnReward = storedWeapon.burnReward
 				#endif
@@ -483,7 +483,7 @@ function TitanBecomesPilot( entity player, entity titan )
 		callbackFunc( player, titan )
 	}
 
-	player.Server_SetDodgePower(20.0)
+	//player.Server_SetDodgePower(100.0)
 
 	// Ensure rodeo doesn't happen straight away, if a nearby Titan runs by
 	Rodeo_SetCooldown( player )

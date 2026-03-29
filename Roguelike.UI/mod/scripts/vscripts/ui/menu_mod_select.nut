@@ -25,14 +25,14 @@ void function InitRoguelikeModSelectMenu()
 {
     file.menu = GetMenu("ModSelect")
 
-	file.gridData.columns = 5
+	file.gridData.columns = 6
 	file.gridData.rows = 4
-	file.gridData.numElements = 20
+	file.gridData.numElements = 30
 	file.gridData.pageType = eGridPageType.HORIZONTAL
 	file.gridData.tileWidth = ContentScaledXAsInt( 64 )
 	file.gridData.tileHeight = ContentScaledYAsInt( 64 )
-	file.gridData.paddingVert = int( ContentScaledX( 8 ) )
-	file.gridData.paddingHorz = int( ContentScaledX( 8 ) )
+	file.gridData.paddingVert = int( ContentScaledX( 12 ) )
+	file.gridData.paddingHorz = int( ContentScaledY( 12 ) )
 	file.gridData.initCallback = Slot_Init
 
     GridMenuInit( file.menu, file.gridData )
@@ -48,16 +48,17 @@ void function OnModSelectMenuOpen()
 {
     file.modChoices = GetModsForChipSlot( file.chipIndex, file.isTitanMod )
 
+    file.gridData.numElements = GetModsForChipSlot( file.chipIndex, file.isTitanMod, true ).len()
     Grid_InitPage( file.menu, file.gridData )
 
     var frame = Hud_GetChild( file.menu, "ButtonFrame" )
-    if (file.chipIndex % 2 == 0)
+    if (file.chipIndex > 2)
     {
-        Hud_SetY( frame, file.y - ContentScaledYAsInt( 368 ) )
+        Hud_SetY( frame, file.y - ContentScaledYAsInt( 292 + 8 ) )
     }
     else
     {
-        Hud_SetY( frame, file.y + ContentScaledYAsInt( 80 ) )
+        Hud_SetY( frame, file.y + ContentScaledYAsInt( 68 ) )
     }
     if (file.isTitanMod)
     {
@@ -84,12 +85,12 @@ void function ModSelect_SetContext( string modSlot, int x, int y )
     int maxEnergy = 0
     if (file.isTitanMod)
     {
-        maxEnergy = expect int(runData["ACTitan" + file.chipIndex].energy)
+        maxEnergy = ArmorChip_GetMaxEnergy(runData["ACTitan" + file.chipIndex])
     }
     else
     {
-        maxEnergy = expect int(runData["ACPilot" + file.chipIndex].energy)
-        file.chipIndex = 1
+        maxEnergy = ArmorChip_GetMaxEnergy(runData["ACPilot" + file.chipIndex])
+        //file.chipIndex = 1
     }
     int usedEnergy = GetTotalEnergyUsed(file.chipIndex, file.isTitanMod)
 
@@ -144,7 +145,7 @@ bool function Slot_Init( var slot, int elemNum )
         Hud_SetVisible(Hud_GetChild(slot, "Overlay"), showOverlay)
         Signal( Hud_GetChild(slot, "Overlay"), "ElemFlash" ) // stop flashing
         if (pulsate)
-            thread Roguelike_PulseElem( file.menu, Hud_GetChild(slot, "Overlay"), elemNum * 0.05, 255, 0, 0.5 )
+            thread Roguelike_PulseElem( file.menu, Hud_GetChild(slot, "Overlay"), (elemNum * 0.1) % 0.5, 255, 0, 0.5 )
     }
     else
     {
@@ -156,6 +157,7 @@ bool function Slot_Init( var slot, int elemNum )
 
 void function ModSlot_Hover( var slot, var panel )
 {
+    HoverSimpleData hoverData
     int elemNum = Grid_GetElemNumForButton( slot )
     RoguelikeMod mod = file.modChoices[elemNum]
     table runData = Roguelike_GetRunData()
@@ -176,8 +178,9 @@ void function ModSlot_Hover( var slot, var panel )
         Hud_SetColor( Hud_GetChild(slot, "BG"), 0,0,0, 135 )
     }
 
-    Hud_SetText( Hud_GetChild(panel, "Title"), mod.name)
-    string description = format("Energy Cost: ^FFA00000%i^FFFFFFFF\n\n%s", mod.cost, mod.description + GetModDescriptionSuffix(mod))
+    hoverData.title = mod.name
+
+    string description = Roguelike_GetModDescription(mod)
     if (mod.cost > file.maxUsableEnergy || file.usedMods.contains(file.modChoices[elemNum]))
     {
         description += "\n"
@@ -186,7 +189,12 @@ void function ModSlot_Hover( var slot, var panel )
         if (file.usedMods.contains(file.modChoices[elemNum]))
             description += "\n<red>Mod already equipped</>"
     }
-    Hud_SetText( Hud_GetChild(panel, "Description"), FormatDescription(description))
+
+    hoverData.color = GetModColor(mod)
+    hoverData.description = FormatDescription(description)
+    ModSlot_UpdateBoxes( mod )
+    hoverData.boxes = mod.boxes
+    HoverSimple_SetData(hoverData)
 }
 
 void function ModSlot_Click( var button )

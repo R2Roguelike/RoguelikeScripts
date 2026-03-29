@@ -908,6 +908,8 @@ void function PopulateLevelTransWithLoadouts( entity player, LevelTransitionStru
 	if ( !IsAlive( player ) )
 		return
 
+
+	return
 	array<string> mainWeapons = []
 	if ( player.IsTitan() )
 	{

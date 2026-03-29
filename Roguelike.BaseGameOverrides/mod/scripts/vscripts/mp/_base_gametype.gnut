@@ -245,11 +245,11 @@ bool function IsProtectedFromFriendlyFire_SP( entity attacker, entity ent, var d
 
 	if ( attacker.GetTeam() == ent.GetTeam() )
 	{
-		if ("hacker" in ent.s)
+		if (IsValid(ent.e.hacker))
 		{
-			entity hacker = expect entity(ent.s.hacker)
+			entity hacker = ent.e.hacker
 			if (Roguelike_HasMod( hacker, "you_fucking_bitch" ))
-			return false
+				return false
 		}
 
 		if ( attacker.IsNPC() )

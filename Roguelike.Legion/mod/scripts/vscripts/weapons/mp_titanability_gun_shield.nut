@@ -268,6 +268,8 @@ entity function CreateGunShieldVortexSphere( entity player, entity vortexWeapon,
 		health = PAS_LEGION_SHEILD_HEALTH
 	else
 		health = TITAN_GUN_SHIELD_HEALTH
+	float powerScalar = SoftCastToFloat(GetWeaponInfoFileKeyField_Global("mp_titanability_gun_shield", "ability_power_scalar_1"))
+	health += powerScalar * Roguelike_GetStat( player, "ability_power" )
 	vortexSphere.SetHealth( health )
 	vortexSphere.SetMaxHealth( health )
 

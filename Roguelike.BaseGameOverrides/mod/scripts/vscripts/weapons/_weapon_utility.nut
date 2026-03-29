@@ -1573,11 +1573,15 @@ function ClusterRocket_Detonate( entity rocket, vector normal )
 		range = CLUSTER_ROCKET_BURST_RANGE
 	}
 
+	range += Roguelike_GetStat( owner, "ability_power" ) * 8
+
 	if ( mods.contains( "fd_twin_cluster" ) )
 	{
 		count = int( count * 0.7 )
 		duration *= 0.7
 	}
+
+	count = int(count * (1.0 + Roguelike_GetStat(owner, "ability_duration")))
 	PopcornInfo popcornInfo
 
 	popcornInfo.weaponName = "mp_titanweapon_dumbfire_rockets"
@@ -1706,7 +1710,7 @@ function ClusterRocketBursts( vector origin, int damage, int damageHeavyArmor, f
 	for ( int index = 0; index < count; index++ )
 	{
 		thread ClusterRocketBurst( clusterExplosionEnt, origin, damage, damageHeavyArmor, innerRadius, outerRadius, owner, popcornInfo, customFxTable )
-		WaitFrame()
+		wait 0.099
 	}
 
 	wait popcornInfo.duration
@@ -2883,6 +2887,7 @@ void function WeaponAttackWave( entity ent, int projectileCount, entity inflicto
 
 	entity weapon
 	entity projectile
+	string weaponClassName
 	int maxCount
 	float step
 	entity owner
@@ -2903,22 +2908,41 @@ void function WeaponAttackWave( entity ent, int projectileCount, entity inflicto
 		if ( ent.proj.isChargedShot )
 			chargedPrefix = "charge_"
 
+		owner = ent.GetOwner()
 		maxCount = expect int( ent.ProjectileGetWeaponInfoFileKeyField( chargedPrefix + "wave_max_count" ) )
 		step = expect float( ent.ProjectileGetWeaponInfoFileKeyField( chargedPrefix + "wave_step_dist" ) )
-		owner = ent.GetOwner()
+		weaponClassName = ent.ProjectileGetWeaponClassName()
+		float scalar = SoftCastToFloat(ent.ProjectileGetWeaponInfoFileKeyField( "ability_power_scalar_1" ), 0) / step
+		if (owner.IsTitan())
+			maxCount = int(maxCount + max(Roguelike_GetStat( owner, "ability_power" ) * scalar, 0.0))
 		damageNearValueTitanArmor = projectile.GetProjectileWeaponSettingInt( eWeaponVar.damage_near_value_titanarmor )
 	}
 	else
 	{
 		weapon = ent
+		owner = ent.GetWeaponOwner()
 		maxCount = expect int( ent.GetWeaponInfoFileKeyField( "wave_max_count" ) )
 		step = expect float( ent.GetWeaponInfoFileKeyField( "wave_step_dist" ) )
-		owner = ent.GetWeaponOwner()
+		weaponClassName = ent.GetWeaponClassName()
+		float scalar = SoftCastToFloat(ent.ProjectileGetWeaponInfoFileKeyField( "ability_power_scalar_1" ), 0) / step
+		
+		if (owner.IsTitan())
+			maxCount = int(maxCount + max(Roguelike_GetStat( owner, "ability_power" ) * scalar, 0.0))
 		damageNearValueTitanArmor = weapon.GetWeaponSettingInt( eWeaponVar.damage_near_value_titanarmor )
 	}
 
 	owner.EndSignal( "OnDestroy" )
 
+	//maxCount = (maxCount * GetConVarInt("script_server_fps")) / 10
+	//step *= 10.0 / GetConVarInt("script_server_fps")
+	float delay = 0.049
+	if (owner.IsNPC())
+		delay = 0.099
+	if (owner.IsNPC() && weaponClassName == "mp_titancore_flame_wave")
+	{
+		step *= 0.4
+		maxCount = maxCount * 3
+	}
 	for ( int i = 0; i < maxCount; i++ )
 	{
 		vector newPos = pos + dir * step
@@ -2946,7 +2970,7 @@ void function WeaponAttackWave( entity ent, int projectileCount, entity inflicto
 			else if ( IsVortexSphere( vortexHit.vortex ) )
 				VortexSphereDrainHealthForDamage( vortexHit.vortex, damageNearValueTitanArmor )
 
-			WaitFrame()
+			wait delay
 			continue
 		}
 
@@ -2973,7 +2997,7 @@ void function WeaponAttackWave( entity ent, int projectileCount, entity inflicto
 			lastDownPos = downTrace.endPos
 			pos = forwardTrace.endPos
 
-			WaitFrame()
+			wait delay
 			continue
 		}
 		else
@@ -3008,8 +3032,8 @@ void function WeaponAttackWave( entity ent, int projectileCount, entity inflicto
 			lastDownPos = downTrace.endPos
 			pos = forwardTrace.endPos
 		}
-
-		WaitFrame()
+		
+		wait delay
 	}
 }
 
@@ -3344,7 +3368,7 @@ function EMP_FX( asset effect, entity ent, string tag, float duration )
 	ent.EndSignal( "StartPhaseShift" )
 	ent.EndSignal( "EMP_FX" )
 
-	bool isPlayer = ent.IsPlayer()
+	bool player = ent.IsPlayer()
 
 	int fxId = GetParticleSystemIndex( effect )
 	int attachId = ent.LookupAttachment( tag )
@@ -3366,7 +3390,7 @@ function EMP_FX( asset effect, entity ent, string tag, float duration )
 		}
 	)
 
-	if ( !isPlayer )
+	if ( !player )
 	{
 		EmitSoundOnEntity( ent, "Titan_Blue_Electricity_Cloud" )
 		wait duration

@@ -1,10 +1,10 @@
 WeaponData
 {
 	// General
-	"printname"   									"WPN_TITAN_SHOCK_SHIELD"
-	"shortprintname"   								"WPN_TITAN_SHOCK_SHIELD_SHORT"
-	"description" 									"WPN_TITAN_SHOCK_SHIELD_DESC"
-	"longdesc"										"WPN_TITAN_SHOCK_SHIELD_LONGDESC"
+	"printname"   									"#WPN_TITAN_SHOCK_SHIELD"
+	"shortprintname"   								"#WPN_TITAN_SHOCK_SHIELD_SHORT"
+	"description" 									"#WPN_TITAN_SHOCK_SHIELD_DESC"
+	"longdesc"										"#WPN_TITAN_SHOCK_SHIELD_LONGDESC"
 
 	"menu_icon"										"archon/menu/shock_shield"
 	"hud_icon"										"archon/hud/shock_shield"
@@ -50,6 +50,9 @@ WeaponData
 	"fire_sound_1_player_3p"						"weapon_electric_smoke_electrocute_human_3p"
 	"fire_sound_1_npc"							"weapon_electric_smoke_electrocute_human_1p"
 
+    "ability_duration_value_1"                  "charge_time"
+	"ability_duration_base_value"				 "charge_time"
+	
 	// Damage - When Used by Players
 	"damage_type" 									"bullet"
 	"damage_near_distance"							"1500"

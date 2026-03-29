@@ -6,8 +6,9 @@ global function AddStatsArrays
 global function ArmorChip_ForceSlot
 global function GetRandomWithExclusion
 global function ArmorChip_GetMainStatValue
-global function ArmorChip_GetSubStatValue
+//global function ArmorChip_GetSubStatValue
 global function ArmorChip_GetHoverFunc
+global function ArmorChip_GetMaxEnergy
 
 
 void function ArmorChips_Init()
@@ -22,8 +23,8 @@ table function ArmorChip_Generate(PRandom rand, bool isShop, int forceSlot = -1)
 
     int levelsComplete = expect int(runData.levelsCompleted)
     int baseRarity = levelsComplete / 2
-    float chanceForBetterRarity = GraphCapped( levelsComplete % 2, 0, 2, 0, 1 )
-    if (PRandomFloat(rand) < chanceForBetterRarity)
+    int chanceForBetterRarity = levelsComplete % 2
+    if (PRandomInt(rand, 2) < chanceForBetterRarity)
         baseRarity++
 
     baseRarity = minint(RARITY_RADIANT, maxint(baseRarity, RARITY_COMMON))
@@ -38,120 +39,127 @@ table function ArmorChip_Generate(PRandom rand, bool isShop, int forceSlot = -1)
     }
     table chip = {
         type = "armor_chip",
-        subStats = [],
-        boosts = [],
+        mainStats = [],
+        //subStats = [],
         mods = [],
         slot = slot,
         level = 0,
-        priceOffset = 0,
         rarity = RARITY_COMMON
         moneyInvested = 80 + 20 * (baseRarity) // give 20 dolla when dismantled ()
     }
 
     chip.isTitan <- expect int(chip.slot) <= 4
-
+    
+    array<RoguelikeStat> stats
     if (chip.isTitan)
     {
-        chip.mainStat <- PRandomInt(rand,STAT_TITAN_COUNT)
+        stats = Roguelike_GetStatsForSide(true)
+        for (int i = 0; i < 3; i++)
+        {
+            int selection = PRandomInt(rand, stats.len())
+            chip.mainStats.append( stats[selection].index )
+            stats.fastremove(selection)
+        }
     }
     else
     {
+        stats = Roguelike_GetStatsForSide(false)
         chip.slot -= 4
-        chip.mainStat <- PRandomInt(rand, STAT_TITAN_COUNT, STAT_TITAN_COUNT * 2)
-        
-
-        // REWORK - random mods
-        slot = expect int(chip.slot)
-        array<RoguelikeMod> pool = GetModsForChipSlot( slot, false, true )
-
-        while (chip.mods.len() < minint(baseRarity + 1, 4))
+        for (int i = 0; i < 3; i++)
         {
-            int chosen = PRandomInt( rand, pool.len() )
-            int index = pool[chosen].index
-            if (chip.mods.contains(index))
-                continue
-            
-            chip.mods.append(index)
+            int selection = PRandomInt(rand, stats.len())
+            chip.mainStats.append( stats[selection].index )
+            stats.fastremove(selection)
         }
     }
 
     chip.rarity <- baseRarity
 
-    chip.energy <- 2
+    /*array<int> subStats = []
+    foreach (RoguelikeStat stat in stats)
+    {
+        if (stat.index != chip.mainStat)
+            subStats.append(stat.index)
+    }*/
 
-    array<int> subStats = [0,1,2,3]
-    for (int i = 0; i < subStats.len() && !chip.isTitan; i++)
-        subStats[i] += STAT_TITAN_COUNT
-    subStats.fastremovebyvalue(expect int(chip.mainStat))
-
-    int subStatCount = 1
+    /*int subStatCount = 2
     for (int i = 0; i < minint(subStatCount, 2); i++)
     {
         int result = subStats[PRandomInt(rand, subStats.len())]
         subStats.fastremovebyvalue(result)
         chip.subStats.append(result)
-    }
-    chip.subStats.sort()
-
-    chip.energy = maxint(expect int(chip.energy) + baseRarity, 0)
-    chip.priceOffset += baseRarity * 50
+    }*/
+    //chip.subStats.sort()
 
     return chip
 }
 
-int function ArmorChip_GetMainStatValue( table data )
+float function ArmorChip_GetMainStatValue( table data, int index )
 {
-    return ArmorChip_GetStats( data )[expect int(data.mainStat)]
+    return ArmorChip_GetStats( data )[expect int(data.mainStats[index])]
 }
 
-int function ArmorChip_GetSubStatValue( table data )
+/*float function ArmorChip_GetSubStatValue( table data, int index )
 {
-    if (data.subStats.len() < 1)
+    if (data.subStats.len() <= index)
         return 0
-    return ArmorChip_GetStats( data )[expect int(data.subStats[0])]
-}
+    return ArmorChip_GetStats( data )[expect int(data.subStats[index])]
+}*/
 
-array<int> function ArmorChip_GetStats( table data )
+array<float> function ArmorChip_GetStats( table data )
 {
-    array<int> stats = [0,0,0,0,0,0,0,0]
+    array<float> stats = NewStatArray(false)
 
-    int chipStatIndex = expect int(data.mainStat)
-    stats[chipStatIndex] += CHIP_MAIN_STAT_MULT * expect int(data.energy)
+    //int chipStatIndex = expect int(data.mainStat)
+    int baseRarity = expect int(data.rarity)
+    int mainStatValue = 3 + baseRarity
+    if (data.level >= 1)
+        mainStatValue++
+    if (data.level >= 3)
+        mainStatValue++
 
-
-    foreach (int index, int val in data.subStats)
+    foreach (int index, int val in data.mainStats)
     {
-        int count = 0
+        RoguelikeStat subStat = GetStatForIndex(val)
+        /*int count = 0 // 3 / 0 - 5 / 1
         switch (expect int(data.rarity))
         {
-            case RARITY_UNCOMMON:
-            case RARITY_RARE:
-                count += 1
+            case RARITY_COMMON: // 3 / 0 - 5 / 1
+                count = 0
                 break
-            case RARITY_EPIC:
-            case RARITY_LEGENDARY:
-                count += 2
+            case RARITY_UNCOMMON: // 4 / 1 - 6 / 2 
+                count = 1
                 break
-            case RARITY_MYTHIC:
-            case RARITY_STELLAR:
-                count += 3
+            case RARITY_RARE: // 5 / 2 - 7 / 3
+                count = 2
                 break
-            case RARITY_RADIANT:
-                count += 4
+            case RARITY_EPIC: // 6 / 3 - 8 / 4
+                count = 3
+                break
+            case RARITY_LEGENDARY: // 7 / 4 - 9 / 5
+                count = 4
+                break
+            case RARITY_MYTHIC: // 8 / 4 - 10 / 5
+                count = 5
+                break
+            case RARITY_STELLAR: // 8 / 4 - 10 / 5
+                count = 5
+                break
+            case RARITY_RADIANT: // 9 / 5 - 11 / 6
+            default:
+                count = 6
                 break
         }
-        foreach (var boost in data.boosts)
-        {
-            if (boost == index)
-                count++
-        }
-        stats[val] += count * CHIP_SUB_STAT_MULT
+        if (data.level >= 2)
+            count++*/
+        
+        stats[val] += mainStatValue * subStat.chipValue
     }
 
     return stats
 }
 
-void function AddStatsArrays(array<int> a, array<int> b)
+void function AddStatsArrays(array<float> a, array<float> b)
 {
     if (a.len() != b.len())
         throw "arrays not of equal len"
@@ -184,6 +192,19 @@ int function GetRandomWithExclusion(int start, int end, array<int> exclude) {
     return random;
 }
 
+int function ArmorChip_GetMaxEnergy(var data)
+{
+    expect table(data)
+    int base = 2
+    base += expect int(data.rarity)
+    if (data.level >= 1)
+        base++
+    if (data.level >= 3)
+        base++
+
+    return base
+}
+
 void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEquip, bool canUpgrade, bool isOwned, table ornull item = null )
 {
     return void function( var slot, var panel ) : (menu, canEquip, canUpgrade, isOwned, item)
@@ -208,8 +229,8 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
         bool isTitan = expect bool(data.isTitan)
         int slot = expect int( data.slot )
         int level = expect int(data.level)
-        int rarity = expect int(data.rarity)
         int price = isOwned ? Roguelike_GetUpgradePrice( data ) : Roguelike_GetPurchasePrice( data )
+        int maxRarityObtained = expect int(Roguelike_GetRunData().maxRarityObtained)
 
         table equippedChip = expect table( Roguelike_GetRunData()["AC" + GetTitanOrPilotFromBool(isTitan) + slot ] )
 
@@ -217,13 +238,13 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
         string hasEnoughMoney = Roguelike_GetMoney() > price ? "^FFC04000" : "^FF404000"
 		if (canUpgrade)
 		{
-			if (level < Roguelike_GetItemMaxLevel( data ))
+			if (level < Roguelike_GetItemMaxLevel( data ) || maxRarityObtained > data.rarity)
 			{
-				options.append( "%[X_BUTTON|MOUSE2]%Upgrade for " + hasEnoughMoney + price + "$" )
+				options.append( "%[X_BUTTON|MOUSE2]%Upgrade - " + hasEnoughMoney + price + "$" )
 			}
 			else
 			{
-				options.append("MAX LEVEL") 
+				options.append("NEXT UPGRADE LOCKED") 
 			}
 		}
 		if (!isOwned)
@@ -243,7 +264,7 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
         var barBG = Hud_GetChild(panel, "EnergyBarBG")
         var energyLabel = Hud_GetChild(panel, "EnergyCount")
 
-        Hud_SetColor( energyLabel, 25, 25, 25, 255 )
+        Hud_SetColor( energyLabel, 20, 20, 20, 255 )
         Hud_SetText( energyLabel, format("Level %i/%i", data.level, Roguelike_GetItemMaxLevel( data )) )
 
         Hud_SetBarProgress( barBG, 1.0 )
@@ -261,15 +282,15 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
         Hud_SetBarSegmentInfo( levelBar, gap, segmentWidth )
         Hud_SetBarSegmentInfo( barBG, gap, segmentWidth )
 
-        int totalEnergy = expect int(data.energy)
+        int totalEnergy = ArmorChip_GetMaxEnergy(data)
         Hud_SetBarProgress( levelBar, float(totalEnergy) / segmentCount - 0.0001 )
-        Hud_SetColor( levelBar, 25, 25, 25, 255 )
-        Hud_SetColor( title, 25, 25, 25, 255 )
+        Hud_SetColor( levelBar, 20, 20, 20, 255 )
+        Hud_SetColor( title, 20, 20, 20, 255 )
         Hud_SetColor( titleStrip, 40, 40, 40, 255 )
-        Hud_SetColor( bg, 25, 25, 25, 255 )
+        Hud_SetColor( bg, 20, 20, 20, 255 )
 
 
-        Hud_SetColor( title, 25, 25, 25, 255 )
+        Hud_SetColor( title, 20, 20, 20, 255 )
 
         int r = 0, g = 0, b = 0
         int color = isTitan ? slot : 5 - slot
@@ -298,41 +319,55 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
                 break
         }
 
-        int mainStat = expect int(data.mainStat) 
-        int statNameIndex = mainStat
-        string stat = STAT_NAMES[statNameIndex]
-        var statPanel = Hud_GetChild(panel, "Stat0")
-        int value = CHIP_MAIN_STAT_MULT
-        value *= expect int(data.energy)
+        for (int i = 0; i < 3; i++)
+        {
+            int mainStat = expect int(data.mainStats[i]) 
+            int statNameIndex = mainStat
+            RoguelikeStat mainStatData = GetStatForIndex(mainStat)
+            string stat = mainStatData.name
 
-        var bar = Hud_GetChild(statPanel, "Bar")
-        var label = Hud_GetChild(statPanel, "Label")
-        var valueText = Hud_GetChild(statPanel, "Value")
+            var statPanel = Hud_GetChild(panel, "Stat" + i)
+            float value = ArmorChip_GetMainStatValue(data, i)
+
+            //var bar = Hud_GetChild(statPanel, "Bar")
+            var label = Hud_GetChild(statPanel, "Label")
+            var valueText = Hud_GetChild(statPanel, "Value")
+
+            Hud_SetColor(label, r, g, b, 255)
+
+            Hud_SetText(label, FormatDescription(stat))
+            Hud_SetText(valueText, "+" + Roguelike_FormatStatValue(mainStatData, value))
+        }
+        Hud_SetColor( Hud_GetChild(panel, "EnergyIcon"), r, g, b, 255 )
         Hud_SetColor( title, r, g, b, 255 )
         Hud_SetColor( levelBar, r, g, b, 255 )
 
-        Hud_SetColor(bar, r, g, b, 255)
-        Hud_SetColor(label, r, g, b, 255)
-
-        Hud_SetBarProgress(bar, value / 60.0)
-        Hud_SetText(label, stat)
-        Hud_SetText(valueText, "+" + value)
-
-        string text = ""
-        text += "<chip>" + STAT_NAMES[data.subStats[0]] + "</> +" + ArmorChip_GetSubStatValue(data) + "\n"
+        //Hud_SetColor(bar, r, g, b, 255)
         
-        text += "\n<chip>Total:</> " + (ArmorChip_GetMainStatValue(data) + ArmorChip_GetSubStatValue(data)) + "\n"
+        string text = ""
+        /*foreach (int index, var subStat in data.subStats)
+        {
+            expect int (subStat)
+            RoguelikeStat subStatData = GetStatForIndex(subStat)
+            text += "+" + Roguelike_FormatStatValue(subStatData, ArmorChip_GetSubStatValue(data, index)) + " <chip>" + subStatData.name + "</>" + "\n"
+        }*/
+        
+        //text += "\n<chip>Total:</> " + (ArmorChip_GetMainStatValue(data) + ArmorChip_GetSubStatValue(data)) + "\n"
 
         if (isTitan)
         {
             
-            text += "\n<chip>1st Upgrade:" + (level >= 1 ? "<daze>" :"<note>") + " +1 Energy, +5 Main Stat"
-                + "\n<chip>2nd Upgrade:" + (level >= 2 ? "<daze>" :"<note>") + " +1 Mod Slot, +5 Sub Stat"
-                + "\n<chip>3rd Upgrade:" + (level >= 3 ? "<daze>" :"<note>") + " +1 Energy, +5 Main Stat"
+            text += "\n<chip>1st Upgrade:" + (level >= 1 ? "<daze>" :"<note>") + " +1 Energy, All Stats Increase"
+                + "\n<chip>2nd Upgrade:" + (level >= 2 ? "<daze>" :"<note>") + " +1 Mod Slot"
+                + "\n<chip>3rd Upgrade:" + (level >= 3 ? "<daze>" :"<note>") + " +1 Energy, All Stats Increase"
+                + "\n<chip>4th Upgrade:<note> " + (maxRarityObtained > data.rarity ? "Rarity increases, Upgrades reset." : "LOCKED (Obtain item of higher\nrarity first)") 
         }
         else
         {
-
+            text += "\n<chip>1st Upgrade:" + (level >= 1 ? "<daze>" :"<note>") + " +1 Energy, Main Stat Increases"
+                + "\n<chip>2nd Upgrade:" + (level >= 2 ? "<daze>" :"<note>") + " +1 Mod Slot, Sub Stats Increase"
+                + "\n<chip>3rd Upgrade:" + (level >= 3 ? "<daze>" :"<note>") + " +1 Energy, Main Stat Increases"
+                + "\n<chip>4th Upgrade:<note> " + (maxRarityObtained > data.rarity ? "Rarity increases, Upgrades reset." : "LOCKED (Obtain item of higher\nrarity first)") 
         }
 
         text = FormatDescription( text )
@@ -343,13 +378,27 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
 
         if (data != equippedChip && canEquip)
         {
-            for (int i = 0; i < STAT_COUNT; i++)
+            array<float> dataStats = ArmorChip_GetStats(data)
+            array<float> equippedStats = ArmorChip_GetStats( equippedChip )
+            array<RoguelikeStat> stats = Roguelike_GetStatsForSide(isTitan, true)
+            for (int i = 0; i < stats.len(); i++)
             {
-                string statName = STAT_NAMES[i]
-                var statPanel = Hud_GetChild( menu, statName + "Stat" )
-                int diff = ArmorChip_GetStats(data)[i] - ArmorChip_GetStats( equippedChip )[i]
+                if (stats[i].isHeader)
+                    continue
+                int statIndex = stats[i].index
+                string statName = stats[i].name
+                var statPanel = Inventory_GetStatPanel( isTitan, i )
+                float diff = dataStats[statIndex] - equippedStats[statIndex]
+                string text = Roguelike_FormatStatValue(stats[i], diff)
+                if (stats[i].diminishingReturns)
+                {
+                    float curValue = Roguelike_GetStatRaw(stats[i].uniqueName)
+                    
+                    text = format("%.1f%%", (100.0 / (1.0 + curValue * 1.0)) - (100.0 / (1.0 + (curValue + diff))))
+                }
 
-                Hud_SetText(Hud_GetChild( statPanel, "Diff"), diff > 0 ? "+" + diff : string(diff))
+
+                Hud_SetText(Hud_GetChild( statPanel, "Diff"), diff > 0 ? "+" + text : text)
                 if (diff > 0)
                 {
                 Hud_SetColor(Hud_GetChild( statPanel, "Diff"), 0, 255,0, 255)
@@ -362,6 +411,11 @@ void functionref(var, var) function ArmorChip_GetHoverFunc( var menu, bool canEq
                 {
                 Hud_SetColor(Hud_GetChild( statPanel, "Diff"), 255, 0,0, 255)
                 }
+            }
+            stats = Roguelike_GetStatsForSide(!isTitan, true)
+            for (int i = 0; i < stats.len(); i++)
+            {
+                Hud_SetText(Hud_GetChild( Inventory_GetStatPanel( !isTitan, i ), "Diff"), "")
             }
             if (panel.GetPanelAlpha() > 0.0)
                 Roguelike_InventorySetLastDiffSetTime(Time())

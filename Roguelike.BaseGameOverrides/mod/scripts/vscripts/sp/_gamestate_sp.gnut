@@ -564,7 +564,7 @@ void function FriendlyFire_MissionFailure()
 		Remote_CallFunction_NonReplay( player, "ServerCallback_FriendlyFire_MissionFailure" )
 	}
 
-	ReloadForMissionFailure()
+	ReloadForMissionFailure(false, 0)
 }
 
 void function SoulDeath_ReloadOnPetTitanDeath_Thread( entity soul, var damageInfo )

@@ -76,12 +76,34 @@ function CommonNPCOnSpawned( entity npc )
 	bool overrideTitan = GetConVarString("roguelike_force_titan")!="" && !isBT && !isMerc && npc.GetTeam() != TEAM_MILITIA
 	if (npc.IsTitan() && overrideTitan)
 	{
-		SetAISettingsWrapper( npc, GetConVarString("roguelike_force_titan") )
-		aisetting = GetConVarString("roguelike_force_titan")
+		if (GetConVarString("roguelike_force_titan") != "rand")
+			aisetting = GetConVarString("roguelike_force_titan")
+		else
+		{
+			array<string> validTitans = [
+				"npc_titan_ogre_meteor",
+				"npc_titan_ogre_minigun",
+				"npc_titan_atlas_tracker",
+				"npc_titan_atlas_stickybomb",
+				"npc_titan_stryder_leadwall",
+				"npc_titan_stryder_sniper"]
+    		vector origin = npc.GetOrigin()
+			int posSeed = int((origin.x + origin.y * 5 + origin.z * 17) * 121)
+			PRandom rand = NewPRandom(Roguelike_GetLevelSeed() + posSeed)
+			aisetting = validTitans[PRandomInt( rand, validTitans.len() )]
+		}
+
+		SetAISettingsWrapper( npc, aisetting )
 		
 		npc.ai.titanSpawnLoadout.setFile = expect string(npc.Dev_GetAISettingByKeyField( "npc_titan_player_settings" ))
 		// OverwriteLoadoutWithDefaultsForSetFile_ExceptSpecialAndAntiRodeo( npc.ai.titanSpawnLoadout )
 		OverwriteLoadoutWithDefaultsForSetFile( npc.ai.titanSpawnLoadout ) // get the entire loadout, including defensive and tactical
+		printt("core", npc.ai.titanSpawnLoadout.coreAbility)
+		if (NPC_BANNED_CORES.contains(npc.ai.titanSpawnLoadout.coreAbility) && !IsMercTitan(npc))
+		{
+			npc.ai.titanSpawnLoadout.coreAbility = "" // remove core from npc...
+			printt("core removed")
+		}
 	}
 
 	Assert( !npc.executedSpawnOptions, npc + " tried to spawn twice?" )
@@ -161,6 +183,7 @@ function CommonNPCOnSpawned( entity npc )
 			npc.ai.bossTitanVDUEnabled = int( npc.kv.disable_vdu ) == 0
 	}
 
+	// Set proficiency before giving weapons
 	SPMP_UpdateNPCProficiency( npc )
 
 	if ( npc.IsTitan() )
@@ -519,19 +542,12 @@ var function GetTitanHotdropSetting( entity npc )
 
 function CommonNPCTitanOnSpawned( entity npc )
 {
-	if ( npc.ai.titanSpawnLoadout.primary != "" )
+	
+	// RHACK: - I REALLY REALLY SHOULDVE DONE THIS PROPERLY BUT LIKE, HOLY SHIT THATS SO FAR OUTSIDE THE SCOPE OF THIS MOD LMAO
+	if (npc.ai.titanSpawnLoadout.setFile != "titan_buddy")
 	{
-		Assert( npc.GetMainWeapons().len() == 0 )
-
-		// RHACK: - I REALLY REALLY SHOULDVE DONE THIS PROPERLY BUT LIKE, HOLY SHIT THATS SO FAR OUTSIDE THE SCOPE OF THIS MOD LMAO
-		if (npc.ai.titanSpawnLoadout.setFile != "titan_buddy")
-			GiveTitanLoadout( npc, npc.ai.titanSpawnLoadout )
-	}
-	else if ( npc.GetMainWeapons().len() == 0 )
-	{
-		// RHACK: - I REALLY REALLY SHOULDVE DONE THIS PROPERLY BUT LIKE, HOLY SHIT THATS SO FAR OUTSIDE THE SCOPE OF THIS MOD LMAO
-		if (npc.ai.titanSpawnLoadout.setFile != "titan_buddy")
-			GiveTitanLoadout( npc, npc.ai.titanSpawnLoadout )
+		// if designer overwrites weapons, apply them
+		GiveTitanLoadout( npc, npc.ai.titanSpawnLoadout )
 	}
 
 	//Assert( npc.ai.titanSpawnLoadout.setFile == npc.ai.titanSettings.titanSetFile )

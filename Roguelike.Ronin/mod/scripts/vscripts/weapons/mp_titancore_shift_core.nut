@@ -1,5 +1,3 @@
-global function OnWeaponPrimaryAttack_DoNothing
-
 global function Shift_Core_Init
 #if SERVER
 global function Shift_Core_UseMeter
@@ -45,11 +43,6 @@ void function SwordCore_OnPlayedOrNPCKilled( entity victim, entity attacker, var
 	}
 }
 #endif
-
-var function OnWeaponPrimaryAttack_DoNothing( entity weapon, WeaponPrimaryAttackParams attackParams )
-{
-	return 0
-}
 
 bool function OnCoreCharge_Shift_Core( entity weapon )
 {
@@ -210,6 +203,7 @@ void function Shift_Core_End( entity weapon, entity player, float delay )
 
 	while ( 1 )
 	{
+		printt(soul.GetCoreChargeExpireTime() - Time())
 		if ( soul.GetCoreChargeExpireTime() <= Time() )
 			break;
 		wait 0.1
@@ -222,8 +216,7 @@ void function OnAbilityEnd_Shift_Core( entity weapon, entity player )
 
 	if ( player.IsPlayer() )
 	{
-		int energy = Roguelike_GetStat( player, STAT_ENERGY )
-		float cdReduction = Roguelike_GetDashCooldownMultiplier( energy )
+		float cdReduction = Roguelike_GetStat( player, "cd_reduction" )
 		player.SetPowerRegenRateScale( 1.0 / cdReduction )
 		EmitSoundOnEntityOnlyToPlayer( player, player, "Titan_Ronin_Sword_Core_Deactivated_1P" )
 		EmitSoundOnEntityExceptToPlayer( player, player, "Titan_Ronin_Sword_Core_Deactivated_3P" )
@@ -301,10 +294,10 @@ void function Shift_Core_UseMeter( entity player )
 
 	if ( remainingTime > 0 )
 	{
-		float USE_TIME = 5
+		float USE_TIME = 3
 
 		if (Roguelike_HasMod( player, "sword_core_use" ))
-			USE_TIME = 3
+			USE_TIME = 2
 
 		remainingTime = max( remainingTime - USE_TIME, 0 )
 		float startTime = soul.GetCoreChargeStartTime()

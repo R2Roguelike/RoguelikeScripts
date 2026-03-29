@@ -119,6 +119,7 @@ enum eHighlightDrawFunc
 	PICKUP
 	SONAR_DETECTED
 	ALWAYS_LONG_FADE
+	ROGUELIKE_LOS
 
 	LAST_DRAW_FUNC
 }
@@ -264,13 +265,23 @@ function Highlight_Init()
 	HighlightContext_SetADSFade( highlight, false )
 	HighlightContext_SetAfterPostProcess( highlight, false )
 
+	highlight = RegisterHighlight( "roguelike_chest_xray" )
+	HighlightContext_SetOutline( highlight, HIGHLIGHT_OUTLINE_CUSTOM_COLOR )
+	//HighlightContext_SetFill( highlight, HIGHLIGHT_FILL_OBJECTIVE )
+	HighlightContext_SetRadius( highlight, 4 )
+	HighlightContext_SetParam( highlight, 0, <0.25, 2, 0.25> )
+	HighlightContext_SetDrawFunc( highlight, eHighlightDrawFunc.ALWAYS )
+	HighlightContext_SetFarFadeDistance( highlight, 100000.0 )
+	HighlightContext_SetADSFade( highlight, false )
+	HighlightContext_SetAfterPostProcess( highlight, false )
+
 	highlight = RegisterHighlight( "roguelike_legendary_chest" )
 	HighlightContext_SetOutline( highlight, HIGHLIGHT_OUTLINE_OBJECTIVE )
 	//HighlightContext_SetFill( highlight, HIGHLIGHT_FILL_OBJECTIVE )
 	HighlightContext_SetRadius( highlight, 3 )
 	HighlightContext_SetParam( highlight, 0, <1, 1, 0.25> )
-	HighlightContext_SetDrawFunc( highlight, eHighlightDrawFunc.LOS_LINE )
-	HighlightContext_SetFarFadeDistance( highlight, 6000.0 )
+	HighlightContext_SetDrawFunc( highlight, eHighlightDrawFunc.ROGUELIKE_LOS )
+	HighlightContext_SetFarFadeDistance( highlight, 9000.0 )
 	HighlightContext_SetADSFade( highlight, false )
 	HighlightContext_SetAfterPostProcess( highlight, false )
 
@@ -1208,6 +1219,10 @@ void function ClHighlight_UpdateHighlightFlags( entity ent, int contextId )
 			}
 			break
 
+		case eHighlightDrawFunc.ROGUELIKE_LOS:
+			thread ClHighlight_RoguelikeChest_LineThink( ent, highlight ) // custom logic for highlight draw to make chests more consistently visible...
+			break
+
 		#if HAS_WEAPON_PICKUP_HIGHLIGHT
 		case eHighlightDrawFunc.PICKUP:
 			{
@@ -1410,7 +1425,51 @@ float function GetMidpointHeight( entity ent )
 
 void function ClHighlight_RoguelikeChest_LineThink( entity ent, HighlightContext highlight )
 {
+	entity viewPlayer = GetLocalViewPlayer()
+	if ( ent == viewPlayer )
+		return
 
+	ent.EndSignal( "OnDestroy" )
+	ent.EndSignal( "ContextChanged" )
+	viewPlayer.EndSignal( "OnDestroy" )
+
+	bool wasVisible = false
+	var deferredTrace
+
+	while ( true )
+	{
+		vector viewPosition = viewPlayer.EyePosition()
+		vector entPos = ent.GetWorldSpaceCenter() + <0,0,10>
+
+		if ( IsDeferredTraceFinished( deferredTrace ) )
+		{
+			TraceResults hullResult = GetDeferredTraceResult( deferredTrace )
+			bool isVisible = ( hullResult.fraction == 1.0 || hullResult.hitEnt == ent ) && Distance(entPos, viewPosition) < highlight.farDist
+
+			if ( isVisible && !wasVisible )
+				ShowEntityHighlight( ent, 0.15 )
+			else if ( !isVisible && wasVisible )
+				HideEntityHighlight( ent, 0.15 )
+
+			wasVisible = isVisible
+		}
+		else
+		{
+			HideEntityHighlight( ent, 0.15 )
+			wasVisible = false
+		}
+
+		deferredTrace = DeferredTraceLine( viewPosition, entPos, ent, TRACE_MASK_BLOCKLOS, TRACE_COLLISION_GROUP_NONE )
+
+/*
+		if ( ent.GetModelName() == $"models/Weapons/ammoboxes/ammobox_01_alt.mdl" )
+		{
+			DebugDrawLine( viewPosition, entPos, 0, 255, 0, true, 0.1 )
+			printt( "hullsize " + hullSize )
+		}
+*/
+		WaitFrame()
+	}
 }
 
 void function ClHighlight_DrawWhenLOS_LineThink( entity ent, HighlightContext highlight )

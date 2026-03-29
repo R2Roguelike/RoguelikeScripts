@@ -2,7 +2,6 @@
 {
 	"global"
 	{
-		friction					4
 	}
 	"crouch"
 	{

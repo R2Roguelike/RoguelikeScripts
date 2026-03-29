@@ -78,7 +78,7 @@ void function InitMainMenuPanel()
 	AddComboButtonHeader( comboStruct, headerIndex, "MORE" )
 	file.missionSelectButton = AddComboButton( comboStruct, headerIndex, buttonIndex++, "#MENU_MISSION_SELECT" )
 	Hud_AddEventHandler( file.missionSelectButton, UIE_CLICK, void function(var b) : () { if (HasStartedGameEver()) { LaunchSPMissionSelect(); } } )
-	var c = AddComboButton( comboStruct, headerIndex, buttonIndex++, "Soon!" )
+	//var c = AddComboButton( comboStruct, headerIndex, buttonIndex++, "Soon!" )
 	UpdateSPButtons()
 	//Hud_AddEventHandler( c, UIE_CLICK, AdvanceMenuEventHandler( GetMenu( "AudioMenu" ) ) )
 
@@ -153,6 +153,8 @@ void function OnShowMainMenuPanel()
 			Hud_Hide( button )
 		}
 	}
+
+	Hud_SetText(Hud_GetChild(file.panel, "Credits2"), Roguelike_IsLoadoutUnlocked(expect RoguelikeLoadout(Roguelike_GetLoadoutFromWeapon("mp_titanweapon_archon_arc_cannon"))) ? "Archon by GalacticMoblin" : "??? by GalacticMoblin")
 
 	#if PS4_PROG
 		thread EnableCheckPlus()
@@ -577,6 +579,9 @@ void function UpdateSPButtons()
 
 	int buttonIndex = 0
 
+	AddSPButton( buttonIndex, Roguelike_StartNewRunMenu, "New Run" )
+	buttonIndex++
+	
 	if (Roguelike_IsRunActive())
 	{
 
@@ -588,8 +593,6 @@ void function UpdateSPButtons()
 		//Hud_SetText( Hud_GetChild( file.menu ))
 	}
 
-	AddSPButton( buttonIndex, Roguelike_StartNewRunMenu, "New Run" )
-	buttonIndex++
 
 	Hud_SetLocked( file.missionSelectButton, !HasStartedGameEver() )
 	if ( HasStartedGameEver() )
@@ -754,9 +757,9 @@ void function UpdateSpotlightData()
 		"Join the Roguelike Discord!", 
 		"Talk with the mod developers, or with other Roguelike-enjoyers." )
 	SetSpotlightButtonData( file.spotlightButtons[1], 
-		file.promoData.smallButton1_Url, 
+		"https://docs.google.com/forms/d/e/1FAIpQLScoIMz9Xf5zG4m-r0qk_507M1TWoVwaPtCIcK4yVDer32snzQ/viewform", 
 		file.promoData.smallButton1_ImageIndex, 
-		"Pilot rework now available!", "fuck" )
+		"Provide feedback!", "fuck" )
 	SetSpotlightButtonData( file.spotlightButtons[2], 
 		"https://github.com/R2Roguelike/", 
 		file.promoData.smallButton2_ImageIndex, 

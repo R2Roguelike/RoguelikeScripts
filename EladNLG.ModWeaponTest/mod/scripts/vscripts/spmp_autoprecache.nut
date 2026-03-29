@@ -58,7 +58,7 @@ global const array<string> allowedWeapons = [
 	"mp_ability_grapple",
 	// at
 	"mp_weapon_defender",
-	"mp_titanability_rearm"
+	"mp_titanability_rearm",
 	//"mp_ability_holopilot",
 ]
 
@@ -84,6 +84,13 @@ void function PrecacheJack()
 	PrecacheWeapon("mp_weapon_mega_turret_boss");
 	PrecacheWeapon("mp_titanability_roguelike_pylon");
 	PrecacheWeapon("mp_titanability_nuclear_explosion");
+	#if BRUTE_ENABLED
+	PrecacheWeapon("mp_titanability_craft_battery")
+	PrecacheWeapon("mp_titanweapon_stun_laser")
+	PrecacheWeapon("mp_titanweapon_arm_laser")
+	PrecacheWeapon("mp_titanability_rearm_brute")
+	PrecacheWeapon("mp_titancore_power_core")
+	#endif
 	foreach ( string weaponName in allowedWeapons )
 	{
 		if (!WeaponIsPrecached(weaponName))
@@ -101,9 +108,14 @@ void function PrecacheJack()
 
 	PRandom rand = NewPRandom(Roguelike_GetLevelSeed())
 
-	if (PRandomFloat(rand, 0, 1.0) < 0.1 && GetMapName() != "sp_skyway_v1") // should remove the latter when i finally test fold weapon with force titan
+	if (PRandomFloat(rand, 0, 1.0) < 0.1 && GetMapName() != "sp_skyway_v1" && GetMapName() != "sp_s2s"
+		&& GetMapName() != "sp_hub_timeshift") // s2s scorches have special anims, and there's like only 3 titans there so who cares
 		SetConVarString("roguelike_force_titan", validTitans[PRandomInt(rand, validTitans.len())])
-	else
+	else if (GetMapName() == "sp_skyway_v1" || GetMapName() == "sp_s2s" || GetMapName() == "sp_hub_timeshift")
 		SetConVarString("roguelike_force_titan", "")
+	else
+		SetConVarString("roguelike_force_titan", "rand")
+
+	//SetConVarString("roguelike_force_titan", "npc_titan_ogre_meteor")
 		
 }

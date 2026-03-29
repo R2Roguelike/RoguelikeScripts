@@ -20,7 +20,7 @@ resource/ui/roguelike_timer.res
 		zpos				200
         wide                 80
 		tall				45
-		labelText			"12:51"
+		labelText			"00:00 "
 		allCaps				1
 		font				JetBrainsMonoBold_48_Italic
 		auto_wide_tocontents	1
@@ -39,7 +39,7 @@ resource/ui/roguelike_timer.res
 
 		image			"vgui/hud/white"
 
-		drawColor	"0 0 0 135"
+		drawColor	"0 0 0 150"
 		scaleImage			1
 
 		wide				128
@@ -129,7 +129,7 @@ resource/ui/roguelike_timer.res
 
 		image			"vgui/hud/white"
 
-		drawColor	"0 0 0 135"
+		drawColor	"0 0 0 150"
 		scaleImage			1
 
 		wide				128

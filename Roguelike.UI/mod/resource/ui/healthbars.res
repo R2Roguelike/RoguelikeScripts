@@ -80,17 +80,6 @@ resource/ui/healthbars.res
 
         controlSettingsFile	"resource/ui/healthbars/Healthbar.res"
     }
-    "Healthbar7"
-    {
-        "ControlName"		"CNestedPanel"
-        wide				232
-        tall				32
-        visible				0
-        enabled				0
-        zpos				10
-
-        controlSettingsFile	"resource/ui/healthbars/Healthbar.res"
-    }
 
     /// ELITE ///
 
@@ -159,19 +148,6 @@ resource/ui/healthbars.res
 
         controlSettingsFile	"resource/ui/healthbars/Healthbar_Elite.res"
     }
-    "HealthbarElite5"
-    {
-        "ControlName"		"CNestedPanel"
-        xpos				0
-        ypos				0
-        wide				232
-        tall				32
-        visible				0
-        enabled				0
-        zpos				10
-
-        controlSettingsFile	"resource/ui/healthbars/Healthbar_Elite.res"
-    }
     "HealthbarElite6"
     {
         "ControlName"		"CNestedPanel"
@@ -185,7 +161,7 @@ resource/ui/healthbars.res
 
         controlSettingsFile	"resource/ui/healthbars/Healthbar_Elite.res"
     }
-    "HealthbarElite7"
+    "HealthbarElite5"
     {
         "ControlName"		"CNestedPanel"
         xpos				0
@@ -280,19 +256,6 @@ resource/ui/healthbars.res
         controlSettingsFile	"resource/ui/healthbars/Healthbar_Champion.res"
     }
     "HealthbarChampion6"
-    {
-        "ControlName"		"CNestedPanel"
-        xpos				0
-        ypos				0
-        wide				359
-        tall				128
-        visible				0
-        enabled				0
-        zpos				10
-
-        controlSettingsFile	"resource/ui/healthbars/Healthbar_Champion.res"
-    }
-    "HealthbarChampion7"
     {
         "ControlName"		"CNestedPanel"
         xpos				0

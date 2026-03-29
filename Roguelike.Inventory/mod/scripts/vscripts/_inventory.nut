@@ -10,11 +10,22 @@ global function Roguelike_PauseTimer
 global function Roguelike_UnpauseTimer
 global function Roguelike_SetTimerValue
 global function Roguelike_GetDatacoreValue
+global function Roguelike_GetTagCount
 global function CC_Fuck
 
 struct {
     array<void functionref( entity )> onInventoryRefreshed
 } file
+
+float function GetMagFrac( entity weapon )
+{
+    return float(weapon.GetWeaponPrimaryClipCount()) / weapon.GetWeaponPrimaryClipCountMax()
+}
+
+void function SetMagFrac( entity weapon, float c)
+{
+    weapon.SetWeaponPrimaryClipCount( int( weapon.GetWeaponPrimaryClipCountMax() * c ) )
+}
 
 void function Inventory_Init()
 {
@@ -40,14 +51,18 @@ void function OnClientConnected( entity player )
     AddPlayerMovementEventCallback( player, ePlayerMovementEvents.DODGE, OnPlayerDodge )
 
 
-    delaythread(0.1) void function() : (player) { wait 0.001; SetServerVar( "startTime", Time() ); RefreshInventory( player ) }()
+    delaythread(0.1) void function() : (player) { 
+        wait 0.001; 
+        SetServerVar( "startTime", Time() ); 
+        RefreshInventory( player ) 
+    }()
 
 }
 
 void function Roguelike_PauseTimer()
 {
     if (GetServerVar("isTimerPaused"))
-        throw "timer already paused"
+        return
 
     SetServerVar("timerValue", Time() - GetServerVar("startTime") )
     SetServerVar("isTimerPaused", true)
@@ -65,7 +80,7 @@ void function Roguelike_SetTimerValue( float value )
 void function Roguelike_UnpauseTimer()
 {
     if (!GetServerVar("isTimerPaused"))
-        throw "timer already unpaused"
+        return
     SetServerVar("startTime", Time() - GetServerVar("timerValue") )
     SetServerVar("isTimerPaused", false)
 }
@@ -139,7 +154,7 @@ void function RefreshInventory( entity player )
         weaponModsList[i] = man
     }
 
-    player.s.mods <- []
+    player.e.mods.clear()
     player.s.stats <- []
     if (datacoreList.len() > 2)
     {
@@ -203,12 +218,14 @@ void function RefreshInventory( entity player )
                 entity weapon = player.GiveWeapon(weaponsList[i], weaponModsList[i])
                 ModWeaponVars_CalculateWeaponMods( weapon )
                 printt(weapon.GetInventoryIndex())
+                SetMagFrac( weapon, 0.0 )
                 weapon.SetWeaponPrimaryClipCount(min(weapon.GetWeaponPrimaryClipCount(), weapon.GetWeaponPrimaryClipCountMax()))
             }
             if (inventoryIndex == 1 && existingWeapon != null)
             {
                 player.GiveExistingWeapon( existingWeapon )
                 ModWeaponVars_CalculateWeaponMods( existingWeapon )
+                SetMagFrac( existingWeapon, 0.0 )
                 existingWeapon.SetWeaponBurstFireCount(GetWeaponInfoFileKeyField_GlobalInt(existingWeapon.GetWeaponClassName(), "burst_fire_count"))
                 existingWeapon.SetWeaponPrimaryClipCount(min(existingWeapon.GetWeaponPrimaryClipCount(), existingWeapon.GetWeaponPrimaryClipCountMax()))
             }
@@ -240,7 +257,7 @@ void function RefreshInventory( entity player )
 
         int index = int( s )
         RoguelikeMod mod = GetModForIndex( index )
-        player.s.mods.append(mod.uniqueName)
+        player.e.mods.append(mod.uniqueName)
     }
 
     foreach (string s in statsList)
@@ -248,7 +265,7 @@ void function RefreshInventory( entity player )
         if (s == "")
             continue
 
-        int value = int( s )
+        float value = float( s )
         player.s.stats.append(value)
     }
 
@@ -278,6 +295,10 @@ void function RefreshInventory( entity player )
                 player.SetPlayerSettingPosMods(PLAYERPOSE_CROUCHING, ["25_speed"])
                 break
         }
+    }
+    if (player.IsTitan() && player.GetPlayerSettings() != "spectator")
+    {
+		Roguelike_Player_SetDodgeSpeed(player, Roguelike_HasMod( player, "titan_slide" ) ? 850.0 : 685.0 )
     }
 
     foreach (void functionref( entity ) callback in file.onInventoryRefreshed)
@@ -387,7 +408,7 @@ bool function CC_Fuck( entity player, entity target )
                 i++
             }
             target.TakeDamage( 100, player, player, { damageSourceId = eDamageSourceId.mp_titancore_laser_cannon, origin = target.GetWorldSpaceCenter() })
-            wait 0.01
+            wait 0.049
         }
     }()
     return true
@@ -483,11 +504,8 @@ void function FreezeNPC( entity npc )
 
 int function Roguelike_GetModCount( entity player, string modName )
 {
-    if (!("mods" in player.s))
-        return 0
-
     int result = 0
-    foreach (var modIndex in player.s.mods)
+    foreach (string modIndex in player.e.mods)
     {
         if (modIndex == modName)
             result++
@@ -496,21 +514,47 @@ int function Roguelike_GetModCount( entity player, string modName )
     return result
 }
 
+array<string> function Roguelike_GetModList( entity player )
+{
+    if (!IsValid( player ))
+        return []
+
+    return player.e.mods
+}
+
 bool function Roguelike_HasMod( entity player, string modName )
 {
     if (!IsValid( player ))
         return false
-    if (!("mods" in player.s))
-        return false
 
-    return expect bool(player.s.mods.contains(modName))
+    return player.e.mods.contains(modName)
 }
 
-int function Roguelike_GetStat( entity player, int stat )
+int function Roguelike_GetTagCount( entity player, string tag )
 {
+    int result = 0
+    foreach (string m in player.e.mods)
+    {
+        RoguelikeMod mod = GetModByName(m)
+        if (mod.tags.contains(tag))
+            result++
+    }
+    return result
+}
+
+float function Roguelike_GetStat( entity player, string stat )
+{
+    if (!("stats" in player.s))
+        return 0
     if (player.s.stats.len() < 8)
         return 0
-    return minint(expect int(player.s.stats[stat]), STAT_CAP)
+    RoguelikeStat statData = GetStatByName(stat)
+    float baseVal = expect float(player.s.stats[statData.index])
+
+    if (statData.diminishingReturns)
+        return 1.0 / (1.0 + baseVal)
+
+    return baseVal
 }
 
 bool function Roguelike_HasDatacorePerk( entity player, string perk )

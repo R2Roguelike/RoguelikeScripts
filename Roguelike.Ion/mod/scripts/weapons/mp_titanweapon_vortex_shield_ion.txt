@@ -1,7 +1,9 @@
 #base "mp_titanweapon_vortex_shield.txt"
 WeaponData
 {
-	"longdesc"										"#WPN_TITAN_VORTEX_SHIELD_LONGDESC"
+	"longdesc"										"Blocks and returns incoming fire.
+
+The amount of Energy consumed per second is reduced both by <cyan>Cooldown Reduction</> <daze>AND <cyan>Ability Duration."
 	"body_type"										"battle_rifle"
 	"instant_swap_from"								"1"
 	"offhand_keep_primary_in_hand"					"1"
@@ -29,6 +31,11 @@ WeaponData
 
 		"enable_highlight_networking_on_creation"		"1"
 	}
+
+
+    "ability_duration_value_1"                  "shared_energy_charge_cost"
+    "ability_duration_value_1_invert"                  "1"
+	"ability_duration_base_value"				"-1" // calculated manually. now please never change shared_energy_charge_cost
 
 	"gesture_attack_anim"							"0"
     "cooldown_type"                                 "shared_energy_drain"

@@ -56,6 +56,9 @@ void function TeleportPlayerAndBT( string playerSpawnScriptName, string titanSpa
 
 void function PlayMusic( string track )
 {
+	if (GetConVarBool("roguelike_disable_music"))
+		return
+	
 	printt( "#################################" )
 	printt( "Playing Music" )
 	printt( "  Track:", track )
@@ -70,6 +73,9 @@ void function PlayMusic( string track )
 
 void function PlayMusicThatCantBeStopped( string track )
 {
+	if (GetConVarBool("roguelike_disable_music"))
+		return
+	
 	printt( "#################################" )
 	printt( "Playing Unstoppable Music" )
 	printt( "  Track:", track )

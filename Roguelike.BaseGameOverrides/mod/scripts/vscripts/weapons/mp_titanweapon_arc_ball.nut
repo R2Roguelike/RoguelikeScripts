@@ -146,7 +146,7 @@ void function FireArcBall( entity weapon, vector pos, vector dir, bool shouldPre
 		bolt.kv.gravity = 5
 		SetTeam( bolt, team )
 
-		float lifetime = 8.0
+		float lifetime = 3.0
 
 		if ( isCharged )
 		{

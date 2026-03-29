@@ -43,12 +43,32 @@
 		enabled					1
 		//auto_tall_tocontents	1
 		auto_wide_tocontents	1
-		labelText				"Art by Natalia"
+		labelText				"Archon by GalacticMoblin"
 		textAlignment			east
 		fgcolor_override 		"255 225 100 255"
 		font					JetBrainsMono_24
 		allcaps					0
 		pin_to_sibling			Credits1
+		pin_corner_to_sibling	TOP_RIGHT
+		pin_to_sibling_corner	BOTTOM_RIGHT
+    }
+    Credits3
+    {
+		ControlName				Label
+		xpos					0
+		ypos					1
+		wide					400
+		tall					24
+		visible					1
+		enabled					1
+		//auto_tall_tocontents	1
+		auto_wide_tocontents	1
+		labelText				"Old Art by Natalia"
+		textAlignment			east
+		fgcolor_override 		"255 225 100 255"
+		font					JetBrainsMono_24
+		allcaps					0
+		pin_to_sibling			Credits2
 		pin_corner_to_sibling	TOP_RIGHT
 		pin_to_sibling_corner	BOTTOM_RIGHT
     }

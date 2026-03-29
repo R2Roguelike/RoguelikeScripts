@@ -26,6 +26,38 @@ void function OnProjectileCollision_weapon_thermite_grenade( entity projectile, 
 
 	bool result = PlantStickyEntity( projectile, collisionParams )
 
+	#if SERVER
+	thread void function () : (normal, projectile, player)
+	{
+		if (!IsValid(projectile))
+			return
+		///
+		projectile.Signal("StopEnderPearl")
+		projectile.EndSignal("StopEnderPearl")
+		player.EndSignal("OnDestroy")
+		projectile.WaitSignal("OnDestroy")
+
+		vector pos = projectile.GetOrigin()
+		
+		bool teleport = true
+		TraceResults results = TraceHull( pos + normal * 24, pos, player.GetBoundingMins(), player.GetBoundingMaxs(), [ projectile ], TRACE_MASK_PLAYERSOLID, TRACE_COLLISION_GROUP_NONE )
+		if (results.startSolid)
+		{
+			teleport = false
+		}
+		if (results.fraction < 1.0)
+		{
+			pos = results.endPos + results.surfaceNormal * 16
+		}
+		
+		if (teleport)
+			player.SetOrigin(pos)
+			
+		player.SetInvulnerable()
+		delaythread(0.1) ClearInvincible( player )
+	}()
+	#endif
+
 	if ( projectile.GrenadeHasIgnited() )
 		return
 

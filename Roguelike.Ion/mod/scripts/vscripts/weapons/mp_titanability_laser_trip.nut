@@ -414,23 +414,25 @@ function DeployLaserPylon( entity projectile )
 		wait LASER_TRIP_LIFETIME
 		return
 	}
+	float endTime = Time() + LASER_TRIP_LIFETIME * (1.0 + Roguelike_GetStat( owner, "ability_duration" ))
 	thread Ion_LaserTurret( tower, pylon, owner )
 	// roguelike - turret pylons
-	while (true)
+	while (Time() < endTime)
 	{
 		if (Roguelike_HasMod( owner, "pylon_charge"))
 			wait 0.049
 		else
 			wait 0.249
 		
-		if (DistanceSqr(owner.GetOrigin(), pylon.GetOrigin()) < 500 * 500)
+		float range = 500 + Roguelike_GetStat( owner, "ability_power" ) * 5
+		if (DistanceSqr(owner.GetOrigin(), pylon.GetOrigin()) < range * range)
 		{
 			entity soul = owner.GetTitanSoul()
 			if (IsValid(soul))
 			{
 				if (Roguelike_HasMod( owner, "repair_turret"))
 					soul.SetShieldHealth(minint(soul.GetShieldHealthMax(), soul.GetShieldHealth() + 20)) // * 12 for restoration speed (currently 240/s)
-				if (Roguelike_HasMod( owner, "repair_turret"))
+				if (Roguelike_HasMod( owner, "buff_turret"))
 					RSE_Apply( owner, RoguelikeEffect.buff_turret, 1.0, 1.0, 1.0 ) // * 12 for restoration speed (currently 240/s)
 			}
 		}
@@ -442,18 +444,24 @@ function DeployLaserPylon( entity projectile )
 
 		if (!IsValid(target) || !IsAlive(target))
 			continue
-		if (DistanceSqr(target.GetOrigin(), pylon.GetOrigin()) > 4000 * 4000)
+
+		float powerScalar = SoftCastToFloat(GetWeaponInfoFileKeyField_Global("mp_titanability_laser_trip", "ability_power_scalar_1"))
+		range = 2000 + Roguelike_GetStat( owner, "ability_power" ) * 10
+		if (DistanceSqr(target.GetOrigin(), pylon.GetOrigin()) > range * range)
 			continue
 		
 		entity primary = Roguelike_FindWeapon( owner, "mp_titanweapon_particle_accelerator" )
 		if (!IsValid(primary))
 			continue
 
+		print("shit")
 		vector pos = tower.GetWorldSpaceCenter() + <0,0,48>
 		vector targetPos = target.IsTitan() ? target.GetAttachmentOrigin(target.LookupAttachment( "exp_torso_main" )) : target.GetWorldSpaceCenter()
-		vector dir = LeadPosition( pos, targetPos, target.GetVelocity(), 8000.0 )
+		vector shootPos = LeadPosition( pos, targetPos, target.GetVelocity(), 8000.0 )
+		vector dir = Normalize(shootPos - pos)
 		int damageType = damageTypes.largeCaliber | DF_STOPS_TITAN_REGEN
 		entity bolt = primary.FireWeaponBolt( owner.EyePosition(), dir, 8000.0, damageType, damageType, false, 0 )
+		bolt.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanability_laser_trip )
 		bolt.SetOrigin(pos)
 		bolt.s.turretBolt <- true
 
@@ -503,6 +511,8 @@ void function Ion_LaserTurret( entity tower, entity pylon, entity owner )
         	missile.proj.damageScale = 100.0 / missile.GetProjectileWeaponSettingInt(eWeaponVar.damage_near_value_titanarmor)
 			if (Roguelike_HasMod( owner, "pylon_charge"))
 				missile.proj.damageScale *= 3 // big turret, big damage!
+			if (Roguelike_HasMod( owner, "multi_turret" ))
+				missile.proj.damageScale *= 0.6
 			missile.e.procs.append("laser_turret")
 
 			missile.SetMissileTarget( target, <0,0,0> )
@@ -585,6 +595,8 @@ bool function OnWeaponAttemptOffhandSwitch_titanweapon_laser_trip( entity weapon
 void function LaserTrip_DamagedPlayerOrNPC( entity ent, var damageInfo )
 {
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
+	entity inflictor = DamageInfo_GetInflictor( damageInfo )
+	
 	if ( ent.IsPlayer() )
 	{
 		if ( ent.IsTitan() )
@@ -593,12 +605,26 @@ void function LaserTrip_DamagedPlayerOrNPC( entity ent, var damageInfo )
 		 	EmitSoundOnEntityOnlyToPlayer( ent, ent, "flesh_explo_med_3p_vs_1p" )
 	}
 
+	float add = 0.25
+	float cur = RSE_Get( ent, RoguelikeEffect.ion_charge )
+
 	if (!IsValid(attacker) || !attacker.IsPlayer())
 	{
 		return
 	}
-	float cur = RSE_Get( ent, RoguelikeEffect.ion_charge )
-	cur += 0.25
+	//
+	if (IsValid(inflictor) && "turretBolt" in inflictor.s)
+	{
+		int base = 30 + 3 * Roguelike_GetTagCount( attacker, ION_TURRET_DMG_TAG )
+		base += int(Roguelike_GetStat( attacker, "ability_power" ) * 0.1)
+		if (Roguelike_HasMod( attacker, "multi_turret"))
+			base = base * 6 / 10
+		DamageInfo_SetDamage( damageInfo, base )
+		add = 0.01
+	}
+
+	cur += add
+
 	RSE_Apply( ent, RoguelikeEffect.ion_charge, min(cur, 1.0) )
 }
 #endif

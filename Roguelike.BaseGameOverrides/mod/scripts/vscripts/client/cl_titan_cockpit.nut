@@ -329,8 +329,8 @@ void function ShowRUIHUD( entity cockpit )
 	RuiSetBool( file.cockpitRui, "ejectIsAllowed", ejectIsAllowed )
 
 	string playerSettings = GetLocalViewPlayer().GetPlayerSettings()
-	int health = player.GetMaxHealth()
-	float healthPerSegment = GetPlayerSettingsFieldForClassName_HealthPerSegment( playerSettings )
+	int health = GetConVarInt("memory_titan_max_hp")
+	float healthPerSegment = GetPlayerSettingsFieldForClassName_HealthPerSegment( playerSettings ) - 0.01
 	RuiSetInt( file.cockpitRui, "numHealthSegments", int( health / healthPerSegment ) )
 	RuiTrackFloat( file.cockpitRui, "cockpitColor", player, RUI_TRACK_STATUS_EFFECT_SEVERITY, eStatusEffect.cockpitColor )
 
@@ -1434,7 +1434,7 @@ void function TitanCockpitHealthChangedThink( cockpit, entity player )
 			RuiSetFloat( rui, "newHealthFrac", newHealthFrac )
 
 			string playerSettings = GetLocalViewPlayer().GetPlayerSettings()
-			int health = player.GetMaxHealth()
+			int health = GetConVarInt("memory_titan_max_hp")
 			float healthPerSegment = GetPlayerSettingsFieldForClassName_HealthPerSegment( playerSettings )
 			RuiSetInt( rui, "numHealthSegments", int( health / healthPerSegment ) )
 		}
@@ -1673,7 +1673,7 @@ void function UpdateHealthSegmentCount()
 
 	entity player = GetLocalViewPlayer()
 	string playerSettings = player.GetPlayerSettings()
-	int health = player.GetMaxHealth()
+	int health = GetConVarInt("memory_titan_max_hp")
 	float healthPerSegment = GetPlayerSettingsFieldForClassName_HealthPerSegment( playerSettings )
 	RuiSetInt( file.cockpitRui, "numHealthSegments", int( health / healthPerSegment ) )
 }

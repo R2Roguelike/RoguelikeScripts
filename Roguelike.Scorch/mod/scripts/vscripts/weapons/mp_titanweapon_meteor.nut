@@ -13,10 +13,10 @@ global function OnWeaponNpcPrimaryAttack_Meteor
 global function CreatePhysicsThermiteTrail
 global function Scorch_SelfDamageReduction
 global function GetMeteorRadiusDamage
-global const PLAYER_METEOR_DAMAGE_TICK = 25.0
+global const PLAYER_METEOR_DAMAGE_TICK = 30.0
 global const PLAYER_METEOR_DAMAGE_TICK_PILOT = 20.0
 
-global const NPC_METEOR_DAMAGE_TICK = 50.0
+global const NPC_METEOR_DAMAGE_TICK = 40.0
 global const NPC_METEOR_DAMAGE_TICK_PILOT = 20.0
 
 global struct MeteorRadiusDamage
@@ -336,6 +336,9 @@ void function PROTO_ThermiteCausesDamage( entity trail, entity owner, entity inf
 	if ( damageSourceId == eDamageSourceId.mp_titanweapon_flame_wall )
 		radius = FLAME_WALL_DAMAGE_RADIUS_DEF
 
+	//if (damageSourceId == eDamageSourceId.mp_titanweapon_meteor_thermite) // im not... im not supporting this.
+	//	radius += Roguelike_GetStat( owner, "ability_power" ) * 2
+
 	for ( ;; )
 	{
 		RadiusDamage(
@@ -353,7 +356,7 @@ void function PROTO_ThermiteCausesDamage( entity trail, entity owner, entity inf
 			damageSourceId										// damage source id
 		)
 
-		WaitFrame()
+		wait 0.049
 	}
 }
 

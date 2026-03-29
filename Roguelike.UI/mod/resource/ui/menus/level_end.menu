@@ -97,7 +97,7 @@ resource/ui/menus/level_end.menu
             image			"vgui/hud/white"
             border          WhiteBorder
 
-            drawColor	"0 0 0 135"
+            drawColor	"0 0 0 150"
             scaleImage			1
 
             wide				900
@@ -210,7 +210,7 @@ resource/ui/menus/level_end.menu
             image			"vgui/hud/white"
             border          WhiteBorder
 
-            drawColor	"0 0 0 135"
+            drawColor	"0 0 0 150"
             scaleImage			1
 
             wide				900

@@ -34,6 +34,15 @@ WeaponData
 	"readymessage"									"#HUD_CORE_ONLINE_ATLAS_LASER"
 	"readyhint"										"#HUD_CORE_ONLINE_ATLAS_LASER_HINT"
 
+	"ability_power_value_1"							"script"
+	"ability_power_value_2"							"damage_near_value_titanarmor"
+	"ability_power_value_3"							"damage_far_value_titanarmor"
+	"ability_power_scalar_1"					"16"
+	"ability_power_scalar_2"					"0.8"
+	"ability_power_scalar_3"					"0.8"
+	"ability_power_format"						"Base DPS"
+	"ability_power_base_value"					"3000"
+
 	"dialog_core_online"							"lasercoreOnline"
 	"dialog_core_activated"							"lasercoreActivated"
 
@@ -145,6 +154,10 @@ WeaponData
 
 		"sustained_discharge_duration"					"5.0" // core duration
 	}
+
+	"ability_duration_value_1"							"core_duration"
+	"ability_duration_value_2"							"sustained_discharge_duration"
+	"ability_duration_base_value"						"core_duration"
 
 	"damage_rodeo"									"2000"
 

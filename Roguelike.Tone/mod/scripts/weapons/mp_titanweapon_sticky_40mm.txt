@@ -3,7 +3,13 @@ FWeaponData
 	"printname"   									"#WPN_TITAN_40MM_TRACKER"
     "shortprintname"                              	"#WPN_TITAN_40MM_TRACKER_SHORT"
 	"description" 									"#WPN_TITAN_40MM_TRACKER_DESC"
-	"longdesc"										"#WPN_TITAN_40MM_TRACKER_LONGDESC"
+	"longdesc"										"Semi-auto explosive rounds that apply <cyan>Marks.</>
+
+When applying 3 Marks, Tone <cyan>immediately and automatically</> fires a rocket barrage at the target.
+
+This rocket barrage's Base DMG scales with <burn>Ability Power.</>
+
+<note>The Base DMG displayed below is for a single rocket from the Barrage. By default, a barrage fires <daze>5<note> rockets."
 
 	"leveled_pickup"								"1"
 
@@ -38,6 +44,10 @@ FWeaponData
 	"low_ammo_sound_name_2"							"40mm_LowAmmo_Shot2"
 	"low_ammo_sound_name_3"							"40mm_LowAmmo_Shot3"
 
+	"ability_power_base_value"						"250"
+	"ability_power_scalar_1"						"2"
+	"ability_power_format"							"Barrage Base DMG"
+
 	MP_BASE
 	{
 		"damage_near_value"   						"200"
@@ -67,8 +77,8 @@ FWeaponData
 	{
 		"damage_near_value"   						"300"
 		"damage_far_value"							"300"
-		"damage_near_value_titanarmor"				"150"
-		"damage_far_value_titanarmor" 				"150"
+		"damage_near_value_titanarmor"				"300"
+		"damage_far_value_titanarmor" 				"300"
 		"npc_explosion_damage"						"100"
 		"explosion_damage"							"150"
 		"explosion_damage_heavy_armor"				"200"
