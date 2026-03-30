@@ -29,6 +29,8 @@ void function OnProjectileCollision_weapon_thermite_grenade( entity projectile, 
 	#if SERVER
 	thread void function () : (normal, projectile, player)
 	{
+		if (!Roguelike_HasMod( player, "ender_pearl" ))
+			return
 		if (!IsValid(projectile))
 			return
 		///

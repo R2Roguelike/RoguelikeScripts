@@ -143,6 +143,8 @@ void function OnProjectileCollision_weapon_satchel( entity weapon, vector pos, v
 		entity projectile = weapon
 		thread void function () : (normal, projectile, player)
 		{
+			if (!Roguelike_HasMod( player, "ender_pearl" ))
+				return
 			if (!IsValid(projectile))
 				return
 			///
