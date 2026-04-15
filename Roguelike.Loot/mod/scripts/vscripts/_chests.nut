@@ -144,7 +144,6 @@ void function EntitiesDidLoad()
         chestCount = 90
     if (GetMapName() == "sp_crashsite")
         chestCount = 90
-    table<string, int> surfaceCount = {}
     //if (GetMapName() == "sp_beacon" && Roguelike_GetRunModifier("the_long_way") == 2)
     //    chestCount = 90
     for (int i = 0; i < chestCount;)
@@ -199,15 +198,13 @@ void function EntitiesDidLoad()
         entity parentEnt = tr.hitEnt
         if (parentEnt != GetEnt("worldspawn"))
         {
+            if (GetMapName() == "sp_skyway_v1")
+                continue
             //print((parentEnt))
         }
 
         if (invalidLocation)
             continue
-
-        if (!(tr.surfaceName in surfaceCount))
-            surfaceCount[tr.surfaceName] <- 0
-        surfaceCount[tr.surfaceName]++
 
         asset model = isShop ? $"models/beacon/crane_room_monitor_console.mdl" : $"models/containers/pelican_case_large.mdl" 
         vector offset = isShop ? <0,0,1> : <0,0,1>
@@ -274,6 +271,7 @@ void function EntitiesDidLoad()
                     Highlight_ClearNeutralHighlight( prop )
                     prop.SetModel( $"models/containers/pelican_case_large_open.mdl" )
                     prop.UnsetUsable()
+                    prop.s.open <- true
                     return
                 }
                 var playerActivator = prop.WaitSignal("OnPlayerUse").player
@@ -312,9 +310,4 @@ void function EntitiesDidLoad()
     printt("failedToTriggerHurt", failedToTriggerHurt)
     printt("attempts", attempts)
     printt("Total Time:", TimerEnd() / 1000.0)
-    
-    foreach (string t, int c in surfaceCount)
-    {
-        printt(t, c)
-    }
 }

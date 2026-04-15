@@ -560,6 +560,10 @@ void function TitanProcs( entity victim, entity player, var damageInfo, entity p
         RSE_Stop( player, RoguelikeEffect.polarity_red )
     }
 
+    if (Roguelike_HasMod( player, "sonar_proc" ) && RandomFloat(1.0) < 0.1)
+    {
+        PulseLocation( player, player.GetTeam(), victim.GetOrigin(), false, Roguelike_HasMod( player, "red_sonar" ) )
+    }
     if (Roguelike_HasMod( player, "shock_bullets" ) && RandomFloat(1.0) < 0.3 && !procEnt.e.procs.contains("shock_bullets") && victim.IsTitan())
     {
         array<entity> entsInRadius = GetNPCArrayEx( "npc_titan", TEAM_ANY, player.GetTeam(), victim.GetWorldSpaceCenter(), 787.4 * 2.5 )

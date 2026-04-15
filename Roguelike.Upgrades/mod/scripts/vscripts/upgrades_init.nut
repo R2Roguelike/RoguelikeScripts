@@ -313,6 +313,7 @@ global struct RoguelikeLoadout
     string core
     string melee = "melee_titan_punch"
     string statusEffectName = "FUCK"
+    array<string> additionalSources = []
     #if CLIENT
     void functionref( var, var, entity, entity ) displayStatusEffect
     #endif

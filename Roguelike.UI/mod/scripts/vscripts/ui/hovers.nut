@@ -91,7 +91,7 @@ void function Hover_Init()
             boxId++
         }
         if (visibleInfo)
-            offset += 8 + ((rowNum + 1) * 88)
+            offset += 4 + ((rowNum + 1) * 86)
         for (int i = 0; i < 4; i++)
         {
             var box = Hud_GetChild( panel, "Box" + i )
@@ -103,13 +103,13 @@ void function Hover_Init()
 
             // first box is always full width, the rest share space on a 2nd row
             int rowWidth = ContentScaledXAsInt(418)
-            int gap = ContentScaledXAsInt(8)
+            int gap = ContentScaledXAsInt(4)
             int boxAmount = boxCount[rows[i]]
             int gapCount = gap * boxAmount
             
             int boxWidth = ((rowWidth + gap) / boxAmount - gap)
             Hud_Show( box )
-            Hud_SetY( box, ContentScaledXAsInt(16) + ContentScaledXAsInt(88) * rows[i] )
+            Hud_SetY( box, ContentScaledXAsInt(16) + ContentScaledXAsInt(84) * rows[i] )
             Hud_SetX( box, boxIndex[i] * -(boxWidth + gap))
             Hud_SetWidth( box, boxWidth )
             Hud_SetWidth( Hud_GetChild(box, "BG"), boxWidth )

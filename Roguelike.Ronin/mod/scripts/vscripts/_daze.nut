@@ -65,11 +65,6 @@ void function ShotgunDamage( entity ent, var damageInfo )
             //dazeToAdd = 1.0 // max daze!
         }
 
-        if (("buffed" in inflictor.s))
-        {
-            DamageInfo_ScaleDamage( damageInfo, 2 )
-        }
-
         //AddDaze( ent, attacker, dazeToAdd )
     }
 }

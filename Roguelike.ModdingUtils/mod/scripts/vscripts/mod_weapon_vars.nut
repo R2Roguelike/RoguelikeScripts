@@ -274,7 +274,7 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
             {
                 if (!("railgunEndChargeTime" in railgun.s))
                 {
-                    float chargeTime = railgun.GetWeaponSettingFloat( eWeaponVar.charge_time ) * 2.0 // x2 charge time
+                    float chargeTime = railgun.GetWeaponSettingFloat( eWeaponVar.charge_time ) * 5.0 // x2 charge time
                     
                     railgun.s.railgunEndChargeTime <- Time() + chargeTime * (1.0 - railgun.GetWeaponChargeFraction())
                     railgun.s.railgunStartChargeTime <- Time()
@@ -282,7 +282,7 @@ void function CodeCallback_DoWeaponModsForPlayer( entity weapon )
                 }
                 if ((lastPrimary.GetWeaponClassName() == PRIMARY_NORTHSTAR && player.GetZoomFrac() > 0))
                 {
-                    float chargeTime = railgun.GetWeaponSettingFloat( eWeaponVar.charge_time ) * 2.0 // x2 charge time
+                    float chargeTime = railgun.GetWeaponSettingFloat( eWeaponVar.charge_time ) * 5.0 // x2 charge time
 
                     railgun.s.railgunEndChargeTime = Time() + chargeTime * (1.0 - railgun.GetWeaponChargeFraction())
                     railgun.s.railgunStartChargeTime = Time()

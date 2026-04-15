@@ -296,6 +296,11 @@ void function AbilitySlot_Display( var slot, string weapon, int offhandSlot )
             {
                 baseDuration = float(durationVar)
             }
+
+            if (weapon == "mp_titancore_flight_core" && Roguelike_HasMod( "first_class_flight" ))
+            {
+                baseDuration *= 2
+            }
             HoverSimpleBox box
             box.initialValue = FormatDuration(baseDuration)
             box.currentValue = FormatDuration(baseDuration * (1.0 + Roguelike_GetStat("ability_duration")))

@@ -26,7 +26,7 @@ void function Northstar_RegisterMods()
         RoguelikeMod mod = NewMod("first_class_flight")
         mod.name = "First Class Flight"
         mod.abbreviation = "FCF"
-        mod.description = "Flight Core extended by 25%. Use abilities and swap to your other loadout while in flight core."
+        mod.description = "Flight Core base duration extended by 100%. Use abilities and swap to your other loadout while in flight core."
         mod.shortdesc = "Use abilities and swap loadouts when in\nFlight Core."
         mod.cost = 1
         mod.chip = TITAN_CHIP_CORE

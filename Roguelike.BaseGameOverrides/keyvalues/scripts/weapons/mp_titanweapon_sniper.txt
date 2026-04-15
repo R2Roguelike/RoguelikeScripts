@@ -68,8 +68,8 @@ WeaponData
 	"ammo_clip_size"   								"6"
 	"ammo_default_total"							"1000"
 
-	"damage_additional_bullets"						"250"		// each additional bullet after the first does this much
-	"damage_additional_bullets_titanarmor"			"250"		// each additional bullet after the first does this much
+	"damage_additional_bullets"						"300"		// each additional bullet after the first does this much
+	"damage_additional_bullets_titanarmor"			"300"		// each additional bullet after the first does this much
 	"bolt_hitsize"									"0.0"
 	"bolt_hitsize_grow1_time"						"0.035"
 	"bolt_hitsize_grow1_size"						"2.0"
@@ -115,10 +115,10 @@ WeaponData
 		// Damage - When Used by Players
 		"damage_near_distance"							"800"
 		"damage_far_distance" 							"3000"
-		"damage_near_value"   							"250"
-		"damage_far_value"								"250"
-		"damage_near_value_titanarmor"					"250"
-		"damage_far_value_titanarmor" 					"250"
+		"damage_near_value"   							"300"
+		"damage_far_value"								"300"
+		"damage_near_value_titanarmor"					"300"
+		"damage_far_value_titanarmor" 					"300"
 
 		"deploy_time" 									"1.75"
 

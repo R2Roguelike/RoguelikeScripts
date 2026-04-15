@@ -41,6 +41,7 @@ WeaponData
 	"passive"										"PAS_FUSION_CORE"
 
     "ability_duration_value_1"                  "core_duration"
+	"ability_duration_value_2"					"sustained_discharge_duration"
 	"ability_duration_base_value"				"core_duration"
 
 	"readymessage"									"#HUD_CORE_ONLINE_ATLAS_FLIGHT"

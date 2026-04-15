@@ -5,7 +5,7 @@ WeaponData
 	"printname"   									"#WPN_TITANABILITY_REARM"
 	"shortprintname"   								"#WPN_TITANABILITY_REARM"
 	"description" 									"#WPN_TITANABILITY_REARM_DESC"
-	"longdesc" 										"<cyan>Reset cooldowns</> for all abilities in all loadouts. <note>(except this ability.)</>"
+	"longdesc" 										"<cyan>Reset cooldowns</> for all other abilities."
 
 	"menu_icon"										"rui/titan_loadout/tactical/titan_tactical_rearm_menu"
 	"hud_icon"										"rui/titan_loadout/tactical/titan_tactical_rearm"

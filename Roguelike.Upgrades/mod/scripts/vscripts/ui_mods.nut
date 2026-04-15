@@ -80,6 +80,7 @@ void function Loadouts_Init()
         loadout.defensive = "mp_titanweapon_heat_shield"
         loadout.core = "mp_titancore_flame_wave"
         loadout.element = RoguelikeElement.fire
+        loadout.additionalSources = ["mp_titanweapon_meteor_thermite", "mp_titanweapon_meteor_thermite_charged"]
         loadout.unlockBit = 5 // scorch
         loadout.statusEffectName = "Burn"
         loadout.color = [255, 175, 75, 255]
@@ -151,7 +152,7 @@ void function Loadouts_Init()
         loadout.description = "<note>No need for a shield if you've got a giant sword...</>\n \nRonin's status effect is <daze>Daze.</>" +
                               "\n\n<daze>Daze</> is inflicted with <cyan>Arc Wave.</>\n" +
                               "Gain <overload>Overload</> stacks from <cyan>Sword hits against Dazed enemies</> or through <cyan>Arc Wave against Dazed enemies.</>\n" +
-                              "\n<overload>Overload</> stacks are consumed when you <daze>fire your shotgun</> for a <red>high base damage increase.</>"
+                              "\n<overload>Overload</> stacks are consumed when you <daze>fire any primary</> for a <red>high base damage increase.</>"
 		loadout.role2 = "<daze>Burst"
 		loadout.role = "<red>Damage</>"
         Roguelike_AddLoadout(loadout)
@@ -168,6 +169,7 @@ void function Loadouts_Init()
         loadout.unlockBit = 3 // northstar
         loadout.statusEffectName = "Fulminate"
         loadout.color = [64, 96, 255, 255]
+        loadout.additionalSources = ["mp_titanweapon_flightcore_rockets"]
         loadout.description = "<note>Welcome to Big Number Inc.! Would you like some big numbers on your screen?</>\n\n" +
                               "Northstar's Railgun does <red>not</> crit randomly, but instead <cyan>crits when hitting the enemy's weak spot.</> Because of this, <daze>all Crit Rate is converted into Crit DMG when using the railgun.</>\n\n" +
                               "Northstar's status effect is <fulm>Fulminate.</>\n\n" +
@@ -867,6 +869,8 @@ bool function Roguelike_LoadoutHasWeapon(RoguelikeLoadout loadout, string weapon
     if (loadout.core == weapon)
         return true
     if (loadout.melee == weapon)
+        return true
+    if (loadout.additionalSources.contains(weapon))
         return true
         
     return false

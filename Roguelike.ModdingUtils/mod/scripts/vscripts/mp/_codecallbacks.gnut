@@ -94,6 +94,19 @@ void function OnClientConnected( entity player )
 			}
 		}
 	}()
+
+	thread void function() : (player)
+	{
+		while (true)
+		{
+			table results = player.WaitSignal( "OnPrimaryAttack" )
+            entity weapon = expect entity(results.activator)
+			if (!weapon.IsWeaponOffhand() && player.IsTitan()) // primary
+			{
+				SetShotgunBuff( player, GetShotgunBuff( player ) - 1 )
+			}
+		}
+	}()
 }
 
 float additiveDMGBonus = 1.0

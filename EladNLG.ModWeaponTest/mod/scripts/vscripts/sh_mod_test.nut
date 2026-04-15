@@ -58,8 +58,12 @@ void function ApplyModWeaponVars( entity weapon )
             }
         }
     }
-    if (weapon.GetWeaponClassName() == "mp_titanweapon_leadwall" && IsValid(owner) && RSE_Get( owner, RoguelikeEffect.ronin_overload ) > 0.0)
+    if (!weapon.IsWeaponOffhand() && IsValid(owner) && owner.IsTitan() && RSE_Get( owner, RoguelikeEffect.ronin_overload ) > 0.0)
+    {
         ModWeaponVars_SetBool( weapon, eWeaponVar.ammo_no_remove_from_clip, true )
+        ModWeaponVars_ScaleDamage( weapon, 1.65 )
+        ModWeaponVars_SetString( weapon, eWeaponVar.fire_sound_3_player_1p, "Weapon_ArcLauncher_Fire_1P" )
+    }
     if (weapon.GetWeaponClassName() == "mp_titanweapon_leadwall" && IsValid(owner) && RSE_Get( owner, RoguelikeEffect.ronin_quickswap ) > 0.0)
         ModWeaponVars_SetBool( weapon, eWeaponVar.is_burn_mod, true )
     if (weapon.GetWeaponClassName() == "mp_titanability_basic_block" && IsValid(owner) && Roguelike_HasMod( owner, "perfect_sword" ))
@@ -523,7 +527,10 @@ void function PlayerWeaponBuffs( entity weapon, entity owner )
         }
     }
     if (weaponClassName == "mp_titancore_flight_core" && Roguelike_HasMod( owner, "first_class_flight" ))
-        ModWeaponVars_ScaleVar( weapon, eWeaponVar.core_duration, 1.25 )
+    {
+        ModWeaponVars_ScaleVar( weapon, eWeaponVar.core_duration, 2 )
+        ModWeaponVars_ScaleVar( weapon, eWeaponVar.sustained_discharge_duration, 2 )
+    }
     if (Roguelike_HasMod( owner, "anti_shield" ))
     {
         ModWeaponVars_AddToVar( weapon, eWeaponVar.vortex_drain, 0.05 )

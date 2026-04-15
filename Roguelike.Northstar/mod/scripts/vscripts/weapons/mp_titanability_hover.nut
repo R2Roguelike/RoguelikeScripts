@@ -57,11 +57,11 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 {
 	if (!("hovering" in player.s))
 		player.s.hovering <- 0
+	player.Signal("StopHover")
 	if (player.IsPlayer() && Roguelike_HasMod( player, "hover_toggle" ) && !isCore)
 	{
 		if (player.s.hovering > 0)
 		{
-			player.Signal("StopHover")
 			return
 		}
 		else

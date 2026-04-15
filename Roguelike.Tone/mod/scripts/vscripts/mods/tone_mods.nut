@@ -150,6 +150,15 @@ void function Tone_RegisterMods()
         mod.tags = [TONE_BENEFIT_1]
         mod.cost = 3
     }
+    {
+        RoguelikeMod mod = NewMod("sonar_proc")
+        mod.name = "Sonar Bullets"
+        mod.abbreviation = "SB"
+        mod.description = "Hits have a 10% chance to <cyan>emit a Sonar Pulse."
+        mod.shortdesc = "Hits may <cyan>emit Sonar Pulses."
+        mod.tags = [TONE_BENEFIT_2]
+        mod.cost = 3
+    }
 }
 
 RoguelikeMod function NewMod(string uniqueName)
