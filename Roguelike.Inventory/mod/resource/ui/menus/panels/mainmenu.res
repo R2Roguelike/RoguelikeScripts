@@ -10,6 +10,29 @@
         visible					0
     }
 
+    Version
+    {
+		ControlName				Label
+		xpos					-18
+		ypos					-18
+		wide					400
+		tall					24
+		visible					1
+		enabled					1
+		//auto_tall_tocontents	1
+		auto_wide_tocontents	1
+		labelText				"v1.0.2"
+		textAlignment			east
+		fgcolor_override 		"255 225 100 255"
+		//bgcolor_override 		"0 0 0 200"
+		font					JetBrainsMono_24
+		//fgcolor_override		""
+		allcaps					0
+		pin_to_sibling			Screen
+		pin_corner_to_sibling	TOP_LEFT
+		pin_to_sibling_corner	TOP_LEFT
+    }
+
     Credits1
     {
 		ControlName				Label
