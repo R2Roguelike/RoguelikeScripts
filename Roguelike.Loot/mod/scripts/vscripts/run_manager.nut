@@ -407,12 +407,18 @@ void function Roguelike_GenerateLoot(int seed = 0, int chestId = -1)
         seed = RandomInt(2000000000)
     PRandom rand = NewPRandom(seed)
 
-    table item = Roguelike_GenerateItem(rand, false)
-    foreach (string k, var v in item)
-        printt(k,v)
-    file.runData.inventory.append(item)
-    file.runData.maxRarityObtained = maxint(expect int(item.rarity), expect int(file.runData.maxRarityObtained))
-    RunStats_ItemObtained()
+    int items = 1
+    if (PRandomInt( rand, 10 ) == 0)
+        items = 2
+    for (int i = 0; i < items; i++)
+    {
+        table item = Roguelike_GenerateItem(rand, false)
+        foreach (string k, var v in item)
+            printt(k,v)
+        file.runData.inventory.append(item)
+        file.runData.maxRarityObtained = maxint(expect int(item.rarity), expect int(file.runData.maxRarityObtained))
+        RunStats_ItemObtained()
+    }
     RunStats_ChestOpened()
 
     array<string> openedChests = split( GetConVarString("roguelike_chests_opened"), " " )
